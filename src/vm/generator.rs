@@ -27,16 +27,16 @@ pub fn generate_byte_code(code: &String, vm: &mut VM) -> Result<(), String> {
                                 Some(word) => {
                                     let value = match word.parse::<u64>() {
                                         Ok(n) => n,
-                                        Err(_) => return Err(String::from("Cannot convert string to number")),
+                                        Err(_) => return Err(format!("Cannot convert '{value}' to number", value=word)),
                                     };
 
                                     vm.put(value);
                                 },
-                                None => return Err(String::from("Not enough arguments")),
+                                None => return Err(format!("Not enough arguments for {name}", name=OPCommands[index].name)),
                             }
                         }
                     },
-                    None => return Err(String::from("No command found")),
+                    None => return Err(format!("No command found called `{word}`", word=word)),
                 }
             },
             None => break
