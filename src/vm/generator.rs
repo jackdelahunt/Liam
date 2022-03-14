@@ -7,10 +7,11 @@ struct OPCommand {
     arguments: u32
 }
 
-static OPCommands: [OPCommand; 3] = [
+static OPCommands: [OPCommand; 4] = [
     OPCommand{name: "load", op: OP::LOAD, arguments: 2},
     OPCommand{name: "print", op: OP::PRINT, arguments: 1},
     OPCommand{name: "add", op: OP::ADD, arguments: 3},
+    OPCommand{name: "alloc", op: OP::ALLOC, arguments: 2},
 ];
 
 pub fn generate_byte_code(code: &String, vm: &mut VM) -> Result<(), String> {
@@ -67,9 +68,9 @@ mod tests {
         let code = String::from("load 1 2");
         generate_byte_code(&code, &mut vm).unwrap();
 
-        assert_eq!(vm.memory[0], OP::LOAD as u64);
-        assert_eq!(vm.memory[1], 1);
-        assert_eq!(vm.memory[2], 2);
+        assert_eq!(vm.byte_code[0], OP::LOAD as u64);
+        assert_eq!(vm.byte_code[1], 1);
+        assert_eq!(vm.byte_code[2], 2);
     }
 
     #[test]
@@ -82,11 +83,11 @@ mod tests {
 
         generate_byte_code(&code, &mut vm).unwrap();
 
-        assert_eq!(vm.memory[0], OP::ADD as u64);
-        assert_eq!(vm.memory[1], 1);
-        assert_eq!(vm.memory[2], 2);
-        assert_eq!(vm.memory[3], 3);
-        assert_eq!(vm.memory[4], OP::PRINT as u64);
-        assert_eq!(vm.memory[5], 2);
+        assert_eq!(vm.byte_code[0], OP::ADD as u64);
+        assert_eq!(vm.byte_code[1], 1);
+        assert_eq!(vm.byte_code[2], 2);
+        assert_eq!(vm.byte_code[3], 3);
+        assert_eq!(vm.byte_code[4], OP::PRINT as u64);
+        assert_eq!(vm.byte_code[5], 2);
     }
 }
