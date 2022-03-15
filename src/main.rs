@@ -1,19 +1,30 @@
 
 mod vm;
-use crate::vm::VM;
-use crate::vm::generator::{generate_byte_code};
+use crate::vm::{VM, OP};
+use crate::vm::generator::{Generator, OPCommand};
 use std::fs;
 
 fn main() {
 
-    let mut vm = VM::new();
     let contents = fs::read_to_string("/home/jackdelahunt/Projects/rvm/main.x").unwrap();
-
-    match generate_byte_code(&contents, &mut vm) {
-        Ok(_) => {},
-        Err(err) => println!("{}", err),
-    }
-
+    
+    let mut generator = Generator::new([
+        OPCommand::new("push", OP::PUSH, 1),
+        OPCommand::new("print", OP::PRINT, 0),
+        OPCommand::new("add", OP::ADD, 0),
+        OPCommand::new("store", OP::STORE, 1),
+        OPCommand::new("load", OP::LOAD, 1),
+        OPCommand::new("alloc", OP::ALLOC, 0),
+        OPCommand::new("put", OP::PUT, 2),
+        OPCommand::new("get", OP::GET, 2),
+        ]);
+        
+        match generator.generate_byte_code(&contents) {
+            Ok(_) => {},
+            Err(err) => println!("{}", err),
+        }
+        
+    let mut vm = VM::new(generator);
     vm.run();
 
     // vm.put(OP::LOAD as u64);

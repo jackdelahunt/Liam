@@ -1,4 +1,5 @@
-push 1
-store 0
-load 0
-print
+@main
+    push 1
+    push 2
+    add
+    print

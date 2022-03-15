@@ -1,6 +1,7 @@
 use num_derive::FromPrimitive;    
 use num_traits::FromPrimitive;
 use crate::vm::Heap;
+use crate::vm::generator::Generator;
 
 pub struct VM {
     pub byte_code: [u64; 1024],
@@ -13,22 +14,16 @@ pub struct VM {
 }
 
 impl VM {
-    pub fn new() -> Self {
+    pub fn new(generator: Generator) -> Self {
         return Self {
-            byte_code: [0; 1024],
+            byte_code: generator.byte_code,
             stack: [0; 1024],
             heap: Heap::new(),
             registers: [0; 10], 
-            memory_ptr: 0,
+            memory_ptr: generator.memory_ptr,
             stack_ptr: 0,
             instruction_ptr: 0
         };
-    }
-
-    pub fn put(&mut self, value: u64) {
-        self.byte_code[self.memory_ptr] = value as u64;
-
-        self.memory_ptr += 1;
     }
 
     pub fn run(&mut self) {
@@ -47,6 +42,25 @@ impl VM {
 
             self.instruction_ptr += 1;
         }
+    }
+
+    fn next(&mut self) -> u64 {
+        self.instruction_ptr += 1;
+        return self.byte_code[self.instruction_ptr];
+    }
+
+    fn stack_push(&mut self, value: u64) {
+        self.stack[self.stack_ptr] = value;
+        self.stack_ptr += 1;
+    }
+
+    fn stack_pop(&mut self) -> u64 {
+        self.stack_ptr -= 1;
+        return self.stack[self.stack_ptr];
+    }
+
+    fn stack_peek(&mut self) -> u64 {
+        return self.stack[self.stack_ptr - 1];
     }
 
     fn push_op(&mut self) {
@@ -93,25 +107,6 @@ impl VM {
         let result_register = self.next() as usize;
 
         self.registers[result_register] = self.heap.get(self.registers[ptr_register] as usize); 
-    }
-
-    fn next(&mut self) -> u64 {
-        self.instruction_ptr += 1;
-        return self.byte_code[self.instruction_ptr];
-    }
-
-    fn stack_push(&mut self, value: u64) {
-        self.stack[self.stack_ptr] = value;
-        self.stack_ptr += 1;
-    }
-
-    fn stack_pop(&mut self) -> u64 {
-        self.stack_ptr -= 1;
-        return self.stack[self.stack_ptr];
-    }
-
-    fn stack_peek(&mut self) -> u64 {
-        return self.stack[self.stack_ptr - 1];
     }
 }
 
