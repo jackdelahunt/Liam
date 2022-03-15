@@ -1,7 +1,6 @@
 use num_derive::FromPrimitive;    
 use num_traits::FromPrimitive;
 use crate::vm::Heap;
-use std::fs;
 
 pub struct VM {
     pub byte_code: [u64; 1024],
@@ -35,6 +34,8 @@ impl VM {
                 Some(OP::PRINT) => self.print_op(),
                 Some(OP::ADD) => self.add_op(),
                 Some(OP::ALLOC) => self.alloc_op(),
+                Some(OP::PUT) => self.put_op(),
+                Some(OP::GET) => self.get_op(),
                 _ => {}
             }
 
@@ -68,6 +69,20 @@ impl VM {
         self.registers[result_register] = self.heap.alloc(size);
     }
 
+    fn put_op(&mut self) {
+        let ptr_register = self.next() as usize;
+        let value_register = self.next() as usize;
+
+        self.heap.put(self.registers[ptr_register] as usize, self.registers[value_register])
+    }
+
+    fn get_op(&mut self) {
+        let ptr_register = self.next() as usize;
+        let result_register = self.next() as usize;
+
+        self.registers[result_register] = self.heap.get(self.registers[ptr_register] as usize); 
+    }
+
     fn next(&mut self) -> u64 {
         self.instruction_ptr += 1;
         return self.byte_code[self.instruction_ptr];
@@ -76,8 +91,10 @@ impl VM {
 
 #[derive(FromPrimitive, Clone, Copy)]
 pub enum OP {
-    MOV = 0,
-    PRINT = 1,
-    ADD = 2,
-    ALLOC = 3,
+    MOV = 0,    // move value into a register
+    PRINT = 1,  // print value
+    ADD = 2,    // add to register values
+    ALLOC = 3,  // allocate memory on the heap
+    PUT = 4,    // set a value on the heap
+    GET = 5,    // get a value on the heap
 }

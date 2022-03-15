@@ -7,11 +7,13 @@ struct OPCommand {
     arguments: u32
 }
 
-static OPCommands: [OPCommand; 4] = [
+static OPCOMMANDS: [OPCommand; 6] = [
     OPCommand{name: "mov", op: OP::MOV, arguments: 2},
     OPCommand{name: "print", op: OP::PRINT, arguments: 1},
     OPCommand{name: "add", op: OP::ADD, arguments: 3},
     OPCommand{name: "alloc", op: OP::ALLOC, arguments: 2},
+    OPCommand{name: "put", op: OP::PUT, arguments: 2},
+    OPCommand{name: "get", op: OP::GET, arguments: 2},
 ];
 
 pub fn generate_byte_code(code: &String, vm: &mut VM) -> Result<(), String> {
@@ -22,8 +24,8 @@ pub fn generate_byte_code(code: &String, vm: &mut VM) -> Result<(), String> {
             Some(word) => {
                 match get_command_index(word) {
                     Some(index) => {
-                        vm.put(OPCommands[index].op as u64);
-                        for _ in 0..OPCommands[index].arguments {
+                        vm.put(OPCOMMANDS[index].op as u64);
+                        for _ in 0..OPCOMMANDS[index].arguments {
                             match split.next() {
                                 Some(word) => {
                                     let value = match word.parse::<u64>() {
@@ -33,7 +35,7 @@ pub fn generate_byte_code(code: &String, vm: &mut VM) -> Result<(), String> {
 
                                     vm.put(value);
                                 },
-                                None => return Err(format!("Not enough arguments for {name}", name=OPCommands[index].name)),
+                                None => return Err(format!("Not enough arguments for {name}", name=OPCOMMANDS[index].name)),
                             }
                         }
                     },
@@ -48,8 +50,8 @@ pub fn generate_byte_code(code: &String, vm: &mut VM) -> Result<(), String> {
 }
 
 fn get_command_index(word: &str) -> Option<usize> {
-    for command_index in 0..OPCommands.len() {
-        if OPCommands[command_index].name == word {
+    for command_index in 0..OPCOMMANDS.len() {
+        if OPCOMMANDS[command_index].name == word {
             return Some(command_index);
         }
     }

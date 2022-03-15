@@ -1,5 +1,5 @@
 pub struct Heap {
-    memory: Vec<u64>
+    pub memory: Vec<u64>
 }
 
 impl Heap {
@@ -13,5 +13,14 @@ impl Heap {
         let ptr = self.memory.len();
         self.memory.resize(ptr + size, 0);
         return ptr as u64;
+    }
+
+
+    pub fn put(&mut self, address: usize, value: u64) {
+        self.memory[address] = value;
+    }
+
+    pub fn get(&mut self, address: usize) -> u64 {
+        return self.memory[address];
     }
 }
