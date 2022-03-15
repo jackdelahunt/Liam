@@ -8,7 +8,7 @@ struct OPCommand {
 }
 
 static OPCommands: [OPCommand; 4] = [
-    OPCommand{name: "load", op: OP::LOAD, arguments: 2},
+    OPCommand{name: "mov", op: OP::MOV, arguments: 2},
     OPCommand{name: "print", op: OP::PRINT, arguments: 1},
     OPCommand{name: "add", op: OP::ADD, arguments: 3},
     OPCommand{name: "alloc", op: OP::ALLOC, arguments: 2},
@@ -65,10 +65,10 @@ mod tests {
     #[test]
     fn single_command() {
         let mut vm = VM::new();
-        let code = String::from("load 1 2");
+        let code = String::from("mov 1 2");
         generate_byte_code(&code, &mut vm).unwrap();
 
-        assert_eq!(vm.byte_code[0], OP::LOAD as u64);
+        assert_eq!(vm.byte_code[0], OP::MOV as u64);
         assert_eq!(vm.byte_code[1], 1);
         assert_eq!(vm.byte_code[2], 2);
     }

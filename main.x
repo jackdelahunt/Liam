@@ -1,3 +1,2 @@
-alloc 10 0
-alloc 10 0
+mov 0 1
 print 0

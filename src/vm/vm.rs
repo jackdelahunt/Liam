@@ -31,7 +31,7 @@ impl VM {
     pub fn run(&mut self) {
         while self.instruction_ptr != self.memory_ptr {
             match FromPrimitive::from_u64(self.byte_code[self.instruction_ptr]) {
-                Some(OP::LOAD) => self.load_op(),
+                Some(OP::MOV) => self.move_op(),
                 Some(OP::PRINT) => self.print_op(),
                 Some(OP::ADD) => self.add_op(),
                 Some(OP::ALLOC) => self.alloc_op(),
@@ -42,7 +42,7 @@ impl VM {
         }
     }
 
-    fn load_op(&mut self) {
+    fn move_op(&mut self) {
         let value = self.next();
         let register = self.next();
         self.registers[register as usize] = value;
@@ -76,7 +76,7 @@ impl VM {
 
 #[derive(FromPrimitive, Clone, Copy)]
 pub enum OP {
-    LOAD = 0,
+    MOV = 0,
     PRINT = 1,
     ADD = 2,
     ALLOC = 3,
