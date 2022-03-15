@@ -15,6 +15,20 @@ pub struct VM {
 
 impl VM {
     pub fn new(generator: Generator) -> Self {
+
+        let mut instruction_ptr: Option<usize> = None;
+
+        for i in 0..generator.labels.len() {
+            if generator.labels[i].label == "@main" {
+                instruction_ptr = Some(generator.labels[i].location);
+                break;
+            }
+        }
+
+        if instruction_ptr == None {
+            panic!("No main label found");
+        }
+
         return Self {
             byte_code: generator.byte_code,
             stack: [0; 1024],
@@ -22,7 +36,7 @@ impl VM {
             registers: [0; 10], 
             memory_ptr: generator.memory_ptr,
             stack_ptr: 0,
-            instruction_ptr: 0
+            instruction_ptr: instruction_ptr.unwrap()
         };
     }
 
