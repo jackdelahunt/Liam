@@ -9,10 +9,10 @@ impl Heap {
         };
     }
 
-    pub fn alloc(&mut self, size: usize) -> u64 {
+    pub fn alloc(&mut self, size: usize) -> usize {
         let ptr = self.memory.len();
         self.memory.resize(ptr + size, 0);
-        return ptr as u64;
+        return ptr;
     }
 
 

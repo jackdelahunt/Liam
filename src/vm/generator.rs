@@ -7,11 +7,13 @@ struct OPCommand {
     arguments: u32
 }
 
-static OPCOMMANDS: [OPCommand; 6] = [
-    OPCommand{name: "mov", op: OP::MOV, arguments: 2},
-    OPCommand{name: "print", op: OP::PRINT, arguments: 1},
-    OPCommand{name: "add", op: OP::ADD, arguments: 3},
-    OPCommand{name: "alloc", op: OP::ALLOC, arguments: 2},
+static OPCOMMANDS: [OPCommand; 8] = [
+    OPCommand{name: "push", op: OP::PUSH, arguments: 1},
+    OPCommand{name: "print", op: OP::PRINT, arguments: 0},
+    OPCommand{name: "add", op: OP::ADD, arguments: 0},
+    OPCommand{name: "store", op: OP::STORE, arguments: 1},
+    OPCommand{name: "load", op: OP::LOAD, arguments: 1},
+    OPCommand{name: "alloc", op: OP::ALLOC, arguments: 0},
     OPCommand{name: "put", op: OP::PUT, arguments: 2},
     OPCommand{name: "get", op: OP::GET, arguments: 2},
 ];
@@ -70,7 +72,7 @@ mod tests {
         let code = String::from("mov 1 2");
         generate_byte_code(&code, &mut vm).unwrap();
 
-        assert_eq!(vm.byte_code[0], OP::MOV as u64);
+        assert_eq!(vm.byte_code[0], OP::PUSH as u64);
         assert_eq!(vm.byte_code[1], 1);
         assert_eq!(vm.byte_code[2], 2);
     }
