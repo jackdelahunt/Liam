@@ -21,6 +21,7 @@ fn main() {
         OPCommand::new("ret", OP::RET, 0),
         OPCommand::new("pop_ret", OP::POPRET, 0),
         OPCommand::new("call", OP::CALL, 2),
+        OPCommand::new("goto", OP::GOTO, 1),
         ]);
         
         match generator.generate_byte_code(&contents) {

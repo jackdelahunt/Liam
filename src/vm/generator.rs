@@ -13,19 +13,21 @@ impl OPCommand {
 }
 
 pub struct Generator {
-    pub instruction_set: [OPCommand; 12],
+    pub instruction_set: [OPCommand; 13],
     pub byte_code: [u64; 1024],
     pub memory_ptr: usize,
-    pub labels: Vec<Label>,
+    pub functions: Vec<Label>,
+    pub tags: Vec<Label>,
 }
 
 impl Generator {
-    pub fn new(instruction_set: [OPCommand; 12]) -> Self {
+    pub fn new(instruction_set: [OPCommand; 13]) -> Self {
         Self {
             instruction_set,
             byte_code: [0; 1024],
             memory_ptr: 0,
-            labels: Vec::new()
+            functions: Vec::new(),
+            tags: Vec::new()
         }
     }
 
@@ -38,7 +40,12 @@ impl Generator {
 
                     // check if this is a label
                     if word.starts_with("@") {
-                        self.labels.push(Label::new(String::from(word), self.memory_ptr));
+                        self.functions.push(Label::new(String::from(word), self.memory_ptr));
+                        continue;
+                    }
+                    
+                    if word.starts_with("#") {
+                        self.tags.push(Label::new(String::from(word), self.memory_ptr));
                         continue;
                     }
 
@@ -52,9 +59,14 @@ impl Generator {
                                         let value: u64;
                                         // check if this argument is looking for a label
                                         if word.starts_with("@") {
-                                            value = match self.get_label_location(word) {
+                                            value = match self.get_function_location(word) {
                                                 Some(n) => n as u64,
-                                                None => return Err(format!("Cannot find label '{label}'", label=word)),
+                                                None => return Err(format!("Cannot find function '{label}'", label=word)),
+                                            }
+                                        } else if word.starts_with("#") {
+                                            value = match self.get_tag_location(word) {
+                                                Some(n) => n as u64,
+                                                None => return Err(format!("Cannot find tag '{label}'", label=word)),
                                             }
                                         } else {
                                             value = match word.parse::<u64>() {
@@ -79,10 +91,20 @@ impl Generator {
         return Ok(());
     }
 
-    fn get_label_location(&self, label: &str) -> Option<usize> {
-        for i in 0..self.labels.len() {
-            if self.labels[i].label == label {
-                return Some(self.labels[i].location);
+    fn get_function_location(&self, label: &str) -> Option<usize> {
+        for i in 0..self.functions.len() {
+            if self.functions[i].label == label {
+                return Some(self.functions[i].location);
+            }
+        }
+
+        return None;
+    }
+
+    fn get_tag_location(&self, label: &str) -> Option<usize> {
+        for i in 0..self.tags.len() {
+            if self.tags[i].label == label {
+                return Some(self.tags[i].location);
             }
         }
 

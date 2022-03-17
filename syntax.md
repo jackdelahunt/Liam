@@ -12,3 +12,4 @@
 | ret     | 9       |                   |                          |
 | pop_ret | 10      |                   | value -->                |
 | call    | 11      | label, arg count  | [args] -->               |
+| goto    | 12      | label             | -->                      |

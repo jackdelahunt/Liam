@@ -20,9 +20,9 @@ impl VM {
 
         let mut instruction_ptr: Option<usize> = None;
 
-        for i in 0..generator.labels.len() {
-            if generator.labels[i].label == "@main" {
-                instruction_ptr = Some(generator.labels[i].location);
+        for i in 0..generator.functions.len() {
+            if generator.functions[i].label == "@main" {
+                instruction_ptr = Some(generator.functions[i].location);
                 break;
             }
         }
@@ -92,6 +92,10 @@ impl VM {
                 Some(OP::CALL) => {
                     // explicity set the ip
                     self.call_op();
+                }
+                Some(OP::GOTO) => {
+                    // explicity set the ip
+                    self.goto_op();
                 }
                 _ => {}
             }
@@ -216,6 +220,11 @@ impl VM {
 
         self.instruction_ptr = callee;
     }
+
+    fn goto_op(&mut self) {
+        let callee = self.next() as usize;
+        self.instruction_ptr = callee;
+    }
 }
 
 pub struct StackFrame {
@@ -248,6 +257,7 @@ pub enum OP {
     RET     = 9,
     POPRET  = 10,
     CALL    = 11,
+    GOTO    = 12,
 }
 
 pub trait SignedChanged {
