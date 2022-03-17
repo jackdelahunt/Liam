@@ -1,8 +1,7 @@
 @main
     push 0
     store 0
-
-#loop
+    #loop
     load 0
     push 1
     add

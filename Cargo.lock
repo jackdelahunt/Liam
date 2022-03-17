@@ -3,6 +3,14 @@
 version = 3
 
 [[package]]
+name = "Liam"
+version = "0.1.0"
+dependencies = [
+ "num-derive",
+ "num-traits",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -44,14 +52,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6ce23b6b870e8f94f81fb0a363d65d86675884b34a09043c81e5562f11c1f8e1"
 dependencies = [
  "proc-macro2",
-]
-
-[[package]]
-name = "rvm"
-version = "0.1.0"
-dependencies = [
- "num-derive",
- "num-traits",
 ]
 
 [[package]]

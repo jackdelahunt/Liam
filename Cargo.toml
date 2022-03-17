@@ -1,9 +1,17 @@
 [package]
-name = "rvm"
+name = "Liam"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "liam_vm"
+path = "src/rvm/main.rs"
+
+[[bin]]
+name = "liamc"
+path = "src/liamc/main.rs"
 
 [dependencies]
 num-traits = "0.2"
