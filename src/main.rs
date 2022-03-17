@@ -20,7 +20,7 @@ fn main() {
         OPCommand::new("get", OP::GET, 0),
         OPCommand::new("ret", OP::RET, 0),
         OPCommand::new("pop_ret", OP::POPRET, 0),
-        OPCommand::new("call", OP::CALL, 1),
+        OPCommand::new("call", OP::CALL, 2),
         ]);
         
         match generator.generate_byte_code(&contents) {

@@ -10,4 +10,5 @@
 | put     | 7       |                   | ptr, value -->           |
 | get     | 8       |                   | ptr --> value            |
 | ret     | 9       |                   |                          |
-| call    | 10      | byte code address |                          |
+| pop_ret | 10      |                   | value -->                |
+| call    | 11      | label, arg count  | [args] -->               |

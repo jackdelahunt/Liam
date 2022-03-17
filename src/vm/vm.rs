@@ -1,3 +1,5 @@
+use std::isize;
+
 use num_derive::FromPrimitive;    
 use num_traits::FromPrimitive;
 use crate::vm::Heap;
@@ -102,17 +104,30 @@ impl VM {
     }
 
     fn stack_push(&mut self, value: u64) {
+        if self.stack_ptr >= self.stack.len() {
+            panic!("Stack overflow")
+        }
+
         self.stack[self.stack_ptr] = value;
         self.stack_ptr += 1;
     }
 
     fn stack_pop(&mut self) -> u64 {
-        self.stack_ptr = self.stack_ptr.checked_sub(1).expect("Cannot pop off stack, stack is empty");
+        self.stack_ptr = self.from_stack_ptr(-1);
         return self.stack[self.stack_ptr];
     }
 
     fn stack_peek(&mut self) -> u64 {
-        return self.stack[self.stack_ptr.checked_sub(1).expect("Cannot pop off stack, stack is empty")];
+        return self.stack[self.from_stack_ptr(-1)];
+    }
+
+    fn from_stack_ptr(&mut self, offset: isize) -> usize {
+        let result = self.stack_ptr.change_signed(offset).expect("Cannot pop off stack, stack is empty");
+        if result < self.current_frame().stack_ptr {
+            panic!("Out of bounds stack ptr");
+        }
+
+        return result;
     }
 
     fn current_frame(&mut self) -> &mut StackFrame {
@@ -189,7 +204,15 @@ impl VM {
 
     fn call_op(&mut self) {
         let callee = self.next() as usize;
-        self.frames.push(StackFrame::new(self.instruction_ptr + 1, self.stack_ptr));
+        let arg_count = self.next() as usize;
+
+        let mut frame = StackFrame::new(self.instruction_ptr + 1, self.stack_ptr - arg_count);
+
+        for i in (0..arg_count).rev() {
+            frame.locals[i] = self.stack_pop();
+        }
+
+        self.frames.push(frame);
 
         self.instruction_ptr = callee;
     }
@@ -225,4 +248,23 @@ pub enum OP {
     RET     = 9,
     POPRET  = 10,
     CALL    = 11,
+}
+
+pub trait SignedChanged {
+    fn change_signed(&self, offset: isize) -> Option<Self> where Self: Sized;
+}
+
+impl SignedChanged for usize {
+    fn change_signed(&self, offset: isize) -> Option<Self> {
+        if offset >= 0 {
+            return self.checked_add(offset as usize);
+        } else {    
+            let new_value = *self as isize + offset;
+            if new_value < 0 {
+                return None
+            }
+
+            return Some(new_value as usize);
+        }
+    }
 }
