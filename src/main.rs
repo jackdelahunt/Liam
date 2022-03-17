@@ -16,8 +16,8 @@ fn main() {
         OPCommand::new("store", OP::STORE, 1),
         OPCommand::new("load", OP::LOAD, 1),
         OPCommand::new("alloc", OP::ALLOC, 0),
-        OPCommand::new("put", OP::PUT, 2),
-        OPCommand::new("get", OP::GET, 2),
+        OPCommand::new("put", OP::PUT, 0),
+        OPCommand::new("get", OP::GET, 0),
         OPCommand::new("ret", OP::RET, 0),
         OPCommand::new("call", OP::CALL, 1),
         ]);

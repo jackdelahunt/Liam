@@ -141,7 +141,6 @@ impl VM {
         let register = self.next() as usize;
         let value = self.stack_pop();
         self.current_frame().locals[register] = value;
-        let x = 10;
     }
 
     fn load_op(&mut self) {
@@ -157,17 +156,17 @@ impl VM {
     }
 
     fn put_op(&mut self) {
-        let ptr_register = self.next() as usize;
-        let value_register = self.next() as usize;
+        let value = self.stack_pop();
+        let ptr = self.stack_pop() as usize;
 
-        // self.heap.put(self.registers[ptr_register] as usize, self.registers[value_register])
+        self.heap.put(ptr, value);
     }
 
     fn get_op(&mut self) {
-        let ptr_register = self.next() as usize;
-        let result_register = self.next() as usize;
+        let ptr = self.stack_pop() as usize;
 
-        // self.registers[result_register] = self.heap.get(self.registers[ptr_register] as usize); 
+        let heap_value = self.heap.get(ptr);
+        self.stack_push(heap_value); 
     }
 
     fn return_op(&mut self) {
