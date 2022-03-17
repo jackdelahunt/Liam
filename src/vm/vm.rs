@@ -7,7 +7,6 @@ pub struct VM {
     pub byte_code: [u64; 1024],
     pub stack: [u64; 1024],
     pub heap: Heap,
-    pub registers: [u64; 10],
     pub memory_ptr: usize,
     pub stack_ptr: usize,
     pub instruction_ptr: usize,
@@ -34,7 +33,6 @@ impl VM {
             byte_code: generator.byte_code,
             stack: [0; 1024],
             heap: Heap::new(),
-            registers: [0; 10], 
             memory_ptr: generator.memory_ptr,
             stack_ptr: 0,
             instruction_ptr: instruction_ptr.unwrap(),
@@ -105,12 +103,19 @@ impl VM {
     }
 
     fn stack_pop(&mut self) -> u64 {
-        self.stack_ptr.checked_sub(1).expect("Cannot pop off stack, stack is empty");
+        self.stack_ptr = self.stack_ptr.checked_sub(1).expect("Cannot pop off stack, stack is empty");
         return self.stack[self.stack_ptr];
     }
 
     fn stack_peek(&mut self) -> u64 {
-        return self.stack[self.stack_ptr - 1];
+        return self.stack[self.stack_ptr.checked_sub(1).expect("Cannot pop off stack, stack is empty")];
+    }
+
+    fn current_frame(&mut self) -> &mut StackFrame {
+        return match self.frames.last_mut() {
+            Some(frame) => frame,
+            None => panic!("Out of stack frames"),
+        }
     }
 
     fn push_op(&mut self) {
@@ -135,12 +140,14 @@ impl VM {
     fn store_op(&mut self) {
         let register = self.next() as usize;
         let value = self.stack_pop();
-        self.registers[register] = value;
+        self.current_frame().locals[register] = value;
+        let x = 10;
     }
 
     fn load_op(&mut self) {
         let register = self.next() as usize;
-        self.stack_push(self.registers[register]);
+        let local_value = self.current_frame().locals[register];
+        self.stack_push(local_value);
     }
 
     fn alloc_op(&mut self) {
@@ -153,14 +160,14 @@ impl VM {
         let ptr_register = self.next() as usize;
         let value_register = self.next() as usize;
 
-        self.heap.put(self.registers[ptr_register] as usize, self.registers[value_register])
+        // self.heap.put(self.registers[ptr_register] as usize, self.registers[value_register])
     }
 
     fn get_op(&mut self) {
         let ptr_register = self.next() as usize;
         let result_register = self.next() as usize;
 
-        self.registers[result_register] = self.heap.get(self.registers[ptr_register] as usize); 
+        // self.registers[result_register] = self.heap.get(self.registers[ptr_register] as usize); 
     }
 
     fn return_op(&mut self) {
@@ -178,13 +185,20 @@ impl VM {
 }
 
 pub struct StackFrame {
-    pub return_address: usize,
-    pub stack_ptr: usize,
+    pub return_address: usize,  // if returned where will the ip go to
+    pub stack_ptr: usize,       // if returned where will the sp go
+    pub locals: [u64; 32],      // local variables
+    pub returns: Option<u64>    // returning value if any
 }
 
 impl StackFrame {
     pub fn new(return_address: usize, stack_ptr: usize) -> Self {
-        Self {return_address, stack_ptr}
+        Self {
+            return_address, 
+            stack_ptr,
+            locals: [0; 32],
+            returns: None
+        }
     }
 }
 

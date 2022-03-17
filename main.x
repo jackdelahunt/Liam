@@ -1,10 +1,12 @@
-@print
-    push 1
-    push 2
+@add
+    load 0
+    load 1
+    add
+    print
     ret
 
 @main
-    call @print
-    add
-    print
+    push 10
+    store 0 
+    call @add
     ret
