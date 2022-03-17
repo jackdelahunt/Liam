@@ -49,6 +49,10 @@ impl VM {
                     self.push_op();
                     self.instruction_ptr += 1;
                 }
+                Some(OP::POP) => {
+                    self.pop_op();
+                    self.instruction_ptr += 1;
+                }
                 Some(OP::PRINT) => {
                     self.print_op();
                     self.instruction_ptr += 1;
@@ -112,6 +116,10 @@ impl VM {
     fn push_op(&mut self) {
         let value = self.next();
         self.stack_push(value);
+    }
+
+    fn pop_op(&mut self) {
+        self.stack_pop();
     }
 
     fn print_op(&mut self) {
@@ -180,14 +188,15 @@ impl StackFrame {
 
 #[derive(FromPrimitive, Clone, Copy)]
 pub enum OP {
-    PUSH = 0,
-    PRINT = 1,
-    ADD = 2,
-    STORE = 3,
-    LOAD = 4,
-    ALLOC = 5,
-    PUT = 6,
-    GET = 7,
-    RET = 8,
-    CALL = 9,
+    PUSH    = 0,
+    POP     = 1,
+    PRINT   = 2,
+    ADD     = 3,
+    STORE   = 4,
+    LOAD    = 5,
+    ALLOC   = 6,
+    PUT     = 7,
+    GET     = 8,
+    RET     = 9,
+    CALL    = 10,
 }

@@ -10,6 +10,7 @@ fn main() {
     
     let mut generator = Generator::new([
         OPCommand::new("push", OP::PUSH, 1),
+        OPCommand::new("pop", OP::POP, 0),
         OPCommand::new("print", OP::PRINT, 0),
         OPCommand::new("add", OP::ADD, 0),
         OPCommand::new("store", OP::STORE, 1),
