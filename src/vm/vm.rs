@@ -83,6 +83,10 @@ impl VM {
                     // explicity set the ip
                     self.return_op();
                 }
+                Some(OP::POPRET) => {
+                    // explicity set the ip
+                    self.pop_return_op();
+                }
                 Some(OP::CALL) => {
                     // explicity set the ip
                     self.call_op();
@@ -175,6 +179,14 @@ impl VM {
         self.stack_ptr = popped_frame.stack_ptr;
     }
 
+    fn pop_return_op(&mut self) {
+        let returning_value = self.stack_pop();
+        let popped_frame = self.frames.pop().unwrap();
+        self.instruction_ptr = popped_frame.return_address;
+        self.stack_ptr = popped_frame.stack_ptr;
+        self.stack_push(returning_value);
+    }
+
     fn call_op(&mut self) {
         let callee = self.next() as usize;
         self.frames.push(StackFrame::new(self.instruction_ptr + 1, self.stack_ptr));
@@ -187,7 +199,6 @@ pub struct StackFrame {
     pub return_address: usize,  // if returned where will the ip go to
     pub stack_ptr: usize,       // if returned where will the sp go
     pub locals: [u64; 32],      // local variables
-    pub returns: Option<u64>    // returning value if any
 }
 
 impl StackFrame {
@@ -196,7 +207,6 @@ impl StackFrame {
             return_address, 
             stack_ptr,
             locals: [0; 32],
-            returns: None
         }
     }
 }
@@ -213,5 +223,6 @@ pub enum OP {
     PUT     = 7,
     GET     = 8,
     RET     = 9,
-    CALL    = 10,
+    POPRET  = 10,
+    CALL    = 11,
 }

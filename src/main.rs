@@ -19,6 +19,7 @@ fn main() {
         OPCommand::new("put", OP::PUT, 0),
         OPCommand::new("get", OP::GET, 0),
         OPCommand::new("ret", OP::RET, 0),
+        OPCommand::new("pop_ret", OP::POPRET, 0),
         OPCommand::new("call", OP::CALL, 1),
         ]);
         

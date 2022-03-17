@@ -13,14 +13,14 @@ impl OPCommand {
 }
 
 pub struct Generator {
-    pub instruction_set: [OPCommand; 11],
+    pub instruction_set: [OPCommand; 12],
     pub byte_code: [u64; 1024],
     pub memory_ptr: usize,
     pub labels: Vec<Label>,
 }
 
 impl Generator {
-    pub fn new(instruction_set: [OPCommand; 11]) -> Self {
+    pub fn new(instruction_set: [OPCommand; 12]) -> Self {
         Self {
             instruction_set,
             byte_code: [0; 1024],
