@@ -38,7 +38,7 @@ impl VM {
             memory_ptr: generator.memory_ptr,
             stack_ptr: 0,
             instruction_ptr: instruction_ptr.unwrap(),
-            frames: vec![StackFrame::new(generator.memory_ptr)] // poping this frame ends program
+            frames: vec![StackFrame::new(generator.memory_ptr, 0)] // poping this frame ends program
         };
     }
 
@@ -105,7 +105,7 @@ impl VM {
     }
 
     fn stack_pop(&mut self) -> u64 {
-        self.stack_ptr -= 1;
+        self.stack_ptr.checked_sub(1).expect("Cannot pop off stack, stack is empty");
         return self.stack[self.stack_ptr];
     }
 
@@ -166,11 +166,12 @@ impl VM {
     fn return_op(&mut self) {
         let popped_frame = self.frames.pop().unwrap();
         self.instruction_ptr = popped_frame.return_address;
+        self.stack_ptr = popped_frame.stack_ptr;
     }
 
     fn call_op(&mut self) {
         let callee = self.next() as usize;
-        self.frames.push(StackFrame::new(self.instruction_ptr + 1));
+        self.frames.push(StackFrame::new(self.instruction_ptr + 1, self.stack_ptr));
 
         self.instruction_ptr = callee;
     }
@@ -178,11 +179,12 @@ impl VM {
 
 pub struct StackFrame {
     pub return_address: usize,
+    pub stack_ptr: usize,
 }
 
 impl StackFrame {
-    pub fn new(return_address: usize) -> Self {
-        Self {return_address}
+    pub fn new(return_address: usize, stack_ptr: usize) -> Self {
+        Self {return_address, stack_ptr}
     }
 }
 
