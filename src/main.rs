@@ -17,6 +17,8 @@ fn main() {
         OPCommand::new("alloc", OP::ALLOC, 0),
         OPCommand::new("put", OP::PUT, 2),
         OPCommand::new("get", OP::GET, 2),
+        OPCommand::new("ret", OP::RET, 0),
+        OPCommand::new("call", OP::CALL, 1),
         ]);
         
         match generator.generate_byte_code(&contents) {
@@ -26,19 +28,4 @@ fn main() {
         
     let mut vm = VM::new(generator);
     vm.run();
-
-    // vm.put(OP::LOAD as u64);
-    // vm.put(10);
-    // vm.put(0);
-    // vm.put(OP::LOAD as u64);
-    // vm.put(20);
-    // vm.put(1);
-    // vm.put(OP::ADD as u64);
-    // vm.put(0);
-    // vm.put(1);
-    // vm.put(0);
-    // vm.put(OP::PRINT as u64);
-    // vm.put(0);
-
-    // vm.run();
 }

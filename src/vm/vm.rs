@@ -11,6 +11,7 @@ pub struct VM {
     pub memory_ptr: usize,
     pub stack_ptr: usize,
     pub instruction_ptr: usize,
+    pub frames: Vec<StackFrame>
 }
 
 impl VM {
@@ -36,25 +37,56 @@ impl VM {
             registers: [0; 10], 
             memory_ptr: generator.memory_ptr,
             stack_ptr: 0,
-            instruction_ptr: instruction_ptr.unwrap()
+            instruction_ptr: instruction_ptr.unwrap(),
+            frames: vec![StackFrame::new(generator.memory_ptr)] // poping this frame ends program
         };
     }
 
     pub fn run(&mut self) {
-        while self.instruction_ptr != self.memory_ptr {
+        while self.instruction_ptr < self.memory_ptr {
             match FromPrimitive::from_u64(self.byte_code[self.instruction_ptr]) {
-                Some(OP::PUSH) => self.push_op(),
-                Some(OP::PRINT) => self.print_op(),
-                Some(OP::ADD) => self.add_op(),
-                Some(OP::STORE) => self.store_op(),
-                Some(OP::LOAD) => self.load_op(),
-                Some(OP::ALLOC) => self.alloc_op(),
-                Some(OP::PUT) => self.put_op(),
-                Some(OP::GET) => self.get_op(),
+                Some(OP::PUSH) => {
+                    self.push_op();
+                    self.instruction_ptr += 1;
+                }
+                Some(OP::PRINT) => {
+                    self.print_op();
+                    self.instruction_ptr += 1;
+                }
+                Some(OP::ADD) => {
+                    self.add_op();
+                    self.instruction_ptr += 1;
+                }
+                Some(OP::STORE) => {
+                    self.store_op();
+                    self.instruction_ptr += 1;
+                }
+                Some(OP::LOAD) => {
+                    self.load_op();
+                    self.instruction_ptr += 1;
+                }
+                Some(OP::ALLOC) => {
+                    self.alloc_op();
+                    self.instruction_ptr += 1;
+                }
+                Some(OP::PUT) => {
+                    self.put_op();
+                    self.instruction_ptr += 1;
+                }
+                Some(OP::GET) => {
+                    self.get_op();
+                    self.instruction_ptr += 1;
+                }
+                Some(OP::RET) => {
+                    // explicity set the ip
+                    self.return_op();
+                }
+                Some(OP::CALL) => {
+                    // explicity set the ip
+                    self.call_op();
+                }
                 _ => {}
             }
-
-            self.instruction_ptr += 1;
         }
     }
 
@@ -122,6 +154,28 @@ impl VM {
 
         self.registers[result_register] = self.heap.get(self.registers[ptr_register] as usize); 
     }
+
+    fn return_op(&mut self) {
+        let popped_frame = self.frames.pop().unwrap();
+        self.instruction_ptr = popped_frame.return_address;
+    }
+
+    fn call_op(&mut self) {
+        let callee = self.next() as usize;
+        self.frames.push(StackFrame::new(self.instruction_ptr + 1));
+
+        self.instruction_ptr = callee;
+    }
+}
+
+pub struct StackFrame {
+    pub return_address: usize,
+}
+
+impl StackFrame {
+    pub fn new(return_address: usize) -> Self {
+        Self {return_address}
+    }
 }
 
 #[derive(FromPrimitive, Clone, Copy)]
@@ -134,4 +188,6 @@ pub enum OP {
     ALLOC = 5,
     PUT = 6,
     GET = 7,
+    RET = 8,
+    CALL = 9,
 }
