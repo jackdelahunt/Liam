@@ -1,14 +1,18 @@
-use crate::vm::{OP};
+use crate::vm::OP;
 
 pub struct OPCommand {
     name: &'static str,
     op: OP,
-    arguments: u32
+    arguments: u32,
 }
 
 impl OPCommand {
     pub fn new(name: &'static str, op: OP, arguments: u32) -> Self {
-        return Self {name, op, arguments};
+        return Self {
+            name,
+            op,
+            arguments,
+        };
     }
 }
 
@@ -27,25 +31,25 @@ impl Generator {
             byte_code: [0; 1024],
             memory_ptr: 0,
             functions: Vec::new(),
-            tags: Vec::new()
+            tags: Vec::new(),
         }
     }
 
     pub fn generate_byte_code(&mut self, code: &String) -> Result<(), String> {
-
         let mut split = code.split_whitespace();
         loop {
             match split.next() {
                 Some(word) => {
-
                     // check if this is a label
                     if word.starts_with("@") {
-                        self.functions.push(Label::new(String::from(word), self.memory_ptr));
+                        self.functions
+                            .push(Label::new(String::from(word), self.memory_ptr));
                         continue;
                     }
-                    
+
                     if word.starts_with("#") {
-                        self.tags.push(Label::new(String::from(word), self.memory_ptr));
+                        self.tags
+                            .push(Label::new(String::from(word), self.memory_ptr));
                         continue;
                     }
 
@@ -55,39 +59,60 @@ impl Generator {
                             for _ in 0..self.instruction_set[index].arguments {
                                 match split.next() {
                                     Some(word) => {
-
                                         let value: u64;
                                         // check if this argument is looking for a label
                                         if word.starts_with("@") {
                                             value = match self.get_function_location(word) {
                                                 Some(n) => n as u64,
-                                                None => return Err(format!("Cannot find function '{label}'", label=word)),
+                                                None => {
+                                                    return Err(format!(
+                                                        "Cannot find function '{label}'",
+                                                        label = word
+                                                    ))
+                                                }
                                             }
                                         } else if word.starts_with("#") {
                                             value = match self.get_tag_location(word) {
                                                 Some(n) => n as u64,
-                                                None => return Err(format!("Cannot find tag '{label}'", label=word)),
+                                                None => {
+                                                    return Err(format!(
+                                                        "Cannot find tag '{label}'",
+                                                        label = word
+                                                    ))
+                                                }
                                             }
                                         } else {
                                             value = match word.parse::<u64>() {
                                                 Ok(n) => n,
-                                                Err(_) => return Err(format!("Cannot convert '{value}' to number", value=word)),
+                                                Err(_) => {
+                                                    return Err(format!(
+                                                        "Cannot convert '{value}' to number",
+                                                        value = word
+                                                    ))
+                                                }
                                             };
                                         }
-    
+
                                         self.put(value);
-                                    },
-                                    None => return Err(format!("Not enough arguments for {name}", name=self.instruction_set[index].name)),
+                                    }
+                                    None => {
+                                        return Err(format!(
+                                            "Not enough arguments for {name}",
+                                            name = self.instruction_set[index].name
+                                        ))
+                                    }
                                 }
                             }
-                        },
-                        None => return Err(format!("No command found called `{word}`", word=word)),
+                        }
+                        None => {
+                            return Err(format!("No command found called `{word}`", word = word))
+                        }
                     }
-                },
-                None => break
+                }
+                None => break,
             }
         }
-    
+
         return Ok(());
     }
 
@@ -123,18 +148,18 @@ impl Generator {
                 return Some(command_index);
             }
         }
-    
+
         return None;
     }
 }
 
 pub struct Label {
     pub label: String,
-    pub location: usize
+    pub location: usize,
 }
 
 impl Label {
     pub fn new(label: String, location: usize) -> Self {
-        Self {label, location}
+        Self { label, location }
     }
 }

@@ -1,13 +1,11 @@
-
 mod vm;
-use crate::vm::{VM, OP};
 use crate::vm::generator::{Generator, OPCommand};
+use crate::vm::{OP, VM};
 use std::fs;
 
 fn main() {
-
     let contents = fs::read_to_string("/home/jackdelahunt/Projects/rvm/main.x").unwrap();
-    
+
     let mut generator = Generator::new([
         OPCommand::new("push", OP::PUSH, 1),
         OPCommand::new("pop", OP::POP, 0),
@@ -22,13 +20,13 @@ fn main() {
         OPCommand::new("pop_ret", OP::POPRET, 0),
         OPCommand::new("call", OP::CALL, 2),
         OPCommand::new("goto", OP::GOTO, 1),
-        ]);
-        
-        match generator.generate_byte_code(&contents) {
-            Ok(_) => {},
-            Err(err) => println!("{}", err),
-        }
-        
+    ]);
+
+    match generator.generate_byte_code(&contents) {
+        Ok(_) => {}
+        Err(err) => println!("{}", err),
+    }
+
     let mut vm = VM::new(generator);
     vm.run();
 }

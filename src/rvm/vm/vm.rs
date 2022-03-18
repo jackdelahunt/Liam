@@ -1,9 +1,9 @@
 use std::isize;
 
-use num_derive::FromPrimitive;    
-use num_traits::FromPrimitive;
-use crate::vm::Heap;
 use crate::vm::generator::Generator;
+use crate::vm::Heap;
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
 
 pub struct VM {
     pub byte_code: [u64; 1024],
@@ -12,12 +12,11 @@ pub struct VM {
     pub memory_ptr: usize,
     pub stack_ptr: usize,
     pub instruction_ptr: usize,
-    pub frames: Vec<StackFrame>
+    pub frames: Vec<StackFrame>,
 }
 
 impl VM {
     pub fn new(generator: Generator) -> Self {
-
         let mut instruction_ptr: Option<usize> = None;
 
         for i in 0..generator.functions.len() {
@@ -38,7 +37,7 @@ impl VM {
             memory_ptr: generator.memory_ptr,
             stack_ptr: 0,
             instruction_ptr: instruction_ptr.unwrap(),
-            frames: vec![StackFrame::new(generator.memory_ptr, 0)] // poping this frame ends program
+            frames: vec![StackFrame::new(generator.memory_ptr, 0)], // poping this frame ends program
         };
     }
 
@@ -126,7 +125,10 @@ impl VM {
     }
 
     fn from_stack_ptr(&mut self, offset: isize) -> usize {
-        let result = self.stack_ptr.change_signed(offset).expect("Cannot pop off stack, stack is empty");
+        let result = self
+            .stack_ptr
+            .change_signed(offset)
+            .expect("Cannot pop off stack, stack is empty");
         if result < self.current_frame().stack_ptr {
             panic!("Out of bounds stack ptr");
         }
@@ -138,7 +140,7 @@ impl VM {
         return match self.frames.last_mut() {
             Some(frame) => frame,
             None => panic!("Out of stack frames"),
-        }
+        };
     }
 
     fn push_op(&mut self) {
@@ -189,7 +191,7 @@ impl VM {
         let ptr = self.stack_pop() as usize;
 
         let heap_value = self.heap.get(ptr);
-        self.stack_push(heap_value); 
+        self.stack_push(heap_value);
     }
 
     fn return_op(&mut self) {
@@ -228,15 +230,15 @@ impl VM {
 }
 
 pub struct StackFrame {
-    pub return_address: usize,  // if returned where will the ip go to
-    pub stack_ptr: usize,       // if returned where will the sp go
-    pub locals: [u64; 32],      // local variables
+    pub return_address: usize, // if returned where will the ip go to
+    pub stack_ptr: usize,      // if returned where will the sp go
+    pub locals: [u64; 32],     // local variables
 }
 
 impl StackFrame {
     pub fn new(return_address: usize, stack_ptr: usize) -> Self {
         Self {
-            return_address, 
+            return_address,
             stack_ptr,
             locals: [0; 32],
         }
@@ -245,33 +247,35 @@ impl StackFrame {
 
 #[derive(FromPrimitive, Clone, Copy)]
 pub enum OP {
-    PUSH    = 0,
-    POP     = 1,
-    PRINT   = 2,
-    ADD     = 3,
-    STORE   = 4,
-    LOAD    = 5,
-    ALLOC   = 6,
-    PUT     = 7,
-    GET     = 8,
-    RET     = 9,
-    POPRET  = 10,
-    CALL    = 11,
-    GOTO    = 12,
+    PUSH = 0,
+    POP = 1,
+    PRINT = 2,
+    ADD = 3,
+    STORE = 4,
+    LOAD = 5,
+    ALLOC = 6,
+    PUT = 7,
+    GET = 8,
+    RET = 9,
+    POPRET = 10,
+    CALL = 11,
+    GOTO = 12,
 }
 
 pub trait SignedChanged {
-    fn change_signed(&self, offset: isize) -> Option<Self> where Self: Sized;
+    fn change_signed(&self, offset: isize) -> Option<Self>
+    where
+        Self: Sized;
 }
 
 impl SignedChanged for usize {
     fn change_signed(&self, offset: isize) -> Option<Self> {
         if offset >= 0 {
             return self.checked_add(offset as usize);
-        } else {    
+        } else {
             let new_value = *self as isize + offset;
             if new_value < 0 {
-                return None
+                return None;
             }
 
             return Some(new_value as usize);

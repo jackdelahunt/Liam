@@ -1,0 +1,16 @@
+use std::str::FromStr;
+use crate::ast::{Program, Statement};
+
+grammar;
+
+pub Program: Program = {
+    <statements:Statement*> => Program::new(statements),
+};
+
+pub Statement: Statement = {
+    "print" <literal:NumberLiteral> => Statement::Print{literal}
+};
+
+NumberLiteral: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap(),
+};

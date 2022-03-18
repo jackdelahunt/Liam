@@ -1,5 +1,5 @@
 pub mod vm;
-pub use vm::{VM, OP};
+pub use vm::{OP, VM};
 
 pub mod generator;
 
