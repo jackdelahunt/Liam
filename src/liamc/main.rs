@@ -1,32 +1,25 @@
-use ast::{Program, Statement};
+mod ast;
+
+mod compiler;
+use compiler::Compiler;
+
+use std::fs::File;
+use std::io::prelude::*;
 
 #[macro_use] extern crate lalrpop_util;
-
 lalrpop_mod!(pub parser, "/liamc/parser.rs"); // synthesized by LALRPOP
-mod ast;
+
 
 fn main() {
     let program = parser::ProgramParser::new()
-        .parse("print 10 print 10")
+        .parse("print 10")
         .unwrap();
 
-    eval_program(program);
-}
+    let mut compiler = Compiler::new();
+    compiler.compile(program);
 
-fn eval_program(program: Program) {
-    for statement in program.statements {
-        eval_statement(statement);
-    }
-}
-
-fn eval_statement(statement: Statement) {
-    match statement {
-        Statement::Print { literal } => eval_print_statement(literal),
-    }
-}
-
-fn eval_print_statement(literal: i32) {
-    print!("{}", literal);
+    let mut file = File::create("main.liam").unwrap();
+    file.write_all(compiler.generted_code.as_bytes()).unwrap();
 }
 
 #[test]
@@ -41,5 +34,11 @@ fn programs() {
     _ = parser::ProgramParser::new()
         .parse("print 10 print 10")
         .unwrap();
+}
 
+#[test]
+fn binary_expressions() {
+    _ = parser::BinaryExpressionParser::new()
+        .parse("10 * (10 * 10)")
+        .unwrap();
 }

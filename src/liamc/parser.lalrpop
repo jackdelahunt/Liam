@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Program, Statement};
+use crate::ast::{Program, Statement, Expression, Operator};
 
 grammar;
 
@@ -9,6 +9,26 @@ pub Program: Program = {
 
 pub Statement: Statement = {
     "print" <literal:NumberLiteral> => Statement::Print{literal}
+};
+
+pub Expression: Box<Expression> = {
+    "(" <Expression> ")",
+    BinaryExpression,
+    LiteralExpression     
+};
+
+pub BinaryExpression: Box<Expression> = {
+    #[precedence(level="1")]
+    <lhs:Expression> "*" <rhs:Expression> => Box::new(Expression::BinaryExpression{lhs, op: Operator::Mult, rhs}),
+    <lhs:Expression> "/" <rhs:Expression> => Box::new(Expression::BinaryExpression{lhs, op: Operator::Divide, rhs}),
+
+    #[precedence(level="2")] #[assoc(side="left")]
+    <lhs:Expression> "+" <rhs:Expression> => Box::new(Expression::BinaryExpression{lhs, op: Operator::Add, rhs}),
+    <lhs:Expression> "-" <rhs:Expression> => Box::new(Expression::BinaryExpression{lhs, op: Operator::Minus, rhs}),
+};
+
+pub LiteralExpression: Box<Expression> = {
+    <literal:NumberLiteral> => Box::new(Expression::LiteralExpression{literal})
 };
 
 NumberLiteral: i32 = {

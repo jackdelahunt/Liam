@@ -4,7 +4,7 @@ use crate::vm::{OP, VM};
 use std::fs;
 
 fn main() {
-    let contents = fs::read_to_string("/home/jackdelahunt/Projects/rvm/main.x").unwrap();
+    let contents = fs::read_to_string("/home/jackdelahunt/Projects/rvm/main.liam").unwrap();
 
     let mut generator = Generator::new([
         OPCommand::new("push", OP::PUSH, 1),
