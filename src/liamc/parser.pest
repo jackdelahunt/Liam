@@ -1,0 +1,12 @@
+WHITESPACE = _{" "}
+
+int_literal = {ASCII_DIGIT+}
+operator = {"+"}
+
+binary_expression = {int_literal ~ operator ~ int_literal}
+expression = _{binary_expression}
+
+print_statement = {"print"}
+statement = _{print_statement | expression}
+
+file = {SOI ~ (statement ~ ("\n" | "\r\n")?)* ~ EOI}

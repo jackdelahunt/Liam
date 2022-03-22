@@ -2,16 +2,12 @@
 name = "Liam"
 version = "0.1.0"
 edition = "2021"
-build = "build.rs"
-
-[build-dependencies]
-lalrpop = { version = "0.19.7", features = ["lexer"] }
 
 [dependencies]
 num-traits = "0.2"
 num-derive = "0.2"
-lalrpop-util = { version = "0.19.7", features = ["lexer"] }
-regex = "1"
+pest = "2.0"
+pest_derive = "2.0"
 
 [[bin]]
 name = "liam_vm"

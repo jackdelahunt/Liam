@@ -1,3 +1,1 @@
-@main
-push 10
-print
+10 + 10
