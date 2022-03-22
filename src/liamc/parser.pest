@@ -7,8 +7,8 @@ operator = {"+"}
 binary_expression = {int_literal ~ operator ~ int_literal}
 expression = _{binary_expression | identifier}
 
-print_statement = {"print"}
+print_statement = {"print" ~ expression}
 let_statement = {"let" ~ identifier ~ "=" ~ expression}
-statement = _{print_statement | let_statement | expression}
+statement = _{print_statement | let_statement}
 
 file = {SOI ~ (statement ~ ("\n" | "\r\n")?)* ~ EOI}

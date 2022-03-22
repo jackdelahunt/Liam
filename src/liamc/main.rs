@@ -60,7 +60,7 @@ impl Compiler {
     fn eval_statement(&mut self, pair: Pair<Rule>) -> Option<String> {
         match pair.as_rule() {
             Rule::binary_expression => return Some(self.eval_binary_expression(pair)),
-            Rule::print_statement => return Some(self.eval_print_statement()),
+            Rule::print_statement => return Some(self.eval_print_statement(pair)),
             Rule::let_statement => return Some(self.eval_let_statement(pair)),
             Rule::EOI => None,
             _ => panic!("Could not eval this pair {:?}", pair)
@@ -105,8 +105,9 @@ impl Compiler {
         return format!("load {}\n", register);
     }
 
-    fn eval_print_statement(&mut self) -> String {
-        return String::from("print\n");
+    fn eval_print_statement(&mut self, print_statement: Pair<Rule>) -> String {
+        let expression = print_statement.into_inner().next().expect("No expression in this let statement");
+        return format!("{}print\n", self.eval_expression(expression));
     }
 
     fn eval_let_statement(&mut self, let_statement: Pair<Rule>) -> String {
