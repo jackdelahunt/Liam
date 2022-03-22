@@ -2,4 +2,6 @@
 push 10
 push 10
 add
-
+store 0
+load 0
+store 1

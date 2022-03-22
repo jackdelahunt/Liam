@@ -1,12 +1,14 @@
 WHITESPACE = _{" "}
 
+identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 int_literal = {ASCII_DIGIT+}
 operator = {"+"}
 
 binary_expression = {int_literal ~ operator ~ int_literal}
-expression = _{binary_expression}
+expression = _{binary_expression | identifier}
 
 print_statement = {"print"}
-statement = _{print_statement | expression}
+let_statement = {"let" ~ identifier ~ "=" ~ expression}
+statement = _{print_statement | let_statement | expression}
 
 file = {SOI ~ (statement ~ ("\n" | "\r\n")?)* ~ EOI}
