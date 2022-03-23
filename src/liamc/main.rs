@@ -71,6 +71,7 @@ impl Compiler {
         match pair.as_rule() {
             Rule::binary_expression => return self.eval_binary_expression(pair),
             Rule::identifier => return self.eval_identifier(pair),
+            Rule::int_literal => return self.eval_int_literal(pair),
             _ => panic!("Could not eval this pair {:?}", pair)
         }
     }
@@ -103,6 +104,10 @@ impl Compiler {
         
 
         return format!("load {}\n", register);
+    }
+
+    fn eval_int_literal(&mut self, int_literal: Pair<Rule>) -> String {
+        return format!("push {}\n", int_literal.as_str());
     }
 
     fn eval_print_statement(&mut self, print_statement: Pair<Rule>) -> String {

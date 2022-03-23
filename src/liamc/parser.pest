@@ -4,8 +4,8 @@ identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 int_literal = {ASCII_DIGIT+}
 operator = {"+"}
 
-binary_expression = {int_literal ~ operator ~ int_literal}
-expression = _{binary_expression | identifier}
+binary_expression = {expression ~ operator ~ expression}
+expression = _{binary_expression | identifier | int_literal}
 
 print_statement = {"print" ~ expression}
 let_statement = {"let" ~ identifier ~ "=" ~ expression}

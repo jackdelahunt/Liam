@@ -1,2 +1,3 @@
-let x = 10 + 10
-print x
+let x = 10
+let y = x
+print y
