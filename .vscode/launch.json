@@ -9,7 +9,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/target/debug/rvm",
+            "program": "${workspaceFolder}/target/debug/liamc",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
