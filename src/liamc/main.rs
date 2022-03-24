@@ -19,21 +19,24 @@ fn main() {
 #[derive(Debug)]
 enum TokenType {
     IntLiteral,
-    StringLiteral,
+    Identifier,
     LeftBrace,
     RightBrace,
+    Plus,
     Let,
 }
 
 #[derive(Debug)]
 struct Token {
     token_type: TokenType,
-    string: String
+    string: String,
+    start: usize,
+    end: usize
 }
 
 impl Token {
-    fn new(token_type: TokenType, string: String) -> Self {
-        return Self{token_type, string};
+    fn new(token_type: TokenType, string: String, start: usize, end: usize) -> Self {
+        return Self{token_type, string, start, end};
     }
 }
 
@@ -56,26 +59,64 @@ impl Lexer {
                 '\t' => {},
                 ' ' => {},
                 '{' => {
-                    let token = Token::new(TokenType::LeftBrace, String::from('{'));
+                    let token = Token::new(
+                        TokenType::LeftBrace, 
+                        String::from('{'), 
+                        self.current, 
+                        self.current + 1);
+
                     self.tokens.push(token)
                 },
                 '}' => {
-                    let token = Token::new(TokenType::RightBrace, String::from('}'));
+                    let token = Token::new(
+                        TokenType::RightBrace, 
+                        String::from('}'), 
+                        self.current, 
+                        self.current + 1);
+
+                    self.tokens.push(token)
+                },'+' => {
+                    let token = Token::new(
+                        TokenType::Plus, 
+                        String::from('+'), 
+                        self.current, 
+                        self.current + 1);
+
                     self.tokens.push(token)
                 },
                 _ => {
                     let word = self.next_word();
                     match word.as_str() {
                         "let" => {
-                            let token = Token::new(TokenType::Let, word);
+                            let start = self.current - word.len();
+                            let token = Token::new(
+                                TokenType::Let, 
+                                word,
+                                start,
+                                self.current
+                            );
+
                             self.tokens.push(token)
                         },
                         _ => {
                             if let Ok(_) = word.parse::<i32>() {
-                                let token = Token::new(TokenType::IntLiteral, word);
+                                let start = self.current - word.len();
+                                let token = Token::new(
+                                    TokenType::IntLiteral, 
+                                    word,
+                                    start,
+                                    self.current
+                                );
+
                                 self.tokens.push(token)
                             } else {
-                                let token = Token::new(TokenType::StringLiteral, word);
+                                let start = self.current - word.len();
+                                let token = Token::new(
+                                    TokenType::Identifier, 
+                                    word,
+                                    start,
+                                    self.current
+                                );
                                 self.tokens.push(token)
                             }
                         }
@@ -104,7 +145,7 @@ impl Lexer {
         while !self.is_at_end() && char::is_alphanumeric(source_as_chars[self.current]) {
             self.current += 1;
         }
-
+        
         let slice = &self.source[start_index..self.current];
         return String::from(slice);
     }
