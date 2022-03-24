@@ -35,80 +35,102 @@ impl Lexer {
 
     pub fn lex(&mut self) {
         while !self.is_at_end() {
-            match self.peek_char() {
-                '\n' => {},
-                '\r' => {},
-                '\t' => {},
-                ' ' => {},
-                '{' => {
-                    let token = Token::new(
-                        TokenType::LeftBrace, 
-                        String::from('{'), 
-                        self.current, 
-                        self.current + 1);
-
-                    self.tokens.push(token)
-                },
-                '}' => {
-                    let token = Token::new(
-                        TokenType::RightBrace, 
-                        String::from('}'), 
-                        self.current, 
-                        self.current + 1);
-
-                    self.tokens.push(token)
-                },'+' => {
-                    let token = Token::new(
-                        TokenType::Plus, 
-                        String::from('+'), 
-                        self.current, 
-                        self.current + 1);
-
-                    self.tokens.push(token)
-                },
-                _ => {
-                    let word = self.next_word();
-                    match word.as_str() {
-                        "let" => {
-                            let start = self.current - word.len();
-                            let token = Token::new(
-                                TokenType::Let, 
-                                word,
-                                start,
-                                self.current
-                            );
-
-                            self.tokens.push(token)
-                        },
-                        _ => {
-                            if let Ok(_) = word.parse::<i32>() {
-                                let start = self.current - word.len();
-                                let token = Token::new(
-                                    TokenType::IntLiteral, 
-                                    word,
-                                    start,
-                                    self.current
-                                );
-
-                                self.tokens.push(token)
-                            } else {
-                                let start = self.current - word.len();
-                                let token = Token::new(
-                                    TokenType::Identifier, 
-                                    word,
-                                    start,
-                                    self.current
-                                );
-                                self.tokens.push(token)
-                            }
-                        }
-                    }
-                }
+            
+            if self.lex_single_character() {
+                self.current += 1;
+                continue;
             }
 
-            self.current += 1;
+            let word = self.next_word();
+            if self.lex_keywords(word.clone()) {}
+            else {
+                self.lex_literals(word.clone());
+            }
         }
     }
+
+    fn lex_single_character(&mut self) -> bool {
+        match self.peek_char() {
+            '\n' => true,
+            '\r' => true,
+            '\t' => true,
+            ' ' => true,
+            '{' => {
+                let token = Token::new(
+                    TokenType::LeftBrace, 
+                    String::from('{'), 
+                    self.current, 
+                    self.current + 1);
+
+                self.tokens.push(token);
+                return true;
+            },
+            '}' => {
+                let token = Token::new(
+                    TokenType::RightBrace, 
+                    String::from('}'), 
+                    self.current, 
+                    self.current + 1);
+
+                self.tokens.push(token);
+                return true;
+            },'+' => {
+                let token = Token::new(
+                    TokenType::Plus, 
+                    String::from('+'), 
+                    self.current, 
+                    self.current + 1);
+
+                self.tokens.push(token);
+                return true;
+            },
+            _ => false
+        }
+    }
+
+    fn lex_keywords(&mut self, word: String) -> bool {
+        match word.as_str() {
+            "let" => {
+                let start = self.current - word.len();
+                let token = Token::new(
+                    TokenType::Let, 
+                    word,
+                    start,
+                    self.current
+                );
+
+                self.tokens.push(token);
+                return true;
+            },
+            _ => false
+        }
+    }
+
+    fn lex_literals(&mut self, word: String) -> bool {
+        if let Ok(_) = word.parse::<i32>() {
+            let start = self.current - word.len();
+            let token = Token::new(
+                TokenType::IntLiteral, 
+                word,
+                start,
+                self.current
+            );
+
+            self.tokens.push(token);
+            return true;
+        } else {
+            let start = self.current - word.len();
+            let token = Token::new(
+                TokenType::Identifier, 
+                word,
+                start,
+                self.current
+            );
+            self.tokens.push(token);
+            return false;
+        }
+    }
+
 
     fn peek_char(&mut self) -> char {
         let c = self.source.chars().nth(self.current).unwrap();
