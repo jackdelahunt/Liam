@@ -1,153 +1,116 @@
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
-
-use pest::{Parser, iterators::{Pairs, Pair}};
 use std::{fs, collections::HashMap};
 use std::fs::File;
 use std::io::prelude::*;
 
-#[derive(Parser)]
-#[grammar = "/home/jackdelahunt/Projects/Liam/src/liamc/parser.pest"]
 pub struct FileParser;
 
 fn main() {
     let source = fs::read_to_string("main.liam")
         .expect("Something went wrong reading the file");
 
-
-    let file = FileParser::parse(Rule::file, source.as_str()).unwrap();
-    let mut compiler = Compiler::new();
-    compiler.compile(file);
-
-    let mut file = File::create("main.l__m").unwrap();
-    file.write_all(compiler.generated_code.as_bytes()).unwrap();
+    let mut lexer = Lexer::new(source);
+    
+    lexer.lex();
+    for token in lexer.tokens {
+        println!("{:?}", token);
+    }
 }
 
-// fn print_type_of<T>(_: &T) {
-//     println!("{}", std::any::type_name::<T>())
-// }
-
-struct Compiler {
-    generated_code: String,
-    context: Context
+#[derive(Debug)]
+enum TokenType {
+    IntLiteral,
+    StringLiteral,
+    LeftBrace,
+    RightBrace,
+    Let,
 }
 
-impl Compiler {
-    fn new() -> Self {
-        let mut s =  Self {
-            generated_code: String::new(),
-            context: Context::new()
-        };
+#[derive(Debug)]
+struct Token {
+    token_type: TokenType,
+    string: String
+}
 
-        s.generated_code.push_str("@main\n");
-        return s;
+impl Token {
+    fn new(token_type: TokenType, string: String) -> Self {
+        return Self{token_type, string};
+    }
+}
+
+struct Lexer {
+    tokens: Vec<Token>,
+    source: String,
+    current: usize
+}
+
+impl Lexer {
+    fn new(source: String) -> Self {
+        return Self{tokens: Vec::new(), source, current: 0};
     }
 
-    fn compile(&mut self, mut pairs: Pairs<Rule>) {
-        let file = pairs.next().unwrap();
-        if file.as_rule() != Rule::file {
-            panic!("Did not receive file to compile");
-        }
-
-        for pair in file.into_inner() {
-            if let Some(new_source) = self.eval_statement(pair) {
-                self.generated_code += new_source.as_str();
+    fn lex(&mut self) {
+        while !self.is_at_end() {
+            match self.peek_char() {
+                '\n' => {},
+                '\r' => {},
+                '\t' => {},
+                ' ' => {},
+                '{' => {
+                    let token = Token::new(TokenType::LeftBrace, String::from('{'));
+                    self.tokens.push(token)
+                },
+                '}' => {
+                    let token = Token::new(TokenType::RightBrace, String::from('}'));
+                    self.tokens.push(token)
+                },
+                _ => {
+                    let word = self.next_word();
+                    match word.as_str() {
+                        "let" => {
+                            let token = Token::new(TokenType::Let, word);
+                            self.tokens.push(token)
+                        },
+                        _ => {
+                            if let Ok(_) = word.parse::<i32>() {
+                                let token = Token::new(TokenType::IntLiteral, word);
+                                self.tokens.push(token)
+                            } else {
+                                let token = Token::new(TokenType::StringLiteral, word);
+                                self.tokens.push(token)
+                            }
+                        }
+                    }
+                }
             }
+
+            self.current += 1;
         }
     }
 
-    fn eval_statement(&mut self, pair: Pair<Rule>) -> Option<String> {
-        match pair.as_rule() {
-            Rule::binary_expression => return Some(self.eval_binary_expression(pair)),
-            Rule::print_statement => return Some(self.eval_print_statement(pair)),
-            Rule::let_statement => return Some(self.eval_let_statement(pair)),
-            Rule::EOI => None,
-            _ => panic!("Could not eval this pair {:?}", pair)
+    fn peek_char(&mut self) -> char {
+        let c = self.source.chars().nth(self.current).unwrap();
+        return c;
+    }
+
+    fn next_char(&mut self) -> char {
+        let c = self.source.chars().nth(self.current).unwrap();
+        self.current += 1;
+        return c;
+    }
+
+    fn next_word(&mut self) -> String {
+        let source_as_chars: Vec<char> = self.source.chars().collect();
+        let start_index = self.current;
+        while !self.is_at_end() && char::is_alphanumeric(source_as_chars[self.current]) {
+            self.current += 1;
         }
+
+        let slice = &self.source[start_index..self.current];
+        return String::from(slice);
     }
 
-    fn eval_expression(&mut self, pair: Pair<Rule>) -> String {
-        match pair.as_rule() {
-            Rule::binary_expression => return self.eval_binary_expression(pair),
-            Rule::identifier => return self.eval_identifier(pair),
-            Rule::int_literal => return self.eval_int_literal(pair),
-            _ => panic!("Could not eval this pair {:?}", pair)
-        }
-    }
-
-    fn eval_binary_expression(&mut self, binary_expression: Pair<Rule>) -> String {
-        let mut pairs = binary_expression.into_inner();
-
-        let lhs = pairs.next().unwrap();
-        let _ = pairs.next().unwrap();
-        let rhs = pairs.next().unwrap();
-
-        let mut output = String::new();
-
-        output.push_str("push ");
-        output.push_str(lhs.as_str());
-        output.push_str("\n");
-
-        output.push_str("push ");
-        output.push_str(rhs.as_str());
-        output.push_str("\n");
-
-        output.push_str("add\n");
-
-        return output;
-    }
-
-    fn eval_identifier(&mut self, identifier: Pair<Rule>) -> String {
-        let identifier_name = String::from( identifier.as_str());
-        let register = self.context.variables.get(&identifier_name).expect(format!("No identifier with name {}", identifier_name).as_str());
-        
-
-        return format!("load {}\n", register);
-    }
-
-    fn eval_int_literal(&mut self, int_literal: Pair<Rule>) -> String {
-        return format!("push {}\n", int_literal.as_str());
-    }
-
-    fn eval_print_statement(&mut self, print_statement: Pair<Rule>) -> String {
-        let expression = print_statement.into_inner().next().expect("No expression in this let statement");
-        return format!("{}print\n", self.eval_expression(expression));
-    }
-
-    fn eval_let_statement(&mut self, let_statement: Pair<Rule>) -> String {
-        let mut sub_pairs = let_statement.into_inner();
-
-        let identifier = sub_pairs.next().expect("No identifier in this let statement");
-        let register = self.context.declare_variable(String::from( identifier.as_str()));
-
-        // We know this is always a binary expression for now
-        let expression = sub_pairs.next().expect("No expression in this let statement");
-
-        let evaled_expression = self.eval_expression(expression);
-        return format!("{}store {}\n", evaled_expression, register);
-    }
-}
-
-struct Context {
-    variables: HashMap<String, u64>,
-    free_variable_register: u64
-}
-
-impl Context {
-    fn new() -> Self {
-        return Self {
-            variables: HashMap::new(),
-            free_variable_register: 0
-        };
-    }
-
-    fn declare_variable(&mut self, identifier: String) -> u64 {
-        let register = self.free_variable_register;
-        self.variables.insert(identifier, register);
-        self.free_variable_register += 1;
-        return register;
-
+    fn is_at_end(&self) -> bool {
+        return self.source.len() <= self.current;
     }
 }
 
