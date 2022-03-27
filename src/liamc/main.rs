@@ -1,5 +1,5 @@
 mod compiler;
-use compiler::{Lexer};
+use compiler::{Lexer, Parser};
 
 use std::{fs};
 
@@ -10,7 +10,12 @@ fn main() {
     let mut lexer = Lexer::new(source);
     
     lexer.lex();
-    for token in lexer.tokens {
-        println!("{:?}", token);
-    }
+    // for token in &lexer.tokens {
+    //     println!("{:?}", token);
+    // }
+
+    let mut parser = Parser::new(lexer.tokens);
+    _ = parser.parse();
+    println!("{:?}", parser.root);
+    return;
 }

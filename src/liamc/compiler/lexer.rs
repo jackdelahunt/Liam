@@ -10,8 +10,8 @@ pub enum TokenType {
 
 #[derive(Debug)]
 pub struct Token {
-    token_type: TokenType,
-    string: String,
+    pub token_type: TokenType,
+    pub string: String,
     start: usize,
     end: usize
 }
