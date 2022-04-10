@@ -9,7 +9,7 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        return Self{tokens, root: Node::new(NodeType::File, String::new())};
+        return Self{tokens, root: Node::new(NodeType::File, String::new(), 0, 0)};
     }
 
     pub fn parse(&mut self) -> Result<(), String> {
@@ -19,15 +19,14 @@ impl Parser {
     }
 
     fn parse_expression(&mut self) -> Result<Node, String> {
-        let int_1 = self.tokens.pop().unwrap();
-        let op = self.tokens.pop().unwrap();
-        let int_2 = self.tokens.pop().unwrap();
+        let int_1 = Node::create_from(self.tokens.pop().unwrap());
+        let op = Node::create_from(self.tokens.pop().unwrap());
+        let int_2 = Node::create_from(self.tokens.pop().unwrap());
 
-        let mut node = Node::new(NodeType::BinaryExpression, String::new());
-        node.nodes.push(Node::create_from(int_1));
-        node.nodes.push(Node::create_from(op));
-        node.nodes.push(Node::create_from(int_2));
-
+        let mut node = Node::new(NodeType::BinaryExpression, String::new(), int_1.start, int_2.end);
+        node.nodes.push(int_1);
+        node.nodes.push(op);
+        node.nodes.push(int_2);
         return Ok(node);
     }
 }
@@ -48,24 +47,26 @@ pub enum NodeType {
 pub struct Node {
     node_type: NodeType,
     nodes: Vec<Node>,
-    string: String
+    string: String,
+    start: usize,
+    end: usize
 }
 
 impl Node {
-    pub fn new(node_type: NodeType, string: String) -> Self {
-        return Node{node_type, nodes: Vec::new(), string};
+    pub fn new(node_type: NodeType, string: String, start: usize, end: usize) -> Self {
+        return Node{node_type, nodes: Vec::new(), string, start, end};
     }
 
     pub fn create_from(token: Token) -> Self {
         match token.token_type {
             TokenType::IntLiteral => {
-                Node::new(NodeType::IntLiteral, token.string)
+                Node::new(NodeType::IntLiteral, token.string, token.start, token.end)
             },
             TokenType::Identifier => {
-                Node::new(NodeType::IntLiteral, token.string)
+                Node::new(NodeType::IntLiteral, token.string, token.start, token.end)
             },
             TokenType::Plus => {
-                Node::new(NodeType::Plus, token.string)
+                Node::new(NodeType::Plus, token.string, token.start, token.end)
             },
             _ => panic!("Cannot create node from this token")
         }

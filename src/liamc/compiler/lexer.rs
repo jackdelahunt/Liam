@@ -12,8 +12,8 @@ pub enum TokenType {
 pub struct Token {
     pub token_type: TokenType,
     pub string: String,
-    start: usize,
-    end: usize
+    pub start: usize,
+    pub end: usize
 }
 
 impl Token {
