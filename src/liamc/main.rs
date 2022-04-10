@@ -16,6 +16,6 @@ fn main() {
 
     let mut parser = Parser::new(lexer.tokens);
     _ = parser.parse();
-    println!("{:?}", parser.root);
+    println!("{:#?}", parser.root);
     return;
 }

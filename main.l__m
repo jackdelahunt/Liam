@@ -1,7 +1,6 @@
 @main
 push 10
-store 0
-load 0
-store 1
-load 1
+push 10
+add
 print
+ret
