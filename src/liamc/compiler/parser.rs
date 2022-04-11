@@ -2,32 +2,49 @@ use crate::compiler::Token;
 
 use super::TokenType;
 
-pub struct Parser {
+pub struct Parser<'a> {
     tokens: Vec<Token>,
-    pub root: Node
+    pub root: Node<'a>,
+    source: String
 }
 
-impl Parser {
-    pub fn new(tokens: Vec<Token>) -> Self {
-        return Self{tokens, root: Node::new(NodeType::File, String::new(), 0, 0)};
+impl<'a> Parser<'a> {
+    pub fn new(tokens: Vec<Token>, source: String) -> Self {
+        let root = Node::new(NodeType::File, &source.as_str(), 0, source.len());
+        
+        return Self {
+            tokens, 
+            root, 
+            source
+        };
     }
 
     pub fn parse(&mut self) -> Result<(), String> {
-        let expression = self.parse_expression()?;
-        self.root.nodes.push(expression);
+        // let expression = self.parse_expression()?;
+        // self.root.nodes.push(expression);
         return Ok(());
     }
 
-    fn parse_expression(&mut self) -> Result<Node, String> {
-        let int_1 = Node::create_from(self.tokens.pop().unwrap());
-        let op = Node::create_from(self.tokens.pop().unwrap());
-        let int_2 = Node::create_from(self.tokens.pop().unwrap());
+    fn parse_binary_expression(&mut self) -> Result<Node, String> {
+        let int_1 = self.parse_expression()?;
+        let op = self.parse_expression()?;
+        let int_2 = self.parse_expression()?;
 
-        let mut node = Node::new(NodeType::BinaryExpression, String::new(), int_1.start, int_2.end);
+        let mut node = Node::new(NodeType::BinaryExpression, &self.source[int_1.start..int_2.end], int_1.start, int_2.end);
         node.nodes.push(int_1);
         node.nodes.push(op);
         node.nodes.push(int_2);
         return Ok(node);
+    }
+
+    fn parse_expression(&mut self) -> Result<Node, String> {
+        let token = self.tokens.pop();
+        match token {
+            Some(t) => {
+                Err(String::from("No more tokens to parse"))
+            },
+            None => Err(String::from("No more tokens to parse")),
+        }   
     }
 }
 
@@ -44,31 +61,16 @@ pub enum NodeType {
 }
 
 #[derive(Debug)]
-pub struct Node {
+pub struct Node<'a> {
     node_type: NodeType,
-    nodes: Vec<Node>,
-    string: String,
+    nodes: Vec<Node<'a>>,
+    string: &'a str,
     start: usize,
-    end: usize
+    end: usize,
 }
 
-impl Node {
-    pub fn new(node_type: NodeType, string: String, start: usize, end: usize) -> Self {
+impl<'a> Node<'a> {
+    pub fn new(node_type: NodeType, string: &'a str, start: usize, end: usize) -> Self {
         return Node{node_type, nodes: Vec::new(), string, start, end};
-    }
-
-    pub fn create_from(token: Token) -> Self {
-        match token.token_type {
-            TokenType::IntLiteral => {
-                Node::new(NodeType::IntLiteral, token.string, token.start, token.end)
-            },
-            TokenType::Identifier => {
-                Node::new(NodeType::IntLiteral, token.string, token.start, token.end)
-            },
-            TokenType::Plus => {
-                Node::new(NodeType::Plus, token.string, token.start, token.end)
-            },
-            _ => panic!("Cannot create node from this token")
-        }
     }
 }
