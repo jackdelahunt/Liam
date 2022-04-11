@@ -1,0 +1,1 @@
+/home/jackdelahunt/Projects/Liam/target/debug/liamc: /home/jackdelahunt/Projects/Liam/src/liamc/compiler/lexer.rs /home/jackdelahunt/Projects/Liam/src/liamc/compiler/mod.rs /home/jackdelahunt/Projects/Liam/src/liamc/compiler/parser.rs /home/jackdelahunt/Projects/Liam/src/liamc/main.rs
