@@ -51,4 +51,59 @@ namespace liam {
             }
         }
     };
+
+    enum OpCode : Byte {
+        ADD     = 0,
+        PRINT   = 1,
+        PUSH   = 2,
+    };
+
+    struct VM
+    {
+        Byte byte_code[1024]    = {0};
+        Byte stack[1024]        = {0};
+        Byte stack_ptr          = 0; // one more then last valid value
+        Byte memory_ptr         = 0; // one more then last valid byte
+        Byte instruction_ptr    = 0; // current valid instruction
+
+        void push_byte(Byte byte) {
+            byte_code[memory_ptr] = byte;
+            memory_ptr++;
+        }
+
+        void run() {
+            while(instruction_ptr < memory_ptr) {
+                switch (byte_code[instruction_ptr])
+                {
+                    case OpCode::ADD: add_op(); break;
+                    case OpCode::PRINT: print_op(); break;
+                    case OpCode::PUSH: push_op(); break;
+                }
+
+                instruction_ptr++;
+            }
+        }
+
+        void add_op() {
+            printf("add\n");
+        }
+
+        void print_op() {
+            printf("%u\n", stack[stack_ptr - 1]);
+        }
+
+        void push_op() {
+            stack_push(next_byte());
+        }
+
+        Byte next_byte() {
+            return byte_code[++instruction_ptr];
+        }
+
+        void stack_push(Byte byte) {
+            stack[stack_ptr] = byte;
+            stack_ptr++;
+        }
+    };
+    
 }

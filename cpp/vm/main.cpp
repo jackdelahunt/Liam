@@ -2,10 +2,9 @@
 #include "liam.h"
 
 int main() {
-    auto arr = liam::Array<int>(1);
-    arr.add(2);
-    arr.add(3);
-    arr.add(2);
-    arr.add(4);
-    arr.print();
+    auto vm = liam::VM{};
+    vm.push_byte(liam::OpCode::PUSH);
+    vm.push_byte(10);
+    vm.push_byte(liam::OpCode::PRINT);
+    vm.run();
 }
