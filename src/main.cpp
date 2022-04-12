@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "liam.h"
+#include "generator.h"
 
 int main() {
     auto vm = liam::VM{};
