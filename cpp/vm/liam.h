@@ -85,7 +85,9 @@ namespace liam {
         }
 
         void add_op() {
-            printf("add\n");
+            auto l = stack_pop();
+            auto r = stack_pop();
+            stack_push(l + r);
         }
 
         void print_op() {
@@ -103,6 +105,10 @@ namespace liam {
         void stack_push(Byte byte) {
             stack[stack_ptr] = byte;
             stack_ptr++;
+        }
+
+        Byte stack_pop() {
+            return stack[--stack_ptr];
         }
     };
     
