@@ -1,14 +1,15 @@
 #include <stdio.h>
+#include <fstream>
+#include <iostream>
+#include <vector>
 #include "liam.h"
 #include "generator.h"
 
 int main() {
-    auto vm = liam::VM{};
-    vm.push_byte(liam::OpCode::PUSH);
-    vm.push_byte(10);
-    vm.push_byte(liam::OpCode::PUSH);
-    vm.push_byte(10);
-    vm.push_byte(liam::OpCode::ADD);
-    vm.push_byte(liam::OpCode::PRINT);
+    auto generator = liam::Generator();
+    auto [vm, err] = generator.generate("/home/jackdelahunt/Projects/Liam/main.l__m");
+    if(err) {
+        printf("%s\n", err);
+    }
     vm.run();
 }

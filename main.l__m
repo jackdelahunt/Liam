@@ -1,0 +1,6 @@
+#main
+push 100
+print
+#loop
+push #loop
+print

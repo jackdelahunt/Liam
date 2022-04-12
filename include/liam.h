@@ -53,18 +53,7 @@ namespace liam {
                 printf("\n");
             }
         }
-    };
-
-    struct String
-    {
-        Array<char> chars;
-
-        String(const char* c_str) {
-            chars = Array<char>(strlen(c_str) + 1);
-            memcpy(chars.start, c_str, chars.capacity);
-        }
-    };
-    
+    };    
 
     enum OpCode : Byte {
         ADD     = 0,
@@ -105,7 +94,7 @@ namespace liam {
         }
 
         void print_op() {
-            printf("%u\n", stack[stack_ptr - 1]);
+            printf("%lu\n", stack[stack_ptr - 1]);
         }
 
         void push_op() {
