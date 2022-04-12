@@ -58,7 +58,8 @@ namespace liam {
     enum OpCode : Byte {
         ADD     = 0,
         PRINT   = 1,
-        PUSH   = 2,
+        PUSH    = 2,
+        GOTO    = 3,
     };
 
     struct VM
@@ -78,12 +79,11 @@ namespace liam {
             while(instruction_ptr < memory_ptr) {
                 switch (byte_code[instruction_ptr])
                 {
-                    case OpCode::ADD: add_op(); break;
-                    case OpCode::PRINT: print_op(); break;
-                    case OpCode::PUSH: push_op(); break;
+                    case OpCode::ADD: add_op();     instruction_ptr++;  break;
+                    case OpCode::PRINT: print_op(); instruction_ptr++;  break;
+                    case OpCode::PUSH: push_op();   instruction_ptr++;  break;
+                    case OpCode::GOTO: goto_op();                       break;
                 }
-
-                instruction_ptr++;
             }
         }
 
@@ -99,6 +99,11 @@ namespace liam {
 
         void push_op() {
             stack_push(next_byte());
+        }
+
+        void goto_op() {
+            Byte to = next_byte();
+            instruction_ptr = to;
         }
 
         Byte next_byte() {

@@ -18,6 +18,7 @@ namespace liam {
         OpCommand{"add", OpCode::ADD, 0},
         OpCommand{"print", OpCode::PRINT, 0},
         OpCommand{"push", OpCode::PUSH, 1},
+        OpCommand{"goto", OpCode::GOTO, 1},
     };
 
     std::vector<std::string> extract_words(const char* path) {
