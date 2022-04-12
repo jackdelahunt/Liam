@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 namespace liam {
     typedef uint64_t Byte;
@@ -53,6 +54,17 @@ namespace liam {
             }
         }
     };
+
+    struct String
+    {
+        Array<char> chars;
+
+        String(const char* c_str) {
+            chars = Array<char>(strlen(c_str) + 1);
+            memcpy(chars.start, c_str, chars.capacity);
+        }
+    };
+    
 
     enum OpCode : Byte {
         ADD     = 0,

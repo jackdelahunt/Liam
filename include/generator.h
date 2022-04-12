@@ -5,7 +5,7 @@
 
 namespace liam {
     struct OpCommand {
-        char* name;
+        const char* name;
         OpCode op;
         size_t arguments;
     };
