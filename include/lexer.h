@@ -25,6 +25,7 @@ namespace liam {
         INT_LITERAL,
         STRING_LITERAL,
         IDENTIFIER,
+        LET,
         PLUS
     };
 
@@ -40,9 +41,14 @@ namespace liam {
         return os;
     }
 
+    bool is_delim(char c) {
+        return c == ' ' || c == '\n';
+    }
+
     struct Lexer
     {
         std::vector<Token> tokens;
+        std::vector<char> chars;
         int current;
 
         Lexer() {
@@ -51,7 +57,7 @@ namespace liam {
         }
 
         void lex(const char* path) {
-            auto chars = extract_chars(path);
+            chars = extract_chars(path);
             for(; current < chars.size(); current++) {
                 char c = chars.at(current); 
                 switch (c)
@@ -81,26 +87,37 @@ namespace liam {
                         }
                         break;
                     default:
-                        if(std::isdigit(c)) {
-                            std::string literal = std::string();
-                            while(current < chars.size() && std::isdigit(chars.at(current))) {
-                                literal.append(std::string(1, chars.at(current)));
-                                current++;
-                            }
-                            current--; // reset back to non-digit
-                            tokens.push_back(Token{TokenType::INT_LITERAL, literal});
-                        } else {
-                            std::string identifier = std::string();
-                            while(current < chars.size() && std::isalpha(chars.at(current))) {
-                                identifier.append(std::string(1, chars.at(current)));
-                                current++;
-                            }
-                            current--; // reset back to non-alpha
-                            tokens.push_back(Token{TokenType::IDENTIFIER, identifier});
+                        auto word = get_word();
+
+                        // check keywords
+                        if(word == "let"){
+                            tokens.push_back(Token{TokenType::LET, word});
+                            continue;
                         }
+                        
+                        // check numbers
+                        try
+                        {
+                            int i = std::stoi(word);
+                            tokens.push_back(Token{TokenType::INT_LITERAL, word});
+                            continue;
+                        } catch(const std::exception& e){}
+                        
+                        
+                        tokens.push_back(Token{TokenType::IDENTIFIER, word});
                         break;
                 }
             }
+        }
+
+        std::string get_word() {
+            std::string word = std::string();
+            while(current < chars.size() && !is_delim(chars.at(current))) {
+                word.append(1, chars.at(current));
+                current++;
+            }
+
+            return word;
         }
     };
 }
