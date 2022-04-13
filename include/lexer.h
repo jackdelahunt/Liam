@@ -23,6 +23,7 @@ namespace liam {
 
     enum TokenType {
         INT_LITERAL,
+        STRING_LITERAL,
         IDENTIFIER,
         PLUS
     };
@@ -68,6 +69,17 @@ namespace liam {
                             current++;
                         }
                         break;
+                    case '"':
+                        {
+                            current++; // go to next character after quote
+                            std::string str = std::string();
+                            while(current < chars.size() && chars.at(current) != '"') {
+                                str.append(std::string(1, chars.at(current)));
+                                current++;
+                            }
+                            tokens.push_back(Token{TokenType::STRING_LITERAL, str});
+                        }
+                        break;
                     default:
                         if(std::isdigit(c)) {
                             std::string literal = std::string();
@@ -86,7 +98,7 @@ namespace liam {
                             current--; // reset back to non-alpha
                             tokens.push_back(Token{TokenType::IDENTIFIER, identifier});
                         }
-                    break;
+                        break;
                 }
             }
         }
