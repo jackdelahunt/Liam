@@ -5,59 +5,70 @@
 
 namespace liam {
 
-    enum ExpressionType {
-        EXPRESSION_INT_LITERAL, 
-        EXPRESSION_STRING_LITERAL, 
-        EXPRESSION_BINARY
-    };
-
     struct Expression {
-
-        ExpressionType type;
-
-        struct BinaryExpression {
-            Expression* left;
-            Token op;
-            Expression* right;
-        };
-
-        union {
-            Token literal;
-            BinaryExpression binaryExpression;
-        };
-
-        Expression(ExpressionType type, Token token) {
-            this->type = type;
-            literal = token;
+        virtual std::ostream& format(std::ostream& os) const {
+            os << "()";
+            return os;
         }
-
-        Expression(ExpressionType type, Expression* left, Token op, Expression* right) {
-            this->type = type;
-            auto be = BinaryExpression{left, op, right};
-            this->binaryExpression = be;
-        }
-
-        Expression() {}
-        ~Expression() {}
     };
-
     std::ostream& operator<<(std::ostream& os, const Expression& expression)
-    {   
-        os << "(" << expression.type << " ";
-        switch (expression.type)
-        {
-        case ExpressionType::EXPRESSION_INT_LITERAL:
-        case ExpressionType::EXPRESSION_STRING_LITERAL:
-            os << expression.literal;
-            break;
-        case ExpressionType::EXPRESSION_BINARY:
-            os  << *expression.binaryExpression.left << " " 
-                << expression.binaryExpression.op << " " 
-                << *expression.binaryExpression.right;
-            break;
+    {
+        return expression.format(os);
+    }
+
+    struct BinaryExpression : Expression {
+        Expression* left;
+        Token op;
+        Expression* right;
+
+        BinaryExpression(Expression* left, Token op, Expression* right) {
+            this->left = left;
+            this->op = op;
+            this->right= right;
         }
-        os << ")";
-        return os;
+
+        std::ostream& format(std::ostream& os) const {
+            os << "(" << *left << " " << op.string << " " << *right << ")";
+            return os;
+        }
+    };
+    std::ostream& operator<<(std::ostream& os, const BinaryExpression& expression)
+    {
+        return expression.format(os);
+    }
+
+    struct IntLiteralExpression : Expression {
+        Token token;
+
+        IntLiteralExpression(const Token& token) {
+            this->token = token;
+        }
+
+        std::ostream& format(std::ostream& os) const {
+            os << "(" << token.string << ")";
+            return os;
+        }
+    };
+    std::ostream& operator<<(std::ostream& os, const IntLiteralExpression& expression)
+    {
+        return expression.format(os);
+    }
+
+    struct StringLiteralExpression : Expression {
+        Token token;
+
+        StringLiteralExpression(const Token& token) {
+            this->token = token;
+        }
+            
+        std::ostream& format(std::ostream& os) const {
+            os << "(\"" << token.string << "\")";
+            return os;
+        }
+    };
+    std::ostream& operator<<(std::ostream& os, const StringLiteralExpression& expression)
+    {
+        return expression.format(os);
     }
 
     struct Parser {
@@ -81,17 +92,16 @@ namespace liam {
             auto op = consume_token();
             auto right = eval_primary();
 
-            auto e = new Expression(ExpressionType::EXPRESSION_BINARY, left, op, right);
-            return e;
+            return new BinaryExpression(left, op, right);
         }
 
         Expression* eval_primary() {
             auto token = consume_token();
 
             if(token.type == TokenType::TOKEN_INT_LITERAL)
-                return new Expression(ExpressionType::EXPRESSION_INT_LITERAL, token);
+                return new IntLiteralExpression(token);
             else if(token.type == TokenType::TOKEN_STRING_LITERAL)
-                return new Expression(ExpressionType::EXPRESSION_STRING_LITERAL, token);
+                return new StringLiteralExpression(token);
             
             throw;
         }

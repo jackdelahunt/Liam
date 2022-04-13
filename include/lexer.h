@@ -11,6 +11,9 @@ namespace liam {
 
         std::ifstream file;  
         file.open(path);
+        if (!file.is_open()) {
+            std::cout << "cannot open file";
+        }
         
         for (int i = file.get(); i != EOF; i = file.get())
         {
@@ -33,6 +36,13 @@ namespace liam {
     {
         TokenType type;
         std::string string;
+
+        Token() = default;
+
+        Token(TokenType type, std::string string) {
+            this->type = type;
+            this->string = string;
+        }
     };
     
     std::ostream& operator<<(std::ostream& os, const Token& token)
@@ -68,7 +78,7 @@ namespace liam {
                     case '\t':
                     break;
                     case '+':
-                        tokens.push_back(Token{TokenType::TOKEN_PLUS, "+"});
+                        tokens.push_back(Token(TokenType::TOKEN_PLUS, "+"));
                         break;
                     case '#':
                         while(current < chars.size() && chars.at(current) != '\n') {
@@ -83,7 +93,7 @@ namespace liam {
                                 str.append(std::string(1, chars.at(current)));
                                 current++;
                             }
-                            tokens.push_back(Token{TokenType::TOKEN_STRING_LITERAL, str});
+                            tokens.push_back(Token(TokenType::TOKEN_STRING_LITERAL, str));
                         }
                         break;
                     default:
@@ -91,7 +101,7 @@ namespace liam {
 
                         // check keywords
                         if(word == "let"){
-                            tokens.push_back(Token{TokenType::TOKEN_LET, word});
+                            tokens.push_back(Token(TokenType::TOKEN_LET, word));
                             continue;
                         }
                         
@@ -99,12 +109,12 @@ namespace liam {
                         try
                         {
                             int i = std::stoi(word);
-                            tokens.push_back(Token{TokenType::TOKEN_INT_LITERAL, word});
+                            tokens.push_back(Token(TokenType::TOKEN_INT_LITERAL, word));
                             continue;
                         } catch(const std::exception& e){}
                         
                         
-                        tokens.push_back(Token{TokenType::TOKEN_IDENTIFIER, word});
+                        tokens.push_back(Token(TokenType::TOKEN_IDENTIFIER, word));
                         break;
                 }
             }

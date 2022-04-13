@@ -9,7 +9,7 @@
 
 int main() {
     auto lexer = liam::Lexer();
-    lexer.lex("/home/jackdelahunt/Projects/Liam/main.liam");
+    lexer.lex("E:/JacksDocuments/Projects/Liam/main.liam");
     // for(auto& t: lexer.tokens) {
     //     std::cout << t;
     // }
