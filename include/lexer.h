@@ -11,11 +11,10 @@ namespace liam {
 
         std::ifstream file;  
         file.open(path);
-    
-        char letter;
-        while (file >> letter)
+        
+        for (int i = file.get(); i != EOF; i = file.get())
         {
-            vec.push_back(letter);
+            vec.push_back((char)i);
         }
 
         file.close();
@@ -24,6 +23,7 @@ namespace liam {
 
     enum TokenType {
         INT_LITERAL,
+        IDENTIFIER,
         PLUS
     };
 
@@ -31,7 +31,6 @@ namespace liam {
     {
         TokenType type;
         std::string string;
-
     };
     
     std::ostream& operator<<(std::ostream& os, const Token& token)
@@ -43,14 +42,17 @@ namespace liam {
     struct Lexer
     {
         std::vector<Token> tokens;
+        int current;
 
         Lexer() {
             tokens = std::vector<Token>();
+            current = 0;
         }
 
         void lex(const char* path) {
             auto chars = extract_chars(path);
-            for(auto& c : chars) {
+            for(; current < chars.size(); current++) {
+                char c = chars.at(current); 
                 switch (c)
                 {
                     case ' ':
@@ -61,9 +63,28 @@ namespace liam {
                     case '+':
                         tokens.push_back(Token{TokenType::PLUS, "+"});
                         break;
+                    case '#':
+                        while(current < chars.size() && chars.at(current) != '\n') {
+                            current++;
+                        }
+                        break;
                     default:
                         if(std::isdigit(c)) {
-                            tokens.push_back(Token{TokenType::INT_LITERAL, std::string(1, c)});
+                            std::string literal = std::string();
+                            while(current < chars.size() && std::isdigit(chars.at(current))) {
+                                literal.append(std::string(1, chars.at(current)));
+                                current++;
+                            }
+                            current--; // reset back to non-digit
+                            tokens.push_back(Token{TokenType::INT_LITERAL, literal});
+                        } else {
+                            std::string identifier = std::string();
+                            while(current < chars.size() && std::isalpha(chars.at(current))) {
+                                identifier.append(std::string(1, chars.at(current)));
+                                current++;
+                            }
+                            current--; // reset back to non-alpha
+                            tokens.push_back(Token{TokenType::IDENTIFIER, identifier});
                         }
                     break;
                 }
