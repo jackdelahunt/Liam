@@ -29,7 +29,8 @@ namespace liam {
         TOKEN_STRING_LITERAL,
         TOKEN_IDENTIFIER,
         TOKEN_LET,
-        TOKEN_PLUS
+        TOKEN_PLUS,
+        TOKEN_MULT,
     };
 
     struct Token
@@ -79,6 +80,9 @@ namespace liam {
                     break;
                     case '+':
                         tokens.push_back(Token(TokenType::TOKEN_PLUS, "+"));
+                        break;
+                    case '*':
+                        tokens.push_back(Token(TokenType::TOKEN_MULT, "*"));
                         break;
                     case '#':
                         while(current < chars.size() && chars.at(current) != '\n') {

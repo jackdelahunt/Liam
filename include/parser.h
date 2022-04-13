@@ -88,11 +88,35 @@ namespace liam {
         }
 
         Expression* eval_binary() {
-            auto left = eval_primary();
-            auto op = consume_token();
-            auto right = eval_primary();
+            return eval_term();
+        }
 
-            return new BinaryExpression(left, op, right);
+        Expression* eval_term() {
+            auto expr = eval_factor();
+
+            while (match(TokenType::TOKEN_PLUS)) {
+                Token op = consume_token();
+                auto right = eval_factor();
+                expr = new BinaryExpression(expr, op, right);
+            }
+
+            return expr;
+        }
+
+        Expression* eval_factor() {
+            auto expr = eval_unary();
+
+            while (match(TokenType::TOKEN_MULT)) {
+                Token op = consume_token();
+                auto right = eval_unary();
+                expr = new BinaryExpression(expr, op, right);
+            }
+
+            return expr;
+        }
+
+        Expression* eval_unary() {
+            return eval_primary();
         }
 
         Expression* eval_primary() {
@@ -107,7 +131,8 @@ namespace liam {
         }
 
         bool match(TokenType type) {
-            return peek().type == type;
+            if(tokens.size() > 0)
+                return peek().type == type;
         }
 
         Token& peek() {
