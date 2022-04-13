@@ -10,4 +10,6 @@ add_executable(liamvm
         
         include/liam.h
         include/generator.h
+        include/lexer.h
+        include/parser.h
 )

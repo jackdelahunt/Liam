@@ -1,5 +1,6 @@
 .PHONY: build
 build:
+	clear
 	rm -rf build/
 	mkdir build
 	(cd build/ && cmake -DCMAKE_CXX_COMPILER="/usr/bin/clang++" ../)
@@ -7,7 +8,7 @@ build:
 
 .PHONY: build_debug
 build_debug:
-	export CXX=/usr/bin/clang++
+	clear
 	rm -rf build/
 	mkdir build
 	(cd build/ && cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER="/usr/bin/clang++" ../)
