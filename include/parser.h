@@ -5,7 +5,11 @@
 
 namespace liam {
 
-    enum ExpressionType {EXPRESSION_INT_LITERAL, EXPRESSION_BINARY};
+    enum ExpressionType {
+        EXPRESSION_INT_LITERAL, 
+        EXPRESSION_STRING_LITERAL, 
+        EXPRESSION_BINARY
+    };
 
     struct Expression {
 
@@ -38,10 +42,12 @@ namespace liam {
     };
 
     std::ostream& operator<<(std::ostream& os, const Expression& expression)
-    {
+    {   
+        os << "(" << expression.type << " ";
         switch (expression.type)
         {
         case ExpressionType::EXPRESSION_INT_LITERAL:
+        case ExpressionType::EXPRESSION_STRING_LITERAL:
             os << expression.literal;
             break;
         case ExpressionType::EXPRESSION_BINARY:
@@ -50,6 +56,7 @@ namespace liam {
                 << *expression.binaryExpression.right;
             break;
         }
+        os << ")";
         return os;
     }
 
@@ -79,7 +86,14 @@ namespace liam {
         }
 
         Expression* eval_primary() {
-            return new Expression(ExpressionType::EXPRESSION_INT_LITERAL, consume_token());
+            auto token = consume_token();
+
+            if(token.type == TokenType::TOKEN_INT_LITERAL)
+                return new Expression(ExpressionType::EXPRESSION_INT_LITERAL, token);
+            else if(token.type == TokenType::TOKEN_STRING_LITERAL)
+                return new Expression(ExpressionType::EXPRESSION_STRING_LITERAL, token);
+            
+            throw;
         }
 
         bool match(TokenType type) {
