@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include "lexer.h"
 
 namespace liam {
@@ -40,7 +41,7 @@ namespace liam {
     struct IntLiteralExpression : Expression {
         Token token;
 
-        IntLiteralExpression(const Token& token) {
+        IntLiteralExpression(const Token token) {
             this->token = token;
         }
 
@@ -57,7 +58,7 @@ namespace liam {
     struct StringLiteralExpression : Expression {
         Token token;
 
-        StringLiteralExpression(const Token& token) {
+        StringLiteralExpression(const Token token) {
             this->token = token;
         }
             
@@ -71,20 +72,67 @@ namespace liam {
         return expression.format(os);
     }
 
+    struct Statement {
+        virtual std::ostream& format(std::ostream& os) const {
+            os << "()";
+            return os;
+        }
+    };
+    std::ostream& operator<<(std::ostream& os, const Statement& statement)
+    {
+        return statement.format(os);
+    }
+
+    struct LetStatement : Statement {
+        Token identifier;
+        Expression* expression;
+
+        LetStatement(Token identifier, Expression* expression) {
+            this->identifier = identifier;
+            this->expression = expression;
+        }
+
+        std::ostream& format(std::ostream& os) const {
+            os << "(" << identifier.string << " " << *expression << ")";
+            return os;
+        }
+    };
+    std::ostream& operator<<(std::ostream& os, const LetStatement& statement)
+    {
+        return statement.format(os);
+    }
+
     struct Parser {
         std::vector<Token> tokens;
-        Expression* root;
+        uint32_t current;
+        Statement* root;
 
         Parser(std::vector<Token>& tokens) {
             this->tokens = tokens;
+            this->current = 0;
+            this->root = nullptr;
         }
 
         void parse() {
-            eval_expression();
+            eval_statement();
         }
 
-        void eval_expression() {
-            root = eval_binary();
+        void eval_statement() {
+            root = eval_let_statement();
+        }
+
+        Statement* eval_let_statement() {
+            consume_token_of_type(TOKEN_LET);
+            Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+            consume_token_of_type(TOKEN_EQUAL);
+            auto expression = eval_expression();
+            consume_token_of_type(TOKEN_SEMI_COLON);
+
+            return new LetStatement(*identifier, expression);
+        }
+
+        Expression* eval_expression() {
+            return eval_binary(); // TODO: figure out  what to do here
         }
 
         Expression* eval_binary() {
@@ -95,9 +143,9 @@ namespace liam {
             auto expr = eval_factor();
 
             while (match(TokenType::TOKEN_PLUS)) {
-                Token op = consume_token();
+                Token* op = consume_token();
                 auto right = eval_factor();
-                expr = new BinaryExpression(expr, op, right);
+                expr = new BinaryExpression(expr, *op, right);
             }
 
             return expr;
@@ -107,9 +155,9 @@ namespace liam {
             auto expr = eval_unary();
 
             while (match(TokenType::TOKEN_MULT)) {
-                Token op = consume_token();
+                Token* op = consume_token();
                 auto right = eval_unary();
-                expr = new BinaryExpression(expr, op, right);
+                expr = new BinaryExpression(expr, *op, right);
             }
 
             return expr;
@@ -122,10 +170,10 @@ namespace liam {
         Expression* eval_primary() {
             auto token = consume_token();
 
-            if(token.type == TokenType::TOKEN_INT_LITERAL)
-                return new IntLiteralExpression(token);
-            else if(token.type == TokenType::TOKEN_STRING_LITERAL)
-                return new StringLiteralExpression(token);
+            if(token->type == TokenType::TOKEN_INT_LITERAL)
+                return new IntLiteralExpression(*token);
+            else if(token->type == TokenType::TOKEN_STRING_LITERAL)
+                return new StringLiteralExpression(*token);
             
             throw;
         }
@@ -139,10 +187,28 @@ namespace liam {
             return tokens.at(0);
         }
 
-        Token consume_token() {
-            auto token = tokens.front();
-            tokens.erase(tokens.begin());
-            return token;
+        Token* consume_token() {
+            if (current >= tokens.size())
+                panic("No more tokens to consume");
+
+            return &tokens.at(current++);
+        }
+
+        Token* consume_token_of_type(TokenType type) {
+            if (current >= tokens.size()) {
+                std::ostringstream oss;
+                oss << "Expected " << type << " but there are no more tokens to consume";
+                panic(oss.str());
+            }
+
+            auto t_ptr = &tokens.at(current++);
+            if (t_ptr->type != type) {
+                std::ostringstream oss;
+                oss << "Expected " << type << " got " << t_ptr->type;
+                panic(oss.str());
+            }
+
+            return t_ptr;
         }
     };
 }

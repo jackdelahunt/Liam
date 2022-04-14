@@ -31,6 +31,8 @@ namespace liam {
         TOKEN_LET,
         TOKEN_PLUS,
         TOKEN_MULT,
+        TOKEN_EQUAL,
+        TOKEN_SEMI_COLON,
     };
 
     struct Token
@@ -53,7 +55,7 @@ namespace liam {
     }
 
     bool is_delim(char c) {
-        return c == ' ' || c == '\n';
+        return c == ' ' || c == '\n' || c == ';';
     }
 
     struct Lexer
@@ -83,6 +85,12 @@ namespace liam {
                         break;
                     case '*':
                         tokens.push_back(Token(TokenType::TOKEN_MULT, "*"));
+                        break;
+                    case '=':
+                        tokens.push_back(Token(TokenType::TOKEN_EQUAL, "="));
+                        break;
+                    case ';':
+                        tokens.push_back(Token(TokenType::TOKEN_SEMI_COLON, ";"));
                         break;
                     case '#':
                         while(current < chars.size() && chars.at(current) != '\n') {
@@ -117,7 +125,6 @@ namespace liam {
                             continue;
                         } catch(const std::exception& e){}
                         
-                        
                         tokens.push_back(Token(TokenType::TOKEN_IDENTIFIER, word));
                         break;
                 }
@@ -130,7 +137,7 @@ namespace liam {
                 word.append(1, chars.at(current));
                 current++;
             }
-
+            current--; // sets current as it will be iterated once after this
             return word;
         }
     };

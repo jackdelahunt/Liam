@@ -119,5 +119,10 @@ namespace liam {
             return stack[--stack_ptr];
         }
     };
-    
+
+    void panic(const std::string& msg)
+    {
+        std::cerr << msg << std::endl;
+        exit(1);
+    }
 }
