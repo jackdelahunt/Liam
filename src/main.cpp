@@ -8,13 +8,13 @@
 #include "generator.h"
 
 int main() {
-    auto lexer = liam::Lexer();
+    auto lexer = Lexer();
     lexer.lex("E:/JacksDocuments/Projects/Liam/main.liam");
     /*for(auto& t: lexer.tokens) {
         std::cout << t << "\n";
     }*/
 
-    auto parser = liam::Parser(lexer.tokens);
+    auto parser = Parser(lexer.tokens);
     parser.parse();
     for (auto stmt : parser.root.statements) {
         std::cout << *stmt << "\n";

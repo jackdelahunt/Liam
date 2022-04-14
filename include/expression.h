@@ -1,0 +1,39 @@
+#pragma once
+#include "lexer.h"
+#include "liam.h"
+
+struct Expression {
+    virtual std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const Expression& expression);
+
+struct BinaryExpression : Expression {
+    Expression* left;
+    Token op;
+    Expression* right;
+
+    BinaryExpression(Expression* left, Token op, Expression* right);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const BinaryExpression& expression);
+
+struct IntLiteralExpression : Expression {
+    Token token;
+
+    IntLiteralExpression(const Token token);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const IntLiteralExpression& expression);
+
+
+struct StringLiteralExpression : Expression {
+    Token token;
+
+    StringLiteralExpression(const Token token);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const StringLiteralExpression& expression);
