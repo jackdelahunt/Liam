@@ -1,7 +1,4 @@
 fn main() {
-	insert "main";
-}
-
-fn cringe() {
-	insert "cringe";
+	let x = 10;
+	let y = 100;
 }

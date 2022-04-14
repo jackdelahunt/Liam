@@ -6,6 +6,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "generator.h"
+#include "emitter.h"
 
 int main() {
     auto lexer = Lexer();
@@ -16,9 +17,14 @@ int main() {
 
     auto parser = Parser(lexer.tokens);
     parser.parse();
-    for (auto stmt : parser.root.statements) {
-        std::cout << *stmt << "\n";
-    }
+
+    auto emitter = Emitter();
+
+    std::cout << emitter.emit(parser.root);
+
+    /*std::ofstream out("E:/JacksDocuments/Projects/Liam/main.l__m");
+    out << emitter.emit(parser.root);
+    out.close();*/
 
 
     // auto generator = liam::Generator();

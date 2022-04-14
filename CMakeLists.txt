@@ -12,4 +12,4 @@ add_executable(liamvm
         "include/generator.h"
         "include/lexer.h"
         "include/parser.h"
-        "include/statement.h" "include/expression.h" "src/expression.cpp" "src/statement.cpp" "src/lexer.cpp" "src/parser.cpp" "src/liam.cpp")
+        "include/statement.h" "include/expression.h" "src/expression.cpp" "src/statement.cpp" "src/lexer.cpp" "src/parser.cpp" "src/liam.cpp" "include/emitter.h" "src/emitter.cpp")

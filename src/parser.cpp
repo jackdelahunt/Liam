@@ -89,10 +89,10 @@ int Parser::find_balance_point(TokenType push, TokenType pull, int from) {
 
 Statement* Parser::eval_insert_statement() {
     consume_token_of_type(TOKEN_INSERT);
-    auto byte_code = consume_token_of_type(TOKEN_STRING_LITERAL);
+    auto byte_code = eval_expression();
     consume_token_of_type(TOKEN_SEMI_COLON);
 
-    return new InsertStatement(*byte_code);
+    return new InsertStatement(byte_code);
 }
 
 Expression* Parser::eval_expression() {

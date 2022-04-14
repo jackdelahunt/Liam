@@ -45,12 +45,12 @@ std::ostream& operator<<(std::ostream& os, const FnStatement& statement)
     return statement.format(os);
 }
 
-InsertStatement::InsertStatement(Token byte_code) {
+InsertStatement::InsertStatement(Expression* byte_code) {
     this->byte_code = byte_code;
 }
 
 std::ostream& InsertStatement::format(std::ostream& os) const {
-    os << "(insert " << byte_code << ")";
+    os << "(insert " << *byte_code << ")";
     return os;
 }
 

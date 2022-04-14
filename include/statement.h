@@ -31,9 +31,9 @@ struct FnStatement : Statement {
 std::ostream& operator<<(std::ostream& os, const FnStatement& statement);
 
 struct InsertStatement : Statement {
-    Token byte_code;
+    Expression* byte_code;
 
-    InsertStatement(Token byte_code);
+    InsertStatement(Expression* byte_code);
     std::ostream& format(std::ostream& os) const;
 };
 
