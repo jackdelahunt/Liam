@@ -93,7 +93,7 @@ namespace liam {
         }
 
         std::ostream& format(std::ostream& os) const {
-            os << "(" << identifier.string << " " << *expression << ")";
+            os << "(let " << identifier.string << " " << *expression << ")";
             return os;
         }
     };
@@ -102,23 +102,53 @@ namespace liam {
         return statement.format(os);
     }
 
+    struct InsertStatement : Statement {
+        Token byte_code;
+
+        InsertStatement(Token byte_code) {
+            this->byte_code = byte_code;
+        }
+
+        std::ostream& format(std::ostream& os) const {
+            os << "(insert " << byte_code << ")";
+            return os;
+        }
+    };
+    std::ostream& operator<<(std::ostream& os, const InsertStatement& statement)
+    {
+        return statement.format(os);
+    }
+
+    struct File {
+        std::vector<Statement*> statements;
+
+        File() {
+            statements = std::vector<Statement*>();
+        }
+    };
+
     struct Parser {
         std::vector<Token> tokens;
         uint32_t current;
-        Statement* root;
+        File root;
 
         Parser(std::vector<Token>& tokens) {
             this->tokens = tokens;
             this->current = 0;
-            this->root = nullptr;
+            this->root = File();
         }
 
         void parse() {
-            eval_statement();
+            while (current < tokens.size()) {
+                root.statements.push_back(eval_statement());
+            }
         }
 
-        void eval_statement() {
-            root = eval_let_statement();
+        Statement* eval_statement() {
+            if(peek()->type == TOKEN_LET)
+                return eval_let_statement();
+            else
+                return eval_insert_statement();
         }
 
         Statement* eval_let_statement() {
@@ -129,6 +159,14 @@ namespace liam {
             consume_token_of_type(TOKEN_SEMI_COLON);
 
             return new LetStatement(*identifier, expression);
+        }
+
+        Statement* eval_insert_statement() {
+            consume_token_of_type(TOKEN_INSERT);
+            auto byte_code = consume_token_of_type(TOKEN_STRING_LITERAL);
+            consume_token_of_type(TOKEN_SEMI_COLON);
+
+            return new InsertStatement(*byte_code);
         }
 
         Expression* eval_expression() {
@@ -180,11 +218,11 @@ namespace liam {
 
         bool match(TokenType type) {
             if(tokens.size() > 0)
-                return peek().type == type;
+                return peek()->type == type;
         }
 
-        Token& peek() {
-            return tokens.at(0);
+        Token* peek() {
+            return &tokens.at(current);
         }
 
         Token* consume_token() {

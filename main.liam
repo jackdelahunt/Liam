@@ -1,1 +1,2 @@
-let x = 10
+insert "jack";
+let x = 10;

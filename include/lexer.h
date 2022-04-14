@@ -29,6 +29,7 @@ namespace liam {
         TOKEN_STRING_LITERAL,
         TOKEN_IDENTIFIER,
         TOKEN_LET,
+        TOKEN_INSERT,
         TOKEN_PLUS,
         TOKEN_MULT,
         TOKEN_EQUAL,
@@ -114,6 +115,12 @@ namespace liam {
                         // check keywords
                         if(word == "let"){
                             tokens.push_back(Token(TokenType::TOKEN_LET, word));
+                            continue;
+                        }
+
+                        // check keywords
+                        if (word == "insert") {
+                            tokens.push_back(Token(TokenType::TOKEN_INSERT, word));
                             continue;
                         }
                         

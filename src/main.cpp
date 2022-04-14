@@ -16,7 +16,9 @@ int main() {
 
     auto parser = liam::Parser(lexer.tokens);
     parser.parse();
-    std::cout << *parser.root;
+    for (auto stmt : parser.root.statements) {
+        std::cout << *stmt << "\n";
+    }
 
 
     // auto generator = liam::Generator();
