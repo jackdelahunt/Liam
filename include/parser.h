@@ -102,6 +102,29 @@ namespace liam {
         return statement.format(os);
     }
 
+    struct FnStatement : Statement {
+        Token identifier;
+        std::vector<Statement*> body;
+
+        FnStatement(Token identifier, std::vector<Statement*> body) {
+            this->identifier = identifier;
+            this->body = body;
+        }
+
+        std::ostream& format(std::ostream& os) const {
+            os << "(fn " << identifier.string;
+            for (auto s_ptr : body) {
+                os << *s_ptr;
+            }
+            os << ")";
+            return os;
+        }
+    };
+    std::ostream& operator<<(std::ostream& os, const FnStatement& statement)
+    {
+        return statement.format(os);
+    }
+
     struct InsertStatement : Statement {
         Token byte_code;
 
@@ -145,6 +168,22 @@ namespace liam {
         }
 
         Statement* eval_statement() {
+            switch (peek()->type)
+            {
+                case TOKEN_LET:
+                    return eval_let_statement();
+                    break;
+                case TOKEN_FN:
+                    return eval_fn_statement();
+                    break;
+                case TOKEN_INSERT:
+                    return eval_insert_statement();
+                    break;
+            default:
+                panic("Cannot parse token as the begining of a statement");
+                break;
+            }
+
             if(peek()->type == TOKEN_LET)
                 return eval_let_statement();
             else
@@ -159,6 +198,43 @@ namespace liam {
             consume_token_of_type(TOKEN_SEMI_COLON);
 
             return new LetStatement(*identifier, expression);
+        }
+
+        Statement* eval_fn_statement() {
+            consume_token_of_type(TOKEN_FN);
+            Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+            consume_token_of_type(TOKEN_PAREN_OPEN);
+            consume_token_of_type(TOKEN_PAREN_CLOSE);
+            consume_token_of_type(TOKEN_BRACE_OPEN);
+
+            auto statements = std::vector<Statement*>();
+            int closing_brace_index = find_balance_point(TOKEN_BRACE_OPEN, TOKEN_BRACE_CLOSE, current - 1);
+            while (current < closing_brace_index) {
+                statements.push_back(eval_statement());
+            }
+            consume_token_of_type(TOKEN_BRACE_CLOSE);
+
+            return new FnStatement(*identifier, statements);
+        }
+
+        int find_balance_point(TokenType push, TokenType pull, int from) {
+            int current_index = from;
+            int balance = 0;
+            
+            while (current_index < tokens.size()) {
+                if (tokens.at(current_index).type == push) {
+                    balance++;
+                    if (balance == 0)
+                        return current_index;
+                }
+                if (tokens.at(current_index).type == pull) {
+                    balance--;
+                    if (balance == 0)
+                        return current_index;
+                }
+
+                current_index++;
+            }
         }
 
         Statement* eval_insert_statement() {

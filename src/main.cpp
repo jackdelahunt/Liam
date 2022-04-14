@@ -10,9 +10,9 @@
 int main() {
     auto lexer = liam::Lexer();
     lexer.lex("E:/JacksDocuments/Projects/Liam/main.liam");
-    //for(auto& t: lexer.tokens) {
-    //    std::cout << t;
-    //}
+    /*for(auto& t: lexer.tokens) {
+        std::cout << t << "\n";
+    }*/
 
     auto parser = liam::Parser(lexer.tokens);
     parser.parse();

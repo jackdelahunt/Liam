@@ -1,2 +1,7 @@
-insert "jack";
-let x = 10;
+fn main() {
+	insert "main";
+}
+
+fn cringe() {
+	insert "cringe";
+}

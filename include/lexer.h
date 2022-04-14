@@ -25,15 +25,20 @@ namespace liam {
     }
 
     enum TokenType {
-        TOKEN_INT_LITERAL,
-        TOKEN_STRING_LITERAL,
-        TOKEN_IDENTIFIER,
-        TOKEN_LET,
-        TOKEN_INSERT,
-        TOKEN_PLUS,
-        TOKEN_MULT,
-        TOKEN_EQUAL,
-        TOKEN_SEMI_COLON,
+        TOKEN_INT_LITERAL       = 0,
+        TOKEN_STRING_LITERAL    = 1,
+        TOKEN_IDENTIFIER        = 2,
+        TOKEN_LET               = 3,
+        TOKEN_INSERT            = 4,
+        TOKEN_FN                = 5,
+        TOKEN_PAREN_OPEN        = 6,
+        TOKEN_PAREN_CLOSE       = 7,
+        TOKEN_BRACE_OPEN        = 8,
+        TOKEN_BRACE_CLOSE       = 9,
+        TOKEN_PLUS              = 10,
+        TOKEN_MULT              = 11,
+        TOKEN_EQUAL             = 12,
+        TOKEN_SEMI_COLON        = 13,
     };
 
     struct Token
@@ -56,7 +61,7 @@ namespace liam {
     }
 
     bool is_delim(char c) {
-        return c == ' ' || c == '\n' || c == ';';
+        return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}';
     }
 
     struct Lexer
@@ -93,6 +98,18 @@ namespace liam {
                     case ';':
                         tokens.push_back(Token(TokenType::TOKEN_SEMI_COLON, ";"));
                         break;
+                    case '(':
+                        tokens.push_back(Token(TokenType::TOKEN_PAREN_OPEN, "("));
+                        break;
+                    case ')':
+                        tokens.push_back(Token(TokenType::TOKEN_PAREN_CLOSE, ")"));
+                        break;
+                    case '{':
+                        tokens.push_back(Token(TokenType::TOKEN_BRACE_OPEN, "{"));
+                        break;
+                    case '}':
+                        tokens.push_back(Token(TokenType::TOKEN_BRACE_CLOSE, "}"));
+                        break;
                     case '#':
                         while(current < chars.size() && chars.at(current) != '\n') {
                             current++;
@@ -121,6 +138,12 @@ namespace liam {
                         // check keywords
                         if (word == "insert") {
                             tokens.push_back(Token(TokenType::TOKEN_INSERT, word));
+                            continue;
+                        }
+
+                        // check keywords
+                        if (word == "fn") {
+                            tokens.push_back(Token(TokenType::TOKEN_FN, word));
                             continue;
                         }
                         

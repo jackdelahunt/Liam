@@ -10,7 +10,3 @@ num-derive = "0.2"
 [[bin]]
 name = "liam_vm"
 path = "src/rvm/main.rs"
-
-[[bin]]
-name = "liamc"
-path = "src/liamc/main.rs"
