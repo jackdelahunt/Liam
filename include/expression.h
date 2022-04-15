@@ -37,3 +37,23 @@ struct StringLiteralExpression : Expression {
 };
 
 std::ostream& operator<<(std::ostream& os, const StringLiteralExpression& expression);
+
+struct IdentifierExpression : Expression {
+    Token identifier;
+
+    IdentifierExpression(const Token identifier);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const IdentifierExpression& expression);
+
+struct CallExpression : Expression {
+    // this is an expression but it must be a identifier
+    Expression* identifier;
+    std::vector<Expression*> args;
+
+    CallExpression(Expression* identifier, std::vector<Expression*> args);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const CallExpression& expression);

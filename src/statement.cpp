@@ -11,6 +11,20 @@ std::ostream& operator<<(std::ostream& os, const Statement& statement)
     return statement.format(os);
 }
 
+ExpressionStatement::ExpressionStatement(Expression* expression) {
+    this->expression = expression;
+}
+
+std::ostream& ExpressionStatement::format(std::ostream& os) const {
+    os << "(" << *expression << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ExpressionStatement& statement)
+{
+    return statement.format(os);
+}
+
 LetStatement::LetStatement(Token identifier, Expression* expression) {
     this->identifier = identifier;
     this->expression = expression;
@@ -26,13 +40,18 @@ std::ostream& operator<<(std::ostream& os, const LetStatement& statement)
     return statement.format(os);
 }
 
-FnStatement::FnStatement(Token identifier, std::vector<Statement*> body) {
+FnStatement::FnStatement(Token identifier, std::vector<Token> params, std::vector<Statement*> body) {
     this->identifier = identifier;
+    this->params = params;
     this->body = body;
 }
 
 std::ostream& FnStatement::format(std::ostream& os) const {
-    os << "(fn " << identifier.string;
+    os << "(fn " << identifier.string << " (";
+    for (auto& param: params) {
+        os << param << ",";
+    }
+    os << ")";
     for (auto s_ptr : body) {
         os << *s_ptr;
     }
@@ -55,6 +74,18 @@ std::ostream& InsertStatement::format(std::ostream& os) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const InsertStatement& statement)
+{
+    return statement.format(os);
+}
+
+ReturnStatement::ReturnStatement() {}
+
+std::ostream& ReturnStatement::format(std::ostream& os) const {
+    os << "(return)";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ReturnStatement& statement)
 {
     return statement.format(os);
 }

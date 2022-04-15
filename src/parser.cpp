@@ -29,6 +29,12 @@ Statement* Parser::eval_statement() {
     case TOKEN_INSERT:
         return eval_insert_statement();
         break;
+    case TOKEN_RETURN:
+        return eval_return_statement();
+        break;
+    case TOKEN_IDENTIFIER:
+        return eval_expression_statement();
+        break;
     default:
         panic("Cannot parse token as the begining of a statement");
         break;
@@ -40,20 +46,20 @@ Statement* Parser::eval_statement() {
         return eval_insert_statement();
 }
 
-Statement* Parser::eval_let_statement() {
+LetStatement* Parser::eval_let_statement() {
     consume_token_of_type(TOKEN_LET);
     Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
     consume_token_of_type(TOKEN_EQUAL);
-    auto expression = eval_expression();
-    consume_token_of_type(TOKEN_SEMI_COLON);
+    auto expression = eval_expression_statement()->expression;
 
     return new LetStatement(*identifier, expression);
 }
 
-Statement* Parser::eval_fn_statement() {
+FnStatement* Parser::eval_fn_statement() {
     consume_token_of_type(TOKEN_FN);
     Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
     consume_token_of_type(TOKEN_PAREN_OPEN);
+    auto params = consume_params();
     consume_token_of_type(TOKEN_PAREN_CLOSE);
     consume_token_of_type(TOKEN_BRACE_OPEN);
 
@@ -64,7 +70,7 @@ Statement* Parser::eval_fn_statement() {
     }
     consume_token_of_type(TOKEN_BRACE_CLOSE);
 
-    return new FnStatement(*identifier, statements);
+    return new FnStatement(*identifier, params, statements);
 }
 
 int Parser::find_balance_point(TokenType push, TokenType pull, int from) {
@@ -87,7 +93,7 @@ int Parser::find_balance_point(TokenType push, TokenType pull, int from) {
     }
 }
 
-Statement* Parser::eval_insert_statement() {
+InsertStatement* Parser::eval_insert_statement() {
     consume_token_of_type(TOKEN_INSERT);
     auto byte_code = eval_expression();
     consume_token_of_type(TOKEN_SEMI_COLON);
@@ -95,11 +101,21 @@ Statement* Parser::eval_insert_statement() {
     return new InsertStatement(byte_code);
 }
 
-Expression* Parser::eval_expression() {
-    return eval_binary(); // TODO: figure out  what to do here
+ReturnStatement* Parser::eval_return_statement() {
+    consume_token_of_type(TOKEN_RETURN);
+    consume_token_of_type(TOKEN_SEMI_COLON);
+
+    return new ReturnStatement();
 }
 
-Expression* Parser::eval_binary() {
+ExpressionStatement* Parser::eval_expression_statement() {
+    auto expression = eval_expression();
+    consume_token_of_type(TOKEN_SEMI_COLON);
+
+    return new ExpressionStatement(expression);
+}
+
+Expression* Parser::eval_expression() {
     return eval_term();
 }
 
@@ -128,7 +144,21 @@ Expression* Parser::eval_factor() {
 }
 
 Expression* Parser::eval_unary() {
-    return eval_primary();
+    return eval_call();
+}
+
+Expression* Parser::eval_call() {
+    auto expr = eval_primary();
+
+    if (match(TOKEN_PAREN_OPEN)) {
+        consume_token_of_type(TOKEN_PAREN_OPEN);
+        auto args = consume_arguments();
+        consume_token_of_type(TOKEN_PAREN_CLOSE);
+
+        return new CallExpression(expr, args);
+    }
+
+    return expr;
 }
 
 Expression* Parser::eval_primary() {
@@ -138,6 +168,8 @@ Expression* Parser::eval_primary() {
         return new IntLiteralExpression(*token);
     else if (token->type == TokenType::TOKEN_STRING_LITERAL)
         return new StringLiteralExpression(*token);
+    else if (token->type == TokenType::TOKEN_IDENTIFIER)
+        return new IdentifierExpression(*token);
 
     throw;
 }
@@ -173,4 +205,36 @@ Token* Parser::consume_token_of_type(TokenType type) {
     }
 
     return t_ptr;
+}
+
+std::vector<Expression*> Parser::consume_arguments() {
+    auto args = std::vector<Expression*>();
+    bool is_first = true;
+    if (!match(TOKEN_PAREN_CLOSE)) {
+        do {
+            if (!is_first) current++; // only iterate current by one when it is not the first time
+
+            args.push_back(eval_expression());
+
+            if (is_first) is_first = false;
+        } while (match(TOKEN_COMMA));
+    }
+
+    return args;
+}
+
+std::vector<Token> Parser::consume_params() {
+    auto args = std::vector<Token>();
+    bool is_first = true;
+    if (!match(TOKEN_PAREN_CLOSE)) {
+        do {
+            if (!is_first) current++; // only iterate current by one when it is not the first time
+
+            args.push_back(*consume_token());
+
+            if (is_first) is_first = false;
+        } while (match(TOKEN_COMMA));
+    }
+
+    return args;
 }

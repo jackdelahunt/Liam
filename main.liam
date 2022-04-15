@@ -1,4 +1,8 @@
+fn add(a, b) {
+	insert "load 0 load 1 add print";
+	return;
+}
+
 fn main() {
-	let x = 10;
-	let y = 100;
+	add(1, 10);
 }

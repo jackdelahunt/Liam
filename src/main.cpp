@@ -10,7 +10,7 @@
 
 int main() {
     auto lexer = Lexer();
-    lexer.lex("E:/JacksDocuments/Projects/Liam/main.liam");
+    lexer.lex("P:/Liam/main.liam");
     /*for(auto& t: lexer.tokens) {
         std::cout << t << "\n";
     }*/
@@ -18,13 +18,18 @@ int main() {
     auto parser = Parser(lexer.tokens);
     parser.parse();
 
+    //for (auto stmt : parser.root.statements) {
+    //    std::cout << *stmt;
+    //}
+
+    
     auto emitter = Emitter();
 
-    std::cout << emitter.emit(parser.root);
+    // std::cout << emitter.emit(parser.root);
 
-    /*std::ofstream out("E:/JacksDocuments/Projects/Liam/main.l__m");
+    std::ofstream out("P:/Liam/main.l__m");
     out << emitter.emit(parser.root);
-    out.close();*/
+    out.close();
 
 
     // auto generator = liam::Generator();

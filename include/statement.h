@@ -10,6 +10,15 @@ struct Statement {
 
 std::ostream& operator<<(std::ostream& os, const Statement& statement);
 
+struct ExpressionStatement : Statement {
+    Expression* expression;
+
+    ExpressionStatement(Expression* expression);
+    virtual std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const ExpressionStatement& statement);
+
 struct LetStatement : Statement {
     Token identifier;
     Expression* expression;
@@ -22,9 +31,10 @@ std::ostream& operator<<(std::ostream& os, const LetStatement& statement);
 
 struct FnStatement : Statement {
     Token identifier;
+    std::vector<Token> params;
     std::vector<Statement*> body;
 
-    FnStatement(Token identifier, std::vector<Statement*> body);
+    FnStatement(Token identifier, std::vector<Token> args, std::vector<Statement*> body);
     std::ostream& format(std::ostream& os) const;
 };
 
@@ -38,3 +48,10 @@ struct InsertStatement : Statement {
 };
 
 std::ostream& operator<<(std::ostream& os, const InsertStatement& statement);
+
+struct ReturnStatement: Statement {
+    ReturnStatement();
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const ReturnStatement& statement);

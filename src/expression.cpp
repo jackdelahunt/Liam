@@ -53,3 +53,34 @@ std::ostream& operator<<(std::ostream& os, const StringLiteralExpression& expres
 {
     return expression.format(os);
 }
+
+IdentifierExpression::IdentifierExpression(const Token identifier) {
+    this->identifier = identifier;
+}
+
+std::ostream& IdentifierExpression::format(std::ostream& os) const {
+    os << "(" << identifier.string << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const IdentifierExpression& expression) {
+    return expression.format(os);
+}
+
+CallExpression::CallExpression(Expression* identifier, std::vector<Expression*> args) {
+    this->identifier = identifier;
+    this->args = args;
+}
+
+std::ostream& CallExpression::format(std::ostream& os) const {
+    os << "(" << *identifier << "(";
+    for (auto args : args) {
+        os << *args << " ";
+    }
+    os << ")" << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const CallExpression& expression) {
+    return expression.format(os);
+}

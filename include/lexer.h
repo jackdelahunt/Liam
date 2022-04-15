@@ -21,6 +21,8 @@ enum TokenType {
     TOKEN_MULT              = 11,
     TOKEN_EQUAL             = 12,
     TOKEN_SEMI_COLON        = 13,
+    TOKEN_COMMA             = 14,
+    TOKEN_RETURN            = 15,
 };
 
 struct Token

@@ -31,7 +31,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
 }
 
 bool is_delim(char c) {
-    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}';
+    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',';
 }
 
 Lexer::Lexer() {
@@ -74,6 +74,9 @@ void Lexer::lex(const char* path) {
         case '}':
             tokens.push_back(Token(TokenType::TOKEN_BRACE_CLOSE, "}"));
             break;
+        case ',':
+            tokens.push_back(Token(TokenType::TOKEN_COMMA, ","));
+            break;
         case '#':
             while (current < chars.size() && chars.at(current) != '\n') {
                 current++;
@@ -111,6 +114,12 @@ void Lexer::lex(const char* path) {
                 continue;
             }
 
+            // check keywords
+            if (word == "return") {
+                tokens.push_back(Token(TokenType::TOKEN_RETURN, word));
+                continue;
+            }
+
             // check numbers
             try
             {
@@ -121,6 +130,7 @@ void Lexer::lex(const char* path) {
             catch (const std::exception& e) {}
 
             tokens.push_back(Token(TokenType::TOKEN_IDENTIFIER, word));
+
             break;
         }
     }
