@@ -78,7 +78,9 @@ std::ostream& operator<<(std::ostream& os, const InsertStatement& statement)
     return statement.format(os);
 }
 
-ReturnStatement::ReturnStatement() {}
+ReturnStatement::ReturnStatement(Expression* expression) {
+    this->expression = expression;
+}
 
 std::ostream& ReturnStatement::format(std::ostream& os) const {
     os << "(return)";

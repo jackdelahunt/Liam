@@ -25,13 +25,19 @@ enum TokenType {
     TOKEN_RETURN            = 15,
 };
 
+const char* TokenTypeStrings[];
+
+std::string get_token_type_string(TokenType type);
+
 struct Token
 {
     TokenType type;
+    int line;
+    int character;
     std::string string;
 
     Token() = default;
-    Token(TokenType type, std::string string);
+    Token(TokenType type, std::string string, int line, int character);
 };
     
 std::ostream& operator<<(std::ostream& os, const Token& token);
@@ -43,9 +49,12 @@ struct Lexer
     std::vector<Token> tokens;
     std::vector<char> chars;
     int current;
+    int current_line;
+    int current_character;
 
     Lexer();
 
     void lex(const char* path);
+    void next_char();
     std::string get_word();
 };

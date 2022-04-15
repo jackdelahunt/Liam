@@ -103,9 +103,7 @@ InsertStatement* Parser::eval_insert_statement() {
 
 ReturnStatement* Parser::eval_return_statement() {
     consume_token_of_type(TOKEN_RETURN);
-    consume_token_of_type(TOKEN_SEMI_COLON);
-
-    return new ReturnStatement();
+    return new ReturnStatement(eval_expression_statement()->expression);
 }
 
 ExpressionStatement* Parser::eval_expression_statement() {
@@ -171,7 +169,8 @@ Expression* Parser::eval_primary() {
     else if (token->type == TokenType::TOKEN_IDENTIFIER)
         return new IdentifierExpression(*token);
 
-    throw;
+    current--;
+    return new Expression(); // empty expression found -- like when a return has no expression
 }
 
 bool Parser::match(TokenType type) {
@@ -199,9 +198,7 @@ Token* Parser::consume_token_of_type(TokenType type) {
 
     auto t_ptr = &tokens.at(current++);
     if (t_ptr->type != type) {
-        std::ostringstream oss;
-        oss << "Expected " << type << " got " << t_ptr->type;
-        panic(oss.str());
+        unexpected_token(t_ptr, type);
     }
 
     return t_ptr;
@@ -237,4 +234,10 @@ std::vector<Token> Parser::consume_params() {
     }
 
     return args;
+}
+
+void unexpected_token(Token* got, TokenType expected) {
+    std::ostringstream oss;
+    oss << "Expected \'" << TokenTypeStrings[expected] << "\' got \'" << got->string << "\' at (" << got->line << ":" << got->character << ")";
+    panic(oss.str());
 }

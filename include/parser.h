@@ -40,4 +40,7 @@ struct Parser {
     Token* consume_token_of_type(TokenType type);
     std::vector<Expression*> consume_arguments();
     std::vector<Token> consume_params();
+
 };
+
+void unexpected_token(Token* got, TokenType expected);

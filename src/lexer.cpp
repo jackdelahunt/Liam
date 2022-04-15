@@ -1,6 +1,25 @@
 #pragma once
 #include "lexer.h"
 
+const char* TokenTypeStrings[16] = {
+    "int Literal",
+    "string Literal",
+    "identifier",
+    "let",
+    "insert",
+    "fn",
+    "(",
+    ")",
+    "{",
+    "}",
+    "+",
+    "*",
+    "=",
+    ";",
+    ",",
+    "return",
+};
+
 std::vector<char> extract_chars(const char* path) {
     auto vec = std::vector<char>();
 
@@ -19,9 +38,11 @@ std::vector<char> extract_chars(const char* path) {
     return vec;
 }
 
-Token::Token(TokenType type, std::string string) {
+Token::Token(TokenType type, std::string string, int line, int character) {
     this->type = type;
     this->string = string;
+    this->line = line;
+    this->character = character;
 }
 
 std::ostream& operator<<(std::ostream& os, const Token& token)
@@ -37,60 +58,65 @@ bool is_delim(char c) {
 Lexer::Lexer() {
     tokens = std::vector<Token>();
     current = 0;
+    current_line = 1;
+    current_character = 0;
  }
 
 void Lexer::lex(const char* path) {
     chars = extract_chars(path);
-    for (; current < chars.size(); current++) {
+    for (; current < chars.size(); next_char()) {
         char c = chars.at(current);
         switch (c)
         {
+        case '\n':
+            current_line++;
+            current_character = 0;
+            break;
         case ' ':
         case '\r':
-        case '\n':
         case '\t':
             break;
         case '+':
-            tokens.push_back(Token(TokenType::TOKEN_PLUS, "+"));
+            tokens.push_back(Token(TokenType::TOKEN_PLUS, "+", current_line, current_character));
             break;
         case '*':
-            tokens.push_back(Token(TokenType::TOKEN_MULT, "*"));
+            tokens.push_back(Token(TokenType::TOKEN_MULT, "*", current_line, current_character));
             break;
         case '=':
-            tokens.push_back(Token(TokenType::TOKEN_EQUAL, "="));
+            tokens.push_back(Token(TokenType::TOKEN_EQUAL, "=", current_line, current_character));
             break;
         case ';':
-            tokens.push_back(Token(TokenType::TOKEN_SEMI_COLON, ";"));
+            tokens.push_back(Token(TokenType::TOKEN_SEMI_COLON, ";", current_line, current_character));
             break;
         case '(':
-            tokens.push_back(Token(TokenType::TOKEN_PAREN_OPEN, "("));
+            tokens.push_back(Token(TokenType::TOKEN_PAREN_OPEN, "(", current_line, current_character));
             break;
         case ')':
-            tokens.push_back(Token(TokenType::TOKEN_PAREN_CLOSE, ")"));
+            tokens.push_back(Token(TokenType::TOKEN_PAREN_CLOSE, ")", current_line, current_character));
             break;
         case '{':
-            tokens.push_back(Token(TokenType::TOKEN_BRACE_OPEN, "{"));
+            tokens.push_back(Token(TokenType::TOKEN_BRACE_OPEN, "{", current_line, current_character));
             break;
         case '}':
-            tokens.push_back(Token(TokenType::TOKEN_BRACE_CLOSE, "}"));
+            tokens.push_back(Token(TokenType::TOKEN_BRACE_CLOSE, "}", current_line, current_character));
             break;
         case ',':
-            tokens.push_back(Token(TokenType::TOKEN_COMMA, ","));
+            tokens.push_back(Token(TokenType::TOKEN_COMMA, ",", current_line, current_character));
             break;
         case '#':
             while (current < chars.size() && chars.at(current) != '\n') {
-                current++;
+                next_char();
             }
             break;
         case '"':
         {
-            current++; // go to next character after quote
+            next_char();
             std::string str = std::string();
             while (current < chars.size() && chars.at(current) != '"') {
                 str.append(std::string(1, chars.at(current)));
-                current++;
+                next_char();
             }
-            tokens.push_back(Token(TokenType::TOKEN_STRING_LITERAL, str));
+            tokens.push_back(Token(TokenType::TOKEN_STRING_LITERAL, str, current_line, current_character));
         }
         break;
         default:
@@ -98,25 +124,25 @@ void Lexer::lex(const char* path) {
 
             // check keywords
             if (word == "let") {
-                tokens.push_back(Token(TokenType::TOKEN_LET, word));
+                tokens.push_back(Token(TokenType::TOKEN_LET, word, current_line, current_character));
                 continue;
             }
 
             // check keywords
             if (word == "insert") {
-                tokens.push_back(Token(TokenType::TOKEN_INSERT, word));
+                tokens.push_back(Token(TokenType::TOKEN_INSERT, word, current_line, current_character));
                 continue;
             }
 
             // check keywords
             if (word == "fn") {
-                tokens.push_back(Token(TokenType::TOKEN_FN, word));
+                tokens.push_back(Token(TokenType::TOKEN_FN, word, current_line, current_character));
                 continue;
             }
 
             // check keywords
             if (word == "return") {
-                tokens.push_back(Token(TokenType::TOKEN_RETURN, word));
+                tokens.push_back(Token(TokenType::TOKEN_RETURN, word, current_line, current_character));
                 continue;
             }
 
@@ -124,16 +150,21 @@ void Lexer::lex(const char* path) {
             try
             {
                 int i = std::stoi(word);
-                tokens.push_back(Token(TokenType::TOKEN_INT_LITERAL, word));
+                tokens.push_back(Token(TokenType::TOKEN_INT_LITERAL, word, current_line, current_character));
                 continue;
             }
             catch (const std::exception& e) {}
 
-            tokens.push_back(Token(TokenType::TOKEN_IDENTIFIER, word));
+            tokens.push_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, current_character));
 
             break;
         }
     }
+}
+
+void Lexer::next_char() {
+    current++;
+    current_character++;
 }
 
 std::string Lexer::get_word() {

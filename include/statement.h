@@ -50,7 +50,9 @@ struct InsertStatement : Statement {
 std::ostream& operator<<(std::ostream& os, const InsertStatement& statement);
 
 struct ReturnStatement: Statement {
-    ReturnStatement();
+    Expression* expression;
+
+    ReturnStatement(Expression* expression);
     std::ostream& format(std::ostream& os) const;
 };
 

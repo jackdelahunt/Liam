@@ -1,8 +1,3 @@
-fn add(a, b) {
-	insert "load 0 load 1 add print";
-	return;
-}
-
 fn main() {
-	add(1, 10);
+	print(x);
 }

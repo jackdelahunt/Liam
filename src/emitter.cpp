@@ -63,7 +63,12 @@ std::string Emitter::emit_insert_statement(InsertStatement* statement, Scope* sc
 }
 
 std::string Emitter::emit_return_statement(ReturnStatement* statement, Scope* scope) {
-	return "ret\n";
+	auto expression = emit_expression(statement->expression, scope);
+	if(expression.empty())
+		return "ret\n";
+
+	expression.append("pop_ret\n");
+	return expression;
 }
 
 std::string Emitter::emit_let_statement(LetStatement* statement, Scope* scope) {
@@ -124,11 +129,12 @@ std::string Emitter::emit_expression(Expression* expression, Scope* scope) {
 	{
 		auto ptr = dynamic_cast<IdentifierExpression*>(expression);
 		if (ptr) {
-			return emit_identifier_expression(ptr, scope); // temp
+			return emit_identifier_expression(ptr, scope);
 		}
 	}
 
-	panic("How did we get here");
+	// given empty expression
+	return "";
 }
 
 std::string Emitter::emit_int_literal_expression(IntLiteralExpression* expression, Scope* scope) {
@@ -152,7 +158,22 @@ std::string Emitter::emit_call_expression(CallExpression* expression, Scope* sco
 }
 
 std::string Emitter::emit_identifier_expression(IdentifierExpression* expression, Scope* scope) {
-	std::string source = "load ";
-	source.append(std::to_string(scope->locals[expression->identifier.string]) + "\n");
-	return source;
+
+	if (scope->locals.contains(expression->identifier.string)) {
+		std::string source = "load ";
+		source.append(std::to_string(scope->locals[expression->identifier.string]) + "\n");
+		return source;
+	}
+
+	undeclared_identidier(&expression->identifier);
+	throw;
+}
+
+void undeclared_identidier(Token* token) {
+	std::string message = "identifier \'" + 
+		token->string + 
+		"\' is not declared (" + 
+		std::to_string(token->line) + 
+		":" + std::to_string(token->character) + ")";
+	panic(message);
 }

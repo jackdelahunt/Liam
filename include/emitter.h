@@ -29,3 +29,5 @@ struct Emitter {
 	std::string emit_call_expression(CallExpression* expression, Scope* scope);
 	std::string emit_identifier_expression(IdentifierExpression* expression, Scope* scope);
 };
+
+void undeclared_identidier(Token* token);
