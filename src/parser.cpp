@@ -49,10 +49,12 @@ Statement* Parser::eval_statement() {
 LetStatement* Parser::eval_let_statement() {
     consume_token_of_type(TOKEN_LET);
     Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+    consume_token_of_type(TOKEN_COLON);
+    Token* type = consume_token_of_type(TOKEN_TYPE);
     consume_token_of_type(TOKEN_EQUAL);
     auto expression = eval_expression_statement()->expression;
 
-    return new LetStatement(*identifier, expression);
+    return new LetStatement(*identifier, expression, *type);
 }
 
 FnStatement* Parser::eval_fn_statement() {
@@ -61,6 +63,7 @@ FnStatement* Parser::eval_fn_statement() {
     consume_token_of_type(TOKEN_PAREN_OPEN);
     auto params = consume_params();
     consume_token_of_type(TOKEN_PAREN_CLOSE);
+    Token* type = consume_token_of_type(TOKEN_TYPE);
     consume_token_of_type(TOKEN_BRACE_OPEN);
 
     auto statements = std::vector<Statement*>();
@@ -70,7 +73,7 @@ FnStatement* Parser::eval_fn_statement() {
     }
     consume_token_of_type(TOKEN_BRACE_CLOSE);
 
-    return new FnStatement(*identifier, params, statements);
+    return new FnStatement(*identifier, params, *type, statements);
 }
 
 int Parser::find_balance_point(TokenType push, TokenType pull, int from) {
@@ -220,20 +223,24 @@ std::vector<Expression*> Parser::consume_arguments() {
     return args;
 }
 
-std::vector<Token> Parser::consume_params() {
-    auto args = std::vector<Token>();
+std::vector<std::tuple<Token, Token>> Parser::consume_params() {
+    auto args_types = std::vector<std::tuple<Token, Token>>();
     bool is_first = true;
     if (!match(TOKEN_PAREN_CLOSE)) {
         do {
             if (!is_first) current++; // only iterate current by one when it is not the first time
 
-            args.push_back(*consume_token());
+            auto arg = consume_token_of_type(TOKEN_IDENTIFIER);
+            consume_token_of_type(TOKEN_COLON);
+            auto type = consume_token_of_type(TOKEN_TYPE);
+
+            args_types.push_back({*arg, *type});
 
             if (is_first) is_first = false;
         } while (match(TOKEN_COMMA));
     }
 
-    return args;
+    return args_types;
 }
 
 void unexpected_token(Token* got, TokenType expected) {

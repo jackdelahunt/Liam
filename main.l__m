@@ -1,0 +1,19 @@
+@print
+load 0
+print
+ret
+
+@main
+push 1
+push 1
+add
+push 1
+add
+push 4345
+add
+push 209
+add
+store 0
+load 0
+call @print 1
+

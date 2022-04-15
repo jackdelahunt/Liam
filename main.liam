@@ -1,3 +1,10 @@
-fn main() {
+fn print(x: u64) void {
+	insert "load 0
+print";
+	return;
+}
+
+fn main() void {
+	let x : u64 = 1 + 1 + 1 + 4345 + 209;
 	print(x);
 }

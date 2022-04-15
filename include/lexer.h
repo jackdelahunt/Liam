@@ -22,7 +22,9 @@ enum TokenType {
     TOKEN_EQUAL             = 12,
     TOKEN_SEMI_COLON        = 13,
     TOKEN_COMMA             = 14,
-    TOKEN_RETURN            = 15,
+    TOKEN_COLON             = 15,
+    TOKEN_RETURN            = 16,
+    TOKEN_TYPE              = 17,
 };
 
 const char* TokenTypeStrings[];

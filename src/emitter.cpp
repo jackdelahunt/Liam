@@ -44,7 +44,8 @@ std::string Emitter::emit_statement(Statement* statement, Scope* scope) {
 	{
 		auto ptr = dynamic_cast<FnStatement*>(statement);
 		if (ptr) {
-			return emit_fn_statement(ptr, scope);
+			auto s = emit_fn_statement(ptr, scope);
+			return s;
 		}
 	}
 
@@ -87,16 +88,17 @@ std::string Emitter::emit_fn_statement(FnStatement* statement, Scope* scope) {
 	fn_source.append("@");
 	fn_source.append(statement->identifier.string);
 	fn_source.append("\n");
+
+	// setup locals for sub scope
+	auto sub_scope = Scope();
+	for (auto& param : statement->params) {
+		sub_scope.locals[param._Myfirst._Val.string] = sub_scope.local_max++;
+	}
+	
 	for (auto stmt : statement->body) {
-		auto sub_scope = Scope();
-
-		// setup locals for sub scope
-		for (auto& param : statement->params) {
-			sub_scope.locals[param.string] = sub_scope.local_max++;
-		}
-
 		fn_source.append(emit_statement(stmt, &sub_scope));
 	}
+
 	return fn_source + "\n";
 }
 
@@ -130,6 +132,13 @@ std::string Emitter::emit_expression(Expression* expression, Scope* scope) {
 		auto ptr = dynamic_cast<IdentifierExpression*>(expression);
 		if (ptr) {
 			return emit_identifier_expression(ptr, scope);
+		}
+	}
+
+	{
+		auto ptr = dynamic_cast<BinaryExpression*>(expression);
+		if (ptr) {
+			return emit_binary_expression(ptr, scope);
 		}
 	}
 
@@ -167,6 +176,24 @@ std::string Emitter::emit_identifier_expression(IdentifierExpression* expression
 
 	undeclared_identidier(&expression->identifier);
 	throw;
+}
+
+std::string Emitter::emit_binary_expression(BinaryExpression* expression, Scope* scope) {
+	auto source = std::string();
+	source.append(emit_expression(expression->left, scope));
+	source.append(emit_expression(expression->right, scope));
+	
+	switch (expression->op.type)
+	{
+	case TOKEN_PLUS:
+		source.append("add\n");
+		break;
+	default:
+		panic("Cannot use this operand");
+		break;
+	}
+
+	return source;
 }
 
 void undeclared_identidier(Token* token) {

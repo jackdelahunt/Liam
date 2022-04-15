@@ -1,7 +1,7 @@
 #pragma once
 #include "lexer.h"
 
-const char* TokenTypeStrings[16] = {
+const char* TokenTypeStrings[18] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -17,7 +17,9 @@ const char* TokenTypeStrings[16] = {
     "=",
     ";",
     ",",
+    ":",
     "return",
+    "type"
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -52,7 +54,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
 }
 
 bool is_delim(char c) {
-    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',';
+    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' || c == '=';
 }
 
 Lexer::Lexer() {
@@ -103,6 +105,9 @@ void Lexer::lex(const char* path) {
         case ',':
             tokens.push_back(Token(TokenType::TOKEN_COMMA, ",", current_line, current_character));
             break;
+        case ':':
+            tokens.push_back(Token(TokenType::TOKEN_COLON, ":", current_line, current_character));
+            break;
         case '#':
             while (current < chars.size() && chars.at(current) != '\n') {
                 next_char();
@@ -128,21 +133,28 @@ void Lexer::lex(const char* path) {
                 continue;
             }
 
-            // check keywords
             if (word == "insert") {
                 tokens.push_back(Token(TokenType::TOKEN_INSERT, word, current_line, current_character));
                 continue;
             }
 
-            // check keywords
             if (word == "fn") {
                 tokens.push_back(Token(TokenType::TOKEN_FN, word, current_line, current_character));
                 continue;
             }
 
-            // check keywords
             if (word == "return") {
                 tokens.push_back(Token(TokenType::TOKEN_RETURN, word, current_line, current_character));
+                continue;
+            }
+
+            if (word == "u64") {
+                tokens.push_back(Token(TokenType::TOKEN_TYPE, word, current_line, current_character));
+                continue;
+            }
+
+            if (word == "void") {
+                tokens.push_back(Token(TokenType::TOKEN_TYPE, word, current_line, current_character));
                 continue;
             }
 
