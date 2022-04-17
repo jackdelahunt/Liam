@@ -50,6 +50,14 @@ std::string Emitter::emit_statement(Statement* statement, Scope* scope) {
 	}
 
 	{
+		auto ptr = dynamic_cast<LoopStatement*>(statement);
+		if (ptr) {
+			auto s = emit_loop_statement(ptr, scope);
+			return s;
+		}
+	}
+
+	{
 		auto ptr = dynamic_cast<ExpressionStatement*>(statement);
 		if (ptr) {
 			return emit_expression_statement(ptr, scope);
@@ -83,6 +91,14 @@ std::string Emitter::emit_let_statement(LetStatement* statement, Scope* scope) {
 	return expr;
 }
 
+std::string Emitter::emit_scope_statement(ScopeStatement* statement, Scope* scope) {
+	auto fn_source = std::string();
+	for (auto stmt : statement->body) {
+		fn_source.append(emit_statement(stmt, scope));
+	}
+	return fn_source;
+}
+
 std::string Emitter::emit_fn_statement(FnStatement* statement, Scope* scope) {
 	auto fn_source = std::string();
 	fn_source.append("@");
@@ -94,12 +110,19 @@ std::string Emitter::emit_fn_statement(FnStatement* statement, Scope* scope) {
 	for (auto& param : statement->params) {
 		sub_scope.locals[param._Myfirst._Val.string] = sub_scope.local_max++;
 	}
-	
-	for (auto stmt : statement->body) {
-		fn_source.append(emit_statement(stmt, &sub_scope));
-	}
+
+	fn_source.append(emit_scope_statement(statement->body, &sub_scope));
 
 	return fn_source + "\n";
+}
+
+std::string Emitter::emit_loop_statement(LoopStatement* statement, Scope* scope) {
+	auto source = std::string();
+	source.append("#" + statement->identifier.string + "\n");
+	auto copied_scope = *scope;
+	source.append(emit_scope_statement(statement->body, &copied_scope));
+	source.append("goto #" + statement->identifier.string);
+	return source;
 }
 
 std::string Emitter::emit_expression_statement(ExpressionStatement* statement, Scope* scope) {

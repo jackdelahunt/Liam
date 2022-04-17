@@ -8,9 +8,24 @@
 #include "generator.h"
 #include "emitter.h"
 
-int main() {
+int main(int argc, char** argv) {
+
+#ifdef _DEBUG
+    const char* source_path = "P:/Liam/main.liam";
+    const char* out_path = "P:/Liam/main.l__m";
+#else
+    if (argc < 3) {
+        panic("Not enough arguments");
+    }
+
+    char* source_path = argv[1];
+    char* out_path    = argv[2];
+#endif
+
+
+
     auto lexer = Lexer();
-    lexer.lex("P:/Liam/main.liam");
+    lexer.lex(source_path);
     /*for(auto& t: lexer.tokens) {
         std::cout << t << "\n";
     }*/
@@ -24,12 +39,12 @@ int main() {
 
     
     auto emitter = Emitter();
+    auto byte_code = emitter.emit(parser.root);
+    std::cout << byte_code;
 
-    // std::cout << emitter.emit(parser.root);
-
-    std::ofstream out("P:/Liam/main.l__m");
-    out << emitter.emit(parser.root);
-    out.close();
+    std::ofstream out_file(out_path);
+    out_file << byte_code;
+    out_file.close();
 
 
     // auto generator = liam::Generator();

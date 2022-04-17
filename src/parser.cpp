@@ -26,6 +26,9 @@ Statement* Parser::eval_statement() {
     case TOKEN_FN:
         return eval_fn_statement();
         break;
+    case TOKEN_LOOP:
+        return eval_loop_statement();
+        break;
     case TOKEN_INSERT:
         return eval_insert_statement();
         break;
@@ -57,23 +60,41 @@ LetStatement* Parser::eval_let_statement() {
     return new LetStatement(*identifier, expression, *type);
 }
 
+ScopeStatement* Parser::eval_scope_statement() {
+    auto statements = std::vector<Statement*>();
+    consume_token_of_type(TOKEN_BRACE_OPEN);
+    int closing_brace_index = find_balance_point(TOKEN_BRACE_OPEN, TOKEN_BRACE_CLOSE, current - 1);
+    if (closing_brace_index == current + 1) { // if this scope is empty
+        current++;
+    }
+    while (current < closing_brace_index) {
+        statements.push_back(eval_statement());
+    }
+    consume_token_of_type(TOKEN_BRACE_CLOSE);
+
+    return new ScopeStatement(statements);
+}
+
 FnStatement* Parser::eval_fn_statement() {
     consume_token_of_type(TOKEN_FN);
     Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
     consume_token_of_type(TOKEN_PAREN_OPEN);
     auto params = consume_params();
     consume_token_of_type(TOKEN_PAREN_CLOSE);
+    consume_token_of_type(TOKEN_COLON);
     Token* type = consume_token_of_type(TOKEN_TYPE);
-    consume_token_of_type(TOKEN_BRACE_OPEN);
 
-    auto statements = std::vector<Statement*>();
-    int closing_brace_index = find_balance_point(TOKEN_BRACE_OPEN, TOKEN_BRACE_CLOSE, current - 1);
-    while (current < closing_brace_index) {
-        statements.push_back(eval_statement());
-    }
-    consume_token_of_type(TOKEN_BRACE_CLOSE);
+    auto body = eval_scope_statement();
 
-    return new FnStatement(*identifier, params, *type, statements);
+    return new FnStatement(*identifier, params, *type, body);
+}
+
+LoopStatement* Parser::eval_loop_statement() {
+    consume_token_of_type(TOKEN_LOOP);
+    Token* identifier = consume_token_of_type(TOKEN_STRING_LITERAL);
+    auto body = eval_scope_statement();
+
+    return new LoopStatement(*identifier, body);
 }
 
 int Parser::find_balance_point(TokenType push, TokenType pull, int from) {

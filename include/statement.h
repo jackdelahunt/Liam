@@ -30,17 +30,36 @@ struct LetStatement : Statement {
 
 std::ostream& operator<<(std::ostream& os, const LetStatement& statement);
 
+struct ScopeStatement : Statement {
+    std::vector<Statement*> body;
+
+    ScopeStatement(std::vector<Statement*> body);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const ScopeStatement& statement);
+
 struct FnStatement : Statement {
     Token identifier;
     std::vector<std::tuple<Token, Token>> params;
     Token type;
-    std::vector<Statement*> body;
+    ScopeStatement* body;
 
-    FnStatement(Token identifier, std::vector<std::tuple<Token, Token>> params, Token type, std::vector<Statement*> body);
+    FnStatement(Token identifier, std::vector<std::tuple<Token, Token>> params, Token type, ScopeStatement* body);
     std::ostream& format(std::ostream& os) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const FnStatement& statement);
+
+struct LoopStatement : Statement {
+    Token identifier;
+    ScopeStatement* body;
+
+    LoopStatement(Token identifier, ScopeStatement* body);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const LoopStatement& statement);
 
 struct InsertStatement : Statement {
     Expression* byte_code;

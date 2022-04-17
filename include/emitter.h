@@ -21,7 +21,9 @@ struct Emitter {
 	std::string emit_insert_statement(InsertStatement* statement, Scope* scope);
 	std::string emit_return_statement(ReturnStatement* statement, Scope* scope);
 	std::string emit_let_statement(LetStatement* statement, Scope* scope);
+	std::string emit_scope_statement(ScopeStatement* statement, Scope* scope);
 	std::string emit_fn_statement(FnStatement* statement, Scope* scope);
+	std::string emit_loop_statement(LoopStatement* statement, Scope* scope);
 	std::string emit_expression_statement(ExpressionStatement* statement, Scope* scope);
 	std::string emit_expression(Expression* expression, Scope* scope);
 	std::string emit_string_literal_expression(StringLiteralExpression* expression, Scope* scope);

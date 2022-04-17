@@ -1,19 +1,11 @@
 @print
-load 0
-print
+load 0 print pop
 ret
 
 @main
-push 1
-push 1
-add
-push 1
-add
-push 4345
-add
-push 209
-add
+#jack
+push 10
 store 0
 load 0
 call @print 1
-
+goto #jack

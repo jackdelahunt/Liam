@@ -23,7 +23,9 @@ struct Parser {
     void parse();
     Statement* eval_statement();
     LetStatement* eval_let_statement();
+    ScopeStatement* eval_scope_statement();
     FnStatement* eval_fn_statement();
+    LoopStatement* eval_loop_statement();
     int find_balance_point(TokenType push, TokenType pull, int from);
     InsertStatement* eval_insert_statement();
     ReturnStatement* eval_return_statement();

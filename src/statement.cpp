@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& os, const LetStatement& statement)
     return statement.format(os);
 }
 
-FnStatement::FnStatement(Token identifier, std::vector<std::tuple<Token, Token>> params, Token type, std::vector<Statement*> body) {
+FnStatement::FnStatement(Token identifier, std::vector<std::tuple<Token, Token>> params, Token type, ScopeStatement* body) {
     this->identifier = identifier;
     this->type = type;
     this->params = params;
@@ -53,15 +53,44 @@ std::ostream& FnStatement::format(std::ostream& os) const {
     for (auto& param: params) {
         os << param._Myfirst._Val << ",";
     }
-    os << ")";
-    for (auto s_ptr : body) {
-        os << *s_ptr;
+    os << ")" << *body << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const FnStatement& statement)
+{
+    return statement.format(os);
+}
+
+LoopStatement::LoopStatement(Token identifier, ScopeStatement* body) {
+    this->identifier = identifier;
+    this->body = body;
+}
+
+std::ostream& LoopStatement::format(std::ostream& os) const {
+    os << "( " << identifier.string << " (" << *body << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const LoopStatement& statement)
+{
+    return statement.format(os);
+}
+
+ScopeStatement::ScopeStatement(std::vector<Statement*> body) {
+    this->body = body;
+}
+
+std::ostream& ScopeStatement::format(std::ostream& os) const {
+    os << "(";
+    for (auto stmt : body) {
+        os << stmt;
     }
     os << ")";
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const FnStatement& statement)
+std::ostream& operator<<(std::ostream& os, const ScopeStatement& statement)
 {
     return statement.format(os);
 }

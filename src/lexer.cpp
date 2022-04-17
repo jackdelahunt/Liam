@@ -158,6 +158,11 @@ void Lexer::lex(const char* path) {
                 continue;
             }
 
+            if (word == "loop") {
+                tokens.push_back(Token(TokenType::TOKEN_LOOP, word, current_line, current_character));
+                continue;
+            }
+
             // check numbers
             try
             {

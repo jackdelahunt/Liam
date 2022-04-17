@@ -1,10 +1,11 @@
-fn print(x: u64) void {
-	insert "load 0
-print";
+fn print(x: u64): void {
+	insert "load 0 print pop";
 	return;
 }
 
-fn main() void {
-	let x : u64 = 1 + 1 + 1 + 4345 + 209;
-	print(x);
+fn main(): void {
+	loop "jack" {
+		let x: u64 = 10;
+		print(x);
+	}
 }
