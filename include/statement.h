@@ -61,6 +61,16 @@ struct LoopStatement : Statement {
 
 std::ostream& operator<<(std::ostream& os, const LoopStatement& statement);
 
+struct AssigmentStatement : Statement {
+    Token identifier;
+    Expression* assigned_to;
+
+    AssigmentStatement(Token identifier, Expression* assigned_to);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const AssigmentStatement& statement);
+
 struct InsertStatement : Statement {
     Expression* byte_code;
 

@@ -36,6 +36,11 @@ Statement* Parser::eval_statement() {
         return eval_return_statement();
         break;
     case TOKEN_IDENTIFIER:
+        // x := y; ..or.. x();
+        if (peek(1)->type == TOKEN_COLON) {
+            return eval_assigment_statement();
+        }
+
         return eval_expression_statement();
         break;
     default:
@@ -137,6 +142,15 @@ ExpressionStatement* Parser::eval_expression_statement() {
     return new ExpressionStatement(expression);
 }
 
+AssigmentStatement* Parser::eval_assigment_statement() {
+    auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+    consume_token_of_type(TOKEN_COLON);
+    consume_token_of_type(TOKEN_EQUAL);
+    auto expression = eval_expression_statement()->expression;
+
+    return new AssigmentStatement(*identifier, expression);
+}
+
 Expression* Parser::eval_expression() {
     return eval_term();
 }
@@ -202,8 +216,8 @@ bool Parser::match(TokenType type) {
         return peek()->type == type;
 }
 
-Token* Parser::peek() {
-    return &tokens.at(current);
+Token* Parser::peek(int offset) {
+    return &tokens.at(current + offset);
 }
 
 Token* Parser::consume_token() {
@@ -268,4 +282,8 @@ void unexpected_token(Token* got, TokenType expected) {
     std::ostringstream oss;
     oss << "Expected \'" << TokenTypeStrings[expected] << "\' got \'" << got->string << "\' at (" << got->line << ":" << got->character << ")";
     panic(oss.str());
+}
+
+void unexpected_eof() {
+    panic("unexpexted end of file");
 }

@@ -30,6 +30,7 @@ struct Parser {
     InsertStatement* eval_insert_statement();
     ReturnStatement* eval_return_statement();
     ExpressionStatement* eval_expression_statement();
+    AssigmentStatement* eval_assigment_statement();
     Expression* eval_expression();
     Expression* eval_term();
     Expression* eval_factor();
@@ -37,7 +38,7 @@ struct Parser {
     Expression* eval_call();
     Expression* eval_primary();
     bool match(TokenType type);
-    Token* peek();
+    Token* peek(int offset = 0);
     Token* consume_token();
     Token* consume_token_of_type(TokenType type);
     std::vector<Expression*> consume_arguments();
@@ -45,4 +46,5 @@ struct Parser {
 
 };
 
-void unexpected_token(Token* got, TokenType expected);
+void unexpected_token(Token* got, TokenType expected); 
+void unexpected_eof();

@@ -77,6 +77,21 @@ std::ostream& operator<<(std::ostream& os, const LoopStatement& statement)
     return statement.format(os);
 }
 
+AssigmentStatement::AssigmentStatement(Token identifier, Expression* assigned_to) {
+    this->identifier = identifier;
+    this->assigned_to = assigned_to;
+}
+
+std::ostream& AssigmentStatement::format(std::ostream& os) const {
+    os << "( " << identifier.string << " =" << *assigned_to;
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const AssigmentStatement& statement)
+{
+    return statement.format(os);
+}
+
 ScopeStatement::ScopeStatement(std::vector<Statement*> body) {
     this->body = body;
 }

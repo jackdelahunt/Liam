@@ -58,6 +58,14 @@ std::string Emitter::emit_statement(Statement* statement, Scope* scope) {
 	}
 
 	{
+		auto ptr = dynamic_cast<AssigmentStatement*>(statement);
+		if (ptr) {
+			auto s = emit_assigment_statement(ptr, scope);
+			return s;
+		}
+	}
+
+	{
 		auto ptr = dynamic_cast<ExpressionStatement*>(statement);
 		if (ptr) {
 			return emit_expression_statement(ptr, scope);
@@ -122,6 +130,17 @@ std::string Emitter::emit_loop_statement(LoopStatement* statement, Scope* scope)
 	auto copied_scope = *scope;
 	source.append(emit_scope_statement(statement->body, &copied_scope));
 	source.append("goto #" + statement->identifier.string);
+	return source;
+}
+
+std::string Emitter::emit_assigment_statement(AssigmentStatement* statement, Scope* scope) {
+	auto source = emit_expression(statement->assigned_to, scope);
+	if (scope->locals.contains(statement->identifier.string)) {
+		source.append("store " + std::to_string(scope->locals.at(statement->identifier.string)) + "\n");
+	}
+	else {
+		undeclared_identidier(&statement->identifier);
+	}
 	return source;
 }
 
