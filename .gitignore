@@ -1,4 +1,3 @@
-/target
-/build
-/.vs
-/out
+liamvm/src/target
+liamc/.vs
+liamc/out
