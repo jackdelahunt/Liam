@@ -19,13 +19,14 @@ enum TokenType {
     TOKEN_BRACE_OPEN        = 9,
     TOKEN_BRACE_CLOSE       = 10,
     TOKEN_PLUS              = 11,
-    TOKEN_MULT              = 12,
+    TOKEN_STAR              = 12,
     TOKEN_EQUAL             = 13,
     TOKEN_SEMI_COLON        = 14,
     TOKEN_COMMA             = 15,
     TOKEN_COLON             = 16,
     TOKEN_RETURN            = 17,
     TOKEN_TYPE              = 18,
+    TOKEN_REF               = 19,
 };
 
 const char* TokenTypeStrings[];

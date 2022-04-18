@@ -146,7 +146,7 @@ AssigmentStatement* Parser::eval_assigment_statement() {
     auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
     consume_token_of_type(TOKEN_COLON);
     consume_token_of_type(TOKEN_EQUAL);
-    auto expression = eval_expression_statement()->expression;
+    auto expression = eval_expression_statement();
 
     return new AssigmentStatement(*identifier, expression);
 }
@@ -170,7 +170,7 @@ Expression* Parser::eval_term() {
 Expression* Parser::eval_factor() {
     auto expr = eval_unary();
 
-    while (match(TokenType::TOKEN_MULT)) {
+    while (match(TokenType::TOKEN_STAR)) {
         Token* op = consume_token();
         auto right = eval_unary();
         expr = new BinaryExpression(expr, *op, right);
@@ -180,6 +180,12 @@ Expression* Parser::eval_factor() {
 }
 
 Expression* Parser::eval_unary() {
+    if (match(TOKEN_STAR)) {
+        Token* op = consume_token();
+        auto expression = eval_unary();
+        return new UnaryExpression(expression , *op);
+    }
+
     return eval_call();
 }
 

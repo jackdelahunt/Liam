@@ -63,9 +63,9 @@ std::ostream& operator<<(std::ostream& os, const LoopStatement& statement);
 
 struct AssigmentStatement : Statement {
     Token identifier;
-    Expression* assigned_to;
+    ExpressionStatement* assigned_to;
 
-    AssigmentStatement(Token identifier, Expression* assigned_to);
+    AssigmentStatement(Token identifier, ExpressionStatement* assigned_to);
     std::ostream& format(std::ostream& os) const;
 };
 

@@ -26,6 +26,21 @@ std::ostream& operator<<(std::ostream& os, const BinaryExpression& expression)
     return expression.format(os);
 }
 
+UnaryExpression::UnaryExpression(Expression* expression, Token op) {
+    this->expression = expression;
+    this->op = op;
+}
+
+std::ostream& UnaryExpression::format(std::ostream& os) const {
+    os << "(" << op.string << " " << *expression<< ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const UnaryExpression& expression)
+{
+    return expression.format(os);
+}
+
 IntLiteralExpression::IntLiteralExpression(const Token token) {
     this->token = token;
 }

@@ -54,7 +54,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
 }
 
 bool is_delim(char c) {
-    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' || c == '=';
+    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' || c == '=' || c == '+' || c == '&' || c == '*';
 }
 
 Lexer::Lexer() {
@@ -82,7 +82,7 @@ void Lexer::lex(const char* path) {
             tokens.push_back(Token(TokenType::TOKEN_PLUS, "+", current_line, current_character));
             break;
         case '*':
-            tokens.push_back(Token(TokenType::TOKEN_MULT, "*", current_line, current_character));
+            tokens.push_back(Token(TokenType::TOKEN_STAR, "*", current_line, current_character));
             break;
         case '=':
             tokens.push_back(Token(TokenType::TOKEN_EQUAL, "=", current_line, current_character));
@@ -108,6 +108,9 @@ void Lexer::lex(const char* path) {
         case ':':
             tokens.push_back(Token(TokenType::TOKEN_COLON, ":", current_line, current_character));
             break;
+        case '&':
+            tokens.push_back(Token(TokenType::TOKEN_REF, "&", current_line, current_character));
+            break;
         case '#':
             while (current < chars.size() && chars.at(current) != '\n') {
                 next_char();
@@ -118,6 +121,13 @@ void Lexer::lex(const char* path) {
             next_char();
             std::string str = std::string();
             while (current < chars.size() && chars.at(current) != '"') {
+                // skip back slash and accept next char
+                if (chars.at(current) == '\\') {
+                    next_char();
+                    str.append(std::string(1, chars.at(current)));
+                    next_char();
+                    continue;
+                }
                 str.append(std::string(1, chars.at(current)));
                 next_char();
             }
@@ -148,7 +158,7 @@ void Lexer::lex(const char* path) {
                 continue;
             }
 
-            if (word == "u64") {
+            if (word == "u64" || word == "string") {
                 tokens.push_back(Token(TokenType::TOKEN_TYPE, word, current_line, current_character));
                 continue;
             }

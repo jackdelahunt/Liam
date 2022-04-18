@@ -19,6 +19,16 @@ struct BinaryExpression : Expression {
 
 std::ostream& operator<<(std::ostream& os, const BinaryExpression& expression);
 
+struct UnaryExpression : Expression {
+    Token op;
+    Expression* expression;
+
+    UnaryExpression(Expression* expression, Token op);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const UnaryExpression& expression);
+
 struct IntLiteralExpression : Expression {
     Token token;
 

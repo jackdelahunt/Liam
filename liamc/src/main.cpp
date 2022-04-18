@@ -7,12 +7,13 @@
 #include "parser.h"
 #include "generator.h"
 #include "emitter.h"
+#include "C_backend/c_backend.h"
 
 int main(int argc, char** argv) {
 
 #ifdef _DEBUG
     const char* source_path = "P:/Liam/main.liam";
-    const char* out_path = "P:/Liam/main.l__m";
+    const char* out_path = "P:/Liam/build/main.cpp";
 #else
     if (argc < 3) {
         panic("Not enough arguments");
@@ -38,8 +39,16 @@ int main(int argc, char** argv) {
     //}
 
     
-    auto emitter = Emitter();
+    /*auto emitter = Emitter();
     auto byte_code = emitter.emit(parser.root);
+    std::cout << byte_code;
+
+    std::ofstream out_file(out_path);
+    out_file << byte_code;
+    out_file.close();*/
+
+    auto c_backend = CBackend();
+    auto byte_code = c_backend.emit(parser.root);
     std::cout << byte_code;
 
     std::ofstream out_file(out_path);

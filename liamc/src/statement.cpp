@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& os, const LoopStatement& statement)
     return statement.format(os);
 }
 
-AssigmentStatement::AssigmentStatement(Token identifier, Expression* assigned_to) {
+AssigmentStatement::AssigmentStatement(Token identifier, ExpressionStatement* assigned_to) {
     this->identifier = identifier;
     this->assigned_to = assigned_to;
 }

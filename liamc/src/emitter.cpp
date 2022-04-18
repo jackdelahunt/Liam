@@ -134,7 +134,7 @@ std::string Emitter::emit_loop_statement(LoopStatement* statement, Scope* scope)
 }
 
 std::string Emitter::emit_assigment_statement(AssigmentStatement* statement, Scope* scope) {
-	auto source = emit_expression(statement->assigned_to, scope);
+	auto source = emit_expression_statement(statement->assigned_to, scope);
 	if (scope->locals.contains(statement->identifier.string)) {
 		source.append("store " + std::to_string(scope->locals.at(statement->identifier.string)) + "\n");
 	}

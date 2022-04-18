@@ -1,20 +1,4 @@
-fn print(x: u64): void {
-	insert "load 0 print pop";
-	return;
-}
-
-fn malloc(size: u64): u64 {
-	insert "load 0 alloc pop_ret";
-}
-
-fn deref(ptr: u64): u64 {
-	insert "load 0 get pop_ret";
-}
-
-fn set_ptr(ptr: u64, value: u64): void {
-	insert "load 0 load 1 put ret";
-}
-
-fn main(): void {
-	set_ptr(100, 100);
+fn main(): u64 {
+   let x: string = "this is a message";
+   let y: &string = &x;
 }
