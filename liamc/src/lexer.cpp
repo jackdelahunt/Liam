@@ -1,13 +1,14 @@
 #pragma once
 #include "lexer.h"
 
-const char* TokenTypeStrings[18] = {
+const char* TokenTypeStrings[21] = {
     "int Literal",
     "string Literal",
     "identifier",
     "let",
     "insert",
     "fn",
+    "loop",
     "(",
     ")",
     "{",
@@ -19,7 +20,9 @@ const char* TokenTypeStrings[18] = {
     ",",
     ":",
     "return",
-    "type"
+    "type",
+    "^",
+    "@"
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -54,7 +57,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
 }
 
 bool is_delim(char c) {
-    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' || c == '=' || c == '+' || c == '&' || c == '*';
+    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' || c == '=' || c == '+' || c == '^' || c == '@' || c == '*';
 }
 
 Lexer::Lexer() {
@@ -108,8 +111,11 @@ void Lexer::lex(const char* path) {
         case ':':
             tokens.push_back(Token(TokenType::TOKEN_COLON, ":", current_line, current_character));
             break;
-        case '&':
-            tokens.push_back(Token(TokenType::TOKEN_REF, "&", current_line, current_character));
+        case '^':
+            tokens.push_back(Token(TokenType::TOKEN_HAT, "^", current_line, current_character));
+            break;
+        case '@':
+            tokens.push_back(Token(TokenType::TOKEN_AT, "@", current_line, current_character));
             break;
         case '#':
             while (current < chars.size() && chars.at(current) != '\n') {

@@ -1,4 +1,7 @@
 fn main(): u64 {
-   let x: string = "this is a message";
-   let y: &string = &x;
+   let x: string = "this is a string";
+}
+
+fn ref(): u64^ {
+   
 }

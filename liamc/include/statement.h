@@ -22,9 +22,9 @@ std::ostream& operator<<(std::ostream& os, const ExpressionStatement& statement)
 struct LetStatement : Statement {
     Token identifier;
     Expression* expression;
-    Token type;
+    Expression* type;
 
-    LetStatement(Token identifier, Expression* expression, Token type);
+    LetStatement(Token identifier, Expression* expression, Expression* type);
     std::ostream& format(std::ostream& os) const;
 };
 
@@ -42,10 +42,10 @@ std::ostream& operator<<(std::ostream& os, const ScopeStatement& statement);
 struct FnStatement : Statement {
     Token identifier;
     std::vector<std::tuple<Token, Token>> params;
-    Token type;
+    Expression* type;
     ScopeStatement* body;
 
-    FnStatement(Token identifier, std::vector<std::tuple<Token, Token>> params, Token type, ScopeStatement* body);
+    FnStatement(Token identifier, std::vector<std::tuple<Token, Token>> params, Expression* type, ScopeStatement* body);
     std::ostream& format(std::ostream& os) const;
 };
 

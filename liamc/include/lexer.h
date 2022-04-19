@@ -26,7 +26,8 @@ enum TokenType {
     TOKEN_COLON             = 16,
     TOKEN_RETURN            = 17,
     TOKEN_TYPE              = 18,
-    TOKEN_REF               = 19,
+    TOKEN_HAT               = 19,
+    TOKEN_AT                = 20,
 };
 
 const char* TokenTypeStrings[];

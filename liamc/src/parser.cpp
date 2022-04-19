@@ -58,11 +58,11 @@ LetStatement* Parser::eval_let_statement() {
     consume_token_of_type(TOKEN_LET);
     Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
     consume_token_of_type(TOKEN_COLON);
-    Token* type = consume_token_of_type(TOKEN_TYPE);
+    Expression* type = eval_expression();
     consume_token_of_type(TOKEN_EQUAL);
     auto expression = eval_expression_statement()->expression;
 
-    return new LetStatement(*identifier, expression, *type);
+    return new LetStatement(*identifier, expression, type);
 }
 
 ScopeStatement* Parser::eval_scope_statement() {
@@ -87,11 +87,11 @@ FnStatement* Parser::eval_fn_statement() {
     auto params = consume_params();
     consume_token_of_type(TOKEN_PAREN_CLOSE);
     consume_token_of_type(TOKEN_COLON);
-    Token* type = consume_token_of_type(TOKEN_TYPE);
+    Expression* type = eval_expression();
 
     auto body = eval_scope_statement();
 
-    return new FnStatement(*identifier, params, *type, body);
+    return new FnStatement(*identifier, params, type, body);
 }
 
 LoopStatement* Parser::eval_loop_statement() {
@@ -179,14 +179,17 @@ Expression* Parser::eval_factor() {
     return expr;
 }
 
-Expression* Parser::eval_unary() {
-    if (match(TOKEN_STAR)) {
-        Token* op = consume_token();
-        auto expression = eval_unary();
-        return new UnaryExpression(expression , *op);
+Expression* Parser::eval_unary() {  
+    return eval_postfix();
+}
+
+Expression* Parser::eval_postfix() {
+    auto expr = eval_call();
+    if (match(TOKEN_HAT)) {
+        return new UnaryExpression(expr, *consume_token());
     }
 
-    return eval_call();
+    return expr;
 }
 
 Expression* Parser::eval_call() {
@@ -212,6 +215,8 @@ Expression* Parser::eval_primary() {
         return new StringLiteralExpression(*token);
     else if (token->type == TokenType::TOKEN_IDENTIFIER)
         return new IdentifierExpression(*token);
+    else if (token->type == TokenType::TOKEN_TYPE)
+        return new TypeLiteralExpression(*token);
 
     current--;
     return new Expression(); // empty expression found -- like when a return has no expression

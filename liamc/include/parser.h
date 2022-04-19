@@ -35,6 +35,7 @@ struct Parser {
     Expression* eval_term();
     Expression* eval_factor();
     Expression* eval_unary();
+    Expression* eval_postfix();
     Expression* eval_call();
     Expression* eval_primary();
     bool match(TokenType type);

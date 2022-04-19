@@ -20,7 +20,9 @@ struct CBackend {
 	std::string emit_expression(Expression* expression);
 	std::string emit_string_literal_expression(StringLiteralExpression* expression);
 	std::string emit_int_literal_expression(IntLiteralExpression* expression);
+	std::string emit_unary_expression(UnaryExpression* expression);
 	std::string emit_call_expression(CallExpression* expression);
 	std::string emit_identifier_expression(IdentifierExpression* expression);
+	std::string emit_type_literal_expression(TypeLiteralExpression* expression);
 	std::string emit_binary_expression(BinaryExpression* expression);
 };

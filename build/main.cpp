@@ -3,9 +3,11 @@
 #define u64 int
 
 u64 main(){
-string x = "this is a message";
-string y = "another message";
-x = x + y;
+string* x = "this is a string";
+
+}
+
+u64* ref(){
 
 }
 

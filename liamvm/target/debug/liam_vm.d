@@ -1,1 +1,1 @@
-P:\Liam\rust\target\debug\liam_vm.exe: P:\Liam\rust\src\rvm\main.rs P:\Liam\rust\src\rvm\vm\generator.rs P:\Liam\rust\src\rvm\vm\heap.rs P:\Liam\rust\src\rvm\vm\mod.rs P:\Liam\rust\src\rvm\vm\vm.rs
+P:\Liam\liamvm\target\debug\liam_vm.exe: P:\Liam\liamvm\src\rvm\main.rs P:\Liam\liamvm\src\rvm\vm\generator.rs P:\Liam\liamvm\src\rvm\vm\heap.rs P:\Liam\liamvm\src\rvm\vm\mod.rs P:\Liam\liamvm\src\rvm\vm\vm.rs

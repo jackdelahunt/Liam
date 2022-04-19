@@ -93,7 +93,7 @@ std::string CBackend::emit_return_statement(ReturnStatement* statement) {
 
 std::string CBackend::emit_let_statement(LetStatement* statement) {
 	auto source = std::string();
-	source.append(statement->type.string + " ");
+	source.append(emit_expression(statement->type) + " ");
 	source.append(statement->identifier.string + " = ");
 	source.append(emit_expression(statement->expression) + ";\n");
 	return source;
@@ -110,7 +110,7 @@ std::string CBackend::emit_scope_statement(ScopeStatement* statement) {
 
 std::string CBackend::emit_fn_statement(FnStatement* statement) {
 	auto fn_source = std::string();
-	fn_source.append(statement->type.string + " ");
+	fn_source.append(emit_expression(statement->type) + " ");
 	fn_source.append(statement->identifier.string);
 	fn_source.append("(");
 	
@@ -185,6 +185,20 @@ std::string CBackend::emit_expression(Expression* expression) {
 		}
 	}
 
+	{
+		auto ptr = dynamic_cast<UnaryExpression*>(expression);
+		if (ptr) {
+			return emit_unary_expression(ptr);
+		}
+	}
+
+	{
+		auto ptr = dynamic_cast<TypeLiteralExpression*>(expression);
+		if (ptr) {
+			return emit_type_literal_expression(ptr);
+		}
+	}
+
 	// given empty expression
 	return "";
 }
@@ -213,9 +227,28 @@ std::string CBackend::emit_call_expression(CallExpression* expression) {
 	return source;
 }
 
+std::string CBackend::emit_unary_expression(UnaryExpression* expression) {
+	// int x = 10;
+	// int* a = &x;
+	// int b = *a;
+	
+	// let x: u64 = 10;
+	// let a: u64^ = @x;
+	// let b: u64 = *a;
+
+	if (expression->op.type == TOKEN_HAT) {
+		return emit_expression(expression->expression) + "*";
+	}
+}
+
 std::string CBackend::emit_identifier_expression(IdentifierExpression* expression) {
 	return expression->identifier.string;
 }
+
+std::string CBackend::emit_type_literal_expression(TypeLiteralExpression* expression) {
+	return expression->token.string;
+}
+
 
 std::string CBackend::emit_binary_expression(BinaryExpression* expression) {
 	auto source = std::string();

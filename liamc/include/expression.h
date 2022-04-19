@@ -46,7 +46,14 @@ struct StringLiteralExpression : Expression {
     std::ostream& format(std::ostream& os) const;
 };
 
-std::ostream& operator<<(std::ostream& os, const StringLiteralExpression& expression);
+struct TypeLiteralExpression : Expression {
+    Token token;
+
+    TypeLiteralExpression(const Token token);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const TypeLiteralExpression& expression);
 
 struct IdentifierExpression : Expression {
     Token identifier;

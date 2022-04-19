@@ -1,0 +1,15 @@
+@print
+load 0 print pop
+ret
+
+@main
+#x
+push 10
+push 10
+add
+push 10
+add
+store 0
+load 0
+call @print 1
+goto #x
