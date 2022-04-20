@@ -30,6 +30,7 @@ struct Parser {
     int find_balance_point(TokenType push, TokenType pull, int from);
     InsertStatement* eval_insert_statement();
     ReturnStatement* eval_return_statement();
+    BreakStatement* eval_break_statement();
     ExpressionStatement* eval_expression_statement();
     AssigmentStatement* eval_assigment_statement();
     Expression* eval_expression();

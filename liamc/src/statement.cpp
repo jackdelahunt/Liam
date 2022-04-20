@@ -152,3 +152,17 @@ std::ostream& operator<<(std::ostream& os, const ReturnStatement& statement)
 {
     return statement.format(os);
 }
+
+BreakStatement::BreakStatement(Token identifier) {
+    this->identifier= identifier;
+}
+
+std::ostream& BreakStatement::format(std::ostream& os) const {
+    os << "(break)";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const BreakStatement& statement)
+{
+    return statement.format(os);
+}

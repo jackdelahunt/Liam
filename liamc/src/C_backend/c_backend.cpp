@@ -33,6 +33,13 @@ std::string CBackend::emit_statement(Statement* statement) {
 	}
 
 	{
+		auto ptr = dynamic_cast<BreakStatement*>(statement);
+		if (ptr) {
+			return emit_break_statement(ptr);
+		}
+	}
+
+	{
 		auto ptr = dynamic_cast<LetStatement*>(statement);
 		if (ptr) {
 			return emit_let_statement(ptr);
@@ -98,6 +105,11 @@ std::string CBackend::emit_return_statement(ReturnStatement* statement) {
 	expression.append("pop_ret\n");
 	return expression;
 }
+
+std::string CBackend::emit_break_statement(BreakStatement* statement) {
+	return "goto " + statement->identifier.string + ";\n";
+}
+
 
 std::string CBackend::emit_let_statement(LetStatement* statement) {
 	auto source = std::string();

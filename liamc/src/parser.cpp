@@ -38,6 +38,9 @@ Statement* Parser::eval_statement() {
     case TOKEN_RETURN:
         return eval_return_statement();
         break;
+    case TOKEN_BREAK:
+        return eval_break_statement();
+        break;
     case TOKEN_IDENTIFIER:
         // x := y; ..or.. x();
         if (peek(1)->type == TOKEN_COLON) {
@@ -146,6 +149,14 @@ InsertStatement* Parser::eval_insert_statement() {
 ReturnStatement* Parser::eval_return_statement() {
     consume_token_of_type(TOKEN_RETURN);
     return new ReturnStatement(eval_expression_statement()->expression);
+}
+
+BreakStatement* Parser::eval_break_statement() {
+    // might just use an expression statement for this but for now it is a string lit
+    consume_token_of_type(TOKEN_BREAK);
+    auto identifier = *consume_token_of_type(TOKEN_STRING_LITERAL);
+    consume_token_of_type(TOKEN_SEMI_COLON);
+    return new BreakStatement(identifier);
 }
 
 ExpressionStatement* Parser::eval_expression_statement() {

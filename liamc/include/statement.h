@@ -100,3 +100,12 @@ struct ReturnStatement: Statement {
 };
 
 std::ostream& operator<<(std::ostream& os, const ReturnStatement& statement);
+
+struct BreakStatement : Statement {
+    Token identifier;
+
+    BreakStatement(Token identifier);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const BreakStatement& statement);

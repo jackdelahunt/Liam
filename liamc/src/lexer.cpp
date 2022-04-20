@@ -1,7 +1,7 @@
 #pragma once
 #include "lexer.h"
 
-const char* TokenTypeStrings[24] = {
+const char* TokenTypeStrings[25] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -25,7 +25,8 @@ const char* TokenTypeStrings[24] = {
     "@",
     "struct",
     ".",
-    "new"
+    "new",
+    "break",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -195,6 +196,11 @@ void Lexer::lex(const char* path) {
 
             if (word == "new") {
                 tokens.push_back(Token(TokenType::TOKEN_NEW, word, current_line, current_character));
+                continue;
+            }
+
+            if (word == "break") {
+                tokens.push_back(Token(TokenType::TOKEN_BREAK, word, current_line, current_character));
                 continue;
             }
 

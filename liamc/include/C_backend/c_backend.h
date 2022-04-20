@@ -11,6 +11,7 @@ struct CBackend {
 	std::string emit_statement(Statement* statement);
 	std::string emit_insert_statement(InsertStatement* statement);
 	std::string emit_return_statement(ReturnStatement* statement);
+	std::string emit_break_statement(BreakStatement* statement);
 	std::string emit_let_statement(LetStatement* statement);
 	std::string emit_scope_statement(ScopeStatement* statement);
 	std::string emit_fn_statement(FnStatement* statement);

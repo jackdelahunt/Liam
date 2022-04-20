@@ -7,5 +7,9 @@ fn main(): u64 {
    loop "loop" {
    	x := x + 1;
 	print_number(x);
+	loop "cringe" {
+	     print_number(6);
+	     break "loop";
+	}
    }
 }
