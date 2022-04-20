@@ -8,6 +8,7 @@
 #include "generator.h"
 #include "emitter.h"
 #include "C_backend/c_backend.h"
+#include "type_checker.h"
 
 int main(int argc, char** argv) {
 
@@ -34,6 +35,9 @@ int main(int argc, char** argv) {
     auto parser = Parser(lexer.tokens);
     parser.parse();
 
+    auto type_checker = TypeChecker();
+    type_checker.type_check(&parser.root);
+
     //for (auto stmt : parser.root.statements) {
     //    std::cout << *stmt;
     //}
@@ -47,13 +51,13 @@ int main(int argc, char** argv) {
     out_file << byte_code;
     out_file.close();*/
 
-    auto c_backend = CBackend();
+    /*auto c_backend = CBackend();
     auto byte_code = c_backend.emit(parser.root);
     std::cout << byte_code;
 
     std::ofstream out_file(out_path);
     out_file << byte_code;
-    out_file.close();
+    out_file.close();*/
 
 
     // auto generator = liam::Generator();

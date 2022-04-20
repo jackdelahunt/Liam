@@ -23,4 +23,4 @@ add_executable(liamvm
         "include/expression.h" 
         "include/emitter.h"
         "include/C_backend/c_backend.h"
-)
+ "include/type_checker.h" "src/type_checker.cpp")

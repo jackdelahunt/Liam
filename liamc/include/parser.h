@@ -7,6 +7,19 @@
 #include "expression.h"
 #include "liam.h"
 
+struct Statement;
+struct LetStatement;
+struct ScopeStatement;
+struct StructStatement;
+struct FnStatement;
+struct LoopStatement;
+struct InsertStatement;
+struct ReturnStatement;
+struct BreakStatement;
+struct ExpressionStatement;
+struct AssigmentStatement;
+struct Expression;
+
 struct File {
     std::vector<Statement*> statements;
 

@@ -1,15 +1,1 @@
-fn print_number(x: u64): void {
-   insert "printf(\"%d \\n\", x);";
-}
-
-fn main(): u64 {
-   let x: u64 = 0;
-   loop "loop" {
-   	x := x + 1;
-	print_number(x);
-	loop "cringe" {
-	     print_number(6);
-	     break "loop";
-	}
-   }
-}
+let x: u64 = 0;

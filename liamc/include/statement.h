@@ -4,6 +4,9 @@
 #include "liam.h"
 #include "expression.h"
 
+struct Expression;
+struct Token;
+
 typedef std::vector<std::tuple<Token, Expression*>> CSV;
 
 struct Statement {
