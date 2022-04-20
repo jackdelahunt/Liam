@@ -180,6 +180,12 @@ Expression* Parser::eval_factor() {
 }
 
 Expression* Parser::eval_unary() {  
+    if (match(TOKEN_AT) || match(TOKEN_STAR)) {
+        auto op = consume_token();
+        auto expr = eval_unary();
+        return new UnaryExpression(expr, *op);
+    }
+
     return eval_postfix();
 }
 
@@ -260,7 +266,8 @@ std::vector<Expression*> Parser::consume_arguments() {
         do {
             if (!is_first) current++; // only iterate current by one when it is not the first time
 
-            args.push_back(eval_expression());
+            auto expr = eval_expression();
+            args.push_back(expr);
 
             if (is_first) is_first = false;
         } while (match(TOKEN_COMMA));
@@ -269,8 +276,8 @@ std::vector<Expression*> Parser::consume_arguments() {
     return args;
 }
 
-std::vector<std::tuple<Token, Token>> Parser::consume_params() {
-    auto args_types = std::vector<std::tuple<Token, Token>>();
+std::vector<std::tuple<Token, Expression*>> Parser::consume_params() {
+    auto args_types = std::vector<std::tuple<Token, Expression*>>();
     bool is_first = true;
     if (!match(TOKEN_PAREN_CLOSE)) {
         do {
@@ -278,9 +285,9 @@ std::vector<std::tuple<Token, Token>> Parser::consume_params() {
 
             auto arg = consume_token_of_type(TOKEN_IDENTIFIER);
             consume_token_of_type(TOKEN_COLON);
-            auto type = consume_token_of_type(TOKEN_TYPE);
+            auto type = eval_expression();
 
-            args_types.push_back({*arg, *type});
+            args_types.push_back({*arg, type});
 
             if (is_first) is_first = false;
         } while (match(TOKEN_COMMA));

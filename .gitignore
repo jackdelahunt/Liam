@@ -1,3 +1,5 @@
 liamvm/src/target
 liamc/.vs
 liamc/out
+build/main.exe
+build/main.obj

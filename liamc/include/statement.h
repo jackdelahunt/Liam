@@ -41,11 +41,11 @@ std::ostream& operator<<(std::ostream& os, const ScopeStatement& statement);
 
 struct FnStatement : Statement {
     Token identifier;
-    std::vector<std::tuple<Token, Token>> params;
+    std::vector<std::tuple<Token, Expression*>> params;
     Expression* type;
     ScopeStatement* body;
 
-    FnStatement(Token identifier, std::vector<std::tuple<Token, Token>> params, Expression* type, ScopeStatement* body);
+    FnStatement(Token identifier, std::vector<std::tuple<Token, Expression*>> params, Expression* type, ScopeStatement* body);
     std::ostream& format(std::ostream& os) const;
 };
 

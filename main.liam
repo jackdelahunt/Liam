@@ -1,7 +1,13 @@
-fn main(): u64 {
-   let x: string = "this is a string";
+fn print_number(n: u64): void {
+   insert "printf(\"%d\", n);";
 }
 
-fn ref(): u64^ {
-   
+fn print_number_ptr(n: u64^): void {
+   print_number(*n);
+}
+
+fn main(): u64 {
+   let s: string = "this is a string";
+   let x: u64 = 100;
+   print_number_ptr(@x);
 }

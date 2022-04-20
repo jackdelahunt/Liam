@@ -95,7 +95,8 @@ std::string CBackend::emit_let_statement(LetStatement* statement) {
 	auto source = std::string();
 	source.append(emit_expression(statement->type) + " ");
 	source.append(statement->identifier.string + " = ");
-	source.append(emit_expression(statement->expression) + ";\n");
+	auto emitted_expr = emit_expression(statement->expression);
+	source.append(emitted_expr + ";\n");
 	return source;
 }
 
@@ -112,11 +113,11 @@ std::string CBackend::emit_fn_statement(FnStatement* statement) {
 	auto fn_source = std::string();
 	fn_source.append(emit_expression(statement->type) + " ");
 	fn_source.append(statement->identifier.string);
-	fn_source.append("(");
+	fn_source.append("(");	
 	
 	int index = 0;
 	for (auto& [identifier, type] : statement->params) {
-		fn_source.append(type.string + " " + identifier.string);
+		fn_source.append(emit_expression(type) + " " + identifier.string);
 		index++;
 		if (index < statement->params.size()) {
 			fn_source.append(", ");
@@ -239,6 +240,14 @@ std::string CBackend::emit_unary_expression(UnaryExpression* expression) {
 	if (expression->op.type == TOKEN_HAT) {
 		return emit_expression(expression->expression) + "*";
 	}
+	else if (expression->op.type == TOKEN_AT) {
+		return "&" + emit_expression(expression->expression);
+	}
+	else if (expression->op.type == TOKEN_STAR) {
+		return "*" + emit_expression(expression->expression);
+	}
+
+	panic("Got a unrecognized operand");
 }
 
 std::string CBackend::emit_identifier_expression(IdentifierExpression* expression) {

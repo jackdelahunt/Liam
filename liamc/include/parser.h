@@ -43,7 +43,7 @@ struct Parser {
     Token* consume_token();
     Token* consume_token_of_type(TokenType type);
     std::vector<Expression*> consume_arguments();
-    std::vector<std::tuple<Token, Token>> consume_params();
+    std::vector<std::tuple<Token, Expression*>> consume_params();
 
 };
 

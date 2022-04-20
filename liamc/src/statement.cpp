@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& os, const LetStatement& statement)
     return statement.format(os);
 }
 
-FnStatement::FnStatement(Token identifier, std::vector<std::tuple<Token, Token>> params, Expression* type, ScopeStatement* body) {
+FnStatement::FnStatement(Token identifier, std::vector<std::tuple<Token, Expression*>> params, Expression* type, ScopeStatement* body) {
     this->identifier = identifier;
     this->type = type;
     this->params = params;
