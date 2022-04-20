@@ -56,6 +56,14 @@ std::string CBackend::emit_statement(Statement* statement) {
 	}
 
 	{
+		auto ptr = dynamic_cast<StructStatement*>(statement);
+		if (ptr) {
+			auto s = emit_struct_statement(ptr);
+			return s;
+		}
+	}
+
+	{
 		auto ptr = dynamic_cast<AssigmentStatement*>(statement);
 		if (ptr) {
 			auto s = emit_assigment_statement(ptr);
@@ -133,9 +141,19 @@ std::string CBackend::emit_fn_statement(FnStatement* statement) {
 
 std::string CBackend::emit_loop_statement(LoopStatement* statement) {
 	auto source = std::string();
-	source.append("#" + statement->identifier.string + "\n");
+	source.append("while(true)");
 	source.append(emit_scope_statement(statement->body));
-	source.append("goto #" + statement->identifier.string);
+	source.append(statement->identifier.string + ": ;\n");
+	return source;
+}
+
+std::string CBackend::emit_struct_statement(StructStatement* statement) {
+	auto source = std::string();
+	source.append("struct " + statement->identifier.string + "{\n");
+	for (auto& [identifier, type] : statement->members) {
+		source.append(emit_expression(type) + " " + identifier.string + ";\n");
+	}
+	source.append("\n};\n\n");
 	return source;
 }
 
@@ -200,8 +218,39 @@ std::string CBackend::emit_expression(Expression* expression) {
 		}
 	}
 
+	{
+		auto ptr = dynamic_cast<GetExpression*>(expression);
+		if (ptr) {
+			return emit_get_expression(ptr);
+		}
+	}
+
+	{
+		auto ptr = dynamic_cast<NewExpression*>(expression);
+		if (ptr) {
+			return emit_new_expression(ptr);
+		}
+	}
+
 	// given empty expression
 	return "";
+}
+
+std::string CBackend::emit_binary_expression(BinaryExpression* expression) {
+	auto source = std::string();
+	source.append(emit_expression(expression->left));
+	switch (expression->op.type)
+	{
+	case TOKEN_PLUS:
+		source.append(" + ");
+		break;
+	default:
+		panic("Cannot use this operand");
+		break;
+	}
+	source.append(emit_expression(expression->right));
+
+	return source;
 }
 
 std::string CBackend::emit_int_literal_expression(IntLiteralExpression* expression) {
@@ -258,20 +307,22 @@ std::string CBackend::emit_type_literal_expression(TypeLiteralExpression* expres
 	return expression->token.string;
 }
 
+std::string CBackend::emit_get_expression(GetExpression* expression) {
+	return emit_expression(expression->expression) + "." + expression->member.string;
+}
 
-std::string CBackend::emit_binary_expression(BinaryExpression* expression) {
-	auto source = std::string();
-	source.append(emit_expression(expression->left));
-	switch (expression->op.type)
-	{
-	case TOKEN_PLUS:
-		source.append(" + ");
-		break;
-	default:
-		panic("Cannot use this operand");
-		break;
+std::string CBackend::emit_new_expression(NewExpression* expression) {
+	std::string source = "{";
+	int index = 0;
+	for (auto expr : expression->expressions) {
+		source.append(emit_expression(expr));
+		index++;
+		if (index < expression->expressions.size()) {
+			source.append(", ");
+		}
 	}
-	source.append(emit_expression(expression->right));
+
+	source.append("}");
 
 	return source;
 }

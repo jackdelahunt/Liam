@@ -2,18 +2,18 @@
 #include "string.h"
 #define u64 int
 
-void print_number(u64 n){
-printf("%d", n);
-}
-
-void print_number_ptr(u64* n){
-print_number(*n);
-
+void print_number(u64 x){
+printf("%d \n", x);
 }
 
 u64 main(){
-u64 x = 100;
-print_number_ptr(&x);
+u64 x = 0;
+while(true){
+x = x + 1;
+print_number(x);
+
+}
+loop: ;
 
 }
 

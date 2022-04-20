@@ -74,3 +74,25 @@ struct CallExpression : Expression {
 };
 
 std::ostream& operator<<(std::ostream& os, const CallExpression& expression);
+
+struct GetExpression : Expression {
+    // this is an expression but it must be a identifier
+    Expression* expression;
+    Token member;
+
+    GetExpression(Expression* expression, Token member);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const GetExpression& expression);
+
+struct NewExpression : Expression {
+    // this is an expression but it must be a identifier
+    Token identifier;
+    std::vector<Expression*> expressions;
+
+    NewExpression(Token identifier, std::vector<Expression*> expressions);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const NewExpression& expression);

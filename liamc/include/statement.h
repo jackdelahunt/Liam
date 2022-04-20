@@ -4,6 +4,8 @@
 #include "liam.h"
 #include "expression.h"
 
+typedef std::vector<std::tuple<Token, Expression*>> CSV;
+
 struct Statement {
     virtual std::ostream& format(std::ostream& os) const;
 };
@@ -41,11 +43,11 @@ std::ostream& operator<<(std::ostream& os, const ScopeStatement& statement);
 
 struct FnStatement : Statement {
     Token identifier;
-    std::vector<std::tuple<Token, Expression*>> params;
+    CSV params;
     Expression* type;
     ScopeStatement* body;
 
-    FnStatement(Token identifier, std::vector<std::tuple<Token, Expression*>> params, Expression* type, ScopeStatement* body);
+    FnStatement(Token identifier, CSV params, Expression* type, ScopeStatement* body);
     std::ostream& format(std::ostream& os) const;
 };
 
@@ -56,6 +58,16 @@ struct LoopStatement : Statement {
     ScopeStatement* body;
 
     LoopStatement(Token identifier, ScopeStatement* body);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const LoopStatement& statement);
+
+struct StructStatement : Statement {
+    Token identifier;
+    CSV members;
+
+    StructStatement(Token identifier, CSV members);
     std::ostream& format(std::ostream& os) const;
 };
 

@@ -1,13 +1,11 @@
-fn print_number(n: u64): void {
-   insert "printf(\"%d\", n);";
-}
-
-fn print_number_ptr(n: u64^): void {
-   print_number(*n);
+fn print_number(x: u64): void {
+   insert "printf(\"%d \\n\", x);";
 }
 
 fn main(): u64 {
-   let s: string = "this is a string";
-   let x: u64 = 100;
-   print_number_ptr(@x);
+   let x: u64 = 0;
+   loop "loop" {
+   	x := x + 1;
+	print_number(x);
+   }
 }

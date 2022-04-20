@@ -29,6 +29,9 @@ Statement* Parser::eval_statement() {
     case TOKEN_LOOP:
         return eval_loop_statement();
         break;
+    case TOKEN_STRUCT:
+        return eval_struct_statement();
+        break;
     case TOKEN_INSERT:
         return eval_insert_statement();
         break;
@@ -84,7 +87,7 @@ FnStatement* Parser::eval_fn_statement() {
     consume_token_of_type(TOKEN_FN);
     Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
     consume_token_of_type(TOKEN_PAREN_OPEN);
-    auto params = consume_params();
+    auto params = consume_comma_seperated_values();
     consume_token_of_type(TOKEN_PAREN_CLOSE);
     consume_token_of_type(TOKEN_COLON);
     Expression* type = eval_expression();
@@ -120,6 +123,16 @@ int Parser::find_balance_point(TokenType push, TokenType pull, int from) {
 
         current_index++;
     }
+}
+
+StructStatement* Parser::eval_struct_statement() {
+    consume_token_of_type(TOKEN_STRUCT);
+    Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+    consume_token_of_type(TOKEN_BRACE_OPEN);
+    auto member = consume_comma_seperated_values(); 
+    consume_token_of_type(TOKEN_BRACE_CLOSE);
+
+    return new StructStatement(*identifier, member);
 }
 
 InsertStatement* Parser::eval_insert_statement() {
@@ -207,25 +220,39 @@ Expression* Parser::eval_call() {
         consume_token_of_type(TOKEN_PAREN_CLOSE);
 
         return new CallExpression(expr, args);
+    } else if(match(TOKEN_DOT)) {
+        consume_token();
+        auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+        return new GetExpression(expr, *identifier);
     }
 
     return expr;
 }
 
 Expression* Parser::eval_primary() {
-    auto token = consume_token();
+    auto type = peek()->type;
 
-    if (token->type == TokenType::TOKEN_INT_LITERAL)
-        return new IntLiteralExpression(*token);
-    else if (token->type == TokenType::TOKEN_STRING_LITERAL)
-        return new StringLiteralExpression(*token);
-    else if (token->type == TokenType::TOKEN_IDENTIFIER)
-        return new IdentifierExpression(*token);
-    else if (token->type == TokenType::TOKEN_TYPE)
-        return new TypeLiteralExpression(*token);
+    if (type == TokenType::TOKEN_INT_LITERAL)
+        return new IntLiteralExpression(*consume_token());
+    else if (type == TokenType::TOKEN_STRING_LITERAL)
+        return new StringLiteralExpression(*consume_token());
+    else if (type == TokenType::TOKEN_TYPE)
+        return new TypeLiteralExpression(*consume_token());
+    else if (type == TokenType::TOKEN_IDENTIFIER)
+        return new IdentifierExpression(*consume_token());
+    else if (type == TokenType::TOKEN_NEW)
+        return eval_new_expression();
 
-    current--;
     return new Expression(); // empty expression found -- like when a return has no expression
+}
+
+Expression* Parser::eval_new_expression() {
+    consume_token();
+    auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+    consume_token_of_type(TOKEN_BRACE_OPEN);
+    auto expressions = consume_arguments();
+    consume_token_of_type(TOKEN_BRACE_CLOSE);
+    return new NewExpression(*identifier, expressions);
 }
 
 bool Parser::match(TokenType type) {
@@ -262,7 +289,7 @@ Token* Parser::consume_token_of_type(TokenType type) {
 std::vector<Expression*> Parser::consume_arguments() {
     auto args = std::vector<Expression*>();
     bool is_first = true;
-    if (!match(TOKEN_PAREN_CLOSE)) {
+    if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE)) {
         do {
             if (!is_first) current++; // only iterate current by one when it is not the first time
 
@@ -276,10 +303,10 @@ std::vector<Expression*> Parser::consume_arguments() {
     return args;
 }
 
-std::vector<std::tuple<Token, Expression*>> Parser::consume_params() {
+std::vector<std::tuple<Token, Expression*>> Parser::consume_comma_seperated_values() {
     auto args_types = std::vector<std::tuple<Token, Expression*>>();
     bool is_first = true;
-    if (!match(TOKEN_PAREN_CLOSE)) {
+    if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE)) {
         do {
             if (!is_first) current++; // only iterate current by one when it is not the first time
 

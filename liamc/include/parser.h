@@ -24,6 +24,7 @@ struct Parser {
     Statement* eval_statement();
     LetStatement* eval_let_statement();
     ScopeStatement* eval_scope_statement();
+    StructStatement* eval_struct_statement();
     FnStatement* eval_fn_statement();
     LoopStatement* eval_loop_statement();
     int find_balance_point(TokenType push, TokenType pull, int from);
@@ -38,12 +39,13 @@ struct Parser {
     Expression* eval_postfix();
     Expression* eval_call();
     Expression* eval_primary();
+    Expression* eval_new_expression();
     bool match(TokenType type);
     Token* peek(int offset = 0);
     Token* consume_token();
     Token* consume_token_of_type(TokenType type);
     std::vector<Expression*> consume_arguments();
-    std::vector<std::tuple<Token, Expression*>> consume_params();
+    std::vector<std::tuple<Token, Expression*>> consume_comma_seperated_values();
 
 };
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "lexer.h"
 
-const char* TokenTypeStrings[21] = {
+const char* TokenTypeStrings[24] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -22,7 +22,10 @@ const char* TokenTypeStrings[21] = {
     "return",
     "type",
     "^",
-    "@"
+    "@",
+    "struct",
+    ".",
+    "new"
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -57,7 +60,10 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
 }
 
 bool is_delim(char c) {
-    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' || c == '=' || c == '+' || c == '^' || c == '@' || c == '*';
+    return c == ' ' || c == '\n' || c == ';' || c == '(' || 
+        c == ')' || c == '{' || c == '}' || c == ',' || 
+        c == ':' || c == '=' || c == '+' || c == '^' || 
+        c == '@' || c == '*' || c == '.';
 }
 
 Lexer::Lexer() {
@@ -116,6 +122,9 @@ void Lexer::lex(const char* path) {
             break;
         case '@':
             tokens.push_back(Token(TokenType::TOKEN_AT, "@", current_line, current_character));
+            break;
+        case '.':
+            tokens.push_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
             break;
         case '#':
             while (current < chars.size() && chars.at(current) != '\n') {
@@ -176,6 +185,16 @@ void Lexer::lex(const char* path) {
 
             if (word == "loop") {
                 tokens.push_back(Token(TokenType::TOKEN_LOOP, word, current_line, current_character));
+                continue;
+            }
+
+            if (word == "struct") {
+                tokens.push_back(Token(TokenType::TOKEN_STRUCT, word, current_line, current_character));
+                continue;
+            }
+
+            if (word == "new") {
+                tokens.push_back(Token(TokenType::TOKEN_NEW, word, current_line, current_character));
                 continue;
             }
 

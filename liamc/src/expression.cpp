@@ -113,3 +113,31 @@ std::ostream& CallExpression::format(std::ostream& os) const {
 std::ostream& operator<<(std::ostream& os, const CallExpression& expression) {
     return expression.format(os);
 }
+
+GetExpression::GetExpression(Expression* expression, Token member) {
+    this->expression = expression;
+    this->member= member;
+}
+
+std::ostream& GetExpression::format(std::ostream& os) const {
+    os << "(" << *expression << "." << member.string << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const GetExpression& expression) {
+    return expression.format(os);
+}
+
+NewExpression::NewExpression(Token identifier, std::vector<Expression*> expressions) {
+    this->identifier = identifier;
+    this->expressions = expressions;
+}
+
+std::ostream& NewExpression::format(std::ostream& os) const {
+    os << "(" << identifier.string << "{})";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const NewExpression& expression) {
+    return expression.format(os);
+}

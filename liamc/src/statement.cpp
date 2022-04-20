@@ -41,7 +41,7 @@ std::ostream& operator<<(std::ostream& os, const LetStatement& statement)
     return statement.format(os);
 }
 
-FnStatement::FnStatement(Token identifier, std::vector<std::tuple<Token, Expression*>> params, Expression* type, ScopeStatement* body) {
+FnStatement::FnStatement(Token identifier, CSV params, Expression* type, ScopeStatement* body) {
     this->identifier = identifier;
     this->type = type;
     this->params = params;
@@ -73,6 +73,21 @@ std::ostream& LoopStatement::format(std::ostream& os) const {
 }
 
 std::ostream& operator<<(std::ostream& os, const LoopStatement& statement)
+{
+    return statement.format(os);
+}
+
+StructStatement::StructStatement(Token identifier, CSV members) {
+    this->identifier = identifier;
+    this->members = members;
+}
+
+std::ostream& StructStatement::format(std::ostream& os) const {
+    os << "( struct" << identifier.string + ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const StructStatement& statement)
 {
     return statement.format(os);
 }
