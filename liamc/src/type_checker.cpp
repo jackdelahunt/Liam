@@ -276,8 +276,18 @@ TypedLoopStatement* TypeChecker::type_loop_statement(LoopStatement* statement, S
 	return nullptr;
 }
 TypedStructStatement* TypeChecker::type_struct_statement(StructStatement* statement, SymbolTable* symbol_table) {
-	panic("Not implemented");
-	return nullptr;
+	
+	auto members = Typed_CSV();
+	auto members_type_info = std::vector<TypeInfo>();
+	for (auto& [member, expr] : statement->members) {
+		auto expression = type_expression(expr, symbol_table);
+		members.push_back({member, expression});
+		members_type_info.push_back(expression->type_info);
+	}
+
+	symbol_table->add_type(statement->identifier, StructTypeInfo{STRUCT, members_type_info});
+
+	return new TypedStructStatement(statement->identifier, members);
 }
 TypedAssigmentStatement* TypeChecker::type_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table) {
 	panic("Not implemented");
