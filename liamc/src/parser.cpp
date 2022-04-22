@@ -247,8 +247,6 @@ Expression* Parser::eval_primary() {
         return new IntLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_STRING_LITERAL)
         return new StringLiteralExpression(*consume_token());
-    else if (type == TokenType::TOKEN_TYPE)
-        return new TypeLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_IDENTIFIER)
         return new IdentifierExpression(*consume_token());
     else if (type == TokenType::TOKEN_NEW)

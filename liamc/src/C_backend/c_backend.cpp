@@ -224,13 +224,6 @@ std::string CBackend::emit_expression(Expression* expression) {
 	}
 
 	{
-		auto ptr = dynamic_cast<TypeLiteralExpression*>(expression);
-		if (ptr) {
-			return emit_type_literal_expression(ptr);
-		}
-	}
-
-	{
 		auto ptr = dynamic_cast<GetExpression*>(expression);
 		if (ptr) {
 			return emit_get_expression(ptr);
@@ -313,10 +306,6 @@ std::string CBackend::emit_unary_expression(UnaryExpression* expression) {
 
 std::string CBackend::emit_identifier_expression(IdentifierExpression* expression) {
 	return expression->identifier.string;
-}
-
-std::string CBackend::emit_type_literal_expression(TypeLiteralExpression* expression) {
-	return expression->token.string;
 }
 
 std::string CBackend::emit_get_expression(GetExpression* expression) {

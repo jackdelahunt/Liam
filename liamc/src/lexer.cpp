@@ -174,16 +174,6 @@ void Lexer::lex(const char* path) {
                 continue;
             }
 
-            if (word == "u64" || word == "string") {
-                tokens.push_back(Token(TokenType::TOKEN_TYPE, word, current_line, current_character));
-                continue;
-            }
-
-            if (word == "void") {
-                tokens.push_back(Token(TokenType::TOKEN_TYPE, word, current_line, current_character));
-                continue;
-            }
-
             if (word == "loop") {
                 tokens.push_back(Token(TokenType::TOKEN_LOOP, word, current_line, current_character));
                 continue;

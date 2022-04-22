@@ -25,13 +25,12 @@ enum TokenType {
     TOKEN_COMMA             = 15,
     TOKEN_COLON             = 16,
     TOKEN_RETURN            = 17,
-    TOKEN_TYPE              = 18,
-    TOKEN_HAT               = 19,
-    TOKEN_AT                = 20,
-    TOKEN_STRUCT            = 21,
-    TOKEN_DOT               = 22,
-    TOKEN_NEW               = 23,
-    TOKEN_BREAK             = 24,
+    TOKEN_HAT               = 18,
+    TOKEN_AT                = 19,
+    TOKEN_STRUCT            = 20,
+    TOKEN_DOT               = 21,
+    TOKEN_NEW               = 22,
+    TOKEN_BREAK             = 23,
 };
 
 const char* TokenTypeStrings[];

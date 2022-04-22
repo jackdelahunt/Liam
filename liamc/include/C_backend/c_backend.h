@@ -26,7 +26,6 @@ struct CBackend {
 	std::string emit_unary_expression(UnaryExpression* expression);
 	std::string emit_call_expression(CallExpression* expression);
 	std::string emit_identifier_expression(IdentifierExpression* expression);
-	std::string emit_type_literal_expression(TypeLiteralExpression* expression);
 	std::string emit_get_expression(GetExpression* expression);
 	std::string emit_new_expression(NewExpression* expression);
 };

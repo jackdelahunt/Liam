@@ -69,20 +69,6 @@ std::ostream& operator<<(std::ostream& os, const StringLiteralExpression& expres
     return expression.format(os);
 }
 
-TypeLiteralExpression::TypeLiteralExpression(const Token token) {
-    this->token = token;
-}
-
-std::ostream& TypeLiteralExpression::format(std::ostream& os) const {
-    os << "(\"" << token.string << "\")";
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const TypeLiteralExpression& expression)
-{
-    return expression.format(os);
-}
-
 IdentifierExpression::IdentifierExpression(const Token identifier) {
     this->identifier = identifier;
 }

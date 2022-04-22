@@ -36,7 +36,8 @@ int main(int argc, char** argv) {
     parser.parse();
 
     auto type_checker = TypeChecker();
-    type_checker.type_check(&parser.root);
+    type_checker.type_file(&parser.root);
+    return 0;
 
     //for (auto stmt : parser.root.statements) {
     //    std::cout << *stmt;
