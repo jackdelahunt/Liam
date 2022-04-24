@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <fstream>
 #include <iostream>
 #include <chrono>
@@ -44,6 +45,17 @@ int main(int argc, char** argv) {
     auto typing_end = std::chrono::high_resolution_clock::now();
     auto typing_delta = typing_end - typing_start;
 
+    auto code_generation_start = std::chrono::high_resolution_clock::now();
+    auto c_backend = CBackend();
+    auto c_code = c_backend.emit(parser.root);
+    auto code_generation_end = std::chrono::high_resolution_clock::now();
+    auto code_generation_delta = code_generation_end - code_generation_start;
+
+    std::cout << c_code;
+    std::ofstream out_file(out_path);
+    out_file << c_code;
+    out_file.close();
+
 
 
     std::cout << "Lex time: " << duration_cast<std::chrono::milliseconds>(lex_delta) 
@@ -54,6 +66,9 @@ int main(int argc, char** argv) {
 
     std:: cout << "Type check time: " << duration_cast<std::chrono::milliseconds>(typing_delta) << " " 
         << duration_cast<std::chrono::microseconds>(typing_delta) << "\n";
+
+    std::cout << "Code generation time: " << duration_cast<std::chrono::milliseconds>(code_generation_delta) << " "
+        << duration_cast<std::chrono::microseconds>(code_generation_delta) << "\n";
 
     return 0;
 

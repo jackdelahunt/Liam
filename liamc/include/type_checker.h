@@ -40,9 +40,9 @@ enum TypeInfoType {
 	VOID,
 	INT,
 	STRING,
-	TYPE,
 	FN,
-	STRUCT
+	STRUCT,
+	POINTER
 };
 
 struct TypeInfo {
@@ -61,30 +61,30 @@ struct StringTypeInfo : TypeInfo {
 };
 
 struct PointerTypeInfo : TypeInfo {
-	TypeInfo to;
+	TypeInfo* to;
 };
 
 struct TypeTypeInfo : TypeInfo {
 };
 
 struct FnTypeInfo : TypeInfo {
-	TypeInfo return_type;
-	std::vector<TypeInfo> args;
+	TypeInfo* return_type;
+	std::vector<TypeInfo*> args;
 };
 
 struct StructTypeInfo : TypeInfo {
-	std::vector<TypeInfo> members;
+	std::vector<std::tuple<std::string, TypeInfo*>> members;
 };
 
 struct SymbolTable {
-	std::map<std::string, TypeInfo> builtin_type_table;
-	std::map<std::string, TypeInfo> type_table;
-	std::map<std::string, TypeInfo> identifier_table;
+	std::map<std::string, TypeInfo*> builtin_type_table;
+	std::map<std::string, TypeInfo*> type_table;
+	std::map<std::string, TypeInfo*> identifier_table;
 
 	SymbolTable();
 	 
-	void add_type(Token type, TypeInfo type_info);
-	void add_identifier(Token identifier, TypeInfo type_info);
+	void add_type(Token type, TypeInfo* type_info);
+	void add_identifier(Token identifier, TypeInfo* type_info);
 };
 
 struct TypedStatement {};
@@ -147,6 +147,8 @@ struct TypedBreakStatement : TypedStatement {
 
 struct TypedExpressionStatement : TypedStatement {
 	TypedExpression* expression;
+
+	TypedExpressionStatement(TypedExpression* expression);
 };
 
 struct TypedAssigmentStatement : TypedStatement {
@@ -157,7 +159,7 @@ struct TypedAssigmentStatement : TypedStatement {
 };
 
 struct TypedExpression {
-	TypeInfo type_info;
+	TypeInfo* type_info;
 };
 
 struct TypedBinaryExpression : TypedExpression {
@@ -192,7 +194,7 @@ struct TypedCallExpression : TypedExpression {
 struct TypedIdentifierExpression : TypedExpression {
 	Token identifier;
 
-	TypedIdentifierExpression(Token identifier, TypeInfo type_info);
+	TypedIdentifierExpression(Token identifier, TypeInfo* type_info);
 };
 
 struct TypedStringLiteralExpression : TypedExpression {

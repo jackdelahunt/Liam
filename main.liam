@@ -1,4 +1,9 @@
+struct Person {
+   name: string,
+   age: u64
+}
+
 fn main(): void {
-   let x: u64 = 0;
-   x := 0;
+   let p: Person = new Person {"jack", 21};
+   let x: Person^ = @p;
 }

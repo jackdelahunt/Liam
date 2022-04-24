@@ -2,24 +2,15 @@
 #include "string.h"
 #define u64 int
 
-void print_number(u64 x){
-printf("%d \n", x);
-}
+struct Person{
+string name;
+u64 age;
 
-u64 main(){
-u64 x = 0;
-while(true){
-x = x + 1;
-print_number(x);
-while(true){
-print_number(6);
-goto loop;
+};
 
-}
-cringe: ;
-
-}
-loop: ;
+void main(){
+Person p = {"jack", 21};
+Person* x = &p;
 
 }
 
