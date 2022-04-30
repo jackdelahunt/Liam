@@ -1,3 +1,9 @@
+fn print(): void {
+	insert "printf(\"hello world\\n\");";
+}
+
 fn main(): u64 {
-	insert "some c++";
+	loop "lul" {
+		print();
+	}
 }

@@ -202,8 +202,12 @@ TypedStatement* TypeChecker::type_statement(Statement* statement, SymbolTable* s
 	return nullptr;
 }
 TypedInsertStatement* TypeChecker::type_insert_statement(InsertStatement* statement, SymbolTable* symbol_table) {
-	panic("Not implemented");
-	return nullptr;
+	auto expression = type_expression(statement->byte_code, symbol_table);
+	if (expression->type_info->type != STRING) {
+		panic("Insert requires a string");
+	}
+
+	return new TypedInsertStatement(expression);
 }
 TypedReturnStatement* TypeChecker::type_return_statement(ReturnStatement* statement, SymbolTable* symbol_table) {
 	panic("Not implemented");
@@ -275,10 +279,11 @@ TypedFnStatement* TypeChecker::type_fn_statement(FnStatement* statement, SymbolT
 		type_scope_statement(statement->body, &copied_symbol_table, false) // dont let scope copy as we already did for the params
 	);
 }
-TypedLoopStatement* TypeChecker::type_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {
-	panic("Not implemented");
-	return nullptr;
+
+TypedLoopStatement* TypeChecker::type_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {	
+	return new TypedLoopStatement(statement->identifier, type_scope_statement(statement->body, symbol_table));
 }
+
 TypedStructStatement* TypeChecker::type_struct_statement(StructStatement* statement, SymbolTable* symbol_table) {
 	
 	auto members = Typed_CSV();

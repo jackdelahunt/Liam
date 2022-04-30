@@ -2,15 +2,16 @@
 #include "string.h"
 #define u64 int
 
-struct Person{
-string name;
-u64 age;
+void print(){
+printf("hello world\n");
+}
 
-};
+u64 main(){
+while(true){
+print();
 
-void main(){
-Person p = {"jack", 21};
-Person* x = &p;
+}
+lul: ;
 
 }
 
