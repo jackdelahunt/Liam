@@ -1,3 +1,9 @@
-fn main(): u64 {
-	insert "some c++";
+struct Person {
+   name: string,
+   age: u64
+}
+
+fn main(): void {
+   let p: Person = new Person {"jack", 21};
+   let x: Person^ = @p;
 }

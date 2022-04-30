@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
-project(liamc)
+project(liamvm)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(liamc "include/")
+include_directories(liamvm "include/")
 
-add_executable(liamc
+add_executable(liamvm
         "src/main.cpp"
         "src/expression.cpp" 
         "src/statement.cpp" 
@@ -23,6 +23,4 @@ add_executable(liamc
         "include/expression.h" 
         "include/emitter.h"
         "include/C_backend/c_backend.h"
-        "include/type_checker.h" 
-        "src/type_checker.cpp"
-)
+ "include/type_checker.h" "src/type_checker.cpp" )
