@@ -20,40 +20,40 @@ void Parser::parse() {
 Statement* Parser::eval_statement() {
     switch (peek()->type)
     {
-    case TOKEN_LET:
+        case TOKEN_LET:
         return eval_let_statement();
         break;
-    case TOKEN_FN:
+        case TOKEN_FN:
         return eval_fn_statement();
         break;
-    case TOKEN_LOOP:
+        case TOKEN_LOOP:
         return eval_loop_statement();
         break;
-    case TOKEN_STRUCT:
+        case TOKEN_STRUCT:
         return eval_struct_statement();
         break;
-    case TOKEN_INSERT:
+        case TOKEN_INSERT:
         return eval_insert_statement();
         break;
-    case TOKEN_RETURN:
+        case TOKEN_RETURN:
         return eval_return_statement();
         break;
-    case TOKEN_BREAK:
+        case TOKEN_BREAK:
         return eval_break_statement();
         break;
-    case TOKEN_IDENTIFIER:
+        case TOKEN_IDENTIFIER:
         // x := y; ..or.. x();
         if (peek(1)->type == TOKEN_COLON) {
             return eval_assigment_statement();
         }
-
+        
         return eval_expression_statement();
         break;
-    default:
+        default:
         panic("Cannot parse token as the begining of a statement");
         break;
     }
-
+    
     if (peek()->type == TOKEN_LET)
         return eval_let_statement();
     else
@@ -67,7 +67,7 @@ LetStatement* Parser::eval_let_statement() {
     Expression* type = eval_expression();
     consume_token_of_type(TOKEN_EQUAL);
     auto expression = eval_expression_statement()->expression;
-
+    
     return new LetStatement(*identifier, expression, type);
 }
 
@@ -82,7 +82,7 @@ ScopeStatement* Parser::eval_scope_statement() {
         statements.push_back(eval_statement());
     }
     consume_token_of_type(TOKEN_BRACE_CLOSE);
-
+    
     return new ScopeStatement(statements);
 }
 
@@ -94,9 +94,9 @@ FnStatement* Parser::eval_fn_statement() {
     consume_token_of_type(TOKEN_PAREN_CLOSE);
     consume_token_of_type(TOKEN_COLON);
     Expression* type = eval_expression();
-
+    
     auto body = eval_scope_statement();
-
+    
     return new FnStatement(*identifier, params, type, body);
 }
 
@@ -104,14 +104,14 @@ LoopStatement* Parser::eval_loop_statement() {
     consume_token_of_type(TOKEN_LOOP);
     Token* identifier = consume_token_of_type(TOKEN_STRING_LITERAL);
     auto body = eval_scope_statement();
-
+    
     return new LoopStatement(*identifier, body);
 }
 
 int Parser::find_balance_point(TokenType push, TokenType pull, int from) {
     int current_index = from;
     int balance = 0;
-
+    
     while (current_index < tokens.size()) {
         if (tokens.at(current_index).type == push) {
             balance++;
@@ -123,7 +123,7 @@ int Parser::find_balance_point(TokenType push, TokenType pull, int from) {
             if (balance == 0)
                 return current_index;
         }
-
+        
         current_index++;
     }
 }
@@ -134,7 +134,7 @@ StructStatement* Parser::eval_struct_statement() {
     consume_token_of_type(TOKEN_BRACE_OPEN);
     auto member = consume_comma_seperated_values(); 
     consume_token_of_type(TOKEN_BRACE_CLOSE);
-
+    
     return new StructStatement(*identifier, member);
 }
 
@@ -142,7 +142,7 @@ InsertStatement* Parser::eval_insert_statement() {
     consume_token_of_type(TOKEN_INSERT);
     auto byte_code = eval_expression();
     consume_token_of_type(TOKEN_SEMI_COLON);
-
+    
     return new InsertStatement(byte_code);
 }
 
@@ -162,7 +162,7 @@ BreakStatement* Parser::eval_break_statement() {
 ExpressionStatement* Parser::eval_expression_statement() {
     auto expression = eval_expression();
     consume_token_of_type(TOKEN_SEMI_COLON);
-
+    
     return new ExpressionStatement(expression);
 }
 
@@ -171,7 +171,7 @@ AssigmentStatement* Parser::eval_assigment_statement() {
     consume_token_of_type(TOKEN_COLON);
     consume_token_of_type(TOKEN_EQUAL);
     auto expression = eval_expression_statement();
-
+    
     return new AssigmentStatement(*identifier, expression);
 }
 
@@ -181,25 +181,25 @@ Expression* Parser::eval_expression() {
 
 Expression* Parser::eval_term() {
     auto expr = eval_factor();
-
+    
     while (match(TokenType::TOKEN_PLUS)) {
         Token* op = consume_token();
         auto right = eval_factor();
         expr = new BinaryExpression(expr, *op, right);
     }
-
+    
     return expr;
 }
 
 Expression* Parser::eval_factor() {
     auto expr = eval_unary();
-
+    
     while (match(TokenType::TOKEN_STAR)) {
         Token* op = consume_token();
         auto right = eval_unary();
         expr = new BinaryExpression(expr, *op, right);
     }
-
+    
     return expr;
 }
 
@@ -209,7 +209,7 @@ Expression* Parser::eval_unary() {
         auto expr = eval_unary();
         return new UnaryExpression(expr, *op);
     }
-
+    
     return eval_postfix();
 }
 
@@ -218,31 +218,31 @@ Expression* Parser::eval_postfix() {
     if (match(TOKEN_HAT)) {
         return new UnaryExpression(expr, *consume_token());
     }
-
+    
     return expr;
 }
 
 Expression* Parser::eval_call() {
     auto expr = eval_primary();
-
+    
     if (match(TOKEN_PAREN_OPEN)) {
         consume_token_of_type(TOKEN_PAREN_OPEN);
         auto args = consume_arguments();
         consume_token_of_type(TOKEN_PAREN_CLOSE);
-
+        
         return new CallExpression(expr, args);
     } else if(match(TOKEN_DOT)) {
         consume_token();
         auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
         return new GetExpression(expr, *identifier);
     }
-
+    
     return expr;
 }
 
 Expression* Parser::eval_primary() {
     auto type = peek()->type;
-
+    
     if (type == TokenType::TOKEN_INT_LITERAL)
         return new IntLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_STRING_LITERAL)
@@ -251,7 +251,7 @@ Expression* Parser::eval_primary() {
         return new IdentifierExpression(*consume_token());
     else if (type == TokenType::TOKEN_NEW)
         return eval_new_expression();
-
+    
     return new Expression(); // empty expression found -- like when a return has no expression
 }
 
@@ -276,7 +276,7 @@ Token* Parser::peek(int offset) {
 Token* Parser::consume_token() {
     if (current >= tokens.size())
         panic("No more tokens to consume");
-
+    
     return &tokens.at(current++);
 }
 
@@ -286,12 +286,12 @@ Token* Parser::consume_token_of_type(TokenType type) {
         oss << "Expected " << type << " but there are no more tokens to consume";
         panic(oss.str());
     }
-
+    
     auto t_ptr = &tokens.at(current++);
     if (t_ptr->type != type) {
         unexpected_token(t_ptr, type);
     }
-
+    
     return t_ptr;
 }
 
@@ -301,14 +301,14 @@ std::vector<Expression*> Parser::consume_arguments() {
     if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE)) {
         do {
             if (!is_first) current++; // only iterate current by one when it is not the first time
-
+            
             auto expr = eval_expression();
             args.push_back(expr);
-
+            
             if (is_first) is_first = false;
         } while (match(TOKEN_COMMA));
     }
-
+    
     return args;
 }
 
@@ -318,17 +318,17 @@ std::vector<std::tuple<Token, Expression*>> Parser::consume_comma_seperated_valu
     if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE)) {
         do {
             if (!is_first) current++; // only iterate current by one when it is not the first time
-
+            
             auto arg = consume_token_of_type(TOKEN_IDENTIFIER);
             consume_token_of_type(TOKEN_COLON);
             auto type = eval_expression();
-
+            
             args_types.push_back({*arg, type});
-
+            
             if (is_first) is_first = false;
         } while (match(TOKEN_COMMA));
     }
-
+    
     return args_types;
 }
 

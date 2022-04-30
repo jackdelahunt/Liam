@@ -3,3 +3,11 @@ liamc/.vs
 liamc/out
 build/main.exe
 build/main.obj
+*vcxproj
+*vcxproj.filters
+liamc/Debug
+*sln
+liamc/x64
+*.dir
+*.cmake
+liamc/CmakeFiles

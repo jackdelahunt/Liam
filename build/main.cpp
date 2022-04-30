@@ -2,15 +2,8 @@
 #include "string.h"
 #define u64 int
 
-struct Person{
-string name;
-u64 age;
-
-};
-
-void main(){
-Person p = {"jack", 21};
-Person* x = &p;
+u64 main(){
+string s = "this is a string";
 
 }
 

@@ -80,33 +80,35 @@ struct SymbolTable {
 	std::map<std::string, TypeInfo*> builtin_type_table;
 	std::map<std::string, TypeInfo*> type_table;
 	std::map<std::string, TypeInfo*> identifier_table;
-
+    
 	SymbolTable();
-	 
+    
 	void add_type(Token type, TypeInfo* type_info);
 	void add_identifier(Token identifier, TypeInfo* type_info);
 };
 
-struct TypedStatement {};
+struct TypedStatement {
+	virtual std::ostream& format(std::ostream& os) const;
+};
 
 struct TypedLetStatement: TypedStatement {
 	Token identifier;
 	TypedExpression* type_expression;
 	TypedExpression* expression;
-
+    
 	TypedLetStatement(Token identifier, TypedExpression* type_expression, TypedExpression* expression);
 };
 
 struct TypedScopeStatement : TypedStatement {
 	std::vector<TypedStatement*> statements;
-
+    
 	TypedScopeStatement(std::vector<TypedStatement*> statements);
 };
 
 struct TypedStructStatement : TypedStatement {
 	Token identifier;
 	Typed_CSV members;
-
+    
 	TypedStructStatement(Token identifier, Typed_CSV members);
 };
 
@@ -115,71 +117,72 @@ struct TypedFnStatement : TypedStatement {
 	Typed_CSV params;
 	TypedExpression* return_type;
 	TypedScopeStatement* body;
-
+    
 	TypedFnStatement(Token identifier, Typed_CSV params, TypedExpression* return_type, TypedScopeStatement* body);
 };
 
 struct TypedLoopStatement : TypedStatement {
 	Token identifier;
 	TypedScopeStatement* body;
-
+    
 	TypedLoopStatement(Token identifier, TypedScopeStatement* body);
 };
 
 
 struct TypedInsertStatement : TypedStatement {
 	TypedExpression* code;
-
+    
 	TypedInsertStatement(TypedExpression* code);
 };
 
 struct TypedReturnStatement : TypedStatement {
 	TypedExpression* expression;
-
+    
 	TypedReturnStatement(TypedExpression* epxression);
 };
 
 struct TypedBreakStatement : TypedStatement {
 	Token identifier;
-
+    
 	TypedBreakStatement(Token identifier);
 };
 
 struct TypedExpressionStatement : TypedStatement {
 	TypedExpression* expression;
-
+    
 	TypedExpressionStatement(TypedExpression* expression);
 };
 
 struct TypedAssigmentStatement : TypedStatement {
 	Token identifier;
 	TypedExpression* assigned_to;
-
+    
 	TypedAssigmentStatement(Token identifier, TypedExpression* assigned_to);
 };
 
 struct TypedExpression {
 	TypeInfo* type_info;
+	virtual std::ostream& format(std::ostream& os) const;
 };
 
 struct TypedBinaryExpression : TypedExpression {
 	TypedExpression* left;
 	Token op;
 	TypedExpression* right;
-
+    
 	TypedBinaryExpression(TypedExpression* left, Token op, TypedExpression* right);
 };
 
 struct TypedUnaryExpression : TypedExpression {
 	Token op;
 	TypedExpression* expression;
-
+    
 	TypedUnaryExpression(TypedExpression* expression, Token op);
 };
 
 struct TypedIntLiteralExpression : TypedExpression {
 	Token token;
-
+    
 	TypedIntLiteralExpression(Token token);
 };
 
@@ -187,19 +190,19 @@ struct TypedCallExpression : TypedExpression {
 	// this is an expression but it must be a identifier
 	TypedExpression* identifier;
 	std::vector<TypedExpression*> args;
-
+    
 	TypedCallExpression(TypedExpression* identifier, std::vector<TypedExpression*> args);
 };
 
 struct TypedIdentifierExpression : TypedExpression {
 	Token identifier;
-
+    
 	TypedIdentifierExpression(Token identifier, TypeInfo* type_info);
 };
 
 struct TypedStringLiteralExpression : TypedExpression {
 	Token token;
-
+    
 	TypedStringLiteralExpression(Token token);
 };
 
@@ -207,14 +210,14 @@ struct TypedGetExpression : TypedExpression {
 	// this is an expression but it must be a identifier
 	TypedExpression* expression;
 	Token member;
-
+    
 	TypedGetExpression(TypedExpression* expression, Token member);
 };
 
 struct TypedNewExpression : TypedExpression {
 	Token identifier;
 	std::vector<TypedExpression*> expressions;
-
+    
 	TypedNewExpression(Token identifier, std::vector<TypedExpression*> expressions);
 };
 
@@ -225,9 +228,9 @@ struct TypedFile {
 struct TypeChecker {
 	SymbolTable symbol_table;
 	TypedFile root;
-
+    
 	TypeChecker();
-
+    
 	void type_file(File* file);
 	TypedStatement* type_statement(Statement* statement, SymbolTable* symbol_table);
 	TypedInsertStatement* type_insert_statement(InsertStatement* statement, SymbolTable* symbol_table);
@@ -240,7 +243,7 @@ struct TypeChecker {
 	TypedStructStatement* type_struct_statement(StructStatement* statement, SymbolTable* symbol_table);
 	TypedAssigmentStatement* type_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table);
 	TypedExpressionStatement* type_expression_statement(ExpressionStatement* statement, SymbolTable* symbol_table);
-
+    
 	TypedExpression* type_expression(Expression* expression, SymbolTable* symbol_table);
 	TypedBinaryExpression* type_binary_expression(BinaryExpression* expression, SymbolTable* symbol_table);
 	TypedStringLiteralExpression* type_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table);
