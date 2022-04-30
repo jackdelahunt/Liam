@@ -225,16 +225,22 @@ Expression* Parser::eval_postfix() {
 Expression* Parser::eval_call() {
     auto expr = eval_primary();
 
-    if (match(TOKEN_PAREN_OPEN)) {
-        consume_token_of_type(TOKEN_PAREN_OPEN);
-        auto args = consume_arguments();
-        consume_token_of_type(TOKEN_PAREN_CLOSE);
+    while (true) {
+        if (match(TOKEN_PAREN_OPEN)) {
+            consume_token_of_type(TOKEN_PAREN_OPEN);
+            auto args = consume_arguments();
+            consume_token_of_type(TOKEN_PAREN_CLOSE);
 
-        return new CallExpression(expr, args);
-    } else if(match(TOKEN_DOT)) {
-        consume_token();
-        auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
-        return new GetExpression(expr, *identifier);
+            return new CallExpression(expr, args);
+        }
+        else if (match(TOKEN_DOT)) {
+            consume_token();
+            auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+            expr = new GetExpression(expr, *identifier);
+        }
+        else {
+            break;
+        }
     }
 
     return expr;

@@ -379,8 +379,23 @@ TypedExpression* TypeChecker::type_expression(Expression* expression, SymbolTabl
 	return nullptr;
 }
 TypedBinaryExpression* TypeChecker::type_binary_expression(BinaryExpression* expression, SymbolTable* symbol_table) {
-	panic("Not implemented");
-	return nullptr;
+	auto left = type_expression(expression->left, symbol_table);
+	auto right = type_expression(expression->right, symbol_table);
+
+	if (!type_match(left->type_info, right->type_info)) {
+		panic("Type mismatch in binary expression");
+		return nullptr;
+	}
+
+	if (left->type_info->type != INT) {
+		panic("Cannot use binary operator on non int type");
+		return nullptr;	
+	}
+
+	auto binary = new TypedBinaryExpression(left, expression->op, right);
+	binary->type_info = left->type_info;
+	return binary;
+
 }
 TypedStringLiteralExpression* TypeChecker::type_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table) {
 	auto typed_expression = new TypedStringLiteralExpression(expression->token);
