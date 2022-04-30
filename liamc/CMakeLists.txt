@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
-project(liamvm)
+project(liamc)
 
 set(CMAKE_CXX_STANDARD 20)
 
-include_directories(liamvm "include/")
+include_directories(liamc "include/")
 
-add_executable(liamvm
+add_executable(liamc
         "src/main.cpp"
         "src/expression.cpp" 
         "src/statement.cpp" 
