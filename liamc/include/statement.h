@@ -95,6 +95,15 @@ struct InsertStatement : Statement {
 
 std::ostream& operator<<(std::ostream& os, const InsertStatement& statement);
 
+struct ImportStatement : Statement {
+    Expression* file;
+
+    ImportStatement(Expression* file);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const ImportStatement& statement);
+
 struct ReturnStatement: Statement {
     Expression* expression;
 

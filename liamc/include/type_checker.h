@@ -145,6 +145,12 @@ struct TypedBreakStatement : TypedStatement {
 	TypedBreakStatement(Token identifier);
 };
 
+struct TypedImportStatement : TypedStatement {
+	TypedExpression* file;
+
+	TypedImportStatement(TypedExpression* file);
+};
+
 struct TypedExpressionStatement : TypedStatement {
 	TypedExpression* expression;
 
@@ -233,6 +239,7 @@ struct TypeChecker {
 	TypedInsertStatement* type_insert_statement(InsertStatement* statement, SymbolTable* symbol_table);
 	TypedReturnStatement* type_return_statement(ReturnStatement* statement, SymbolTable* symbol_table);
 	TypedBreakStatement* type_break_statement(BreakStatement* statement, SymbolTable* symbol_table);
+	TypedImportStatement* type_import_statement(ImportStatement* statement, SymbolTable* symbol_table);
 	TypedLetStatement* type_let_statement(LetStatement* statement, SymbolTable* symbol_table);
 	TypedScopeStatement* type_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table = true);
 	TypedFnStatement* type_fn_statement(FnStatement* statement, SymbolTable* symbol_table);

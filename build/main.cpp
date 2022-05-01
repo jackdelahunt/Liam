@@ -1,26 +1,23 @@
 #include<stdio.h>
-#include "string.h"
+#include "liam_string.h"
 #define u64 int
 
-void print_number(u64 n){
+void str_print(string* s){
+printf("%s\n", s->str);
+}
+
+u64 str_length(string* s){
+return s->size;
+}
+
+void u64_print(u64 n){
 printf("%d", n);
 }
 
-struct Stats{
-u64 age;
-string name;
-
-};
-
-struct Person{
-Stats stats;
-
-};
-
 u64 main(){
-Person p = {{21, "jack"}};
-u64 x = p.stats.age;
-print_number(x);
+string s = "this is a string";
+str_print(&s);
+u64_print(str_length(&s));
 
 }
 

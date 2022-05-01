@@ -44,6 +44,7 @@ struct Parser {
     InsertStatement* eval_insert_statement();
     ReturnStatement* eval_return_statement();
     BreakStatement* eval_break_statement();
+    ImportStatement* eval_import_statement();
     ExpressionStatement* eval_expression_statement();
     AssigmentStatement* eval_assigment_statement();
     Expression* eval_expression();

@@ -31,6 +31,7 @@ enum TokenType {
     TOKEN_DOT               = 21,
     TOKEN_NEW               = 22,
     TOKEN_BREAK             = 23,
+    TOKEN_IMPORT            = 24,
 };
 
 const char* TokenTypeStrings[];

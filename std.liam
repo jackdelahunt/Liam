@@ -1,0 +1,11 @@
+fn str_print(s: string^): void {
+	insert "printf(\"%s\\n\", s->str);";
+}
+
+fn str_length(s: string^): u64 {
+	insert "return s->size;";
+}
+
+fn u64_print(n: u64): void {
+	insert "printf(\"%d\", n);";
+}

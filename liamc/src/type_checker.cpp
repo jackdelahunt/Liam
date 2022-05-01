@@ -67,6 +67,10 @@ TypedBreakStatement::TypedBreakStatement(Token identifier) {
 	this->identifier = identifier;
 }
 
+TypedImportStatement::TypedImportStatement(TypedExpression* file) {
+	this->file = file;
+}
+
 TypedExpressionStatement::TypedExpressionStatement(TypedExpression* expression) {
 	this->expression = expression;
 }
@@ -154,6 +158,13 @@ TypedStatement* TypeChecker::type_statement(Statement* statement, SymbolTable* s
 	}
 
 	{
+		auto ptr = dynamic_cast<ImportStatement*>(statement);
+		if (ptr) {
+			return type_import_statement(ptr, symbol_table);
+		}
+	}
+
+	{
 		auto ptr = dynamic_cast<LetStatement*>(statement);
 		if (ptr) {
 			return type_let_statement(ptr, symbol_table);
@@ -201,6 +212,7 @@ TypedStatement* TypeChecker::type_statement(Statement* statement, SymbolTable* s
 	panic("Not implemented");
 	return nullptr;
 }
+
 TypedInsertStatement* TypeChecker::type_insert_statement(InsertStatement* statement, SymbolTable* symbol_table) {
 	auto expression = type_expression(statement->byte_code, symbol_table);
 	if (expression->type_info->type != STRING) {
@@ -209,14 +221,26 @@ TypedInsertStatement* TypeChecker::type_insert_statement(InsertStatement* statem
 
 	return new TypedInsertStatement(expression);
 }
+
 TypedReturnStatement* TypeChecker::type_return_statement(ReturnStatement* statement, SymbolTable* symbol_table) {
 	panic("Not implemented");
 	return nullptr;
 }
+
 TypedBreakStatement* TypeChecker::type_break_statement(BreakStatement* statement, SymbolTable* symbol_table) {
 	panic("Not implemented");
 	return nullptr;
 }
+
+TypedImportStatement* TypeChecker::type_import_statement(ImportStatement* statement, SymbolTable* symbol_table) {
+	auto expression = type_expression(statement->file, symbol_table);
+	if (expression->type_info->type != STRING) {
+		panic("Import requires a string");
+	}
+
+	return new TypedImportStatement(expression);
+}
+
 TypedLetStatement* TypeChecker::type_let_statement(LetStatement* statement, SymbolTable* symbol_table) {
 	auto typed_type_expression = type_expression(statement->type, symbol_table);
 	auto typed_expression = type_expression(statement->expression, symbol_table);

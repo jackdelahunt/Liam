@@ -1,21 +1,11 @@
-fn print_number(n: u64): void {
-	insert "printf(\"%d\", n);";
-}
-
-struct Stats {
-	age: u64,
-	name: string
-}
-
 struct Person {
-	stats: Stats
+	head: Head
+}
+
+struct Head {
+	radius: u64
 }
 
 fn main(): u64 {
-	let p: Person = new Person{
-		new Stats{21, "jack"}
-	};
-
-	let x: u64 = p.stats.age;
-	print_number(x);
+	
 }

@@ -15,6 +15,37 @@ void Parser::parse() {
     while (current < tokens.size()) {
         root.statements.push_back(eval_statement());
     }
+
+    auto import_stmts = std::vector<ImportStatement*>();
+    auto other_stmts = std::vector<Statement*>();
+    for (int i = 0; i < root.statements.size(); i++) {
+        auto ptr = dynamic_cast<ImportStatement*>(root.statements.at(i));
+        if (ptr) {
+            import_stmts.push_back(ptr);
+        }
+        else {
+            other_stmts.push_back(root.statements.at(i));
+        }
+    }
+
+    root.statements = other_stmts;
+
+    for (auto i : import_stmts) {
+        auto string_lit = dynamic_cast<StringLiteralExpression*>(i->file);
+        if (!string_lit) { continue; }
+
+        auto lexer = Lexer();
+        lexer.lex(string_lit->token.string.c_str());
+
+        auto other_parser = Parser(lexer.tokens);
+        other_parser.parse();
+
+        for (auto stmt : root.statements) {
+            other_parser.root.statements.push_back(stmt);
+        }
+
+        root = other_parser.root;
+    }
 }
 
 Statement* Parser::eval_statement() {
@@ -40,6 +71,9 @@ Statement* Parser::eval_statement() {
         break;
     case TOKEN_BREAK:
         return eval_break_statement();
+        break;
+    case TOKEN_IMPORT:
+        return eval_import_statement();
         break;
     case TOKEN_IDENTIFIER:
         // x := y; ..or.. x();
@@ -157,6 +191,14 @@ BreakStatement* Parser::eval_break_statement() {
     auto identifier = *consume_token_of_type(TOKEN_STRING_LITERAL);
     consume_token_of_type(TOKEN_SEMI_COLON);
     return new BreakStatement(identifier);
+}
+
+
+ImportStatement* Parser::eval_import_statement() {
+    consume_token_of_type(TOKEN_IMPORT);
+    auto file = eval_expression_statement();
+
+    return new ImportStatement(file->expression);
 }
 
 ExpressionStatement* Parser::eval_expression_statement() {

@@ -139,6 +139,20 @@ std::ostream& operator<<(std::ostream& os, const InsertStatement& statement)
     return statement.format(os);
 }
 
+ImportStatement::ImportStatement(Expression* file) {
+    this->file = file;
+}
+
+std::ostream& ImportStatement::format(std::ostream& os) const {
+    os << "(import " << *file << ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ImportStatement& statement)
+{
+    return statement.format(os);
+}
+
 ReturnStatement::ReturnStatement(Expression* expression) {
     this->expression = expression;
 }

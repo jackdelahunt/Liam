@@ -194,6 +194,11 @@ void Lexer::lex(const char* path) {
                 continue;
             }
 
+            if (word == "import") {
+                tokens.push_back(Token(TokenType::TOKEN_IMPORT, word, current_line, current_character));
+                continue;
+            }
+
             // check numbers
             try
             {

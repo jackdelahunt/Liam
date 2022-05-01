@@ -27,17 +27,14 @@ int main(int argc, char** argv) {
 #endif
 
 
-    auto lex_start = std::chrono::high_resolution_clock::now();
+    auto parse_lex_start = std::chrono::high_resolution_clock::now();
     auto lexer = Lexer();
     lexer.lex(source_path);
-    auto lex_end = std::chrono::high_resolution_clock::now();
-    auto lex_delta = lex_end - lex_start;
 
-    auto parser_start = std::chrono::high_resolution_clock::now();
     auto parser = Parser(lexer.tokens);
     parser.parse();
-    auto parse_end = std::chrono::high_resolution_clock::now();
-    auto parser_delta = parse_end - parser_start;
+    auto parse_lex_end= std::chrono::high_resolution_clock::now();
+    auto parse_lex_delta= parse_lex_end- parse_lex_start;
 
     auto typing_start = std::chrono::high_resolution_clock::now();
     auto type_checker = TypeChecker();
@@ -58,11 +55,8 @@ int main(int argc, char** argv) {
 
 
 
-    std::cout << "Lex time: " << duration_cast<std::chrono::milliseconds>(lex_delta) 
-        << " " << duration_cast<std::chrono::microseconds>(lex_delta) << "\n";
-
-    std::cout << "Parse time: " << duration_cast<std::chrono::milliseconds>(parser_delta) << " " 
-        << duration_cast<std::chrono::microseconds>(parser_delta) << "\n";
+    std::cout << "Parse & Lex time: " << duration_cast<std::chrono::milliseconds>(parse_lex_delta) << " " 
+        << duration_cast<std::chrono::microseconds>(parse_lex_delta) << "\n";
 
     std:: cout << "Type check time: " << duration_cast<std::chrono::milliseconds>(typing_delta) << " " 
         << duration_cast<std::chrono::microseconds>(typing_delta) << "\n";

@@ -9,7 +9,7 @@ CBackend::CBackend() {
 }
 
 std::string CBackend::emit(File& file) {
-	auto source_generated = std::string("#include<stdio.h>\n#include \"string.h\"\n#define u64 int\n\n");
+	auto source_generated = std::string("#include<stdio.h>\n#include \"liam_string.h\"\n#define u64 int\n\n");
 	for (auto stmt : file.statements) {
 		source_generated.append(emit_statement(stmt));
 	}
