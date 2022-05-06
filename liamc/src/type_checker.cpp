@@ -130,7 +130,8 @@ TypeChecker::TypeChecker() {
 
 void TypeChecker::type_file(File* file) {
 	for (auto stmt : file->statements) {
-		root.statements.push_back(type_statement(stmt, &symbol_table));
+		auto p = type_statement(stmt, &symbol_table);
+		root.statements.push_back(p);
 	}
 }
 
@@ -616,5 +617,12 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 		}
 
 		return true;
+	}
+	else if (a->type == POINTER) {
+		auto ptr_a = static_cast<PointerTypeInfo*>(a);
+		auto ptr_b = static_cast<PointerTypeInfo*>(b);
+
+		if (ptr_a->to->type == VOID) return true; // void^ can be equal to T^, not other way around
+		return ptr_a->to->type == ptr_b->to->type;
 	}
 }

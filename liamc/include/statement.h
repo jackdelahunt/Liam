@@ -9,7 +9,22 @@ struct Token;
 
 typedef std::vector<std::tuple<Token, Expression*>> CSV;
 
+enum StatementType {
+    STATEMENT_EXPRESSION,
+    STATEMENT_LET,
+    STATEMENT_SCOPE,
+    STATEMENT_FN,
+    STATEMENT_LOOP,
+    STATEMENT_STRUCT,
+    STATEMENT_ASSIGNMENT,
+    STATEMENT_INSERT,
+    STATEMENT_IMPORT,
+    STATEMENT_RETURN,
+    STATEMENT_BREAK
+};
+
 struct Statement {
+    StatementType statement_type;
     virtual std::ostream& format(std::ostream& os) const;
 };
 
