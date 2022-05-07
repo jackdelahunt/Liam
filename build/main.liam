@@ -1,8 +1,15 @@
-fn print(s: string^): void {
-    insert "println!(\"{}\", *s);";
+struct Person {
+    name: string
 }
+
+fn print(p: Person): void {
+    insert "println!(\"{}\", p.name);";
+}
+
 
 fn main(): void {
     let s: string = "this is a string";
-    print(@s);
+    let p: Person = new Person{s};
+    print(p);
+    print(p);
 }

@@ -132,9 +132,9 @@ struct TypedLoopStatement : TypedStatement {
 
 
 struct TypedInsertStatement : TypedStatement {
-	TypedExpression* code;
+	TypedStringLiteralExpression* code;
 
-	TypedInsertStatement(TypedExpression* code);
+	TypedInsertStatement(TypedStringLiteralExpression* code);
 };
 
 struct TypedReturnStatement : TypedStatement {

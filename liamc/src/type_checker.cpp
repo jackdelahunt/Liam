@@ -62,7 +62,7 @@ TypedLoopStatement::TypedLoopStatement(Token identifier, TypedScopeStatement* bo
 	this->statement_type = STATEMENT_LOOP;
 }
 
-TypedInsertStatement::TypedInsertStatement(TypedExpression* code) {
+TypedInsertStatement::TypedInsertStatement(TypedStringLiteralExpression* code) {
 	this->code = code;
 	this->statement_type = STATEMENT_INSERT;
 }
@@ -233,7 +233,7 @@ TypedInsertStatement* TypeChecker::type_insert_statement(InsertStatement* statem
 		panic("Insert requires a string");
 	}
 
-	return new TypedInsertStatement(expression);
+	return new TypedInsertStatement(dynamic_cast<TypedStringLiteralExpression*>(expression));
 }
 
 TypedReturnStatement* TypeChecker::type_return_statement(ReturnStatement* statement, SymbolTable* symbol_table) {

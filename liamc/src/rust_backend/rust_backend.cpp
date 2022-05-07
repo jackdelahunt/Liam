@@ -8,7 +8,8 @@ std::string RustBackend::emit(TypedFile& file) {
                                         "#![allow(unused_unsafe)]\n"
                                         "#![allow(non_camel_case_types)]\n"
                                         "#![allow(dead_code)]\n"
-                                        "#![allow(unused_mut)]"
+                                        "#![allow(unused_mut)]\n"
+                                        "#![allow(unused_variables)]\n"
                                         "type void = ();\n"
                                         "type string = String;\n\n\n");
 	for (auto stmt : file.statements) {
@@ -91,10 +92,7 @@ std::string RustBackend::emit_statement(TypedStatement* statement) {
 }
 
 std::string RustBackend::emit_insert_statement(TypedInsertStatement* statement) {
-	auto string_lit = dynamic_cast<TypedStringLiteralExpression*>(statement->code);
-	if (string_lit) {
-		return string_lit->token.string; // 
-	}
+    return statement->code->token.string;
 }
 
 std::string RustBackend::emit_return_statement(TypedReturnStatement* statement) {
@@ -168,6 +166,31 @@ std::string RustBackend::emit_struct_statement(TypedStructStatement* statement) 
 		source.append(identifier.string + ": " + emit_expression(type) + ",\n");
 	}
 	source.append("\n}\n\n");
+
+    // struct impl block
+    source.append("impl " + statement->identifier.string + " {\n");
+    source.append(" fn new(");
+    for (int i = 0; i < statement->members.size(); i++) {
+        auto& [identifier, type] = statement->members.at(i);
+        source.append(identifier.string + ": " + emit_expression(type));
+
+        if(i + 1 < statement->members.size()) {
+            source.append(", ");
+        }
+    }
+    source.append(") -> Self {\n");
+    source.append("     Self{");
+    for (int i = 0; i < statement->members.size(); i++) {
+        auto& [identifier, _] = statement->members.at(i);
+        source.append(identifier.string);
+        if(i + 1 < statement->members.size()) {
+            source.append(", ");
+        }
+    }
+    source.append("}\n");
+    source.append(" }\n");
+    source.append("}\n\n");
+
 	return source;
 }
 
@@ -274,7 +297,15 @@ std::string RustBackend::emit_call_expression(TypedCallExpression* expression) {
 	source.append(dynamic_cast<TypedIdentifierExpression*>(expression->identifier)->identifier.string + "(");
 	int index = 0;
 	for (auto expr : expression->args) {
-		source.append(emit_expression(expr));
+
+        if(expr->type_info->type != POINTER) {
+		    source.append("(");
+            source.append(emit_expression(expr));
+            source.append(").clone()");
+        } else {
+            source.append(emit_expression(expr));
+        }
+
 		index++;
 		if (index < expression->args.size()) {
 			source.append(", ");
@@ -317,7 +348,7 @@ std::string RustBackend::emit_get_expression(TypedGetExpression* expression) {
 }
 
 std::string RustBackend::emit_new_expression(TypedNewExpression* expression) {
-	std::string source = expression->identifier.string + "{";
+	std::string source = expression->identifier.string + "::new(";
 	int index = 0;
 	for (auto expr : expression->expressions) {
 		source.append(emit_expression(expr));
@@ -326,8 +357,7 @@ std::string RustBackend::emit_new_expression(TypedNewExpression* expression) {
 			source.append(", ");
 		}
 	}
-
-	source.append("}");
+	source.append(")");
 
 	return source;
 }
