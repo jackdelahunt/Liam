@@ -28,19 +28,24 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo* type_info) {
 	identifier_table[identifier.string] = type_info;
 }
 
+void TypedStatement::print() {} // virtual function to keep compiler happy :^]
+
 TypedLetStatement::TypedLetStatement(Token identifier, TypedExpression* type_expression, TypedExpression* expression) {
 	this->identifier = identifier;
 	this->type_expression = type_expression;
 	this->expression = expression;
+	this->statement_type = STATEMENT_LET;
 }
 
 TypedScopeStatement::TypedScopeStatement(std::vector<TypedStatement*> statements) {
 	this->statements = statements;
+	this->statement_type = STATEMENT_SCOPE;
 }
 
 TypedStructStatement::TypedStructStatement(Token identifier, Typed_CSV members) {
 	this->identifier = identifier;
 	this->members= members;
+	this->statement_type = STATEMENT_SCOPE;
 }
 
 TypedFnStatement::TypedFnStatement(Token identifier, Typed_CSV params, TypedExpression* return_type, TypedScopeStatement* body) {
@@ -48,36 +53,44 @@ TypedFnStatement::TypedFnStatement(Token identifier, Typed_CSV params, TypedExpr
 	this->params = params;
 	this->return_type = return_type;
 	this->body = body;
+	this->statement_type = STATEMENT_FN;
 }
 
 TypedLoopStatement::TypedLoopStatement(Token identifier, TypedScopeStatement* body) {
 	this->identifier = identifier;
 	this->body = body;
+	this->statement_type = STATEMENT_LOOP;
 }
 
 TypedInsertStatement::TypedInsertStatement(TypedExpression* code) {
 	this->code = code;
+	this->statement_type = STATEMENT_INSERT;
 }
 
 TypedReturnStatement::TypedReturnStatement(TypedExpression* epxression) {
 	this->expression = expression;
+	this->statement_type = STATEMENT_RETURN;
 }
 
 TypedBreakStatement::TypedBreakStatement(Token identifier) {
 	this->identifier = identifier;
+	this->statement_type = STATEMENT_BREAK;
 }
 
 TypedImportStatement::TypedImportStatement(TypedExpression* file) {
 	this->file = file;
+	this->statement_type = STATEMENT_BREAK;
 }
 
 TypedExpressionStatement::TypedExpressionStatement(TypedExpression* expression) {
 	this->expression = expression;
+	this->statement_type = STATEMENT_EXPRESSION;
 }
 
 TypedAssigmentStatement::TypedAssigmentStatement(Token identifier, TypedExpression* assigned_to) {
 	this->identifier = identifier;
 	this->assigned_to = assigned_to;
+	this->statement_type = STATEMENT_ASSIGNMENT;
 }
 
 TypedBinaryExpression::TypedBinaryExpression(TypedExpression* left, Token op, TypedExpression* right) {
@@ -102,7 +115,7 @@ TypedCallExpression::TypedCallExpression(TypedExpression* identifier, std::vecto
 }
 
 TypedIdentifierExpression::TypedIdentifierExpression(Token identifier, TypeInfo* type_info) {
-	this->identifier;
+	this->identifier = identifier;
 	this->type_info = type_info;
 }
 
@@ -341,6 +354,7 @@ TypedExpressionStatement* TypeChecker::type_expression_statement(ExpressionState
 	return new  TypedExpressionStatement(type_expression(statement->expression, symbol_table));
 }
 
+void TypedExpression::print() {} // virtual function to keep compiler happy :^]
 
 TypedExpression* TypeChecker::type_expression(Expression* expression, SymbolTable* symbol_table) {
 

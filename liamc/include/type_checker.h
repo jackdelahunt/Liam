@@ -87,7 +87,10 @@ struct SymbolTable {
 	void add_identifier(Token identifier, TypeInfo* type_info);
 };
 
-struct TypedStatement {};
+struct TypedStatement {
+	StatementType statement_type;
+	virtual void print();
+};
 
 struct TypedLetStatement: TypedStatement {
 	Token identifier;
@@ -166,6 +169,7 @@ struct TypedAssigmentStatement : TypedStatement {
 
 struct TypedExpression {
 	TypeInfo* type_info;
+	virtual void print();
 };
 
 struct TypedBinaryExpression : TypedExpression {

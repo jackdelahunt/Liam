@@ -1,15 +1,8 @@
 struct Person {
-	age: u64,
-	name: string
-}
-
-fn print(x: string): void {
-	insert "println!(\"{}\", x);";
+	name: string,
+	age: u64
 }
 
 fn main(): void {
-	
-	let s: string = "this is a string";
-	insert "print(s.clone());";
-	insert "print(s.clone());";
+
 }

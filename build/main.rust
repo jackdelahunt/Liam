@@ -5,17 +5,12 @@ type string = String;
 
 #[derive(Clone)]
 struct Person{
-age: u64,
 name: string,
+age: u64,
 
 }
 
-fn print(x: string) -> void { unsafe {
-println!("{}", x);
-}}
-
 fn main() -> void { unsafe {
-let mut s: string = String::from("this is a string");
-print(s.clone());print(s.clone());
+
 }}
 

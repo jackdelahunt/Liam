@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 
     auto code_generation_start = std::chrono::high_resolution_clock::now();
     auto rust_backend = RustBackend();
-    auto c_code = rust_backend.emit(parser.root);
+    auto c_code = rust_backend.emit(type_checker.root);
     auto code_generation_end = std::chrono::high_resolution_clock::now();
     auto code_generation_delta = code_generation_end - code_generation_start;
 
