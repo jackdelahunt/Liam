@@ -1,4 +1,15 @@
-fn main(): u64 {
-	let x: u64 = 100;
-	x := 120;
+struct Person {
+	age: u64,
+	name: string
+}
+
+fn print(x: string): void {
+	insert "println!(\"{}\", x);";
+}
+
+fn main(): void {
+	
+	let s: string = "this is a string";
+	insert "print(s.clone());";
+	insert "print(s.clone());";
 }

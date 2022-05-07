@@ -13,7 +13,7 @@ add_executable(liamc
         "src/parser.cpp" 
         "src/liam.cpp" 
         "src/emitter.cpp"
-        "src/C_backend/c_backend.cpp"
+        "src/rust_backend/rust_backend.cpp"
         
         "include/liam.h"
         "include/generator.h"
@@ -22,5 +22,7 @@ add_executable(liamc
         "include/statement.h" 
         "include/expression.h" 
         "include/emitter.h"
-        "include/C_backend/c_backend.h"
- "include/type_checker.h" "src/type_checker.cpp" )
+        "include/rust_backend/rust_backend.h"
+        "include/type_checker.h" 
+        "src/type_checker.cpp" 
+)

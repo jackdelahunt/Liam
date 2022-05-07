@@ -5,8 +5,8 @@
 #include "statement.h"
 #include "expression.h"
 
-struct CBackend {
-	CBackend();
+struct RustBackend {
+	RustBackend();
 	std::string emit(File& file);
 	std::string emit_statement(Statement* statement);
 	std::string emit_insert_statement(InsertStatement* statement);

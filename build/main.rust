@@ -1,0 +1,21 @@
+#[allow(non_camel_case_types)]
+type void = ();
+type string = String;
+
+
+#[derive(Clone)]
+struct Person{
+age: u64,
+name: string,
+
+}
+
+fn print(x: string) -> void { unsafe {
+println!("{}", x);
+}}
+
+fn main() -> void { unsafe {
+let mut s: string = String::from("this is a string");
+print(s.clone());print(s.clone());
+}}
+

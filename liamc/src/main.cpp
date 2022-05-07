@@ -9,14 +9,14 @@
 #include "parser.h"
 #include "generator.h"
 #include "emitter.h"
-#include "C_backend/c_backend.h"
+#include "rust_backend/rust_backend.h"
 #include "type_checker.h"
 
 int main(int argc, char** argv) {
 
 #ifdef _DEBUG
     const char* source_path = "P:/Liam/main.liam";
-    const char* out_path = "P:/Liam/build/main.cpp";
+    const char* out_path = "P:/Liam/build/main.rust";
 #else
     if (argc < 3) {
         panic("Not enough arguments");
@@ -43,8 +43,8 @@ int main(int argc, char** argv) {
     auto typing_delta = typing_end - typing_start;
 
     auto code_generation_start = std::chrono::high_resolution_clock::now();
-    auto c_backend = CBackend();
-    auto c_code = c_backend.emit(parser.root);
+    auto rust_backend = RustBackend();
+    auto c_code = rust_backend.emit(parser.root);
     auto code_generation_end = std::chrono::high_resolution_clock::now();
     auto code_generation_delta = code_generation_end - code_generation_start;
 

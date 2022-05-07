@@ -1,15 +1,13 @@
-#include "C_backend/c_backend.h"
+#include "rust_backend/rust_backend.h"
 
 #include "statement.h"
 #include "liam.h"
 
-#define hello 6;
-
-CBackend::CBackend() {
+RustBackend::RustBackend() {
 }
 
-std::string CBackend::emit(File& file) {
-	auto source_generated = std::string("#include<stdio.h>\n#include \"liam_string.h\"\n#define u64 int\n\n");
+std::string RustBackend::emit(File& file) {
+	auto source_generated = std::string("#[allow(non_camel_case_types)]\ntype void = ();\ntype string = String;\n\n\n");
 	for (auto stmt : file.statements) {
 		source_generated.append(emit_statement(stmt));
 	}
@@ -17,7 +15,7 @@ std::string CBackend::emit(File& file) {
 	return source_generated;
 }
 
-std::string CBackend::emit_statement(Statement* statement) {
+std::string RustBackend::emit_statement(Statement* statement) {
 	{
 		auto ptr = dynamic_cast<InsertStatement*>(statement);
 		if (ptr) {
@@ -88,7 +86,7 @@ std::string CBackend::emit_statement(Statement* statement) {
 	panic("Oh no");
 }
 
-std::string CBackend::emit_insert_statement(InsertStatement* statement) {
+std::string RustBackend::emit_insert_statement(InsertStatement* statement) {
 	auto string_lit = dynamic_cast<StringLiteralExpression*>(statement->byte_code);
 	if (string_lit) {
 		return string_lit->token.string; // 
@@ -97,7 +95,7 @@ std::string CBackend::emit_insert_statement(InsertStatement* statement) {
 	throw;	
 }
 
-std::string CBackend::emit_return_statement(ReturnStatement* statement) {
+std::string RustBackend::emit_return_statement(ReturnStatement* statement) {
 	auto expression = emit_expression(statement->expression);
 	if (expression.empty())
 		return "ret\n";
@@ -106,38 +104,38 @@ std::string CBackend::emit_return_statement(ReturnStatement* statement) {
 	return expression;
 }
 
-std::string CBackend::emit_break_statement(BreakStatement* statement) {
+std::string RustBackend::emit_break_statement(BreakStatement* statement) {
 	return "goto " + statement->identifier.string + ";\n";
 }
 
 
-std::string CBackend::emit_let_statement(LetStatement* statement) {
-	auto source = std::string();
-	source.append(emit_expression(statement->type) + " ");
-	source.append(statement->identifier.string + " = ");
+std::string RustBackend::emit_let_statement(LetStatement* statement) {
+	auto source = std::string("let mut ");
+	source.append(statement->identifier.string + ": ");
+	source.append(emit_expression(statement->type) + " = ");
 	auto emitted_expr = emit_expression(statement->expression);
 	source.append(emitted_expr + ";\n");
 	return source;
 }
 
-std::string CBackend::emit_scope_statement(ScopeStatement* statement) {
-	auto fn_source = std::string("{\n");
+std::string RustBackend::emit_scope_statement(ScopeStatement* statement) {
+	auto fn_source = std::string("{ unsafe {\n");
 	for (auto stmt : statement->body) {
 		fn_source.append(emit_statement(stmt));
 	}
-	fn_source.append("\n}\n");
+	fn_source.append("\n}}\n");
 	return fn_source;
 }
 
-std::string CBackend::emit_fn_statement(FnStatement* statement) {
+std::string RustBackend::emit_fn_statement(FnStatement* statement) {
 	auto fn_source = std::string();
-	fn_source.append(emit_expression(statement->type) + " ");
+	fn_source.append("fn ");
 	fn_source.append(statement->identifier.string);
 	fn_source.append("(");	
 	
 	int index = 0;
 	for (auto& [identifier, type] : statement->params) {
-		fn_source.append(emit_expression(type) + " " + identifier.string);
+		fn_source.append(identifier.string + ": " + emit_expression(type));
 		index++;
 		if (index < statement->params.size()) {
 			fn_source.append(", ");
@@ -145,13 +143,14 @@ std::string CBackend::emit_fn_statement(FnStatement* statement) {
 	}
 	fn_source.append(")");
 
+	fn_source.append(" -> " + emit_expression(statement->type) + " ");
 
 	fn_source.append(emit_scope_statement(statement->body));
 
 	return fn_source + "\n";
 }
 
-std::string CBackend::emit_loop_statement(LoopStatement* statement) {
+std::string RustBackend::emit_loop_statement(LoopStatement* statement) {
 	auto source = std::string();
 	source.append("while(true)");
 	source.append(emit_scope_statement(statement->body));
@@ -159,28 +158,29 @@ std::string CBackend::emit_loop_statement(LoopStatement* statement) {
 	return source;
 }
 
-std::string CBackend::emit_struct_statement(StructStatement* statement) {
+std::string RustBackend::emit_struct_statement(StructStatement* statement) {
 	auto source = std::string();
+	source.append("#[derive(Clone)]\n");
 	source.append("struct " + statement->identifier.string + "{\n");
 	for (auto& [identifier, type] : statement->members) {
-		source.append(emit_expression(type) + " " + identifier.string + ";\n");
+		source.append(identifier.string + ": " + emit_expression(type) + ",\n");
 	}
-	source.append("\n};\n\n");
+	source.append("\n}\n\n");
 	return source;
 }
 
-std::string CBackend::emit_assigment_statement(AssigmentStatement* statement) {
+std::string RustBackend::emit_assigment_statement(AssigmentStatement* statement) {
 	auto source = std::string();
 	source.append(statement->identifier.string + " = ");
 	source.append(emit_expression_statement(statement->assigned_to));
 	return source;
 }
 
-std::string CBackend::emit_expression_statement(ExpressionStatement* statement) {
+std::string RustBackend::emit_expression_statement(ExpressionStatement* statement) {
 	return emit_expression(statement->expression) + ";\n";
 }
 
-std::string CBackend::emit_expression(Expression* expression) {
+std::string RustBackend::emit_expression(Expression* expression) {
 	{
 		auto ptr = dynamic_cast<StringLiteralExpression*>(expression);
 		if (ptr) {
@@ -241,7 +241,7 @@ std::string CBackend::emit_expression(Expression* expression) {
 	return "";
 }
 
-std::string CBackend::emit_binary_expression(BinaryExpression* expression) {
+std::string RustBackend::emit_binary_expression(BinaryExpression* expression) {
 	auto source = std::string();
 	source.append(emit_expression(expression->left));
 	switch (expression->op.type)
@@ -258,15 +258,15 @@ std::string CBackend::emit_binary_expression(BinaryExpression* expression) {
 	return source;
 }
 
-std::string CBackend::emit_int_literal_expression(IntLiteralExpression* expression) {
+std::string RustBackend::emit_int_literal_expression(IntLiteralExpression* expression) {
 	return expression->token.string;
 }
 
-std::string CBackend::emit_string_literal_expression(StringLiteralExpression* expression) {
-	return "\"" + expression->token.string + "\"";
+std::string RustBackend::emit_string_literal_expression(StringLiteralExpression* expression) {
+	return "String::from(\"" + expression->token.string + "\")";
 }
 
-std::string CBackend::emit_call_expression(CallExpression* expression) {
+std::string RustBackend::emit_call_expression(CallExpression* expression) {
 	auto source = std::string();
 	source.append(dynamic_cast<IdentifierExpression*>(expression->identifier)->identifier.string + "(");
 	int index = 0;
@@ -282,7 +282,7 @@ std::string CBackend::emit_call_expression(CallExpression* expression) {
 	return source;
 }
 
-std::string CBackend::emit_unary_expression(UnaryExpression* expression) {
+std::string RustBackend::emit_unary_expression(UnaryExpression* expression) {
 	// int x = 10;
 	// int* a = &x;
 	// int b = *a;
@@ -292,28 +292,28 @@ std::string CBackend::emit_unary_expression(UnaryExpression* expression) {
 	// let b: u64 = *a;
 
 	if (expression->op.type == TOKEN_HAT) {
-		return emit_expression(expression->expression) + "*";
+		return "*const " + emit_expression(expression->expression);
 	}
 	else if (expression->op.type == TOKEN_AT) {
 		return "&" + emit_expression(expression->expression);
 	}
 	else if (expression->op.type == TOKEN_STAR) {
-		return "*" + emit_expression(expression->expression);
+		return emit_expression(expression->expression) + ".read()";
 	}
 
 	panic("Got a unrecognized operand");
 }
 
-std::string CBackend::emit_identifier_expression(IdentifierExpression* expression) {
+std::string RustBackend::emit_identifier_expression(IdentifierExpression* expression) {
 	return expression->identifier.string;
 }
 
-std::string CBackend::emit_get_expression(GetExpression* expression) {
+std::string RustBackend::emit_get_expression(GetExpression* expression) {
 	return emit_expression(expression->expression) + "." + expression->member.string;
 }
 
-std::string CBackend::emit_new_expression(NewExpression* expression) {
-	std::string source = "{";
+std::string RustBackend::emit_new_expression(NewExpression* expression) {
+	std::string source = expression->identifier.string + "{";
 	int index = 0;
 	for (auto expr : expression->expressions) {
 		source.append(emit_expression(expr));
