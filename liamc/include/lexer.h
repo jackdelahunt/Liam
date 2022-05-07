@@ -34,7 +34,7 @@ enum TokenType {
     TOKEN_IMPORT            = 24,
 };
 
-const char* TokenTypeStrings[];
+extern char* TokenTypeStrings[25];
 
 std::string get_token_type_string(TokenType type);
 

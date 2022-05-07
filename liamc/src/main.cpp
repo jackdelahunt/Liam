@@ -8,24 +8,15 @@
 #include "lexer.h"
 #include "parser.h"
 #include "generator.h"
-#include "emitter.h"
 #include "rust_backend/rust_backend.h"
 #include "type_checker.h"
 
 int main(int argc, char** argv) {
 
-#ifdef _DEBUG
-    const char* source_path = "P:/Liam/main.liam";
-    const char* out_path = "P:/Liam/build/main.rust";
-#else
-    if (argc < 3) {
+    if (argc < 2) {
         panic("Not enough arguments");
     }
-
     char* source_path = argv[1];
-    char* out_path    = argv[2];
-#endif
-
 
     auto parse_lex_start = std::chrono::high_resolution_clock::now();
     auto lexer = Lexer();
@@ -34,64 +25,31 @@ int main(int argc, char** argv) {
     auto parser = Parser(lexer.tokens);
     parser.parse();
     auto parse_lex_end= std::chrono::high_resolution_clock::now();
-    auto parse_lex_delta= parse_lex_end- parse_lex_start;
+    std::chrono::duration<double, std::milli> parse_lex_delta= parse_lex_end- parse_lex_start;
 
     auto typing_start = std::chrono::high_resolution_clock::now();
     auto type_checker = TypeChecker();
     type_checker.type_file(&parser.root);
     auto typing_end = std::chrono::high_resolution_clock::now();
-    auto typing_delta = typing_end - typing_start;
+    std::chrono::duration<double, std::milli> typing_delta = typing_end - typing_start;
 
     auto code_generation_start = std::chrono::high_resolution_clock::now();
     auto rust_backend = RustBackend();
-    auto c_code = rust_backend.emit(type_checker.root);
+    auto code = rust_backend.emit(type_checker.root);
     auto code_generation_end = std::chrono::high_resolution_clock::now();
-    auto code_generation_delta = code_generation_end - code_generation_start;
+    std::chrono::duration<double, std::milli> code_generation_delta = code_generation_end - code_generation_start;
 
-    std::cout << c_code;
-    std::ofstream out_file(out_path);
-    out_file << c_code;
+    std::cout << code;
+    std::ofstream out_file("main.rs");
+    out_file << code;
     out_file.close();
 
+    std::cout << "Parse & Lex time: " << parse_lex_delta.count() << "ms\n";
+    std::cout << "Type check time: " << typing_delta.count() << "ms\n";
+    std::cout << "Code generation time: " << code_generation_delta.count() << "ms\n";
 
-
-    std::cout << "Parse & Lex time: " << duration_cast<std::chrono::milliseconds>(parse_lex_delta) << " " 
-        << duration_cast<std::chrono::microseconds>(parse_lex_delta) << "\n";
-
-    std:: cout << "Type check time: " << duration_cast<std::chrono::milliseconds>(typing_delta) << " " 
-        << duration_cast<std::chrono::microseconds>(typing_delta) << "\n";
-
-    std::cout << "Code generation time: " << duration_cast<std::chrono::milliseconds>(code_generation_delta) << " "
-        << duration_cast<std::chrono::microseconds>(code_generation_delta) << "\n";
+    system(std::string("rustc " + std::string("main.rs")).c_str());
+    system(std::string("rm " + std::string("main.rs")).c_str());
 
     return 0;
-
-    //for (auto stmt : parser.root.statements) {
-    //    std::cout << *stmt;
-    //}
-
-    
-    /*auto emitter = Emitter();
-    auto byte_code = emitter.emit(parser.root);
-    std::cout << byte_code;
-
-    std::ofstream out_file(out_path);
-    out_file << byte_code;
-    out_file.close();*/
-
-    /*auto c_backend = CBackend();
-    auto byte_code = c_backend.emit(parser.root);
-    std::cout << byte_code;
-
-    std::ofstream out_file(out_path);
-    out_file << byte_code;
-    out_file.close();*/
-
-
-    // auto generator = liam::Generator();
-    // auto [vm, err] = generator.generate("/home/jackdelahunt/Projects/Liam/main.l__m");
-    // if(err) {
-    //     printf("%s\n", err);
-    // }
-    // vm.run();
 }

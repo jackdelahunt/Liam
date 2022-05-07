@@ -1,5 +1,5 @@
-#pragma once
 #include "parser.h"
+#include <tuple>
 
 File::File() {
     statements = std::vector<Statement*>();
@@ -371,7 +371,7 @@ std::vector<std::tuple<Token, Expression*>> Parser::consume_comma_seperated_valu
             consume_token_of_type(TOKEN_COLON);
             auto type = eval_expression();
 
-            args_types.push_back({*arg, type});
+            args_types.push_back(std::make_tuple(*arg, type));
 
             if (is_first) is_first = false;
         } while (match(TOKEN_COMMA));

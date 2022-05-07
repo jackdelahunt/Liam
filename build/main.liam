@@ -1,0 +1,8 @@
+fn print(s: string^): void {
+    insert "println!(\"{}\", *s);";
+}
+
+fn main(): void {
+    let s: string = "this is a string";
+    print(@s);
+}

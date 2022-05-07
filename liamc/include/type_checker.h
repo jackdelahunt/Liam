@@ -32,6 +32,7 @@ struct TypedAssigmentStatement;
 struct TypedIntLiteralExpression;
 struct TypedStringLiteralExpression;
 struct TypedExpression;
+struct TypedIdentifierExpression;
 struct TypedFile;
 
 typedef std::vector<std::tuple<Token, TypedExpression*>> Typed_CSV;
@@ -195,10 +196,10 @@ struct TypedIntLiteralExpression : TypedExpression {
 
 struct TypedCallExpression : TypedExpression {
 	// this is an expression but it must be a identifier
-	TypedExpression* identifier;
+	TypedIdentifierExpression* identifier;
 	std::vector<TypedExpression*> args;
 
-	TypedCallExpression(TypedExpression* identifier, std::vector<TypedExpression*> args);
+	TypedCallExpression(TypedIdentifierExpression* identifier, std::vector<TypedExpression*> args);
 };
 
 struct TypedIdentifierExpression : TypedExpression {

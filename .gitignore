@@ -1,5 +1,9 @@
 liamvm/src/target
+liamvm/target
 liamc/.vs
 liamc/out
 build/main.exe
 build/main.obj
+**/.idea/
+**/cmake-build-debug/
+**/main/

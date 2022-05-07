@@ -67,7 +67,7 @@ TypedInsertStatement::TypedInsertStatement(TypedExpression* code) {
 	this->statement_type = STATEMENT_INSERT;
 }
 
-TypedReturnStatement::TypedReturnStatement(TypedExpression* epxression) {
+TypedReturnStatement::TypedReturnStatement(TypedExpression* expression) {
 	this->expression = expression;
 	this->statement_type = STATEMENT_RETURN;
 }
@@ -109,7 +109,7 @@ TypedIntLiteralExpression::TypedIntLiteralExpression(Token token) {
 	this->type_info = new IntTypeInfo{INT, false, 64};
 }
 
-TypedCallExpression::TypedCallExpression(TypedExpression* identifier, std::vector<TypedExpression*> args) {
+TypedCallExpression::TypedCallExpression(TypedIdentifierExpression* identifier, std::vector<TypedExpression*> args) {
 	this->identifier = identifier;
 	this->args = args;
 }
@@ -470,7 +470,13 @@ TypedUnaryExpression* TypeChecker::type_unary_expression(UnaryExpression* expres
 	return typed_unary;
 }
 TypedCallExpression* TypeChecker::type_call_expression(CallExpression* expression, SymbolTable* symbol_table) {
-	auto type_of_callee = type_expression(expression->identifier, symbol_table);
+	auto type_of_callee = dynamic_cast<TypedIdentifierExpression*>(
+            type_expression(expression->identifier, symbol_table)
+            );
+
+    if(!type_of_callee) {
+        panic("Can only call on identifier expressions");
+    }
 
 	auto typed_args = std::vector<TypedExpression*>();
 	auto arg_type_infos = std::vector<TypeInfo*>();

@@ -3,11 +3,14 @@
 #include "statement.h"
 #include "liam.h"
 
-RustBackend::RustBackend() {
-}
-
 std::string RustBackend::emit(TypedFile& file) {
-	auto source_generated = std::string("#[allow(non_camel_case_types)]\ntype void = ();\ntype string = String;\n\n\n");
+	auto source_generated = std::string(""
+                                        "#![allow(unused_unsafe)]\n"
+                                        "#![allow(non_camel_case_types)]\n"
+                                        "#![allow(dead_code)]\n"
+                                        "#![allow(unused_mut)]"
+                                        "type void = ();\n"
+                                        "type string = String;\n\n\n");
 	for (auto stmt : file.statements) {
 		source_generated.append(emit_statement(stmt));
 	}
@@ -84,15 +87,14 @@ std::string RustBackend::emit_statement(TypedStatement* statement) {
 	}
 
 	panic("Oh no");
+    return nullptr;
 }
 
 std::string RustBackend::emit_insert_statement(TypedInsertStatement* statement) {
-	auto string_lit = dynamic_cast<StringLiteralExpression*>(statement->code);
+	auto string_lit = dynamic_cast<TypedStringLiteralExpression*>(statement->code);
 	if (string_lit) {
 		return string_lit->token.string; // 
 	}
-	panic("Insert only accepts string literals");
-	throw;	
 }
 
 std::string RustBackend::emit_return_statement(TypedReturnStatement* statement) {
@@ -269,7 +271,7 @@ std::string RustBackend::emit_string_literal_expression(TypedStringLiteralExpres
 
 std::string RustBackend::emit_call_expression(TypedCallExpression* expression) {
 	auto source = std::string();
-	source.append(dynamic_cast<IdentifierExpression*>(expression->identifier)->identifier.string + "(");
+	source.append(dynamic_cast<TypedIdentifierExpression*>(expression->identifier)->identifier.string + "(");
 	int index = 0;
 	for (auto expr : expression->args) {
 		source.append(emit_expression(expr));
@@ -303,6 +305,7 @@ std::string RustBackend::emit_unary_expression(TypedUnaryExpression* expression)
 	}
 
 	panic("Got a unrecognized operand");
+    return nullptr;
 }
 
 std::string RustBackend::emit_identifier_expression(TypedIdentifierExpression* expression) {

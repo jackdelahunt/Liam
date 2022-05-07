@@ -7,7 +7,7 @@
 #include "type_checker.h"
 
 struct RustBackend {
-	RustBackend();
+	RustBackend() = default;
 	std::string emit(TypedFile& file);
 	std::string emit_statement(TypedStatement* statement);
 	std::string emit_insert_statement(TypedInsertStatement* statement);

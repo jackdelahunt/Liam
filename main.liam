@@ -1,8 +1,0 @@
-struct Person {
-	name: string,
-	age: u64
-}
-
-fn main(): void {
-
-}

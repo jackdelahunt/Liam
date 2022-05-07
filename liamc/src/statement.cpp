@@ -1,5 +1,6 @@
 #include "statement.h"
 #include "expression.h"
+#include <tuple>
 
 std::ostream& Statement::format(std::ostream& os) const {
     os << "()";
@@ -52,11 +53,7 @@ FnStatement::FnStatement(Token identifier, CSV params, Expression* type, ScopeSt
 }
 
 std::ostream& FnStatement::format(std::ostream& os) const {
-    os << "(fn " << identifier.string << " (";
-    for (auto& param: params) {
-        os << param._Myfirst._Val << ",";
-    }
-    os << ")" << *body << ")";
+    os << "(fn " << identifier.string << " ()";
     return os;
 }
 

@@ -1,7 +1,6 @@
-#pragma once
 #include "lexer.h"
 
-const char* TokenTypeStrings[25] = {
+char* TokenTypeStrings[25] = {
     "int Literal",
     "string Literal",
     "identifier",
