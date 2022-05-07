@@ -97,12 +97,7 @@ std::string RustBackend::emit_insert_statement(TypedInsertStatement* statement) 
 }
 
 std::string RustBackend::emit_return_statement(TypedReturnStatement* statement) {
-	auto expression = emit_expression(statement->expression);
-	if (expression.empty())
-		return "ret\n";
-
-	expression.append("pop_ret\n");
-	return expression;
+	return "return " + emit_expression(statement->expression) + ";\n";
 }
 
 std::string RustBackend::emit_break_statement(TypedBreakStatement* statement) {

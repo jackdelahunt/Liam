@@ -184,8 +184,7 @@ TypedInsertStatement* TypeChecker::type_insert_statement(InsertStatement* statem
 }
 
 TypedReturnStatement* TypeChecker::type_return_statement(ReturnStatement* statement, SymbolTable* symbol_table) {
-	panic("Not implemented");
-	return nullptr;
+    return new TypedReturnStatement(type_expression(statement->expression, symbol_table));
 }
 
 TypedBreakStatement* TypeChecker::type_break_statement(BreakStatement* statement, SymbolTable* symbol_table) {
@@ -257,11 +256,36 @@ TypedFnStatement* TypeChecker::type_fn_statement(FnStatement* statement, SymbolT
 		copied_symbol_table.add_identifier(identifier, expr->type_info);
 	}
 
+    // type body and check return
+    auto typed_body = type_scope_statement(statement->body, &copied_symbol_table, false);
+    if(return_expresion->type_info->type == VOID) {
+        for(auto stmt : typed_body->statements) {
+            if(stmt->statement_type == STATEMENT_RETURN) {
+                panic("found return statement when return type is void");
+            }
+        }
+    } else {
+        bool found_return = false;
+        for(auto stmt : typed_body->statements) {
+            if (stmt->statement_type == STATEMENT_RETURN) {
+                found_return = true;
+                auto return_statement = dynamic_cast<TypedReturnStatement*>(stmt);
+                if(!type_match(return_statement->expression->type_info, return_expresion->type_info)) {
+                    panic("Mismatch types in function, return types do not match");
+                }
+            }
+        }
+
+        if(!found_return) {
+            panic("No return statement in function that has non void return type");
+        }
+    }
+
 	return new TypedFnStatement(
 		statement->identifier,
 		t_csv,
 		type_expression(statement->type, symbol_table),
-		type_scope_statement(statement->body, &copied_symbol_table, false) // dont let scope copy as we already did for the params
+        typed_body
 	);
 }
 

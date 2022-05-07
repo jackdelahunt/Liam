@@ -1,8 +1,12 @@
-fn main(): void {
-    let x: u64 = 0;
-    struct Person {
-        name: string
-    }
+struct Person {
+    name: string
+}
 
-    let p: Person = new Person{"hey"};
+fn new_person(name: string): Person {
+    return new Person{name};
+}
+
+fn main(): void {
+    let p: Person = new_person("jack");
+    p := new_person(p.name);
 }
