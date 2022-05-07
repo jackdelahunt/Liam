@@ -1,5 +1,5 @@
 # Liam
-Liam is a statically typed compiled language intended for performance comparable to C++ but less pain along the way. Liam generates and outputs `rust` which is then compiled to a final binary. 
+Liam is a strongly typed compiled language intended for performance comparable to C++ but less pain along the way. Liam generates and outputs `rust` which is then compiled to a final binary. 
 
 ## Examples
 ### Hello world
