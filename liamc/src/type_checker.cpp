@@ -157,82 +157,21 @@ void TypeChecker::type_file(File* file) {
 }
 
 TypedStatement* TypeChecker::type_statement(Statement* statement, SymbolTable* symbol_table) {
-
-	{
-		auto ptr = dynamic_cast<InsertStatement*>(statement);
-		if (ptr) {
-			return type_insert_statement(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<ReturnStatement*>(statement);
-		if (ptr) {
-			return type_return_statement(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<BreakStatement*>(statement);
-		if (ptr) {
-			return type_break_statement(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<ImportStatement*>(statement);
-		if (ptr) {
-			return type_import_statement(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<LetStatement*>(statement);
-		if (ptr) {
-			return type_let_statement(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<FnStatement*>(statement);
-		if (ptr) {
-			return type_fn_statement(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<LoopStatement*>(statement);
-		if (ptr) {
-			auto s = type_loop_statement(ptr, symbol_table);
-			return s;
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<StructStatement*>(statement);
-		if (ptr) {
-			auto s = type_struct_statement(ptr, symbol_table);
-			return s;
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<AssigmentStatement*>(statement);
-		if (ptr) {
-			auto s = type_assigment_statement(ptr, symbol_table);
-			return s;
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<ExpressionStatement*>(statement);
-		if (ptr) {
-			return type_expression_statement(ptr, symbol_table);
-		}
-	}
-
-	panic("Not implemented");
-	return nullptr;
+    switch (statement->statement_type) {
+        case STATEMENT_INSERT: return type_insert_statement(dynamic_cast<InsertStatement*>(statement), symbol_table); break;
+        case STATEMENT_RETURN: return type_return_statement(dynamic_cast<ReturnStatement*>(statement), symbol_table); break;
+        case STATEMENT_BREAK: return type_break_statement(dynamic_cast<BreakStatement*>(statement), symbol_table); break;
+        case STATEMENT_IMPORT: return type_import_statement(dynamic_cast<ImportStatement*>(statement), symbol_table); break;
+        case STATEMENT_FN: return type_fn_statement(dynamic_cast<FnStatement*>(statement), symbol_table); break;
+        case STATEMENT_LOOP: return type_loop_statement(dynamic_cast<LoopStatement*>(statement), symbol_table); break;
+        case STATEMENT_STRUCT: return type_struct_statement(dynamic_cast<StructStatement*>(statement), symbol_table); break;
+        case STATEMENT_ASSIGNMENT: return type_assigment_statement(dynamic_cast<AssigmentStatement*>(statement), symbol_table); break;
+        case STATEMENT_EXPRESSION: return type_expression_statement(dynamic_cast<ExpressionStatement*>(statement), symbol_table); break;
+        case STATEMENT_LET: return type_let_statement(dynamic_cast<LetStatement*>(statement), symbol_table); break;
+        default:
+            panic("Not implemented");
+            return nullptr;
+    }
 }
 
 TypedInsertStatement* TypeChecker::type_insert_statement(InsertStatement* statement, SymbolTable* symbol_table) {
@@ -365,65 +304,19 @@ TypedExpressionStatement* TypeChecker::type_expression_statement(ExpressionState
 void TypedExpression::print() {} // virtual function to keep compiler happy :^]
 
 TypedExpression* TypeChecker::type_expression(Expression* expression, SymbolTable* symbol_table) {
-
-	{
-		auto ptr = dynamic_cast<StringLiteralExpression*>(expression);
-		if (ptr) {
-			return type_string_literal_expression(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<IntLiteralExpression*>(expression);
-		if (ptr) {
-			return type_int_literal_expression(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<CallExpression*>(expression);
-		if (ptr) {
-			return type_call_expression(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<IdentifierExpression*>(expression);
-		if (ptr) {
-			return type_identifier_expression(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<BinaryExpression*>(expression);
-		if (ptr) {
-			return type_binary_expression(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<UnaryExpression*>(expression);
-		if (ptr) {
-			return type_unary_expression(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<GetExpression*>(expression);
-		if (ptr) {
-			return type_get_expression(ptr, symbol_table);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<NewExpression*>(expression);
-		if (ptr) {
-			return type_new_expression(ptr, symbol_table);
-		}
-	}
-
-	panic("Not implemented");
-	return nullptr;
+    switch (expression->type) {
+        case EXPRESSION_STRING_LITERAL: return type_string_literal_expression(dynamic_cast<StringLiteralExpression*>(expression), symbol_table); break;
+        case EXPRESSION_INT_LITERAL: return type_int_literal_expression(dynamic_cast<IntLiteralExpression*>(expression), symbol_table); break;
+        case EXPRESSION_CALL: return type_call_expression(dynamic_cast<CallExpression*>(expression), symbol_table); break;
+        case EXPRESSION_IDENTIFIER: return type_identifier_expression(dynamic_cast<IdentifierExpression*>(expression), symbol_table); break;
+        case EXPRESSION_BINARY: return type_binary_expression(dynamic_cast<BinaryExpression*>(expression), symbol_table); break;
+        case EXPRESSION_UNARY: return type_unary_expression(dynamic_cast<UnaryExpression*>(expression), symbol_table); break;
+        case EXPRESSION_GET: return type_get_expression(dynamic_cast<GetExpression*>(expression), symbol_table); break;
+        case EXPRESSION_NEW: return type_new_expression(dynamic_cast<NewExpression*>(expression), symbol_table); break;
+        default:
+            panic("Not implemented");
+            return nullptr;
+    }
 }
 TypedBinaryExpression* TypeChecker::type_binary_expression(BinaryExpression* expression, SymbolTable* symbol_table) {
 	auto left = type_expression(expression->left, symbol_table);

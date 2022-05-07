@@ -1,19 +1,8 @@
-struct Animal {
-    name: string
-}
-
-struct Person {
-    pet: Animal
-}
-
-fn print(s: string^): void {
-    insert "println!(\"{}\", *s);";
-}
-
 fn main(): void {
-    let s: string = "this is a string";
-    let p: Person = new Person{new Animal{"doggo"}};
-    let p2: Person = new Person{new Animal{"cat"}};
+    let x: u64 = 0;
+    struct Person {
+        name: string
+    }
 
-    print(@p.pet.name);
+    let p: Person = new Person{"hey"};
 }
