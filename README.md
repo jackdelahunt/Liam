@@ -32,15 +32,13 @@ fn main(): void {
 ```rust
 let var_name: type = ... ;
 ```
+```rust
+let var_name := ... ; // type inferance
+```
 
 ### Functions
 ```rust
 fn func_name(param: type): return_type {}
-```
-
-### Assignment
-```rust
-x := ... ;
 ```
 
 ### Structs
