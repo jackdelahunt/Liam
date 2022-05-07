@@ -20,7 +20,8 @@ struct RustBackend {
 	std::string emit_struct_statement(TypedStructStatement* statement);
 	std::string emit_assigment_statement(TypedAssigmentStatement* statement);
 	std::string emit_expression_statement(TypedExpressionStatement* statement);
-	std::string emit_expression(TypedExpression* expression);
+    std::string emit_expression(TypedExpression* expression);
+    std::string emit_cloneable_expression(TypedExpression* expression);
 	std::string emit_binary_expression(TypedBinaryExpression* expression);
 	std::string emit_string_literal_expression(TypedStringLiteralExpression* expression);
 	std::string emit_int_literal_expression(TypedIntLiteralExpression* expression);

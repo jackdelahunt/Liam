@@ -169,7 +169,8 @@ struct TypedAssigmentStatement : TypedStatement {
 };
 
 struct TypedExpression {
-	TypeInfo* type_info;
+    ExpressionType type;
+    TypeInfo* type_info;
 	virtual void print();
 };
 

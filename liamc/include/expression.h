@@ -2,7 +2,19 @@
 #include "lexer.h"
 #include "liam.h"
 
+enum ExpressionType {
+    EXPRESSION_BINARY,
+    EXPRESSION_UNARY,
+    EXPRESSION_INT_LITERAL,
+    EXPRESSION_STRING_LITERAL,
+    EXPRESSION_IDENTIFIER,
+    EXPRESSION_CALL,
+    EXPRESSION_GET,
+    EXPRESSION_NEW,
+};
+
 struct Expression {
+    ExpressionType type;
     virtual std::ostream& format(std::ostream& os) const;
 };
 

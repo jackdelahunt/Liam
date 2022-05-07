@@ -160,6 +160,8 @@ int Parser::find_balance_point(TokenType push, TokenType pull, int from) {
 
         current_index++;
     }
+
+    return -1;
 }
 
 StructStatement* Parser::eval_struct_statement() {
@@ -315,6 +317,8 @@ Expression* Parser::eval_new_expression() {
 bool Parser::match(TokenType type) {
     if (tokens.size() > 0)
         return peek()->type == type;
+
+    return false;
 }
 
 Token* Parser::peek(int offset) {

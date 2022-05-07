@@ -97,42 +97,50 @@ TypedBinaryExpression::TypedBinaryExpression(TypedExpression* left, Token op, Ty
 	this->left = left;
 	this->op = op;
 	this->right = right;
+    this->type = EXPRESSION_BINARY;
 }
 
 TypedUnaryExpression::TypedUnaryExpression(TypedExpression* expression, Token op) {
 	this->expression = expression;
 	this->op = op;
+    this->type = EXPRESSION_UNARY;
 }
 
 TypedIntLiteralExpression::TypedIntLiteralExpression(Token token) {
 	this->token = token;
 	this->type_info = new IntTypeInfo{INT, false, 64};
+    this->type = EXPRESSION_INT_LITERAL;
 }
 
 TypedCallExpression::TypedCallExpression(TypedIdentifierExpression* identifier, std::vector<TypedExpression*> args) {
 	this->identifier = identifier;
 	this->args = args;
+    this->type = EXPRESSION_CALL;
 }
 
 TypedIdentifierExpression::TypedIdentifierExpression(Token identifier, TypeInfo* type_info) {
 	this->identifier = identifier;
 	this->type_info = type_info;
+    this->type = EXPRESSION_IDENTIFIER;
 }
 
 TypedStringLiteralExpression::TypedStringLiteralExpression(Token token) {
 	this->token = token;
 	this->type_info = new StringTypeInfo{ STRING };
+    this->type = EXPRESSION_STRING_LITERAL;
 }
 
 
 TypedGetExpression::TypedGetExpression(TypedExpression* expression, Token member) {
 	this->expression = expression;
 	this->member = member;
+    this->type = EXPRESSION_GET;
 }
 
 TypedNewExpression::TypedNewExpression(Token identifier, std::vector<TypedExpression*> expressions) {
 	this->identifier = identifier;
 	this->expressions = expressions;
+    this->type = EXPRESSION_NEW;
 }
 
 
@@ -645,4 +653,6 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 		if (ptr_a->to->type == VOID) return true; // void^ can be equal to T^, not other way around
 		return ptr_a->to->type == ptr_b->to->type;
 	}
+
+    return false;
 }

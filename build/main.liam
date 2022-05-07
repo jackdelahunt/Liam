@@ -1,15 +1,19 @@
-struct Person {
+struct Animal {
     name: string
 }
 
-fn print(p: Person): void {
-    insert "println!(\"{}\", p.name);";
+struct Person {
+    pet: Animal
 }
 
+fn print(s: string^): void {
+    insert "println!(\"{}\", *s);";
+}
 
 fn main(): void {
     let s: string = "this is a string";
-    let p: Person = new Person{s};
-    print(p);
-    print(p);
+    let p: Person = new Person{new Animal{"doggo"}};
+    let p2: Person = new Person{new Animal{"cat"}};
+
+    print(@p.pet.name);
 }

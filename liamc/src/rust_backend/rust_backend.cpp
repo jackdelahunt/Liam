@@ -10,6 +10,7 @@ std::string RustBackend::emit(TypedFile& file) {
                                         "#![allow(dead_code)]\n"
                                         "#![allow(unused_mut)]\n"
                                         "#![allow(unused_variables)]\n"
+                                        "#![allow(unused_assignments)]"
                                         "type void = ();\n"
                                         "type string = String;\n\n\n");
 	for (auto stmt : file.statements) {
@@ -267,6 +268,19 @@ std::string RustBackend::emit_expression(TypedExpression* expression) {
 	return "";
 }
 
+std::string RustBackend::emit_cloneable_expression(TypedExpression* expression) {
+    // no need to clone pointer, literals or new structs
+    if(expression->type_info->type == POINTER
+       || expression->type == EXPRESSION_STRING_LITERAL
+       || expression->type == EXPRESSION_INT_LITERAL
+       || expression->type == EXPRESSION_NEW
+    ) {
+        return emit_expression(expression);
+    }
+
+    return "(" + emit_expression(expression) + ").clone()";
+}
+
 std::string RustBackend::emit_binary_expression(TypedBinaryExpression* expression) {
 	auto source = std::string();
 	source.append(emit_expression(expression->left));
@@ -297,15 +311,7 @@ std::string RustBackend::emit_call_expression(TypedCallExpression* expression) {
 	source.append(dynamic_cast<TypedIdentifierExpression*>(expression->identifier)->identifier.string + "(");
 	int index = 0;
 	for (auto expr : expression->args) {
-
-        if(expr->type_info->type != POINTER) {
-		    source.append("(");
-            source.append(emit_expression(expr));
-            source.append(").clone()");
-        } else {
-            source.append(emit_expression(expr));
-        }
-
+        source.append(emit_cloneable_expression(expr));
 		index++;
 		if (index < expression->args.size()) {
 			source.append(", ");
@@ -351,7 +357,7 @@ std::string RustBackend::emit_new_expression(TypedNewExpression* expression) {
 	std::string source = expression->identifier.string + "::new(";
 	int index = 0;
 	for (auto expr : expression->expressions) {
-		source.append(emit_expression(expr));
+		source.append(emit_cloneable_expression(expr));
 		index++;
 		if (index < expression->expressions.size()) {
 			source.append(", ");
