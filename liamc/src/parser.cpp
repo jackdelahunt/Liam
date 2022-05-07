@@ -77,7 +77,7 @@ Statement* Parser::eval_statement() {
         break;
     case TOKEN_IDENTIFIER:
         // x := y; ..or.. x();
-        if (peek(1)->type == TOKEN_COLON) {
+        if (peek(1)->type == TOKEN_EQUAL) {
             return eval_assigment_statement();
         }
 
@@ -97,12 +97,19 @@ Statement* Parser::eval_statement() {
 LetStatement* Parser::eval_let_statement() {
     consume_token_of_type(TOKEN_LET);
     Token* identifier = consume_token_of_type(TOKEN_IDENTIFIER);
-    consume_token_of_type(TOKEN_COLON);
-    Expression* type = eval_expression();
-    consume_token_of_type(TOKEN_EQUAL);
-    auto expression = eval_expression_statement()->expression;
 
-    return new LetStatement(*identifier, expression, type);
+    // might be walrus or explicit type
+    if(peek(0)->type == TOKEN_COLON) {
+        consume_token_of_type(TOKEN_COLON);
+        Expression* type = eval_expression();
+        consume_token_of_type(TOKEN_EQUAL);
+        auto expression = eval_expression_statement()->expression;
+        return new LetStatement(*identifier, expression, type);
+    } else {
+        consume_token_of_type(TOKEN_WALRUS);
+        auto expression = eval_expression_statement()->expression;
+        return new LetStatement(*identifier, expression, nullptr);
+    }
 }
 
 ScopeStatement* Parser::eval_scope_statement() {
@@ -212,7 +219,6 @@ ExpressionStatement* Parser::eval_expression_statement() {
 
 AssigmentStatement* Parser::eval_assigment_statement() {
     auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
-    consume_token_of_type(TOKEN_COLON);
     consume_token_of_type(TOKEN_EQUAL);
     auto expression = eval_expression_statement();
 

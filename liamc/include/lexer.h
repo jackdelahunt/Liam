@@ -32,9 +32,10 @@ enum TokenType {
     TOKEN_NEW               = 22,
     TOKEN_BREAK             = 23,
     TOKEN_IMPORT            = 24,
+    TOKEN_WALRUS            = 25,
 };
 
-extern char* TokenTypeStrings[25];
+extern char* TokenTypeStrings[26];
 
 std::string get_token_type_string(TokenType type);
 
@@ -65,5 +66,6 @@ struct Lexer
 
     void lex(const char* path);
     void next_char();
+    char peek();
     std::string get_word();
 };

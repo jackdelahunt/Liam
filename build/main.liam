@@ -1,12 +1,4 @@
-struct Person {
-    name: string
-}
-
-fn new_person(name: string): Person {
-    return new Person{name};
-}
-
 fn main(): void {
-    let p: Person = new_person("jack");
-    p := new_person(p.name);
+    let p := 100;
+    let x := p + 100;
 }

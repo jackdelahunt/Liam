@@ -202,18 +202,20 @@ TypedImportStatement* TypeChecker::type_import_statement(ImportStatement* statem
 }
 
 TypedLetStatement* TypeChecker::type_let_statement(LetStatement* statement, SymbolTable* symbol_table) {
-	auto typed_type_expression = type_expression(statement->type, symbol_table);
-	auto typed_expression = type_expression(statement->expression, symbol_table);
+    TypedExpression* let_type = nullptr;
+    auto typed_expression = type_expression(statement->expression, symbol_table);
+    if(statement->type) {
+        let_type = type_expression(statement->type, symbol_table);
+        if (!type_match(let_type->type_info, typed_expression->type_info)) {
+            panic("Mis matched types in let statement");
+        }
+    }
 
-	if (!type_match(typed_type_expression->type_info, typed_expression->type_info)) {
-		panic("Mis matched types in let statement");
-	}
-
-	symbol_table->add_identifier(statement->identifier, typed_type_expression->type_info);
+	symbol_table->add_identifier(statement->identifier, typed_expression->type_info);
 
 	return new TypedLetStatement(
-		statement->identifier, 
-		typed_type_expression, 
+		statement->identifier,
+		let_type,
 		typed_expression
 	);
 }

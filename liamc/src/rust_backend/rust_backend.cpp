@@ -107,8 +107,12 @@ std::string RustBackend::emit_break_statement(TypedBreakStatement* statement) {
 
 std::string RustBackend::emit_let_statement(TypedLetStatement* statement) {
 	auto source = std::string("let mut ");
-	source.append(statement->identifier.string + ": ");
-	source.append(emit_expression(statement->type_expression) + " = ");
+	source.append(statement->identifier.string);
+    if(statement->type_expression) {
+	    source.append(": " + emit_expression(statement->type_expression) + " = ");
+    } else {
+        source.append(" = ");
+    }
 	auto emitted_expr = emit_expression(statement->expression);
 	source.append(emitted_expr + ";\n");
 	return source;
