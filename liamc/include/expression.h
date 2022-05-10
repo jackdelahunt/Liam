@@ -11,6 +11,7 @@ enum ExpressionType {
     EXPRESSION_CALL,
     EXPRESSION_GET,
     EXPRESSION_NEW,
+    EXPRESSION_ARRAY,
 };
 
 struct Expression {
@@ -39,7 +40,14 @@ struct UnaryExpression : Expression {
     std::ostream& format(std::ostream& os) const;
 };
 
-std::ostream& operator<<(std::ostream& os, const UnaryExpression& expression);
+struct ArrayExpression : Expression {
+    std::vector<Expression*> expressions;
+
+    ArrayExpression(std::vector<Expression*> expressions);
+    std::ostream& format(std::ostream& os) const;
+};
+
+std::ostream& operator<<(std::ostream& os, const ArrayExpression& expression);
 
 struct IntLiteralExpression : Expression {
     Token token;

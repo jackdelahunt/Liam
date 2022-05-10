@@ -254,7 +254,7 @@ Expression* Parser::eval_factor() {
 }
 
 Expression* Parser::eval_unary() {  
-    if (match(TOKEN_AT) || match(TOKEN_STAR)) {
+    if (match(TOKEN_HAT) || match(TOKEN_AT) || match(TOKEN_STAR)) {
         auto op = consume_token();
         auto expr = eval_unary();
         return new UnaryExpression(expr, *op);
@@ -265,20 +265,21 @@ Expression* Parser::eval_unary() {
 
 Expression* Parser::eval_postfix() {
     auto expr = eval_call();
-    if (match(TOKEN_HAT)) {
-        return new UnaryExpression(expr, *consume_token());
+    if (match(TOKEN_RANGE)) {
+        // return new ArrayExpression(expr, );
+        // TODO: continue here
     }
 
     return expr;
 }
 
 Expression* Parser::eval_call() {
-    auto expr = eval_primary();
+    auto expr = eval_array();
 
     while (true) {
         if (match(TOKEN_PAREN_OPEN)) {
             consume_token_of_type(TOKEN_PAREN_OPEN);
-            auto args = consume_arguments();
+            auto args = consume_arguments(TOKEN_PAREN_CLOSE);
             consume_token_of_type(TOKEN_PAREN_CLOSE);
 
             return new CallExpression(expr, args);
@@ -294,6 +295,18 @@ Expression* Parser::eval_call() {
     }
 
     return expr;
+}
+
+Expression* Parser::eval_array() {
+    if (match(TOKEN_BRACKET_OPEN)) {
+        consume_token_of_type(TOKEN_BRACKET_OPEN);
+        auto args = consume_arguments(TOKEN_BRACKET_CLOSE);
+        consume_token_of_type(TOKEN_BRACKET_CLOSE);
+
+        return new ArrayExpression(args);
+    }
+
+    return eval_primary();
 }
 
 Expression* Parser::eval_primary() {
@@ -315,7 +328,7 @@ Expression* Parser::eval_new_expression() {
     consume_token();
     auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
     consume_token_of_type(TOKEN_BRACE_OPEN);
-    auto expressions = consume_arguments();
+    auto expressions = consume_arguments(TOKEN_BRACE_CLOSE);
     consume_token_of_type(TOKEN_BRACE_CLOSE);
     return new NewExpression(*identifier, expressions);
 }
@@ -353,10 +366,10 @@ Token* Parser::consume_token_of_type(TokenType type) {
     return t_ptr;
 }
 
-std::vector<Expression*> Parser::consume_arguments() {
+std::vector<Expression*> Parser::consume_arguments(TokenType closer) {
     auto args = std::vector<Expression*>();
     bool is_first = true;
-    if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE)) {
+    if (!match(closer)) {
         do {
             if (!is_first) current++; // only iterate current by one when it is not the first time
 

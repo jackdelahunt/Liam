@@ -53,13 +53,14 @@ struct Parser {
     Expression* eval_unary();
     Expression* eval_postfix();
     Expression* eval_call();
+    Expression* eval_array();
     Expression* eval_primary();
     Expression* eval_new_expression();
     bool match(TokenType type);
     Token* peek(int offset = 0);
     Token* consume_token();
     Token* consume_token_of_type(TokenType type);
-    std::vector<Expression*> consume_arguments();
+    std::vector<Expression*> consume_arguments(TokenType closer);
     std::vector<std::tuple<Token, Expression*>> consume_comma_seperated_values();
 
 };

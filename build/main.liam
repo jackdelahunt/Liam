@@ -1,4 +1,5 @@
+import "/home/jackdelahunt/Projects/Liam/build/std.liam";
+
 fn main(): void {
-    let p := 100;
-    let x := p + 100;
+    let arr: u64.. = [1];
 }

@@ -43,6 +43,20 @@ std::ostream& operator<<(std::ostream& os, const UnaryExpression& expression)
     return expression.format(os);
 }
 
+ArrayExpression::ArrayExpression(std::vector<Expression*> expressions) {
+    this->expressions = std::move(expressions);
+    this->type = EXPRESSION_ARRAY;
+}
+
+std::ostream& ArrayExpression::format(std::ostream& os) const {
+    os << "(" ")";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const ArrayExpression& expression) {
+    return expression.format(os);
+}
+
 IntLiteralExpression::IntLiteralExpression(const Token token) {
     this->token = token;
     this->type = EXPRESSION_INT_LITERAL;

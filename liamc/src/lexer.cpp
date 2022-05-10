@@ -1,6 +1,6 @@
 #include "lexer.h"
 
-char* TokenTypeStrings[26] = {
+char* TokenTypeStrings[29] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -27,6 +27,9 @@ char* TokenTypeStrings[26] = {
     "new",
     "break",
     ":=",
+    "[",
+    "]",
+    "..",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -64,7 +67,7 @@ bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || 
         c == ')' || c == '{' || c == '}' || c == ',' || 
         c == ':' || c == '=' || c == '+' || c == '^' || 
-        c == '@' || c == '*' || c == '.';
+        c == '@' || c == '*' || c == '.' || c == '[' || c == ']';
 }
 
 Lexer::Lexer() {
@@ -115,6 +118,12 @@ void Lexer::lex(const char* path) {
         case ',':
             tokens.emplace_back(Token(TokenType::TOKEN_COMMA, ",", current_line, current_character));
             break;
+        case '[':
+            tokens.emplace_back(Token(TokenType::TOKEN_BRACKET_OPEN, "[", current_line, current_character));
+            break;
+        case ']':
+            tokens.emplace_back(Token(TokenType::TOKEN_BRACKET_CLOSE, "]", current_line, current_character));
+            break;
         case ':':
             if(peek() == '=') {
                 next_char();
@@ -130,6 +139,12 @@ void Lexer::lex(const char* path) {
             tokens.emplace_back(Token(TokenType::TOKEN_AT, "@", current_line, current_character));
             break;
         case '.':
+            if(peek() == '.') {
+                next_char();
+                tokens.emplace_back(TokenType::TOKEN_RANGE, "..", current_line, current_character);
+                break;
+            }
+
             tokens.emplace_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
             break;
         case '#':

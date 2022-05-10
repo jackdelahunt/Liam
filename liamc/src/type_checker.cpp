@@ -143,6 +143,10 @@ TypedNewExpression::TypedNewExpression(Token identifier, std::vector<TypedExpres
     this->type = EXPRESSION_NEW;
 }
 
+TypedArrayExpression::TypedArrayExpression(std::vector<TypedExpression*> expressions) {
+    this->expressions = std::move(expressions);
+    this->type = EXPRESSION_ARRAY;
+}
 
 TypeChecker::TypeChecker() {
 	symbol_table = SymbolTable();
@@ -339,6 +343,7 @@ TypedExpression* TypeChecker::type_expression(Expression* expression, SymbolTabl
         case EXPRESSION_UNARY: return type_unary_expression(dynamic_cast<UnaryExpression*>(expression), symbol_table); break;
         case EXPRESSION_GET: return type_get_expression(dynamic_cast<GetExpression*>(expression), symbol_table); break;
         case EXPRESSION_NEW: return type_new_expression(dynamic_cast<NewExpression*>(expression), symbol_table); break;
+        case EXPRESSION_ARRAY: return type_array_expression(dynamic_cast<ArrayExpression*>(expression), symbol_table); break;
         default:
             panic("Not implemented");
             return nullptr;
@@ -387,6 +392,9 @@ TypedUnaryExpression* TypeChecker::type_unary_expression(UnaryExpression* expres
 		auto ptr_type = static_cast<PointerTypeInfo*>(typed_expression->type_info);
 		type_info = ptr_type->to;
 	}
+    else if(expression->op.type == TOKEN_RANGE) {
+        type_info = new ArrayTypeInfo{ARRAY, typed_expression->type_info};
+    }
 	else {
 		panic("Unrecognised unary operator");
 		return nullptr;
@@ -517,6 +525,33 @@ TypedNewExpression* TypeChecker::type_new_expression(NewExpression* expression, 
 	typed_expression->type_info = struct_type_info;
 
 	return typed_expression;
+}
+
+TypedArrayExpression* TypeChecker::type_array_expression(ArrayExpression* expression, SymbolTable* symbol_table) {
+    auto typed_expressions = std::vector<TypedExpression*>();
+    for(auto expr : expression->expressions) {
+        auto typed_expression = type_expression(expr, symbol_table);
+        typed_expressions.emplace_back(typed_expression);
+    }
+
+    TypeInfo* array_type = nullptr;
+    if(!typed_expressions.empty()) {
+        array_type = typed_expressions.at(0)->type_info;
+    }
+
+    if(typed_expressions.size() > 1) {
+        auto first_type = typed_expressions.at(0)->type_info;
+        for(int i = 0; i < typed_expressions.size(); i++) {
+            if(!type_match(first_type, typed_expressions.at(i)->type_info)) {
+                panic("Mismatched types in array expression, index " + std::to_string(i) + " has unexpected type");
+            }
+        }
+    }
+
+    auto typed_array_expression = new TypedArrayExpression(typed_expressions);
+    typed_array_expression->type_info = new ArrayTypeInfo{ARRAY, array_type};
+
+    return typed_array_expression;
 }
 
 bool type_match(TypeInfo* a, TypeInfo* b) {

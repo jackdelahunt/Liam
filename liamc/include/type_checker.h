@@ -43,7 +43,8 @@ enum TypeInfoType {
 	STRING,
 	FN,
 	STRUCT,
-	POINTER
+    POINTER,
+    ARRAY,
 };
 
 struct TypeInfo {
@@ -66,6 +67,10 @@ struct PointerTypeInfo : TypeInfo {
 };
 
 struct TypeTypeInfo : TypeInfo {
+};
+
+struct ArrayTypeInfo : TypeInfo {
+    TypeInfo* array_type;
 };
 
 struct FnTypeInfo : TypeInfo {
@@ -230,6 +235,12 @@ struct TypedNewExpression : TypedExpression {
 	TypedNewExpression(Token identifier, std::vector<TypedExpression*> expressions);
 };
 
+struct TypedArrayExpression : TypedExpression {
+    std::vector<TypedExpression*> expressions;
+
+    TypedArrayExpression(std::vector<TypedExpression*> expressions);
+};
+
 struct TypedFile {
 	std::vector<TypedStatement*> statements;
 };
@@ -262,7 +273,8 @@ struct TypeChecker {
 	TypedCallExpression* type_call_expression(CallExpression* expression, SymbolTable* symbol_table);
 	TypedIdentifierExpression* type_identifier_expression(IdentifierExpression* expression, SymbolTable* symbol_table);
 	TypedGetExpression* type_get_expression(GetExpression* expression, SymbolTable* symbol_table);
-	TypedNewExpression* type_new_expression(NewExpression* expression, SymbolTable* symbol_table);
+    TypedNewExpression* type_new_expression(NewExpression* expression, SymbolTable* symbol_table);
+    TypedArrayExpression* type_array_expression(ArrayExpression* expression, SymbolTable* symbol_table);
 };
 
 bool type_match(TypeInfo* a, TypeInfo* b);

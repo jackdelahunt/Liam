@@ -1,0 +1,13 @@
+fn print(s: ^string): void {
+    insert "println!(\"{}\", *s);";
+}
+
+struct Person {
+    name: string,
+    age: u64
+}
+
+struct Animal {
+    name: string,
+    age: u64
+}
