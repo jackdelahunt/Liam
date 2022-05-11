@@ -27,7 +27,7 @@ std::ostream& operator<<(std::ostream& os, const ExpressionStatement& statement)
     return statement.format(os);
 }
 
-LetStatement::LetStatement(Token identifier, Expression* expression, Expression* type) {
+LetStatement::LetStatement(Token identifier, Expression* expression, TypeExpression* type) {
     this->identifier = identifier;
     this->expression = expression;
     this->type= type;

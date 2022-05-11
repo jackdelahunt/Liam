@@ -2,7 +2,8 @@
 #include "parser.h"
 #include <cassert>  
 
-SymbolTable::SymbolTable() {
+SymbolTable::
+SymbolTable() {
 	this->builtin_type_table = std::map<std::string, TypeInfo*>();
 	this->type_table = std::map<std::string, TypeInfo*>();
 	this->identifier_table = std::map<std::string, TypeInfo*>();
@@ -12,7 +13,8 @@ SymbolTable::SymbolTable() {
 	builtin_type_table["u64"] = new IntTypeInfo{INT, false, 64};
 }
 
-void SymbolTable::add_type(Token type, TypeInfo* type_info) {
+void SymbolTable::
+add_type(Token type, TypeInfo* type_info) {
 	if (type_table.contains(type.string)) {
 		panic("Duplcate creation of type: " + type.string + " at (" + std::to_string(type.line) + "," + std::to_string(type.character) + ")");
 	}
@@ -20,7 +22,8 @@ void SymbolTable::add_type(Token type, TypeInfo* type_info) {
 	type_table[type.string] = type_info;
 }
 
-void SymbolTable::add_identifier(Token identifier, TypeInfo* type_info) {
+void SymbolTable::
+add_identifier(Token identifier, TypeInfo* type_info) {
 	if (identifier_table.contains(identifier.string)) {
 		panic("Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.line) + "," + std::to_string(identifier.character) + ")");
 	}
@@ -28,27 +31,49 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo* type_info) {
 	identifier_table[identifier.string] = type_info;
 }
 
-void TypedStatement::print() {} // virtual function to keep compiler happy :^]
+TypeInfo* SymbolTable::
+get_type(Token* identifier) {
+    if(builtin_type_table.contains(identifier->string)) {
+        return builtin_type_table[identifier->string];
+    }
 
-TypedLetStatement::TypedLetStatement(Token identifier, TypedExpression* type_expression, TypedExpression* expression) {
+    if(identifier_table.contains(identifier->string)) {
+        return identifier_table[identifier->string];
+    }
+
+    if(type_table.contains(identifier->string)) {
+        return type_table[identifier->string];
+    }
+
+    return nullptr;
+}
+
+void TypeCheckedStatement::
+print() {} // virtual function to keep compiler happy :^]
+
+TypeCheckedLetStatement::
+TypeCheckedLetStatement(Token identifier, TypeCheckedTypeExpression* type_expression, TypeCheckedExpression* expression) {
 	this->identifier = identifier;
 	this->type_expression = type_expression;
 	this->expression = expression;
 	this->statement_type = STATEMENT_LET;
 }
 
-TypedScopeStatement::TypedScopeStatement(std::vector<TypedStatement*> statements) {
+TypeCheckedScopeStatement::
+TypeCheckedScopeStatement(std::vector<TypeCheckedStatement*> statements) {
 	this->statements = statements;
 	this->statement_type = STATEMENT_SCOPE;
 }
 
-TypedStructStatement::TypedStructStatement(Token identifier, Typed_CSV members) {
+TypeCheckedStructStatement::
+TypeCheckedStructStatement(Token identifier, Typed_CSV members) {
 	this->identifier = identifier;
 	this->members= members;
 	this->statement_type = STATEMENT_SCOPE;
 }
 
-TypedFnStatement::TypedFnStatement(Token identifier, Typed_CSV params, TypedExpression* return_type, TypedScopeStatement* body) {
+TypeCheckedFnStatement::
+TypeCheckedFnStatement(Token identifier, Typed_CSV params, TypeCheckedExpression* return_type, TypeCheckedScopeStatement* body) {
 	this->identifier = identifier;
 	this->params = params;
 	this->return_type = return_type;
@@ -56,160 +81,203 @@ TypedFnStatement::TypedFnStatement(Token identifier, Typed_CSV params, TypedExpr
 	this->statement_type = STATEMENT_FN;
 }
 
-TypedLoopStatement::TypedLoopStatement(Token identifier, TypedScopeStatement* body) {
+TypeCheckedLoopStatement::
+TypeCheckedLoopStatement(Token identifier, TypeCheckedScopeStatement* body) {
 	this->identifier = identifier;
 	this->body = body;
 	this->statement_type = STATEMENT_LOOP;
 }
 
-TypedInsertStatement::TypedInsertStatement(TypedStringLiteralExpression* code) {
+TypeCheckedInsertStatement::
+TypeCheckedInsertStatement(TypeCheckedStringLiteralExpression* code) {
 	this->code = code;
 	this->statement_type = STATEMENT_INSERT;
 }
 
-TypedReturnStatement::TypedReturnStatement(TypedExpression* expression) {
+TypeCheckedReturnStatement::
+TypeCheckedReturnStatement(TypeCheckedExpression* expression) {
 	this->expression = expression;
 	this->statement_type = STATEMENT_RETURN;
 }
 
-TypedBreakStatement::TypedBreakStatement(Token identifier) {
+TypeCheckedBreakStatement::TypeCheckedBreakStatement(Token identifier) {
 	this->identifier = identifier;
 	this->statement_type = STATEMENT_BREAK;
 }
 
-TypedImportStatement::TypedImportStatement(TypedExpression* file) {
+TypeCheckedImportStatement::
+TypeCheckedImportStatement(TypeCheckedExpression* file) {
 	this->file = file;
 	this->statement_type = STATEMENT_BREAK;
 }
 
-TypedExpressionStatement::TypedExpressionStatement(TypedExpression* expression) {
+TypeCheckedExpressionStatement::
+TypeCheckedExpressionStatement(TypeCheckedExpression* expression) {
 	this->expression = expression;
 	this->statement_type = STATEMENT_EXPRESSION;
 }
 
-TypedAssigmentStatement::TypedAssigmentStatement(Token identifier, TypedExpression* assigned_to) {
+TypeCheckedAssigmentStatement::
+TypeCheckedAssigmentStatement(Token identifier, TypeCheckedExpression* assigned_to) {
 	this->identifier = identifier;
 	this->assigned_to = assigned_to;
 	this->statement_type = STATEMENT_ASSIGNMENT;
 }
 
-TypedBinaryExpression::TypedBinaryExpression(TypedExpression* left, Token op, TypedExpression* right) {
+TypeCheckedBinaryExpression::
+TypeCheckedBinaryExpression(TypeCheckedExpression* left, Token op, TypeCheckedExpression* right) {
 	this->left = left;
 	this->op = op;
 	this->right = right;
-    this->type = EXPRESSION_BINARY;
+    this->type = ExpressionType::EXPRESSION_BINARY;
 }
 
-TypedUnaryExpression::TypedUnaryExpression(TypedExpression* expression, Token op) {
+TypeCheckedUnaryExpression::
+TypeCheckedUnaryExpression(TypeCheckedExpression* expression, Token op) {
 	this->expression = expression;
 	this->op = op;
-    this->type = EXPRESSION_UNARY;
+    this->type = ExpressionType::EXPRESSION_UNARY;
 }
 
-TypedIntLiteralExpression::TypedIntLiteralExpression(Token token) {
+TypeCheckedIntLiteralExpression::
+TypeCheckedIntLiteralExpression(Token token) {
 	this->token = token;
 	this->type_info = new IntTypeInfo{INT, false, 64};
-    this->type = EXPRESSION_INT_LITERAL;
+    this->type = ExpressionType::EXPRESSION_INT_LITERAL;
 }
 
-TypedCallExpression::TypedCallExpression(TypedIdentifierExpression* identifier, std::vector<TypedExpression*> args) {
+TypeCheckedCallExpression::
+TypeCheckedCallExpression(TypeCheckedIdentifierExpression* identifier, std::vector<TypeCheckedExpression*> args) {
 	this->identifier = identifier;
 	this->args = args;
-    this->type = EXPRESSION_CALL;
+    this->type = ExpressionType::EXPRESSION_CALL;
 }
 
-TypedIdentifierExpression::TypedIdentifierExpression(Token identifier, TypeInfo* type_info) {
-	this->identifier = identifier;
-	this->type_info = type_info;
-    this->type = EXPRESSION_IDENTIFIER;
+TypeCheckedIdentifierExpression::
+TypeCheckedIdentifierExpression(Token identifier, TypeInfo* type_info) {
+    this->identifier = identifier;
+    this->type_info = type_info;
+    this->type = ExpressionType::EXPRESSION_IDENTIFIER;
 }
 
-TypedStringLiteralExpression::TypedStringLiteralExpression(Token token) {
+TypeCheckedStringLiteralExpression::
+TypeCheckedStringLiteralExpression(Token token) {
 	this->token = token;
 	this->type_info = new StringTypeInfo{ STRING };
-    this->type = EXPRESSION_STRING_LITERAL;
+    this->type = ExpressionType::EXPRESSION_STRING_LITERAL;
 }
 
 
-TypedGetExpression::TypedGetExpression(TypedExpression* expression, Token member) {
+TypeCheckedGetExpression::
+TypeCheckedGetExpression(TypeCheckedExpression* expression, Token member) {
 	this->expression = expression;
 	this->member = member;
-    this->type = EXPRESSION_GET;
+    this->type = ExpressionType::EXPRESSION_GET;
 }
 
-TypedNewExpression::TypedNewExpression(Token identifier, std::vector<TypedExpression*> expressions) {
+TypeCheckedNewExpression::
+TypeCheckedNewExpression(Token identifier, std::vector<TypeCheckedExpression*> expressions) {
 	this->identifier = identifier;
 	this->expressions = expressions;
-    this->type = EXPRESSION_NEW;
+    this->type = ExpressionType::EXPRESSION_NEW;
 }
 
-TypedArrayExpression::TypedArrayExpression(std::vector<TypedExpression*> expressions) {
+TypeCheckedArrayExpression::
+TypeCheckedArrayExpression(std::vector<TypeCheckedExpression*> expressions) {
     this->expressions = std::move(expressions);
-    this->type = EXPRESSION_ARRAY;
+    this->type = ExpressionType::EXPRESSION_ARRAY;
 }
 
-TypeChecker::TypeChecker() {
+void TypeCheckedTypeExpression::
+print() {} // virtual function to keep compiler happy :^]
+
+TypeCheckedIdentifierTypeExpression::TypeCheckedIdentifierTypeExpression(Token identifier) {
+    this->identifier = identifier;
+    this->type = TypeExpressionType::TYPE_IDENTIFIER;
+}
+
+TypeCheckedPointerTypeExpression::
+TypeCheckedPointerTypeExpression(TypeCheckedTypeExpression* pointer_of) {
+    this->pointer_of = pointer_of;
+    this->type = TypeExpressionType::TYPE_POINTER;
+}
+
+TypeChecker::
+TypeChecker() {
 	symbol_table = SymbolTable();
 	root = TypedFile();
 }
 
-void TypeChecker::type_file(File* file) {
+void TypeChecker::
+type_file(File* file) {
 	for (auto stmt : file->statements) {
-		auto p = type_statement(stmt, &symbol_table);
+		auto p = type_check_statement(stmt, &symbol_table);
 		root.statements.push_back(p);
 	}
 }
 
-TypedStatement* TypeChecker::type_statement(Statement* statement, SymbolTable* symbol_table) {
+TypeCheckedStatement* TypeChecker::
+type_check_statement(Statement* statement, SymbolTable* symbol_table) {
     switch (statement->statement_type) {
-        case STATEMENT_INSERT: return type_insert_statement(dynamic_cast<InsertStatement*>(statement), symbol_table); break;
-        case STATEMENT_RETURN: return type_return_statement(dynamic_cast<ReturnStatement*>(statement), symbol_table); break;
-        case STATEMENT_BREAK: return type_break_statement(dynamic_cast<BreakStatement*>(statement), symbol_table); break;
-        case STATEMENT_IMPORT: return type_import_statement(dynamic_cast<ImportStatement*>(statement), symbol_table); break;
-        case STATEMENT_FN: return type_fn_statement(dynamic_cast<FnStatement*>(statement), symbol_table); break;
-        case STATEMENT_LOOP: return type_loop_statement(dynamic_cast<LoopStatement*>(statement), symbol_table); break;
-        case STATEMENT_STRUCT: return type_struct_statement(dynamic_cast<StructStatement*>(statement), symbol_table); break;
-        case STATEMENT_ASSIGNMENT: return type_assigment_statement(dynamic_cast<AssigmentStatement*>(statement), symbol_table); break;
-        case STATEMENT_EXPRESSION: return type_expression_statement(dynamic_cast<ExpressionStatement*>(statement), symbol_table); break;
-        case STATEMENT_LET: return type_let_statement(dynamic_cast<LetStatement*>(statement), symbol_table); break;
+        case STATEMENT_INSERT: return type_check_insert_statement(dynamic_cast<InsertStatement *>(statement),
+                                                                  symbol_table); break;
+        case STATEMENT_RETURN: return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement),
+                                                                  symbol_table); break;
+        case STATEMENT_BREAK: return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table); break;
+        case STATEMENT_IMPORT: return type_check_import_statement(dynamic_cast<ImportStatement *>(statement),
+                                                                  symbol_table); break;
+        case STATEMENT_FN: return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table); break;
+        case STATEMENT_LOOP: return type_check_loop_statement(dynamic_cast<LoopStatement *>(statement), symbol_table); break;
+        case STATEMENT_STRUCT: return type_check_struct_statement(dynamic_cast<StructStatement *>(statement),
+                                                                  symbol_table); break;
+        case STATEMENT_ASSIGNMENT: return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement),
+                                                                         symbol_table); break;
+        case STATEMENT_EXPRESSION: return type_check_expression_statement(
+                    dynamic_cast<ExpressionStatement *>(statement), symbol_table); break;
+        case STATEMENT_LET: return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table); break;
         default:
             panic("Not implemented");
             return nullptr;
     }
 }
 
-TypedInsertStatement* TypeChecker::type_insert_statement(InsertStatement* statement, SymbolTable* symbol_table) {
-	auto expression = type_expression(statement->byte_code, symbol_table);
+TypeCheckedInsertStatement* TypeChecker::
+type_check_insert_statement(InsertStatement* statement, SymbolTable* symbol_table) {
+	auto expression = type_check_expression(statement->byte_code, symbol_table);
 	if (expression->type_info->type != STRING) {
 		panic("Insert requires a string");
 	}
 
-	return new TypedInsertStatement(dynamic_cast<TypedStringLiteralExpression*>(expression));
+	return new TypeCheckedInsertStatement(dynamic_cast<TypeCheckedStringLiteralExpression*>(expression));
 }
 
-TypedReturnStatement* TypeChecker::type_return_statement(ReturnStatement* statement, SymbolTable* symbol_table) {
-    return new TypedReturnStatement(type_expression(statement->expression, symbol_table));
+TypeCheckedReturnStatement* TypeChecker::
+type_check_return_statement(ReturnStatement* statement, SymbolTable* symbol_table) {
+    return new TypeCheckedReturnStatement(type_check_expression(statement->expression, symbol_table));
 }
 
-TypedBreakStatement* TypeChecker::type_break_statement(BreakStatement* statement, SymbolTable* symbol_table) {
+TypeCheckedBreakStatement* TypeChecker::
+type_check_break_statement(BreakStatement* statement, SymbolTable* symbol_table) {
 	panic("Not implemented");
 	return nullptr;
 }
 
-TypedImportStatement* TypeChecker::type_import_statement(ImportStatement* statement, SymbolTable* symbol_table) {
-	auto expression = type_expression(statement->file, symbol_table);
+TypeCheckedImportStatement* TypeChecker::
+type_check_import_statement(ImportStatement* statement, SymbolTable* symbol_table) {
+	auto expression = type_check_expression(statement->file, symbol_table);
 	if (expression->type_info->type != STRING) {
 		panic("Import requires a string");
 	}
 
-	return new TypedImportStatement(expression);
+	return new TypeCheckedImportStatement(expression);
 }
 
-TypedLetStatement* TypeChecker::type_let_statement(LetStatement* statement, SymbolTable* symbol_table) {
-    TypedExpression* let_type = nullptr;
-    auto typed_expression = type_expression(statement->expression, symbol_table);
+TypeCheckedLetStatement* TypeChecker::
+type_check_let_statement(LetStatement* statement, SymbolTable* symbol_table) {
+    TypeCheckedTypeExpression* let_type = nullptr;
+    auto typed_expression = type_check_expression(statement->expression, symbol_table);
     if(statement->type) {
-        let_type = type_expression(statement->type, symbol_table);
+        let_type = type_check_type_expression(statement->type, symbol_table);
         if (!type_match(let_type->type_info, typed_expression->type_info)) {
             panic("Mis matched types in let statement");
         }
@@ -217,14 +285,15 @@ TypedLetStatement* TypeChecker::type_let_statement(LetStatement* statement, Symb
 
 	symbol_table->add_identifier(statement->identifier, typed_expression->type_info);
 
-	return new TypedLetStatement(
+	return new TypeCheckedLetStatement(
 		statement->identifier,
 		let_type,
 		typed_expression
 	);
 }
-TypedScopeStatement* TypeChecker::type_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table) {
-	auto statements = std::vector<TypedStatement*>();
+TypeCheckedScopeStatement* TypeChecker::
+type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table) {
+	auto statements = std::vector<TypeCheckedStatement*>();
 
 	// this is kind of a mess... oh jeez
 	SymbolTable* scopes_symbol_table = symbol_table;
@@ -238,22 +307,23 @@ TypedScopeStatement* TypeChecker::type_scope_statement(ScopeStatement* statement
 	}
 
 	for (auto stmt : statement->body) {
-		statements.push_back(type_statement(stmt, scopes_symbol_table));
+		statements.push_back(type_check_statement(stmt, scopes_symbol_table));
 	}
 
-	return new TypedScopeStatement(statements);
+	return new TypeCheckedScopeStatement(statements);
 }
-TypedFnStatement* TypeChecker::type_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
+TypeCheckedFnStatement* TypeChecker::
+type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
 
 	auto param_type_infos = std::vector<TypeInfo*>();
 	Typed_CSV t_csv = Typed_CSV();
 	for (auto& [identifier, expr] : statement->params) {
-		auto p = type_expression(expr, symbol_table);
+		auto p = type_check_expression(expr, symbol_table);
 		param_type_infos.push_back(p->type_info);
 		t_csv.push_back({identifier, p});
 	}
 
-	auto return_expresion = type_expression(statement->type, symbol_table);
+	auto return_expresion = type_check_expression(statement->type, symbol_table);
 
 	symbol_table->add_identifier(statement->identifier, new FnTypeInfo{FN, return_expresion->type_info, param_type_infos});
 
@@ -263,7 +333,7 @@ TypedFnStatement* TypeChecker::type_fn_statement(FnStatement* statement, SymbolT
 	}
 
     // type body and check return
-    auto typed_body = type_scope_statement(statement->body, &copied_symbol_table, false);
+    auto typed_body = type_check_scope_statement(statement->body, &copied_symbol_table, false);
     if(return_expresion->type_info->type == VOID) {
         for(auto stmt : typed_body->statements) {
             if(stmt->statement_type == STATEMENT_RETURN) {
@@ -275,7 +345,7 @@ TypedFnStatement* TypeChecker::type_fn_statement(FnStatement* statement, SymbolT
         for(auto stmt : typed_body->statements) {
             if (stmt->statement_type == STATEMENT_RETURN) {
                 found_return = true;
-                auto return_statement = dynamic_cast<TypedReturnStatement*>(stmt);
+                auto return_statement = dynamic_cast<TypeCheckedReturnStatement*>(stmt);
                 if(!type_match(return_statement->expression->type_info, return_expresion->type_info)) {
                     panic("Mismatch types in function, return types do not match");
                 }
@@ -287,71 +357,87 @@ TypedFnStatement* TypeChecker::type_fn_statement(FnStatement* statement, SymbolT
         }
     }
 
-	return new TypedFnStatement(
-		statement->identifier,
-		t_csv,
-		type_expression(statement->type, symbol_table),
-        typed_body
+	return new TypeCheckedFnStatement(
+            statement->identifier,
+            t_csv,
+            type_check_expression(statement->type, symbol_table),
+            typed_body
 	);
 }
 
-TypedLoopStatement* TypeChecker::type_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {	
-	return new TypedLoopStatement(statement->identifier, type_scope_statement(statement->body, symbol_table));
+TypeCheckedLoopStatement* TypeChecker::
+type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {
+	return new TypeCheckedLoopStatement(statement->identifier, type_check_scope_statement(statement->body, symbol_table));
 }
 
-TypedStructStatement* TypeChecker::type_struct_statement(StructStatement* statement, SymbolTable* symbol_table) {
+TypeCheckedStructStatement* TypeChecker::
+type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_table) {
 	
 	auto members = Typed_CSV();
 	auto members_type_info = std::vector<std::tuple<std::string, TypeInfo*>>();
 	for (auto& [member, expr] : statement->members) {
-		auto expression = type_expression(expr, symbol_table);
+		auto expression = type_check_expression(expr, symbol_table);
 		members.push_back({member, expression});
 		members_type_info.push_back({member.string, expression->type_info});
 	}
 
 	symbol_table->add_type(statement->identifier, new StructTypeInfo{STRUCT, members_type_info});
 
-	return new TypedStructStatement(statement->identifier, members);
+	return new TypeCheckedStructStatement(statement->identifier, members);
 }
-TypedAssigmentStatement* TypeChecker::type_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table) {
+TypeCheckedAssigmentStatement* TypeChecker::
+type_check_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table) {
 
 	if (!symbol_table->identifier_table.contains(statement->identifier.string)) {
 		panic("Trying to assign un-declared identifier");
 	}
 
-	auto typed_expression = type_expression(statement->assigned_to->expression, symbol_table);
+	auto typed_expression = type_check_expression(statement->assigned_to->expression, symbol_table);
 
 	if (!type_match(symbol_table->identifier_table[statement->identifier.string], typed_expression->type_info)) {
 		panic("Type mismatch, trying to assign a identifier to an expression of different type");
 	}
 
-	return new TypedAssigmentStatement(statement->identifier, typed_expression);
+	return new TypeCheckedAssigmentStatement(statement->identifier, typed_expression);
 }
-TypedExpressionStatement* TypeChecker::type_expression_statement(ExpressionStatement* statement, SymbolTable* symbol_table) {
-	return new  TypedExpressionStatement(type_expression(statement->expression, symbol_table));
+TypeCheckedExpressionStatement* TypeChecker::
+type_check_expression_statement(ExpressionStatement* statement, SymbolTable* symbol_table) {
+	return new  TypeCheckedExpressionStatement(type_check_expression(statement->expression, symbol_table));
 }
 
-void TypedExpression::print() {} // virtual function to keep compiler happy :^]
+void TypeCheckedExpression::print() {} // virtual function to keep compiler happy :^]
 
-TypedExpression* TypeChecker::type_expression(Expression* expression, SymbolTable* symbol_table) {
+TypeCheckedExpression* TypeChecker::
+type_check_expression(Expression* expression, SymbolTable* symbol_table) {
     switch (expression->type) {
-        case EXPRESSION_STRING_LITERAL: return type_string_literal_expression(dynamic_cast<StringLiteralExpression*>(expression), symbol_table); break;
-        case EXPRESSION_INT_LITERAL: return type_int_literal_expression(dynamic_cast<IntLiteralExpression*>(expression), symbol_table); break;
-        case EXPRESSION_CALL: return type_call_expression(dynamic_cast<CallExpression*>(expression), symbol_table); break;
-        case EXPRESSION_IDENTIFIER: return type_identifier_expression(dynamic_cast<IdentifierExpression*>(expression), symbol_table); break;
-        case EXPRESSION_BINARY: return type_binary_expression(dynamic_cast<BinaryExpression*>(expression), symbol_table); break;
-        case EXPRESSION_UNARY: return type_unary_expression(dynamic_cast<UnaryExpression*>(expression), symbol_table); break;
-        case EXPRESSION_GET: return type_get_expression(dynamic_cast<GetExpression*>(expression), symbol_table); break;
-        case EXPRESSION_NEW: return type_new_expression(dynamic_cast<NewExpression*>(expression), symbol_table); break;
-        case EXPRESSION_ARRAY: return type_array_expression(dynamic_cast<ArrayExpression*>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_STRING_LITERAL:
+            return type_check_string_literal_expression(dynamic_cast<StringLiteralExpression *>(expression),
+                                                        symbol_table); break;
+        case ExpressionType::EXPRESSION_INT_LITERAL:
+            return type_check_int_literal_expression(dynamic_cast<IntLiteralExpression *>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_CALL:
+            return type_check_call_expression(dynamic_cast<CallExpression*>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_IDENTIFIER:
+            return type_check_identifier_expression(dynamic_cast<IdentifierExpression*>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_BINARY:
+            return type_check_binary_expression(dynamic_cast<BinaryExpression *>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_UNARY:
+            return type_check_unary_expression(dynamic_cast<UnaryExpression *>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_GET:
+            return type_check_get_expression(dynamic_cast<GetExpression*>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_NEW:
+            return type_check_new_expression(dynamic_cast<NewExpression*>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_ARRAY:
+            return type_check_array_expression(dynamic_cast<ArrayExpression*>(expression), symbol_table); break;
         default:
             panic("Not implemented");
             return nullptr;
     }
 }
-TypedBinaryExpression* TypeChecker::type_binary_expression(BinaryExpression* expression, SymbolTable* symbol_table) {
-	auto left = type_expression(expression->left, symbol_table);
-	auto right = type_expression(expression->right, symbol_table);
+TypeCheckedBinaryExpression* TypeChecker::
+type_check_binary_expression(BinaryExpression* expression, SymbolTable* symbol_table) {
+	auto left = type_check_expression(expression->left, symbol_table);
+	auto right = type_check_expression(expression->right, symbol_table);
 
 	if (!type_match(left->type_info, right->type_info)) {
 		panic("Type mismatch in binary expression");
@@ -363,22 +449,25 @@ TypedBinaryExpression* TypeChecker::type_binary_expression(BinaryExpression* exp
 		return nullptr;	
 	}
 
-	auto binary = new TypedBinaryExpression(left, expression->op, right);
+	auto binary = new TypeCheckedBinaryExpression(left, expression->op, right);
 	binary->type_info = left->type_info;
 	return binary;
 
 }
-TypedStringLiteralExpression* TypeChecker::type_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table) {
-	auto typed_expression = new TypedStringLiteralExpression(expression->token);
+TypeCheckedStringLiteralExpression* TypeChecker::
+type_check_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table) {
+	auto typed_expression = new TypeCheckedStringLiteralExpression(expression->token);
 	typed_expression->type_info = symbol_table->builtin_type_table["string"];
 	return typed_expression;
 }
 
-TypedIntLiteralExpression* TypeChecker::type_int_literal_expression(IntLiteralExpression* expression, SymbolTable* symbol_table) {
-	return new TypedIntLiteralExpression(expression->token);
+TypeCheckedIntLiteralExpression* TypeChecker::
+type_check_int_literal_expression(IntLiteralExpression* expression, SymbolTable* symbol_table) {
+	return new TypeCheckedIntLiteralExpression(expression->token);
 }
-TypedUnaryExpression* TypeChecker::type_unary_expression(UnaryExpression* expression, SymbolTable* symbol_table) {
-	auto typed_expression = type_expression(expression->expression, symbol_table);
+TypeCheckedUnaryExpression* TypeChecker::
+type_check_unary_expression(UnaryExpression* expression, SymbolTable* symbol_table) {
+	auto typed_expression = type_check_expression(expression->expression, symbol_table);
 
 	TypeInfo* type_info;
 	if (expression->op.type == TOKEN_AT || expression->op.type == TOKEN_HAT) {
@@ -400,23 +489,24 @@ TypedUnaryExpression* TypeChecker::type_unary_expression(UnaryExpression* expres
 		return nullptr;
 	}
 	
-	auto typed_unary = new TypedUnaryExpression(typed_expression, expression->op);
+	auto typed_unary = new TypeCheckedUnaryExpression(typed_expression, expression->op);
 	typed_unary->type_info = type_info;
 	return typed_unary;
 }
-TypedCallExpression* TypeChecker::type_call_expression(CallExpression* expression, SymbolTable* symbol_table) {
-	auto type_of_callee = dynamic_cast<TypedIdentifierExpression*>(
-            type_expression(expression->identifier, symbol_table)
+TypeCheckedCallExpression* TypeChecker::
+type_check_call_expression(CallExpression* expression, SymbolTable* symbol_table) {
+	auto type_of_callee = dynamic_cast<TypeCheckedIdentifierExpression*>(
+            type_check_expression(expression->identifier, symbol_table)
             );
 
     if(!type_of_callee) {
         panic("Can only call on identifier expressions");
     }
 
-	auto typed_args = std::vector<TypedExpression*>();
+	auto typed_args = std::vector<TypeCheckedExpression*>();
 	auto arg_type_infos = std::vector<TypeInfo*>();
 	for (auto arg : expression->args) {
-		auto typed_arg = type_expression(arg, symbol_table);
+		auto typed_arg = type_check_expression(arg, symbol_table);
 		typed_args.push_back(typed_arg);
 		arg_type_infos.push_back(typed_arg->type_info);
 	}
@@ -438,11 +528,12 @@ TypedCallExpression* TypeChecker::type_call_expression(CallExpression* expressio
 
 	auto return_type = fn_type_info->return_type;
 
-	auto final_expression = new TypedCallExpression(type_of_callee, typed_args);
+	auto final_expression = new TypeCheckedCallExpression(type_of_callee, typed_args);
 	final_expression->type_info = return_type;
 	return final_expression;
 }
-TypedIdentifierExpression* TypeChecker::type_identifier_expression(IdentifierExpression* expression, SymbolTable* symbol_table) {
+TypeCheckedIdentifierExpression* TypeChecker::
+type_check_identifier_expression(IdentifierExpression* expression, SymbolTable* symbol_table) {
 	TypeInfo* type_info;
 	
 	if (symbol_table->builtin_type_table.contains(expression->identifier.string)) {
@@ -458,11 +549,12 @@ TypedIdentifierExpression* TypeChecker::type_identifier_expression(IdentifierExp
 		panic("Unrecognized identifier: " + expression->identifier.string);
 	}
 
-	return new TypedIdentifierExpression(expression->identifier, type_info);
+	return new TypeCheckedIdentifierExpression(expression->identifier, type_info);
 }
 
-TypedGetExpression* TypeChecker::type_get_expression(GetExpression* expression, SymbolTable* symbol_table) {
-	auto typed_expression = type_expression(expression->expression, symbol_table);
+TypeCheckedGetExpression* TypeChecker::
+type_check_get_expression(GetExpression* expression, SymbolTable* symbol_table) {
+	auto typed_expression = type_check_expression(expression->expression, symbol_table);
 	if (typed_expression->type_info->type != STRUCT) {
 		panic("Cannot derive member from non struct type");
 	}
@@ -479,13 +571,14 @@ TypedGetExpression* TypeChecker::type_get_expression(GetExpression* expression, 
 		panic("Cannot find member in struct");
 	}
 
-	auto final_expression = new TypedGetExpression(typed_expression, expression->member);
+	auto final_expression = new TypeCheckedGetExpression(typed_expression, expression->member);
 	final_expression->type_info = member_type_info;
 	return final_expression;
 }
 
 
-TypedNewExpression* TypeChecker::type_new_expression(NewExpression* expression, SymbolTable* symbol_table) {
+TypeCheckedNewExpression* TypeChecker::
+type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table) {
 	
 	// check its a type
 	if (!symbol_table->type_table.contains(expression->identifier.string)) {
@@ -500,10 +593,10 @@ TypedNewExpression* TypeChecker::type_new_expression(NewExpression* expression, 
 	auto struct_type_info = static_cast<StructTypeInfo*>(symbol_table->type_table[expression->identifier.string]);
 
 	// collect members from new constructor
-	auto typed_expressions = std::vector<TypedExpression*>();
+	auto typed_expressions = std::vector<TypeCheckedExpression*>();
 	auto members_type_info = std::vector<TypeInfo*>();
 	for (auto expr : expression->expressions) {
-		auto typed_member = type_expression(expr, symbol_table);
+		auto typed_member = type_check_expression(expr, symbol_table);
 		typed_expressions.push_back(typed_member);
 		members_type_info.push_back(typed_member->type_info);
 	}
@@ -521,16 +614,17 @@ TypedNewExpression* TypeChecker::type_new_expression(NewExpression* expression, 
 		}
 	}
 
-	auto typed_expression = new TypedNewExpression(expression->identifier, typed_expressions);
+	auto typed_expression = new TypeCheckedNewExpression(expression->identifier, typed_expressions);
 	typed_expression->type_info = struct_type_info;
 
 	return typed_expression;
 }
 
-TypedArrayExpression* TypeChecker::type_array_expression(ArrayExpression* expression, SymbolTable* symbol_table) {
-    auto typed_expressions = std::vector<TypedExpression*>();
+TypeCheckedArrayExpression* TypeChecker::
+type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_table) {
+    auto typed_expressions = std::vector<TypeCheckedExpression*>();
     for(auto expr : expression->expressions) {
-        auto typed_expression = type_expression(expr, symbol_table);
+        auto typed_expression = type_check_expression(expr, symbol_table);
         typed_expressions.emplace_back(typed_expression);
     }
 
@@ -548,10 +642,42 @@ TypedArrayExpression* TypeChecker::type_array_expression(ArrayExpression* expres
         }
     }
 
-    auto typed_array_expression = new TypedArrayExpression(typed_expressions);
+    auto typed_array_expression = new TypeCheckedArrayExpression(typed_expressions);
     typed_array_expression->type_info = new ArrayTypeInfo{ARRAY, array_type};
 
     return typed_array_expression;
+}
+
+TypeCheckedTypeExpression* TypeChecker::
+type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_table) {
+    switch (type_expression->type) {
+        case TypeExpressionType::TYPE_IDENTIFIER:
+            return type_check_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression), symbol_table); break;
+        case TypeExpressionType::TYPE_POINTER:
+            return type_check_pointer_type_expression(dynamic_cast<PointerTypeExpression *>(type_expression), symbol_table); break;
+    }
+}
+
+TypeCheckedIdentifierTypeExpression* TypeChecker::
+type_check_identifier_type_expression(IdentifierTypeExpression* type_expression, SymbolTable* symbol_table) {
+    auto typed_expression = new TypeCheckedIdentifierTypeExpression(type_expression->identifier);
+    auto type = symbol_table->get_type(&type_expression->identifier);
+    if(type) {
+        typed_expression->type_info = type;
+        return typed_expression;
+    }
+
+    panic("Unrecognised type in type expression: " + type_expression->identifier.string);
+    return nullptr;
+}
+
+TypeCheckedPointerTypeExpression* TypeChecker::
+type_check_pointer_type_expression(PointerTypeExpression* type_expression, SymbolTable* symbol_table) {
+    auto typed_pointer_of = type_check_type_expression(type_expression->pointer_of, symbol_table);
+    auto typed_pointer_expression = new TypeCheckedPointerTypeExpression(typed_pointer_of);
+    auto info = new PointerTypeInfo{ POINTER, typed_pointer_of->type_info };
+    typed_pointer_expression->type_info = info;
+    return typed_pointer_expression;
 }
 
 bool type_match(TypeInfo* a, TypeInfo* b) {

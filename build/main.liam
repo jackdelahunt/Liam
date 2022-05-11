@@ -1,5 +1,6 @@
 import "/home/jackdelahunt/Projects/Liam/build/std.liam";
 
 fn main(): void {
-    let arr: u64.. = [1];
+    let y: u64 = 10;
+    let x: ^u64 = @y;
 }

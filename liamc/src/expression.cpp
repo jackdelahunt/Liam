@@ -14,7 +14,7 @@ BinaryExpression::BinaryExpression(Expression* left, Token op, Expression* right
     this->left = left;
     this->op = op;
     this->right = right;
-    this->type = EXPRESSION_BINARY;
+    this->type = ExpressionType::EXPRESSION_BINARY;
 }
 
 std::ostream& BinaryExpression::format(std::ostream& os) const {
@@ -30,7 +30,7 @@ std::ostream& operator<<(std::ostream& os, const BinaryExpression& expression)
 UnaryExpression::UnaryExpression(Expression* expression, Token op) {
     this->expression = expression;
     this->op = op;
-    this->type = EXPRESSION_UNARY;
+    this->type = ExpressionType::EXPRESSION_UNARY;
 }
 
 std::ostream& UnaryExpression::format(std::ostream& os) const {
@@ -45,7 +45,7 @@ std::ostream& operator<<(std::ostream& os, const UnaryExpression& expression)
 
 ArrayExpression::ArrayExpression(std::vector<Expression*> expressions) {
     this->expressions = std::move(expressions);
-    this->type = EXPRESSION_ARRAY;
+    this->type = ExpressionType::EXPRESSION_ARRAY;
 }
 
 std::ostream& ArrayExpression::format(std::ostream& os) const {
@@ -59,7 +59,7 @@ std::ostream& operator<<(std::ostream& os, const ArrayExpression& expression) {
 
 IntLiteralExpression::IntLiteralExpression(const Token token) {
     this->token = token;
-    this->type = EXPRESSION_INT_LITERAL;
+    this->type = ExpressionType::EXPRESSION_INT_LITERAL;
 }
 
 std::ostream& IntLiteralExpression::format(std::ostream& os) const {
@@ -74,7 +74,7 @@ std::ostream& operator<<(std::ostream& os, const IntLiteralExpression& expressio
 
 StringLiteralExpression::StringLiteralExpression(const Token token) {
     this->token = token;
-    this->type = EXPRESSION_STRING_LITERAL;
+    this->type = ExpressionType::EXPRESSION_STRING_LITERAL;
 }
 
 std::ostream& StringLiteralExpression::format(std::ostream& os) const {
@@ -89,7 +89,7 @@ std::ostream& operator<<(std::ostream& os, const StringLiteralExpression& expres
 
 IdentifierExpression::IdentifierExpression(const Token identifier) {
     this->identifier = identifier;
-    this->type = EXPRESSION_IDENTIFIER;
+    this->type = ExpressionType::EXPRESSION_IDENTIFIER;
 }
 
 std::ostream& IdentifierExpression::format(std::ostream& os) const {
@@ -104,7 +104,7 @@ std::ostream& operator<<(std::ostream& os, const IdentifierExpression& expressio
 CallExpression::CallExpression(Expression* identifier, std::vector<Expression*> args) {
     this->identifier = identifier;
     this->args = args;
-    this->type = EXPRESSION_CALL;
+    this->type = ExpressionType::EXPRESSION_CALL;
 }
 
 std::ostream& CallExpression::format(std::ostream& os) const {
@@ -123,7 +123,7 @@ std::ostream& operator<<(std::ostream& os, const CallExpression& expression) {
 GetExpression::GetExpression(Expression* expression, Token member) {
     this->expression = expression;
     this->member= member;
-    this->type = EXPRESSION_GET;
+    this->type = ExpressionType::EXPRESSION_GET;
 }
 
 std::ostream& GetExpression::format(std::ostream& os) const {
@@ -138,7 +138,7 @@ std::ostream& operator<<(std::ostream& os, const GetExpression& expression) {
 NewExpression::NewExpression(Token identifier, std::vector<Expression*> expressions) {
     this->identifier = identifier;
     this->expressions = expressions;
-    this->type = EXPRESSION_NEW;
+    this->type = ExpressionType::EXPRESSION_NEW;
 }
 
 std::ostream& NewExpression::format(std::ostream& os) const {
@@ -148,4 +148,23 @@ std::ostream& NewExpression::format(std::ostream& os) const {
 
 std::ostream& operator<<(std::ostream& os, const NewExpression& expression) {
     return expression.format(os);
+}
+
+std::ostream& TypeExpression::format(std::ostream& os) const {
+    os << "()";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const TypeExpression& expression) {
+    return expression.format(os);
+}
+
+IdentifierTypeExpression::IdentifierTypeExpression(Token identifier) {
+    this->identifier = identifier;
+    this->type = TypeExpressionType::TYPE_IDENTIFIER;
+}
+PointerTypeExpression::
+PointerTypeExpression(TypeExpression* pointer_of) {
+    this->pointer_of = pointer_of;
+    this->type = TypeExpressionType::TYPE_POINTER;
 }

@@ -18,24 +18,30 @@ struct StringLiteralExpression;
 struct Expression;
 struct File;
 
-struct TypedStatement;
-struct TypedLetStatement;
-struct TypedScopeStatement;
-struct TypedStructStatement;
-struct TypedFnStatement;
-struct TypedLoopStatement;
-struct TypedInsertStatement;
-struct TypedReturnStatement;
-struct TypedBreakStatement;
-struct TypedExpressionStatement;
-struct TypedAssigmentStatement;
-struct TypedIntLiteralExpression;
-struct TypedStringLiteralExpression;
-struct TypedExpression;
-struct TypedIdentifierExpression;
+struct TypeCheckedStatement;
+struct TypeCheckedLetStatement;
+struct TypeCheckedScopeStatement;
+struct TypeCheckedStructStatement;
+struct TypeCheckedIdentifierExpression;
+struct TypeCheckedFnStatement;
+struct TypeCheckedLoopStatement;
+struct TypeCheckedInsertStatement;
+struct TypeCheckedReturnStatement;
+struct TypeCheckedBreakStatement;
+struct TypeCheckedExpressionStatement;
+struct TypeCheckedAssigmentStatement;
+
+struct TypeCheckedIntLiteralExpression;
+struct TypeCheckedStringLiteralExpression;
+struct TypeCheckedExpression;
+
+struct TypeCheckedTypeExpression;
+struct TypeCheckedIdentifierTypeExpression;
+struct TypeCheckedPointerTypeExpression;
+
 struct TypedFile;
 
-typedef std::vector<std::tuple<Token, TypedExpression*>> Typed_CSV;
+typedef std::vector<std::tuple<Token, TypeCheckedExpression*>> Typed_CSV;
 
 enum TypeInfoType {
 	VOID,
@@ -83,166 +89,185 @@ struct StructTypeInfo : TypeInfo {
 };
 
 struct SymbolTable {
-	std::map<std::string, TypeInfo*> builtin_type_table;
-	std::map<std::string, TypeInfo*> type_table;
-	std::map<std::string, TypeInfo*> identifier_table;
+	std::map<std::string, TypeInfo*> builtin_type_table; // u64 string...
+	std::map<std::string, TypeInfo*> type_table;         // structs
+	std::map<std::string, TypeInfo*> identifier_table;   // variables or funcs
 
 	SymbolTable();
 	 
 	void add_type(Token type, TypeInfo* type_info);
 	void add_identifier(Token identifier, TypeInfo* type_info);
+    TypeInfo* get_type(Token* identifier);
 };
 
-struct TypedStatement {
+struct TypeCheckedStatement {
 	StatementType statement_type;
 	virtual void print();
 };
 
-struct TypedLetStatement: TypedStatement {
+struct TypeCheckedLetStatement: TypeCheckedStatement {
 	Token identifier;
-	TypedExpression* type_expression;
-	TypedExpression* expression;
+    TypeCheckedTypeExpression* type_expression;
+	TypeCheckedExpression* expression;
 
-	TypedLetStatement(Token identifier, TypedExpression* type_expression, TypedExpression* expression);
+	TypeCheckedLetStatement(Token identifier, TypeCheckedTypeExpression* type_expression, TypeCheckedExpression* expression);
 };
 
-struct TypedScopeStatement : TypedStatement {
-	std::vector<TypedStatement*> statements;
+struct TypeCheckedScopeStatement : TypeCheckedStatement {
+	std::vector<TypeCheckedStatement*> statements;
 
-	TypedScopeStatement(std::vector<TypedStatement*> statements);
+    TypeCheckedScopeStatement(std::vector<TypeCheckedStatement*> statements);
 };
 
-struct TypedStructStatement : TypedStatement {
+struct TypeCheckedStructStatement : TypeCheckedStatement {
 	Token identifier;
 	Typed_CSV members;
 
-	TypedStructStatement(Token identifier, Typed_CSV members);
+    TypeCheckedStructStatement(Token identifier, Typed_CSV members);
 };
 
-struct TypedFnStatement : TypedStatement {
+struct TypeCheckedFnStatement : TypeCheckedStatement {
 	Token identifier;
 	Typed_CSV params;
-	TypedExpression* return_type;
-	TypedScopeStatement* body;
+	TypeCheckedExpression* return_type;
+    TypeCheckedScopeStatement* body;
 
-	TypedFnStatement(Token identifier, Typed_CSV params, TypedExpression* return_type, TypedScopeStatement* body);
+    TypeCheckedFnStatement(Token identifier, Typed_CSV params, TypeCheckedExpression* return_type, TypeCheckedScopeStatement* body);
 };
 
-struct TypedLoopStatement : TypedStatement {
+struct TypeCheckedLoopStatement : TypeCheckedStatement {
 	Token identifier;
-	TypedScopeStatement* body;
+    TypeCheckedScopeStatement* body;
 
-	TypedLoopStatement(Token identifier, TypedScopeStatement* body);
+    TypeCheckedLoopStatement(Token identifier, TypeCheckedScopeStatement* body);
 };
 
 
-struct TypedInsertStatement : TypedStatement {
-	TypedStringLiteralExpression* code;
+struct TypeCheckedInsertStatement : TypeCheckedStatement {
+    TypeCheckedStringLiteralExpression* code;
 
-	TypedInsertStatement(TypedStringLiteralExpression* code);
+    TypeCheckedInsertStatement(TypeCheckedStringLiteralExpression* code);
 };
 
-struct TypedReturnStatement : TypedStatement {
-	TypedExpression* expression;
+struct TypeCheckedReturnStatement : TypeCheckedStatement {
+	TypeCheckedExpression* expression;
 
-	TypedReturnStatement(TypedExpression* epxression);
+    TypeCheckedReturnStatement(TypeCheckedExpression* epxression);
 };
 
-struct TypedBreakStatement : TypedStatement {
+struct TypeCheckedBreakStatement : TypeCheckedStatement {
 	Token identifier;
 
-	TypedBreakStatement(Token identifier);
+    TypeCheckedBreakStatement(Token identifier);
 };
 
-struct TypedImportStatement : TypedStatement {
-	TypedExpression* file;
+struct TypeCheckedImportStatement : TypeCheckedStatement {
+	TypeCheckedExpression* file;
 
-	TypedImportStatement(TypedExpression* file);
+    TypeCheckedImportStatement(TypeCheckedExpression* file);
 };
 
-struct TypedExpressionStatement : TypedStatement {
-	TypedExpression* expression;
+struct TypeCheckedExpressionStatement : TypeCheckedStatement {
+	TypeCheckedExpression* expression;
 
-	TypedExpressionStatement(TypedExpression* expression);
+    TypeCheckedExpressionStatement(TypeCheckedExpression* expression);
 };
 
-struct TypedAssigmentStatement : TypedStatement {
+struct TypeCheckedAssigmentStatement : TypeCheckedStatement {
 	Token identifier;
-	TypedExpression* assigned_to;
+	TypeCheckedExpression* assigned_to;
 
-	TypedAssigmentStatement(Token identifier, TypedExpression* assigned_to);
+    TypeCheckedAssigmentStatement(Token identifier, TypeCheckedExpression* assigned_to);
 };
 
-struct TypedExpression {
+struct TypeCheckedExpression {
     ExpressionType type;
     TypeInfo* type_info;
 	virtual void print();
 };
 
-struct TypedBinaryExpression : TypedExpression {
-	TypedExpression* left;
+struct TypeCheckedBinaryExpression : TypeCheckedExpression {
+	TypeCheckedExpression* left;
 	Token op;
-	TypedExpression* right;
+	TypeCheckedExpression* right;
 
-	TypedBinaryExpression(TypedExpression* left, Token op, TypedExpression* right);
+    TypeCheckedBinaryExpression(TypeCheckedExpression* left, Token op, TypeCheckedExpression* right);
 };
 
-struct TypedUnaryExpression : TypedExpression {
+struct TypeCheckedUnaryExpression : TypeCheckedExpression {
 	Token op;
-	TypedExpression* expression;
+	TypeCheckedExpression* expression;
 
-	TypedUnaryExpression(TypedExpression* expression, Token op);
+    TypeCheckedUnaryExpression(TypeCheckedExpression* expression, Token op);
 };
 
-struct TypedIntLiteralExpression : TypedExpression {
+struct TypeCheckedIntLiteralExpression : TypeCheckedExpression {
 	Token token;
 
-	TypedIntLiteralExpression(Token token);
+    TypeCheckedIntLiteralExpression(Token token);
 };
 
-struct TypedCallExpression : TypedExpression {
+struct TypeCheckedCallExpression : TypeCheckedExpression {
 	// this is an expression but it must be a identifier
-	TypedIdentifierExpression* identifier;
-	std::vector<TypedExpression*> args;
+    TypeCheckedIdentifierExpression* identifier;
+	std::vector<TypeCheckedExpression*> args;
 
-	TypedCallExpression(TypedIdentifierExpression* identifier, std::vector<TypedExpression*> args);
+    TypeCheckedCallExpression(TypeCheckedIdentifierExpression* identifier, std::vector<TypeCheckedExpression*> args);
 };
 
-struct TypedIdentifierExpression : TypedExpression {
+struct TypeCheckedIdentifierExpression : TypeCheckedExpression {
 	Token identifier;
 
-	TypedIdentifierExpression(Token identifier, TypeInfo* type_info);
+    TypeCheckedIdentifierExpression(Token identifier, TypeInfo* type_info);
 };
 
-struct TypedStringLiteralExpression : TypedExpression {
+struct TypeCheckedStringLiteralExpression : TypeCheckedExpression {
 	Token token;
 
-	TypedStringLiteralExpression(Token token);
+    TypeCheckedStringLiteralExpression(Token token);
 };
 
-struct TypedGetExpression : TypedExpression {
+struct TypeCheckedGetExpression : TypeCheckedExpression {
 	// this is an expression but it must be a identifier
-	TypedExpression* expression;
+	TypeCheckedExpression* expression;
 	Token member;
 
-	TypedGetExpression(TypedExpression* expression, Token member);
+    TypeCheckedGetExpression(TypeCheckedExpression* expression, Token member);
 };
 
-struct TypedNewExpression : TypedExpression {
+struct TypeCheckedNewExpression : TypeCheckedExpression {
 	Token identifier;
-	std::vector<TypedExpression*> expressions;
+	std::vector<TypeCheckedExpression*> expressions;
 
-	TypedNewExpression(Token identifier, std::vector<TypedExpression*> expressions);
+    TypeCheckedNewExpression(Token identifier, std::vector<TypeCheckedExpression*> expressions);
 };
 
-struct TypedArrayExpression : TypedExpression {
-    std::vector<TypedExpression*> expressions;
+struct TypeCheckedArrayExpression : TypeCheckedExpression {
+    std::vector<TypeCheckedExpression*> expressions;
 
-    TypedArrayExpression(std::vector<TypedExpression*> expressions);
+    TypeCheckedArrayExpression(std::vector<TypeCheckedExpression*> expressions);
+};
+
+struct TypeCheckedTypeExpression {
+    TypeExpressionType type;
+    TypeInfo* type_info = nullptr;
+    virtual void print();
+};
+
+struct TypeCheckedIdentifierTypeExpression : TypeCheckedTypeExpression {
+    Token identifier;
+
+    TypeCheckedIdentifierTypeExpression(Token identifier);
+};
+
+struct TypeCheckedPointerTypeExpression : TypeCheckedTypeExpression {
+    TypeCheckedTypeExpression* pointer_of;
+
+    TypeCheckedPointerTypeExpression(TypeCheckedTypeExpression* pointer_of);
 };
 
 struct TypedFile {
-	std::vector<TypedStatement*> statements;
+	std::vector<TypeCheckedStatement*> statements;
 };
 
 struct TypeChecker {
@@ -252,29 +277,33 @@ struct TypeChecker {
 	TypeChecker();
 
 	void type_file(File* file);
-	TypedStatement* type_statement(Statement* statement, SymbolTable* symbol_table);
-	TypedInsertStatement* type_insert_statement(InsertStatement* statement, SymbolTable* symbol_table);
-	TypedReturnStatement* type_return_statement(ReturnStatement* statement, SymbolTable* symbol_table);
-	TypedBreakStatement* type_break_statement(BreakStatement* statement, SymbolTable* symbol_table);
-	TypedImportStatement* type_import_statement(ImportStatement* statement, SymbolTable* symbol_table);
-	TypedLetStatement* type_let_statement(LetStatement* statement, SymbolTable* symbol_table);
-	TypedScopeStatement* type_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table = true);
-	TypedFnStatement* type_fn_statement(FnStatement* statement, SymbolTable* symbol_table);
-	TypedLoopStatement* type_loop_statement(LoopStatement* statement, SymbolTable* symbol_table);
-	TypedStructStatement* type_struct_statement(StructStatement* statement, SymbolTable* symbol_table);
-	TypedAssigmentStatement* type_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table);
-	TypedExpressionStatement* type_expression_statement(ExpressionStatement* statement, SymbolTable* symbol_table);
+	TypeCheckedStatement* type_check_statement(Statement* statement, SymbolTable* symbol_table);
+    TypeCheckedInsertStatement* type_check_insert_statement(InsertStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedReturnStatement* type_check_return_statement(ReturnStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedBreakStatement* type_check_break_statement(BreakStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedImportStatement* type_check_import_statement(ImportStatement* statement, SymbolTable* symbol_table);
+	TypeCheckedLetStatement* type_check_let_statement(LetStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedScopeStatement* type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table = true);
+    TypeCheckedFnStatement* type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedLoopStatement* type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedStructStatement* type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedAssigmentStatement* type_check_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedExpressionStatement* type_check_expression_statement(ExpressionStatement* statement, SymbolTable* symbol_table);
 
-	TypedExpression* type_expression(Expression* expression, SymbolTable* symbol_table);
-	TypedBinaryExpression* type_binary_expression(BinaryExpression* expression, SymbolTable* symbol_table);
-	TypedStringLiteralExpression* type_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table);
-	TypedIntLiteralExpression* type_int_literal_expression(IntLiteralExpression* expression, SymbolTable* symbol_table);
-	TypedUnaryExpression* type_unary_expression(UnaryExpression* expression, SymbolTable* symbol_table);
-	TypedCallExpression* type_call_expression(CallExpression* expression, SymbolTable* symbol_table);
-	TypedIdentifierExpression* type_identifier_expression(IdentifierExpression* expression, SymbolTable* symbol_table);
-	TypedGetExpression* type_get_expression(GetExpression* expression, SymbolTable* symbol_table);
-    TypedNewExpression* type_new_expression(NewExpression* expression, SymbolTable* symbol_table);
-    TypedArrayExpression* type_array_expression(ArrayExpression* expression, SymbolTable* symbol_table);
+	TypeCheckedExpression* type_check_expression(Expression* expression, SymbolTable* symbol_table);
+    TypeCheckedIdentifierExpression* type_check_identifier_expression(IdentifierExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedBinaryExpression* type_check_binary_expression(BinaryExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedStringLiteralExpression* type_check_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedIntLiteralExpression* type_check_int_literal_expression(IntLiteralExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedUnaryExpression* type_check_unary_expression(UnaryExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedCallExpression* type_check_call_expression(CallExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedGetExpression* type_check_get_expression(GetExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedNewExpression* type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedArrayExpression* type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_table);
+
+    TypeCheckedTypeExpression* type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_table);
+    TypeCheckedIdentifierTypeExpression* type_check_identifier_type_expression(IdentifierTypeExpression* type_expression, SymbolTable* symbol_table);
+    TypeCheckedPointerTypeExpression* type_check_pointer_type_expression(PointerTypeExpression* type_expression, SymbolTable* symbol_table);
 };
 
 bool type_match(TypeInfo* a, TypeInfo* b);

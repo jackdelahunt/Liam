@@ -42,9 +42,9 @@ std::ostream& operator<<(std::ostream& os, const ExpressionStatement& statement)
 struct LetStatement : Statement {
     Token identifier;
     Expression* expression;
-    Expression* type;
+    TypeExpression* type;
 
-    LetStatement(Token identifier, Expression* expression, Expression* type);
+    LetStatement(Token identifier, Expression* expression, TypeExpression* type);
     std::ostream& format(std::ostream& os) const;
 };
 

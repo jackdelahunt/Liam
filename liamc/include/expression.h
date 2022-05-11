@@ -2,7 +2,7 @@
 #include "lexer.h"
 #include "liam.h"
 
-enum ExpressionType {
+enum class ExpressionType {
     EXPRESSION_BINARY,
     EXPRESSION_UNARY,
     EXPRESSION_INT_LITERAL,
@@ -107,3 +107,25 @@ struct NewExpression : Expression {
 };
 
 std::ostream& operator<<(std::ostream& os, const NewExpression& expression);
+
+enum class TypeExpressionType {
+    TYPE_IDENTIFIER,
+    TYPE_POINTER,
+};
+
+struct TypeExpression {
+    TypeExpressionType type;
+    virtual std::ostream& format(std::ostream& os) const;
+};
+
+struct IdentifierTypeExpression : TypeExpression {
+    Token identifier;
+
+    IdentifierTypeExpression(Token identifier);
+};
+
+struct PointerTypeExpression : TypeExpression {
+    TypeExpression* pointer_of;
+
+    PointerTypeExpression(TypeExpression* pointer_of);
+};

@@ -19,6 +19,8 @@ struct BreakStatement;
 struct ExpressionStatement;
 struct AssigmentStatement;
 struct Expression;
+struct TypeExpression;
+struct IdentifierTypeExpression;
 
 struct File {
     std::vector<Statement*> statements;
@@ -34,6 +36,8 @@ struct Parser {
     Parser(std::vector<Token>& tokens);
 
     void parse();
+
+    /* statements */
     Statement* eval_statement();
     LetStatement* eval_let_statement();
     ScopeStatement* eval_scope_statement();
@@ -47,6 +51,8 @@ struct Parser {
     ImportStatement* eval_import_statement();
     ExpressionStatement* eval_expression_statement();
     AssigmentStatement* eval_assigment_statement();
+
+    /* normal expressions */
     Expression* eval_expression();
     Expression* eval_term();
     Expression* eval_factor();
@@ -56,6 +62,12 @@ struct Parser {
     Expression* eval_array();
     Expression* eval_primary();
     Expression* eval_new_expression();
+
+    /* type expressions */
+    TypeExpression* eval_type_expression();
+    IdentifierTypeExpression* eval_identifier_type_expression();
+    PointerTypeExpression* eval_pointer_type_expression();
+
     bool match(TokenType type);
     Token* peek(int offset = 0);
     Token* consume_token();

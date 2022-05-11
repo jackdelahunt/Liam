@@ -101,7 +101,7 @@ LetStatement* Parser::eval_let_statement() {
     // might be walrus or explicit type
     if(peek(0)->type == TOKEN_COLON) {
         consume_token_of_type(TOKEN_COLON);
-        Expression* type = eval_expression();
+        auto type = eval_type_expression();
         consume_token_of_type(TOKEN_EQUAL);
         auto expression = eval_expression_statement()->expression;
         return new LetStatement(*identifier, expression, type);
@@ -331,6 +331,30 @@ Expression* Parser::eval_new_expression() {
     auto expressions = consume_arguments(TOKEN_BRACE_CLOSE);
     consume_token_of_type(TOKEN_BRACE_CLOSE);
     return new NewExpression(*identifier, expressions);
+}
+
+TypeExpression* Parser::eval_type_expression() {
+    switch (peek()->type)
+    {
+        case TOKEN_IDENTIFIER: return eval_identifier_type_expression(); break;
+        case TOKEN_HAT: return eval_pointer_type_expression(); break;
+        default:
+            panic("Cannot parse token as the begining of a type expression");
+            break;
+    }
+}
+
+IdentifierTypeExpression* Parser::
+eval_identifier_type_expression() {
+    auto identifier = consume_token_of_type(TOKEN_IDENTIFIER);
+    return new IdentifierTypeExpression(*identifier);
+}
+
+PointerTypeExpression* Parser::
+eval_pointer_type_expression() {
+    consume_token_of_type(TOKEN_HAT);
+    auto pointer_of = eval_type_expression();
+    return new PointerTypeExpression(pointer_of);
 }
 
 bool Parser::match(TokenType type) {
