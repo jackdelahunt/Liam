@@ -111,6 +111,7 @@ std::ostream& operator<<(std::ostream& os, const NewExpression& expression);
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_POINTER,
+    TYPE_ARRAY,
 };
 
 struct TypeExpression {
@@ -128,4 +129,10 @@ struct PointerTypeExpression : TypeExpression {
     TypeExpression* pointer_of;
 
     PointerTypeExpression(TypeExpression* pointer_of);
+};
+
+struct ArrayTypeExpression : TypeExpression {
+    TypeExpression* array_of;
+
+    ArrayTypeExpression(TypeExpression* array_of);
 };

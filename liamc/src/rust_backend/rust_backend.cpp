@@ -93,7 +93,7 @@ std::string RustBackend::emit_statement(TypeCheckedStatement* statement) {
 }
 
 std::string RustBackend::emit_insert_statement(TypeCheckedInsertStatement* statement) {
-    return statement->code->token.string;
+    return statement->code->token.string + "\n";
 }
 
 std::string RustBackend::emit_return_statement(TypeCheckedReturnStatement* statement) {
@@ -263,6 +263,13 @@ std::string RustBackend::emit_expression(TypeCheckedExpression* expression) {
 		}
 	}
 
+    {
+        auto ptr = dynamic_cast<TypeCheckedArrayExpression*>(expression);
+        if (ptr) {
+            return emit_array_expression(ptr);
+        }
+    }
+
 	// given empty expression
 	return "";
 }
@@ -331,11 +338,8 @@ std::string RustBackend::emit_unary_expression(TypeCheckedUnaryExpression* expre
 	// let a: u64^ = @x;
 	// let b: u64 = *a;
 
-	if (expression->op.type == TOKEN_HAT) {
-		return "*const " + emit_expression(expression->expression);
-	}
-	else if (expression->op.type == TOKEN_AT) {
-		return "&" + emit_expression(expression->expression);
+	if (expression->op.type == TOKEN_AT) {
+		return "&mut " + emit_expression(expression->expression);
 	}
 	else if (expression->op.type == TOKEN_STAR) {
 		return emit_expression(expression->expression) + ".read()";
@@ -369,12 +373,32 @@ std::string RustBackend::emit_new_expression(TypeCheckedNewExpression* expressio
 }
 
 std::string RustBackend::
+emit_array_expression(TypeCheckedArrayExpression* expression) {
+    std::string source = "vec![";
+    int index = 0;
+    for (auto expr : expression->expressions) {
+        source.append(emit_cloneable_expression(expr));
+        index++;
+        if (index < expression->expressions.size()) {
+            source.append(", ");
+        }
+    }
+    source.append("]");
+
+    return source;
+}
+
+std::string RustBackend::
 emit_type_expression(TypeCheckedTypeExpression *type_expression) {
     switch (type_expression->type) {
         case TypeExpressionType::TYPE_IDENTIFIER:
             return emit_identifier_type_expression(dynamic_cast<TypeCheckedIdentifierTypeExpression*>(type_expression)); break;
         case TypeExpressionType::TYPE_POINTER:
             return emit_pointer_type_expression(dynamic_cast<TypeCheckedPointerTypeExpression*>(type_expression)); break;
+        case TypeExpressionType::TYPE_ARRAY:
+            return emit_array_type_expression(dynamic_cast<TypeCheckedArrayTypeExpression*>(type_expression)); break;
+        default:
+            panic("Rust back end does not support this type expression");
     }
 }
 
@@ -385,5 +409,9 @@ emit_identifier_type_expression(TypeCheckedIdentifierTypeExpression* type_expres
 
 std::string RustBackend::
 emit_pointer_type_expression(TypeCheckedPointerTypeExpression* type_expression) {
-    return "&" + emit_type_expression(type_expression->pointer_of);
+    return "*mut " + emit_type_expression(type_expression->pointer_of);
+}
+std::string RustBackend::
+emit_array_type_expression(TypeCheckedArrayTypeExpression* type_expression) {
+    return "Vec<" + emit_type_expression(type_expression->array_of) + ">";
 }

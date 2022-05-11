@@ -29,7 +29,6 @@ char* TokenTypeStrings[29] = {
     ":=",
     "[",
     "]",
-    "..",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -139,12 +138,6 @@ void Lexer::lex(const char* path) {
             tokens.emplace_back(Token(TokenType::TOKEN_AT, "@", current_line, current_character));
             break;
         case '.':
-            if(peek() == '.') {
-                next_char();
-                tokens.emplace_back(TokenType::TOKEN_RANGE, "..", current_line, current_character);
-                break;
-            }
-
             tokens.emplace_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
             break;
         case '#':

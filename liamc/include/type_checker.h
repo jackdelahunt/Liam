@@ -266,6 +266,12 @@ struct TypeCheckedPointerTypeExpression : TypeCheckedTypeExpression {
     TypeCheckedPointerTypeExpression(TypeCheckedTypeExpression* pointer_of);
 };
 
+struct TypeCheckedArrayTypeExpression : TypeCheckedTypeExpression {
+    TypeCheckedTypeExpression* array_of;
+
+    TypeCheckedArrayTypeExpression(TypeCheckedTypeExpression* array_of);
+};
+
 struct TypedFile {
 	std::vector<TypeCheckedStatement*> statements;
 };
@@ -304,6 +310,7 @@ struct TypeChecker {
     TypeCheckedTypeExpression* type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_table);
     TypeCheckedIdentifierTypeExpression* type_check_identifier_type_expression(IdentifierTypeExpression* type_expression, SymbolTable* symbol_table);
     TypeCheckedPointerTypeExpression* type_check_pointer_type_expression(PointerTypeExpression* type_expression, SymbolTable* symbol_table);
+    TypeCheckedArrayTypeExpression* type_check_array_type_expression(ArrayTypeExpression* type_expression, SymbolTable* symbol_table);
 };
 
 bool type_match(TypeInfo* a, TypeInfo* b);

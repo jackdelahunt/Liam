@@ -201,6 +201,11 @@ TypeCheckedPointerTypeExpression(TypeCheckedTypeExpression* pointer_of) {
     this->pointer_of = pointer_of;
     this->type = TypeExpressionType::TYPE_POINTER;
 }
+TypeCheckedArrayTypeExpression::
+TypeCheckedArrayTypeExpression(TypeCheckedTypeExpression* array_of) {
+    this->array_of = array_of;
+    this->type = TypeExpressionType::TYPE_ARRAY;
+}
 
 TypeChecker::
 TypeChecker() {
@@ -470,7 +475,7 @@ type_check_unary_expression(UnaryExpression* expression, SymbolTable* symbol_tab
 	auto typed_expression = type_check_expression(expression->expression, symbol_table);
 
 	TypeInfo* type_info;
-	if (expression->op.type == TOKEN_AT || expression->op.type == TOKEN_HAT) {
+	if (expression->op.type == TOKEN_AT) {
 		type_info = new PointerTypeInfo{ POINTER, typed_expression->type_info };
 	}
 	else if(expression->op.type == TOKEN_STAR) {
@@ -481,9 +486,6 @@ type_check_unary_expression(UnaryExpression* expression, SymbolTable* symbol_tab
 		auto ptr_type = static_cast<PointerTypeInfo*>(typed_expression->type_info);
 		type_info = ptr_type->to;
 	}
-    else if(expression->op.type == TOKEN_RANGE) {
-        type_info = new ArrayTypeInfo{ARRAY, typed_expression->type_info};
-    }
 	else {
 		panic("Unrecognised unary operator");
 		return nullptr;
@@ -655,6 +657,11 @@ type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_
             return type_check_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression), symbol_table); break;
         case TypeExpressionType::TYPE_POINTER:
             return type_check_pointer_type_expression(dynamic_cast<PointerTypeExpression *>(type_expression), symbol_table); break;
+        case TypeExpressionType::TYPE_ARRAY:
+            return type_check_array_type_expression(dynamic_cast<ArrayTypeExpression *>(type_expression), symbol_table); break;
+        default:
+            panic("Not implemented for type checker");
+            return nullptr;
     }
 }
 
@@ -678,6 +685,15 @@ type_check_pointer_type_expression(PointerTypeExpression* type_expression, Symbo
     auto info = new PointerTypeInfo{ POINTER, typed_pointer_of->type_info };
     typed_pointer_expression->type_info = info;
     return typed_pointer_expression;
+}
+
+TypeCheckedArrayTypeExpression* TypeChecker::
+type_check_array_type_expression(ArrayTypeExpression* type_expression, SymbolTable* symbol_table) {
+    auto array_of = type_check_type_expression(type_expression->array_of, symbol_table);
+    auto typed_expression = new TypeCheckedArrayTypeExpression(array_of);
+    auto info = new ArrayTypeInfo{ARRAY, array_of->type_info};
+    typed_expression->type_info = info;
+    return typed_expression;
 }
 
 bool type_match(TypeInfo* a, TypeInfo* b) {
@@ -732,7 +748,13 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 
 		if (ptr_a->to->type == VOID) return true; // void^ can be equal to T^, not other way around
 		return ptr_a->to->type == ptr_b->to->type;
-	}
+	} else if (a->type == ARRAY) {
+        auto ptr_a = static_cast<ArrayTypeInfo*>(a);
+        auto ptr_b = static_cast<ArrayTypeInfo*>(b);
 
+        return type_match(ptr_a->array_type, ptr_b->array_type);
+    }
+
+    panic("Cannot type check this type info");
     return false;
 }

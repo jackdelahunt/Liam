@@ -31,9 +31,11 @@ struct RustBackend {
 	std::string emit_call_expression(TypeCheckedCallExpression* expression);
 	std::string emit_identifier_expression(TypeCheckedIdentifierExpression* expression);
 	std::string emit_get_expression(TypeCheckedGetExpression* expression);
-	std::string emit_new_expression(TypeCheckedNewExpression* expression);
+    std::string emit_new_expression(TypeCheckedNewExpression* expression);
+    std::string emit_array_expression(TypeCheckedArrayExpression* expression);
 
     std::string emit_type_expression(TypeCheckedTypeExpression* type_expression);
     std::string emit_identifier_type_expression(TypeCheckedIdentifierTypeExpression* type_expression);
     std::string emit_pointer_type_expression(TypeCheckedPointerTypeExpression* type_expression);
+    std::string emit_array_type_expression(TypeCheckedArrayTypeExpression* type_expression);
 };

@@ -57,7 +57,6 @@ struct Parser {
     Expression* eval_term();
     Expression* eval_factor();
     Expression* eval_unary();
-    Expression* eval_postfix();
     Expression* eval_call();
     Expression* eval_array();
     Expression* eval_primary();
@@ -67,6 +66,7 @@ struct Parser {
     TypeExpression* eval_type_expression();
     IdentifierTypeExpression* eval_identifier_type_expression();
     PointerTypeExpression* eval_pointer_type_expression();
+    ArrayTypeExpression* eval_array_type_expression();
 
     bool match(TokenType type);
     Token* peek(int offset = 0);

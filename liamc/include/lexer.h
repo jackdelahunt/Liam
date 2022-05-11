@@ -35,7 +35,6 @@ enum TokenType {
     TOKEN_WALRUS            = 25,
     TOKEN_BRACKET_OPEN      = 26,
     TOKEN_BRACKET_CLOSE     = 27,
-    TOKEN_RANGE             = 28,
 };
 
 extern char* TokenTypeStrings[29];

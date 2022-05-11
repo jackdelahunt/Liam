@@ -254,23 +254,13 @@ Expression* Parser::eval_factor() {
 }
 
 Expression* Parser::eval_unary() {  
-    if (match(TOKEN_HAT) || match(TOKEN_AT) || match(TOKEN_STAR)) {
+    if (match(TOKEN_AT) || match(TOKEN_STAR)) {
         auto op = consume_token();
         auto expr = eval_unary();
         return new UnaryExpression(expr, *op);
     }
 
-    return eval_postfix();
-}
-
-Expression* Parser::eval_postfix() {
-    auto expr = eval_call();
-    if (match(TOKEN_RANGE)) {
-        // return new ArrayExpression(expr, );
-        // TODO: continue here
-    }
-
-    return expr;
+    return eval_call();
 }
 
 Expression* Parser::eval_call() {
@@ -338,6 +328,7 @@ TypeExpression* Parser::eval_type_expression() {
     {
         case TOKEN_IDENTIFIER: return eval_identifier_type_expression(); break;
         case TOKEN_HAT: return eval_pointer_type_expression(); break;
+        case TOKEN_BRACKET_OPEN: return eval_array_type_expression(); break;
         default:
             panic("Cannot parse token as the begining of a type expression");
             break;
@@ -355,6 +346,14 @@ eval_pointer_type_expression() {
     consume_token_of_type(TOKEN_HAT);
     auto pointer_of = eval_type_expression();
     return new PointerTypeExpression(pointer_of);
+}
+
+ArrayTypeExpression* Parser::
+eval_array_type_expression() {
+    consume_token_of_type(TOKEN_BRACKET_OPEN);
+    auto array_of = eval_type_expression();
+    consume_token_of_type(TOKEN_BRACKET_CLOSE);
+    return new ArrayTypeExpression(array_of);
 }
 
 bool Parser::match(TokenType type) {

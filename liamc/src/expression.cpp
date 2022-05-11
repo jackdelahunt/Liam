@@ -168,3 +168,9 @@ PointerTypeExpression(TypeExpression* pointer_of) {
     this->pointer_of = pointer_of;
     this->type = TypeExpressionType::TYPE_POINTER;
 }
+
+ArrayTypeExpression::
+ArrayTypeExpression(TypeExpression *array_of) {
+    this->array_of = array_of;
+    this->type = TypeExpressionType::TYPE_ARRAY;
+}
