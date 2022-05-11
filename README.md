@@ -43,15 +43,20 @@ fn func_name(param: type): return_type {}
 
 ### Structs
 ```rust
-struct {
+struct struct_name {
     member1: type,
     member2: type
 }
 ```
 
+### Array
+```rust
+let arr : [type] = [...];
+```
+
 ### Pointers
 ```rust
-let x_ptr: type^ = @x;
+let x_ptr: ^type = @x;
 let y: type = *x_ptr;
 ```
 
