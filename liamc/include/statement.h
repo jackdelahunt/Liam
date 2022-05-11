@@ -7,7 +7,7 @@
 struct Expression;
 struct Token;
 
-typedef std::vector<std::tuple<Token, Expression*>> CSV;
+typedef std::vector<std::tuple<Token, TypeExpression*>> CSV;
 
 enum StatementType {
     STATEMENT_EXPRESSION,
@@ -62,10 +62,10 @@ std::ostream& operator<<(std::ostream& os, const ScopeStatement& statement);
 struct FnStatement : Statement {
     Token identifier;
     CSV params;
-    Expression* type;
+    TypeExpression* type;
     ScopeStatement* body;
 
-    FnStatement(Token identifier, CSV params, Expression* type, ScopeStatement* body);
+    FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body);
     std::ostream& format(std::ostream& os) const;
 };
 

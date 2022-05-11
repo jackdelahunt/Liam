@@ -44,7 +44,7 @@ std::ostream& operator<<(std::ostream& os, const LetStatement& statement)
     return statement.format(os);
 }
 
-FnStatement::FnStatement(Token identifier, CSV params, Expression* type, ScopeStatement* body) {
+FnStatement::FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body) {
     this->identifier = identifier;
     this->type = type;
     this->params = params;

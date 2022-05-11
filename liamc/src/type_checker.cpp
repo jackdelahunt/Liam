@@ -73,7 +73,7 @@ TypeCheckedStructStatement(Token identifier, Typed_CSV members) {
 }
 
 TypeCheckedFnStatement::
-TypeCheckedFnStatement(Token identifier, Typed_CSV params, TypeCheckedExpression* return_type, TypeCheckedScopeStatement* body) {
+TypeCheckedFnStatement(Token identifier, Typed_CSV params, TypeCheckedTypeExpression* return_type, TypeCheckedScopeStatement* body) {
 	this->identifier = identifier;
 	this->params = params;
 	this->return_type = return_type;
@@ -318,14 +318,14 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
 	auto param_type_infos = std::vector<TypeInfo*>();
 	Typed_CSV t_csv = Typed_CSV();
 	for (auto& [identifier, expr] : statement->params) {
-		auto p = type_check_expression(expr, symbol_table);
+		auto p = type_check_type_expression(expr, symbol_table);
 		param_type_infos.push_back(p->type_info);
 		t_csv.push_back({identifier, p});
 	}
 
-	auto return_expresion = type_check_expression(statement->type, symbol_table);
+	auto return_expression = type_check_type_expression(statement->type, symbol_table);
 
-	symbol_table->add_identifier(statement->identifier, new FnTypeInfo{FN, return_expresion->type_info, param_type_infos});
+	symbol_table->add_identifier(statement->identifier, new FnTypeInfo{FN, return_expression->type_info, param_type_infos});
 
 	SymbolTable copied_symbol_table = *symbol_table;
 	for (auto& [identifier, expr] : t_csv) {
@@ -334,7 +334,7 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
 
     // type body and check return
     auto typed_body = type_check_scope_statement(statement->body, &copied_symbol_table, false);
-    if(return_expresion->type_info->type == VOID) {
+    if(return_expression->type_info->type == VOID) {
         for(auto stmt : typed_body->statements) {
             if(stmt->statement_type == STATEMENT_RETURN) {
                 panic("found return statement when return type is void");
@@ -346,7 +346,7 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
             if (stmt->statement_type == STATEMENT_RETURN) {
                 found_return = true;
                 auto return_statement = dynamic_cast<TypeCheckedReturnStatement*>(stmt);
-                if(!type_match(return_statement->expression->type_info, return_expresion->type_info)) {
+                if(!type_match(return_statement->expression->type_info, return_expression->type_info)) {
                     panic("Mismatch types in function, return types do not match");
                 }
             }
@@ -360,7 +360,7 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
 	return new TypeCheckedFnStatement(
             statement->identifier,
             t_csv,
-            type_check_expression(statement->type, symbol_table),
+            type_check_type_expression(statement->type, symbol_table),
             typed_body
 	);
 }
@@ -376,7 +376,7 @@ type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_tabl
 	auto members = Typed_CSV();
 	auto members_type_info = std::vector<std::tuple<std::string, TypeInfo*>>();
 	for (auto& [member, expr] : statement->members) {
-		auto expression = type_check_expression(expr, symbol_table);
+		auto expression = type_check_type_expression(expr, symbol_table);
 		members.push_back({member, expression});
 		members_type_info.push_back({member.string, expression->type_info});
 	}

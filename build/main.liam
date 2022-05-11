@@ -1,6 +1,11 @@
 import "/home/jackdelahunt/Projects/Liam/build/std.liam";
 
+struct Person {
+    name: string,
+    age: u64
+}
+
 fn main(): void {
-    let y: u64 = 10;
-    let x: ^u64 = @y;
+    let p := new Person{"jack", 21};
+    print(@p.name);
 }

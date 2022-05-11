@@ -135,7 +135,7 @@ std::string RustBackend::emit_fn_statement(TypeCheckedFnStatement* statement) {
 	
 	int index = 0;
 	for (auto& [identifier, type] : statement->params) {
-		fn_source.append(identifier.string + ": " + emit_expression(type));
+		fn_source.append(identifier.string + ": " + emit_type_expression(type));
 		index++;
 		if (index < statement->params.size()) {
 			fn_source.append(", ");
@@ -143,7 +143,7 @@ std::string RustBackend::emit_fn_statement(TypeCheckedFnStatement* statement) {
 	}
 	fn_source.append(")");
 
-	fn_source.append(" -> " + emit_expression(statement->return_type) + " ");
+	fn_source.append(" -> " + emit_type_expression(statement->return_type) + " ");
 
 	fn_source.append(emit_scope_statement(statement->body));
 
@@ -163,7 +163,7 @@ std::string RustBackend::emit_struct_statement(TypeCheckedStructStatement* state
 	source.append("#[derive(Clone)]\n");
 	source.append("struct " + statement->identifier.string + "{\n");
 	for (auto& [identifier, type] : statement->members) {
-		source.append(identifier.string + ": " + emit_expression(type) + ",\n");
+		source.append(identifier.string + ": " + emit_type_expression(type) + ",\n");
 	}
 	source.append("\n}\n\n");
 
@@ -172,7 +172,7 @@ std::string RustBackend::emit_struct_statement(TypeCheckedStructStatement* state
     source.append(" fn new(");
     for (int i = 0; i < statement->members.size(); i++) {
         auto& [identifier, type] = statement->members.at(i);
-        source.append(identifier.string + ": " + emit_expression(type));
+        source.append(identifier.string + ": " + emit_type_expression(type));
 
         if(i + 1 < statement->members.size()) {
             source.append(", ");

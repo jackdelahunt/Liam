@@ -73,7 +73,7 @@ struct Parser {
     Token* consume_token();
     Token* consume_token_of_type(TokenType type);
     std::vector<Expression*> consume_arguments(TokenType closer);
-    std::vector<std::tuple<Token, Expression*>> consume_comma_seperated_values();
+    std::vector<std::tuple<Token, TypeExpression*>> consume_comma_seperated_values();
 
 };
 

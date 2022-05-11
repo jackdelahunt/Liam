@@ -41,7 +41,7 @@ struct TypeCheckedPointerTypeExpression;
 
 struct TypedFile;
 
-typedef std::vector<std::tuple<Token, TypeCheckedExpression*>> Typed_CSV;
+typedef std::vector<std::tuple<Token, TypeCheckedTypeExpression*>> Typed_CSV;
 
 enum TypeInfoType {
 	VOID,
@@ -129,10 +129,10 @@ struct TypeCheckedStructStatement : TypeCheckedStatement {
 struct TypeCheckedFnStatement : TypeCheckedStatement {
 	Token identifier;
 	Typed_CSV params;
-	TypeCheckedExpression* return_type;
+	TypeCheckedTypeExpression* return_type;
     TypeCheckedScopeStatement* body;
 
-    TypeCheckedFnStatement(Token identifier, Typed_CSV params, TypeCheckedExpression* return_type, TypeCheckedScopeStatement* body);
+    TypeCheckedFnStatement(Token identifier, Typed_CSV params, TypeCheckedTypeExpression* return_type, TypeCheckedScopeStatement* body);
 };
 
 struct TypeCheckedLoopStatement : TypeCheckedStatement {

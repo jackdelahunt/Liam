@@ -134,7 +134,7 @@ FnStatement* Parser::eval_fn_statement() {
     auto params = consume_comma_seperated_values();
     consume_token_of_type(TOKEN_PAREN_CLOSE);
     consume_token_of_type(TOKEN_COLON);
-    Expression* type = eval_expression();
+    auto type = eval_type_expression();
 
     auto body = eval_scope_statement();
 
@@ -407,8 +407,8 @@ std::vector<Expression*> Parser::consume_arguments(TokenType closer) {
     return args;
 }
 
-std::vector<std::tuple<Token, Expression*>> Parser::consume_comma_seperated_values() {
-    auto args_types = std::vector<std::tuple<Token, Expression*>>();
+std::vector<std::tuple<Token, TypeExpression*>> Parser::consume_comma_seperated_values() {
+    auto args_types = std::vector<std::tuple<Token, TypeExpression*>>();
     bool is_first = true;
     if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE)) {
         do {
@@ -416,9 +416,9 @@ std::vector<std::tuple<Token, Expression*>> Parser::consume_comma_seperated_valu
 
             auto arg = consume_token_of_type(TOKEN_IDENTIFIER);
             consume_token_of_type(TOKEN_COLON);
-            auto type = eval_expression();
+            auto type = eval_type_expression();
 
-            args_types.push_back(std::make_tuple(*arg, type));
+            args_types.emplace_back(*arg, type);
 
             if (is_first) is_first = false;
         } while (match(TOKEN_COMMA));
