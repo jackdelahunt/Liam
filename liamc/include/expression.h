@@ -12,6 +12,7 @@ enum class ExpressionType {
     EXPRESSION_GET,
     EXPRESSION_NEW,
     EXPRESSION_ARRAY,
+    EXPRESSION_ARRAY_SUBSCRIPT,
 };
 
 struct Expression {
@@ -27,53 +28,38 @@ struct BinaryExpression : Expression {
     Expression* right;
 
     BinaryExpression(Expression* left, Token op, Expression* right);
-    std::ostream& format(std::ostream& os) const;
 };
-
-std::ostream& operator<<(std::ostream& os, const BinaryExpression& expression);
 
 struct UnaryExpression : Expression {
     Token op;
     Expression* expression;
 
     UnaryExpression(Expression* expression, Token op);
-    std::ostream& format(std::ostream& os) const;
 };
 
 struct ArrayExpression : Expression {
     std::vector<Expression*> expressions;
 
     ArrayExpression(std::vector<Expression*> expressions);
-    std::ostream& format(std::ostream& os) const;
 };
-
-std::ostream& operator<<(std::ostream& os, const ArrayExpression& expression);
 
 struct IntLiteralExpression : Expression {
     Token token;
 
     IntLiteralExpression(const Token token);
-    std::ostream& format(std::ostream& os) const;
 };
-
-std::ostream& operator<<(std::ostream& os, const IntLiteralExpression& expression);
-
 
 struct StringLiteralExpression : Expression {
     Token token;
 
     StringLiteralExpression(const Token token);
-    std::ostream& format(std::ostream& os) const;
 };
 
 struct IdentifierExpression : Expression {
     Token identifier;
 
     IdentifierExpression(const Token identifier);
-    std::ostream& format(std::ostream& os) const;
 };
-
-std::ostream& operator<<(std::ostream& os, const IdentifierExpression& expression);
 
 struct CallExpression : Expression {
     // this is an expression but it must be a identifier
@@ -81,10 +67,7 @@ struct CallExpression : Expression {
     std::vector<Expression*> args;
 
     CallExpression(Expression* identifier, std::vector<Expression*> args);
-    std::ostream& format(std::ostream& os) const;
 };
-
-std::ostream& operator<<(std::ostream& os, const CallExpression& expression);
 
 struct GetExpression : Expression {
     // this is an expression but it must be a identifier
@@ -92,10 +75,7 @@ struct GetExpression : Expression {
     Token member;
 
     GetExpression(Expression* expression, Token member);
-    std::ostream& format(std::ostream& os) const;
 };
-
-std::ostream& operator<<(std::ostream& os, const GetExpression& expression);
 
 struct NewExpression : Expression {
     // this is an expression but it must be a identifier
@@ -103,10 +83,15 @@ struct NewExpression : Expression {
     std::vector<Expression*> expressions;
 
     NewExpression(Token identifier, std::vector<Expression*> expressions);
-    std::ostream& format(std::ostream& os) const;
 };
 
-std::ostream& operator<<(std::ostream& os, const NewExpression& expression);
+struct ArraySubscriptExpression : Expression {
+    // this is an expression but it must be a identifier
+    Expression* array;
+    Expression* subscript;
+
+    ArraySubscriptExpression(Expression* array, Expression* subscript);
+};
 
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,

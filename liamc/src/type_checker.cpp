@@ -188,6 +188,13 @@ TypeCheckedArrayExpression(std::vector<TypeCheckedExpression*> expressions) {
     this->type = ExpressionType::EXPRESSION_ARRAY;
 }
 
+TypeCheckedArraySubscriptExpression::
+TypeCheckedArraySubscriptExpression(TypeCheckedExpression* array, TypeCheckedExpression* subscript) {
+    this->array = array;
+    this->subscript = subscript;
+    this->type = ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT;
+}
+
 void TypeCheckedTypeExpression::
 print() {} // virtual function to keep compiler happy :^]
 
@@ -434,6 +441,8 @@ type_check_expression(Expression* expression, SymbolTable* symbol_table) {
             return type_check_new_expression(dynamic_cast<NewExpression*>(expression), symbol_table); break;
         case ExpressionType::EXPRESSION_ARRAY:
             return type_check_array_expression(dynamic_cast<ArrayExpression*>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT:
+            return type_check_array_subscript_expression(dynamic_cast<ArraySubscriptExpression*>(expression), symbol_table); break;
         default:
             panic("Not implemented");
             return nullptr;
@@ -648,6 +657,27 @@ type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_tab
     typed_array_expression->type_info = new ArrayTypeInfo{ARRAY, array_type};
 
     return typed_array_expression;
+}
+
+TypeCheckedArraySubscriptExpression* TypeChecker::
+type_check_array_subscript_expression(ArraySubscriptExpression* expression, SymbolTable* symbol_table) {
+    auto array = type_check_expression(expression->array, symbol_table);
+    auto subscript = type_check_expression(expression->subscript, symbol_table);
+
+    if(array->type_info->type != ARRAY) {
+        panic("Cannot subscript into non array value");
+        return nullptr;
+    }
+    auto array_type_info = static_cast<ArrayTypeInfo*>(array->type_info);
+
+    if(subscript->type_info->type != INT) {
+        panic("Cannot sub script array with non-int type");
+        return nullptr;
+    }
+
+    auto subscript_expression = new TypeCheckedArraySubscriptExpression(array, subscript);
+    subscript_expression->type_info = array_type_info->array_type;
+    return subscript_expression;
 }
 
 TypeCheckedTypeExpression* TypeChecker::

@@ -270,6 +270,13 @@ std::string RustBackend::emit_expression(TypeCheckedExpression* expression) {
         }
     }
 
+    {
+        auto ptr = dynamic_cast<TypeCheckedArraySubscriptExpression*>(expression);
+        if (ptr) {
+            return emit_array_subscript_expression(ptr);
+        }
+    }
+
 	// given empty expression
 	return "";
 }
@@ -385,6 +392,15 @@ emit_array_expression(TypeCheckedArrayExpression* expression) {
     }
     source.append("]");
 
+    return source;
+}
+
+std::string RustBackend::
+emit_array_subscript_expression(TypeCheckedArraySubscriptExpression* expression) {
+    std::string source = "(" + emit_expression(expression->array);
+    source.append("[");
+    source.append(emit_cloneable_expression(expression->subscript));
+    source.append("]).clone()");
     return source;
 }
 

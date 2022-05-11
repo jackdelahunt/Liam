@@ -248,6 +248,13 @@ struct TypeCheckedArrayExpression : TypeCheckedExpression {
     TypeCheckedArrayExpression(std::vector<TypeCheckedExpression*> expressions);
 };
 
+struct TypeCheckedArraySubscriptExpression : TypeCheckedExpression {
+    TypeCheckedExpression* array;
+    TypeCheckedExpression* subscript;
+
+    TypeCheckedArraySubscriptExpression(TypeCheckedExpression* array, TypeCheckedExpression* subscript);
+};
+
 struct TypeCheckedTypeExpression {
     TypeExpressionType type;
     TypeInfo* type_info = nullptr;
@@ -306,6 +313,7 @@ struct TypeChecker {
     TypeCheckedGetExpression* type_check_get_expression(GetExpression* expression, SymbolTable* symbol_table);
     TypeCheckedNewExpression* type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table);
     TypeCheckedArrayExpression* type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedArraySubscriptExpression* type_check_array_subscript_expression(ArraySubscriptExpression* expression, SymbolTable* symbol_table);
 
     TypeCheckedTypeExpression* type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_table);
     TypeCheckedIdentifierTypeExpression* type_check_identifier_type_expression(IdentifierTypeExpression* type_expression, SymbolTable* symbol_table);

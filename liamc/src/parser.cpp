@@ -80,11 +80,8 @@ Statement* Parser::eval_statement() {
         if (peek(1)->type == TOKEN_EQUAL) {
             return eval_assigment_statement();
         }
-
-        return eval_expression_statement();
-        break;
     default:
-        panic("Cannot parse token as the begining of a statement");
+        return eval_expression_statement();
         break;
     }
 
@@ -260,7 +257,19 @@ Expression* Parser::eval_unary() {
         return new UnaryExpression(expr, *op);
     }
 
-    return eval_call();
+    return eval_postfix();
+}
+
+Expression* Parser::eval_postfix() {
+    auto expr = eval_call();
+    if (match(TOKEN_BRACKET_OPEN)) {
+        auto token = consume_token_of_type(TOKEN_BRACKET_OPEN);
+        auto expression = eval_expression();
+        consume_token_of_type(TOKEN_BRACKET_CLOSE);
+        return new ArraySubscriptExpression(expr, expression);
+    }
+
+    return expr;
 }
 
 Expression* Parser::eval_call() {

@@ -1,12 +1,16 @@
 import "/home/jackdelahunt/Projects/Liam/build/std.liam";
 
-fn at(arr: ^[string], index: u64): string {
-    insert "return (*arr)[index as usize].clone();";
-    return "";
+struct Person {
+    name: string,
+    age: u64
 }
 
 fn main(): void {
-    let arr := ["1", "2", "3"];
-    let x := at(@arr, 2);
-    print(@x);
+    let people := [
+        new Person{"jack", 21}, 
+        new Person{"david", 22}
+    ];
+
+    let p := people[0];
+    print(@p.name);
 }
