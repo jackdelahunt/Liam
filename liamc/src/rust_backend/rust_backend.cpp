@@ -11,6 +11,7 @@ std::string RustBackend::emit(TypedFile& file) {
                                         "#![allow(unused_mut)]\n"
                                         "#![allow(unused_variables)]\n"
                                         "#![allow(unused_assignments)]"
+                                        "#![allow(non_snake_case)]"
                                         "type void = ();\n"
                                         "type string = String;\n\n\n");
 	for (auto stmt : file.statements) {
@@ -87,6 +88,13 @@ std::string RustBackend::emit_statement(TypeCheckedStatement* statement) {
 			return emit_expression_statement(ptr);
 		}
 	}
+
+    {
+        auto ptr = dynamic_cast<TypeCheckedForStatement*>(statement);
+        if (ptr) {
+            return emit_for_statement(ptr);
+        }
+    }
 
 	panic("Oh no");
     return nullptr;
@@ -204,6 +212,14 @@ std::string RustBackend::emit_assigment_statement(TypeCheckedAssigmentStatement*
 
 std::string RustBackend::emit_expression_statement(TypeCheckedExpressionStatement* statement) {
 	return emit_expression(statement->expression) + ";\n";
+}
+
+std::string RustBackend::emit_for_statement(TypeCheckedForStatement* statement) {
+    std::string source = "for (___i___generated, it) in " + emit_expression(statement->array_expression);
+    source.append(".iter_mut().enumerate() {\n let i = ___i___generated as u64;\n");
+    source.append(emit_scope_statement(statement->body));
+    source.append("}");
+    return source;
 }
 
 std::string RustBackend::emit_expression(TypeCheckedExpression* expression) {
@@ -346,7 +362,7 @@ std::string RustBackend::emit_unary_expression(TypeCheckedUnaryExpression* expre
 	// let b: u64 = *a;
 
 	if (expression->op.type == TOKEN_AT) {
-		return "&mut " + emit_expression(expression->expression);
+		return "(&mut " + emit_expression(expression->expression) + ") as *mut _";
 	}
 	else if (expression->op.type == TOKEN_STAR) {
 		return emit_expression(expression->expression) + ".read()";

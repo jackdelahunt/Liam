@@ -20,7 +20,8 @@ enum StatementType {
     STATEMENT_INSERT,
     STATEMENT_IMPORT,
     STATEMENT_RETURN,
-    STATEMENT_BREAK
+    STATEMENT_BREAK,
+    STATEMENT_FOR,
 };
 
 struct Statement {
@@ -88,6 +89,13 @@ struct ImportStatement : Statement {
     Expression* file;
 
     ImportStatement(Expression* file);
+};
+
+struct ForStatement : Statement {
+    Expression* array_expression;
+    ScopeStatement* body;
+
+    ForStatement(Expression* array_expression, ScopeStatement* body);
 };
 
 struct ReturnStatement: Statement {

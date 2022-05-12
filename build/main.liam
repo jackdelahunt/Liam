@@ -6,11 +6,10 @@ struct Person {
 }
 
 fn main(): void {
-    let people := [
-        new Person{"jack", 21}, 
-        new Person{"david", 22}
-    ];
+    let arr := ["one", "two", "three"];
 
-    let p := people[0];
-    print(@p.name);
+    for arr {
+        print_u64(i);
+        print_string(it);
+    } 
 }

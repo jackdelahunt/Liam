@@ -29,6 +29,7 @@ char* TokenTypeStrings[29] = {
     ":=",
     "[",
     "]",
+    "for",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -211,6 +212,11 @@ void Lexer::lex(const char* path) {
                 tokens.emplace_back(Token(TokenType::TOKEN_IMPORT, word, current_line, current_character));
                 continue;
             }
+
+                if (word == "for") {
+                    tokens.emplace_back(Token(TokenType::TOKEN_FOR, word, current_line, current_character));
+                    continue;
+                }
 
             // check numbers
             try

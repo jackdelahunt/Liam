@@ -20,7 +20,8 @@ struct RustBackend {
 	std::string emit_loop_statement(TypeCheckedLoopStatement* statement);
 	std::string emit_struct_statement(TypeCheckedStructStatement* statement);
 	std::string emit_assigment_statement(TypeCheckedAssigmentStatement* statement);
-	std::string emit_expression_statement(TypeCheckedExpressionStatement* statement);
+    std::string emit_expression_statement(TypeCheckedExpressionStatement* statement);
+    std::string emit_for_statement(TypeCheckedForStatement* statement);
 
     std::string emit_expression(TypeCheckedExpression* expression);
     std::string emit_cloneable_expression(TypeCheckedExpression* expression);

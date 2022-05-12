@@ -75,6 +75,9 @@ Statement* Parser::eval_statement() {
     case TOKEN_IMPORT:
         return eval_import_statement();
         break;
+    case TOKEN_FOR:
+        return eval_for_statement();
+        break;
     case TOKEN_IDENTIFIER:
         // x := y; ..or.. x();
         if (peek(1)->type == TOKEN_EQUAL) {
@@ -205,6 +208,14 @@ ImportStatement* Parser::eval_import_statement() {
     auto file = eval_expression_statement();
 
     return new ImportStatement(file->expression);
+}
+
+ForStatement* Parser::eval_for_statement() {
+    consume_token_of_type(TOKEN_FOR);
+    auto expression = eval_expression();
+    auto body = eval_scope_statement();
+
+    return new ForStatement(expression, body);
 }
 
 ExpressionStatement* Parser::eval_expression_statement() {

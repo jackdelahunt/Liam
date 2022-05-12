@@ -1,3 +1,7 @@
-fn print(s: ^string): void {
+fn print_string(s: ^string): void {
     insert "println!(\"{}\", *s);";
+}
+
+fn print_u64(n: u64): void {
+    insert "println!(\"{}\", n);";
 }

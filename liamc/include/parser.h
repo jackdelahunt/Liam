@@ -49,6 +49,7 @@ struct Parser {
     ReturnStatement* eval_return_statement();
     BreakStatement* eval_break_statement();
     ImportStatement* eval_import_statement();
+    ForStatement* eval_for_statement();
     ExpressionStatement* eval_expression_statement();
     AssigmentStatement* eval_assigment_statement();
 

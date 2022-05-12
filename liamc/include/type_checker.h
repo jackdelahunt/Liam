@@ -98,6 +98,7 @@ struct SymbolTable {
 	void add_type(Token type, TypeInfo* type_info);
 	void add_identifier(Token identifier, TypeInfo* type_info);
     TypeInfo* get_type(Token* identifier);
+    TypeInfo* get_type(std::string identifier);
 };
 
 struct TypeCheckedStatement {
@@ -140,6 +141,13 @@ struct TypeCheckedLoopStatement : TypeCheckedStatement {
     TypeCheckedScopeStatement* body;
 
     TypeCheckedLoopStatement(Token identifier, TypeCheckedScopeStatement* body);
+};
+
+struct TypeCheckedForStatement : TypeCheckedStatement {
+    TypeCheckedExpression* array_expression;
+    TypeCheckedScopeStatement* body;
+
+    TypeCheckedForStatement(TypeCheckedExpression* array_expression, TypeCheckedScopeStatement* body);
 };
 
 
@@ -299,6 +307,7 @@ struct TypeChecker {
     TypeCheckedScopeStatement* type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table = true);
     TypeCheckedFnStatement* type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table);
     TypeCheckedLoopStatement* type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedForStatement* type_check_for_statement(ForStatement* statement, SymbolTable* symbol_table);
     TypeCheckedStructStatement* type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_table);
     TypeCheckedAssigmentStatement* type_check_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table);
     TypeCheckedExpressionStatement* type_check_expression_statement(ExpressionStatement* statement, SymbolTable* symbol_table);

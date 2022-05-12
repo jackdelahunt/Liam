@@ -33,16 +33,21 @@ add_identifier(Token identifier, TypeInfo* type_info) {
 
 TypeInfo* SymbolTable::
 get_type(Token* identifier) {
-    if(builtin_type_table.contains(identifier->string)) {
-        return builtin_type_table[identifier->string];
+    return get_type(identifier->string);
+}
+
+TypeInfo* SymbolTable::
+get_type(std::string identifier) {
+    if(builtin_type_table.contains(identifier)) {
+        return builtin_type_table[identifier];
     }
 
-    if(identifier_table.contains(identifier->string)) {
-        return identifier_table[identifier->string];
+    if(identifier_table.contains(identifier)) {
+        return identifier_table[identifier];
     }
 
-    if(type_table.contains(identifier->string)) {
-        return type_table[identifier->string];
+    if(type_table.contains(identifier)) {
+        return type_table[identifier];
     }
 
     return nullptr;
@@ -86,6 +91,13 @@ TypeCheckedLoopStatement(Token identifier, TypeCheckedScopeStatement* body) {
 	this->identifier = identifier;
 	this->body = body;
 	this->statement_type = STATEMENT_LOOP;
+}
+
+TypeCheckedForStatement::
+TypeCheckedForStatement(TypeCheckedExpression* array_expression, TypeCheckedScopeStatement* body) {
+    this->array_expression = array_expression;
+    this->body = body;
+    this->statement_type = STATEMENT_FOR;
 }
 
 TypeCheckedInsertStatement::
@@ -231,22 +243,17 @@ type_file(File* file) {
 TypeCheckedStatement* TypeChecker::
 type_check_statement(Statement* statement, SymbolTable* symbol_table) {
     switch (statement->statement_type) {
-        case STATEMENT_INSERT: return type_check_insert_statement(dynamic_cast<InsertStatement *>(statement),
-                                                                  symbol_table); break;
-        case STATEMENT_RETURN: return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement),
-                                                                  symbol_table); break;
+        case STATEMENT_INSERT: return type_check_insert_statement(dynamic_cast<InsertStatement *>(statement),symbol_table); break;
+        case STATEMENT_RETURN: return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement),symbol_table); break;
         case STATEMENT_BREAK: return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table); break;
-        case STATEMENT_IMPORT: return type_check_import_statement(dynamic_cast<ImportStatement *>(statement),
-                                                                  symbol_table); break;
+        case STATEMENT_IMPORT: return type_check_import_statement(dynamic_cast<ImportStatement *>(statement),symbol_table); break;
         case STATEMENT_FN: return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table); break;
         case STATEMENT_LOOP: return type_check_loop_statement(dynamic_cast<LoopStatement *>(statement), symbol_table); break;
-        case STATEMENT_STRUCT: return type_check_struct_statement(dynamic_cast<StructStatement *>(statement),
-                                                                  symbol_table); break;
-        case STATEMENT_ASSIGNMENT: return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement),
-                                                                         symbol_table); break;
-        case STATEMENT_EXPRESSION: return type_check_expression_statement(
-                    dynamic_cast<ExpressionStatement *>(statement), symbol_table); break;
+        case STATEMENT_STRUCT: return type_check_struct_statement(dynamic_cast<StructStatement *>(statement),symbol_table); break;
+        case STATEMENT_ASSIGNMENT: return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement),symbol_table); break;
+        case STATEMENT_EXPRESSION: return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement), symbol_table); break;
         case STATEMENT_LET: return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table); break;
+        case STATEMENT_FOR: return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table); break;
         default:
             panic("Not implemented");
             return nullptr;
@@ -380,6 +387,25 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
 TypeCheckedLoopStatement* TypeChecker::
 type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {
 	return new TypeCheckedLoopStatement(statement->identifier, type_check_scope_statement(statement->body, symbol_table));
+}
+
+TypeCheckedForStatement* TypeChecker::
+type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
+    auto array_expression = type_check_expression(statement->array_expression, symbol_table);
+    if(array_expression->type_info->type != ARRAY) {
+        panic("Cannot iterate over non-array value in for loop");
+        return nullptr;
+    }
+    auto array_type_info = static_cast<ArrayTypeInfo*>(array_expression->type_info);
+
+    // type body but also add in generated values -> index & element
+    auto table_copy = *symbol_table;
+    // TODO: correct line and character here
+    table_copy.add_identifier(Token(TOKEN_IDENTIFIER, "i", 0, 0), table_copy.get_type("u64"));
+    table_copy.add_identifier(Token(TOKEN_IDENTIFIER, "it", 0, 0), new PointerTypeInfo{POINTER, array_type_info->array_type});
+    auto body = type_check_scope_statement(statement->body, &table_copy, false);
+
+    return new TypeCheckedForStatement(array_expression, body);
 }
 
 TypeCheckedStructStatement* TypeChecker::
