@@ -41,6 +41,14 @@ let var_name := ... ; // type inferance
 fn func_name(param: type): return_type {}
 ```
 
+### For Loops
+```rust
+for ["car", "dog", "house"] {
+    print_u64(i);       // generated index variable    - i
+    print_string(it);   // generated element variable  - it
+}
+```
+
 ### Structs
 ```rust
 struct struct_name {
