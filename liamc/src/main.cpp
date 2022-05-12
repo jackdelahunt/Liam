@@ -39,7 +39,6 @@ int main(int argc, char** argv) {
     auto code_generation_end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> code_generation_delta = code_generation_end - code_generation_start;
 
-    std::cout << code;
     std::ofstream out_file("main.rs");
     out_file << code;
     out_file.close();
@@ -49,7 +48,7 @@ int main(int argc, char** argv) {
     std::cout << "Code generation time: " << code_generation_delta.count() << "ms\n";
 
     system(std::string("rustc " + std::string("main.rs")).c_str());
-    system(std::string("rm " + std::string("main.rs")).c_str());
+    system(std::string("rustfmt " + std::string("main.rs")).c_str());
 
     return 0;
 }

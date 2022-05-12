@@ -7,3 +7,4 @@ build/main.obj
 **/.idea/
 **/cmake-build-debug/
 **/main/
+build/main.rs

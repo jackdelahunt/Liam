@@ -5,15 +5,16 @@
 
 std::string RustBackend::emit(TypedFile& file) {
 	auto source_generated = std::string(""
-                                        "#![allow(unused_unsafe)]\n"
-                                        "#![allow(non_camel_case_types)]\n"
-                                        "#![allow(dead_code)]\n"
-                                        "#![allow(unused_mut)]\n"
-                                        "#![allow(unused_variables)]\n"
+                                        "#![allow(unused_unsafe)]"
+                                        "#![allow(non_camel_case_types)]"
+                                        "#![allow(dead_code)]"
+                                        "#![allow(unused_mut)]"
+                                        "#![allow(unused_variables)]"
                                         "#![allow(unused_assignments)]"
                                         "#![allow(non_snake_case)]"
-                                        "type void = ();\n"
-                                        "type string = String;\n\n\n");
+                                        "#![allow(unused_braces)]"
+                                        "type void = ();"
+                                        "type string = String;");
 	for (auto stmt : file.statements) {
 		source_generated.append(emit_statement(stmt));
 	}
@@ -101,15 +102,15 @@ std::string RustBackend::emit_statement(TypeCheckedStatement* statement) {
 }
 
 std::string RustBackend::emit_insert_statement(TypeCheckedInsertStatement* statement) {
-    return statement->code->token.string + "\n";
+    return statement->code->token.string + "";
 }
 
 std::string RustBackend::emit_return_statement(TypeCheckedReturnStatement* statement) {
-	return "return " + emit_expression(statement->expression) + ";\n";
+	return "return " + emit_expression(statement->expression) + ";";
 }
 
 std::string RustBackend::emit_break_statement(TypeCheckedBreakStatement* statement) {
-	return "goto " + statement->identifier.string + ";\n";
+	return "goto " + statement->identifier.string + ";";
 }
 
 
@@ -122,16 +123,16 @@ std::string RustBackend::emit_let_statement(TypeCheckedLetStatement* statement) 
         source.append(" = ");
     }
 	auto emitted_expr = emit_expression(statement->expression);
-	source.append(emitted_expr + ";\n");
+	source.append(emitted_expr + ";");
 	return source;
 }
 
 std::string RustBackend::emit_scope_statement(TypeCheckedScopeStatement* statement) {
-	auto fn_source = std::string("{ unsafe {\n");
+	auto fn_source = std::string("{ unsafe {");
 	for (auto stmt : statement->statements) {
 		fn_source.append(emit_statement(stmt));
 	}
-	fn_source.append("\n}}\n");
+	fn_source.append("}}");
 	return fn_source;
 }
 
@@ -155,28 +156,28 @@ std::string RustBackend::emit_fn_statement(TypeCheckedFnStatement* statement) {
 
 	fn_source.append(emit_scope_statement(statement->body));
 
-	return fn_source + "\n";
+	return fn_source + "";
 }
 
 std::string RustBackend::emit_loop_statement(TypeCheckedLoopStatement* statement) {
 	auto source = std::string();
 	source.append("while(true)");
 	source.append(emit_scope_statement(statement->body));
-	source.append(statement->identifier.string + ": ;\n");
+	source.append(statement->identifier.string + ": ;");
 	return source;
 }
 
 std::string RustBackend::emit_struct_statement(TypeCheckedStructStatement* statement) {
 	auto source = std::string();
-	source.append("#[derive(Clone)]\n");
-	source.append("struct " + statement->identifier.string + "{\n");
+	source.append("#[derive(Clone)]");
+	source.append("struct " + statement->identifier.string + "{");
 	for (auto& [identifier, type] : statement->members) {
-		source.append(identifier.string + ": " + emit_type_expression(type) + ",\n");
+		source.append(identifier.string + ": " + emit_type_expression(type) + ",");
 	}
-	source.append("\n}\n\n");
+	source.append("}");
 
     // struct impl block
-    source.append("impl " + statement->identifier.string + " {\n");
+    source.append("impl " + statement->identifier.string + " {");
     source.append(" fn new(");
     for (int i = 0; i < statement->members.size(); i++) {
         auto& [identifier, type] = statement->members.at(i);
@@ -186,7 +187,7 @@ std::string RustBackend::emit_struct_statement(TypeCheckedStructStatement* state
             source.append(", ");
         }
     }
-    source.append(") -> Self {\n");
+    source.append(") -> Self {");
     source.append("     Self{");
     for (int i = 0; i < statement->members.size(); i++) {
         auto& [identifier, _] = statement->members.at(i);
@@ -195,9 +196,9 @@ std::string RustBackend::emit_struct_statement(TypeCheckedStructStatement* state
             source.append(", ");
         }
     }
-    source.append("}\n");
-    source.append(" }\n");
-    source.append("}\n\n");
+    source.append("}");
+    source.append(" }");
+    source.append("}");
 
 	return source;
 }
@@ -206,17 +207,17 @@ std::string RustBackend::emit_assigment_statement(TypeCheckedAssigmentStatement*
 	auto source = std::string();
 	source.append(statement->identifier.string + " = ");
 	source.append(emit_expression(statement->assigned_to));
-	source.append(";\n");
+	source.append(";");
 	return source;
 }
 
 std::string RustBackend::emit_expression_statement(TypeCheckedExpressionStatement* statement) {
-	return emit_expression(statement->expression) + ";\n";
+	return emit_expression(statement->expression) + ";";
 }
 
 std::string RustBackend::emit_for_statement(TypeCheckedForStatement* statement) {
     std::string source = "for (___i___generated, it) in " + emit_expression(statement->array_expression);
-    source.append(".iter_mut().enumerate() {\n let i = ___i___generated as u64;\n");
+    source.append(".iter_mut().enumerate() { let i = ___i___generated as u64;");
     source.append(emit_scope_statement(statement->body));
     source.append("}");
     return source;
