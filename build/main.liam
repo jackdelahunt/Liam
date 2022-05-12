@@ -1,14 +1,3 @@
-import "/home/jackdelahunt/Projects/Liam/build/std.liam";
-
-struct Person {
-    ages: [u64]
-}
-
 fn main(): void {
-    let arr := ["one", "two", "three"];
-
-    for s index in arr {
-        print_u64(index);
-        print_string(s);
-    }
+    let x := [1, 2 3];
 }

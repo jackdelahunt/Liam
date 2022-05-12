@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <fstream>
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <filesystem>
 #include "liam.h"
 #include "lexer.h"
 #include "parser.h"
-#include "generator.h"
 #include "rust_backend/rust_backend.h"
 #include "type_checker.h"
 
@@ -16,14 +15,21 @@ int main(int argc, char** argv) {
     if (argc < 2) {
         panic("Not enough arguments");
     }
-    char* source_path = argv[1];
+    std::filesystem::path source = argv[1];
 
     auto parse_lex_start = std::chrono::high_resolution_clock::now();
-    auto lexer = Lexer();
-    lexer.lex(source_path);
+    auto lexer = Lexer(absolute(source).string());
+    lexer.lex();
 
-    auto parser = Parser(lexer.tokens);
+    auto parser = Parser(absolute(source).string(), lexer.tokens);
     parser.parse();
+    if(parser.errors.size() > 0) {
+        for(auto& err : parser.errors) {
+            std::cout << err.error << "\n";
+        }
+        return EXIT_FAILURE;
+    }
+
     auto parse_lex_end= std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> parse_lex_delta= parse_lex_end- parse_lex_start;
 

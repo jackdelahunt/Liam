@@ -65,10 +65,11 @@ struct Lexer
     int current;
     int current_line;
     int current_character;
+    std::string path;
 
-    Lexer();
+    Lexer(std::string path);
 
-    void lex(const char* path);
+    void lex();
     void next_char();
     char peek();
     std::string get_word();
