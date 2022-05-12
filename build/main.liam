@@ -1,10 +1,14 @@
 import "/home/jackdelahunt/Projects/Liam/build/std.liam";
 
 struct Person {
-    name: string,
-    age: u64
+    ages: [u64]
 }
 
 fn main(): void {
-    let arr := ["jack", "liam"];
+    let arr := ["one", "two", "three"];
+
+    for s index in arr {
+        print_u64(index);
+        print_string(s);
+    }
 }

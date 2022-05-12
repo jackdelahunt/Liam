@@ -13,6 +13,7 @@ std::string RustBackend::emit(TypedFile& file) {
                                         "#![allow(unused_assignments)]"
                                         "#![allow(non_snake_case)]"
                                         "#![allow(unused_braces)]"
+                                        "#![allow(unreachable_code)]"
                                         "type void = ();"
                                         "type string = String;");
 	for (auto stmt : file.statements) {
@@ -216,8 +217,9 @@ std::string RustBackend::emit_expression_statement(TypeCheckedExpressionStatemen
 }
 
 std::string RustBackend::emit_for_statement(TypeCheckedForStatement* statement) {
-    std::string source = "for (___i___generated, it) in " + emit_expression(statement->array_expression);
-    source.append(".iter_mut().enumerate() { let i = ___i___generated as u64;");
+    std::string source ="";
+    source.append("for (___i___generated, " + statement->value_identifier.string + ") in " + emit_expression(statement->array_expression));
+    source.append(".iter_mut().enumerate() { let " + statement->index_identifier.string + " = ___i___generated as u64;");
     source.append(emit_scope_statement(statement->body));
     source.append("}");
     return source;
@@ -304,6 +306,7 @@ std::string RustBackend::emit_cloneable_expression(TypeCheckedExpression* expres
        || expression->type == ExpressionType::EXPRESSION_STRING_LITERAL
        || expression->type == ExpressionType::EXPRESSION_INT_LITERAL
        || expression->type == ExpressionType::EXPRESSION_NEW
+       || expression->type == ExpressionType::EXPRESSION_ARRAY
     ) {
         return emit_expression(expression);
     }
@@ -366,7 +369,7 @@ std::string RustBackend::emit_unary_expression(TypeCheckedUnaryExpression* expre
 		return "(&mut " + emit_expression(expression->expression) + ") as *mut _";
 	}
 	else if (expression->op.type == TOKEN_STAR) {
-		return emit_expression(expression->expression) + ".read()";
+		return "*" + emit_expression(expression->expression);
 	}
 
 	panic("Got a unrecognized operand");

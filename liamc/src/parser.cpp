@@ -212,10 +212,13 @@ ImportStatement* Parser::eval_import_statement() {
 
 ForStatement* Parser::eval_for_statement() {
     consume_token_of_type(TOKEN_FOR);
+    auto value_token = consume_token_of_type(TOKEN_IDENTIFIER);
+    auto index_token = consume_token_of_type(TOKEN_IDENTIFIER);
+    consume_token_of_type(TOKEN_IN);
     auto expression = eval_expression();
     auto body = eval_scope_statement();
 
-    return new ForStatement(expression, body);
+    return new ForStatement(expression, body, *value_token, *index_token);
 }
 
 ExpressionStatement* Parser::eval_expression_statement() {

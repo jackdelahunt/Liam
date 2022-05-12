@@ -60,9 +60,11 @@ ImportStatement::ImportStatement(Expression* file) {
     this->statement_type = STATEMENT_IMPORT;
 }
 
-ForStatement::ForStatement(Expression* array_expression, ScopeStatement* body) {
+ForStatement::ForStatement(Expression* array_expression, ScopeStatement* body, Token value_identifier, Token index_identifier) {
     this->array_expression = array_expression;
     this->body = body;
+    this->value_identifier = value_identifier;
+    this->index_identifier = index_identifier;
     this->statement_type = STATEMENT_FOR;
 }
 

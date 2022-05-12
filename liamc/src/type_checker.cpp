@@ -94,9 +94,11 @@ TypeCheckedLoopStatement(Token identifier, TypeCheckedScopeStatement* body) {
 }
 
 TypeCheckedForStatement::
-TypeCheckedForStatement(TypeCheckedExpression* array_expression, TypeCheckedScopeStatement* body) {
+TypeCheckedForStatement(TypeCheckedExpression* array_expression, TypeCheckedScopeStatement* body, Token value_identifier, Token index_identifier) {
     this->array_expression = array_expression;
     this->body = body;
+    this->value_identifier = value_identifier;
+    this->index_identifier = index_identifier;
     this->statement_type = STATEMENT_FOR;
 }
 
@@ -401,11 +403,11 @@ type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     // type body but also add in generated values -> index & element
     auto table_copy = *symbol_table;
     // TODO: correct line and character here
-    table_copy.add_identifier(Token(TOKEN_IDENTIFIER, "i", 0, 0), table_copy.get_type("u64"));
-    table_copy.add_identifier(Token(TOKEN_IDENTIFIER, "it", 0, 0), new PointerTypeInfo{POINTER, array_type_info->array_type});
+    table_copy.add_identifier(statement->value_identifier, new PointerTypeInfo{POINTER, array_type_info->array_type});
+    table_copy.add_identifier(statement->index_identifier, table_copy.get_type("u64"));
     auto body = type_check_scope_statement(statement->body, &table_copy, false);
 
-    return new TypeCheckedForStatement(array_expression, body);
+    return new TypeCheckedForStatement(array_expression, body, statement->value_identifier, statement->index_identifier);
 }
 
 TypeCheckedStructStatement* TypeChecker::

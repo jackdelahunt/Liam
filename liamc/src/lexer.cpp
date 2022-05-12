@@ -1,6 +1,6 @@
 #include "lexer.h"
 
-char* TokenTypeStrings[29] = {
+char* TokenTypeStrings[30] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -30,6 +30,7 @@ char* TokenTypeStrings[29] = {
     "[",
     "]",
     "for",
+    "in",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -213,10 +214,31 @@ void Lexer::lex(const char* path) {
                 continue;
             }
 
-                if (word == "for") {
-                    tokens.emplace_back(Token(TokenType::TOKEN_FOR, word, current_line, current_character));
-                    continue;
-                }
+            if (word == "for") {
+                tokens.emplace_back(Token(TokenType::TOKEN_FOR, word, current_line, current_character));
+                continue;
+            }
+
+            if (word == "in") {
+                tokens.emplace_back(Token(TokenType::TOKEN_IN, word, current_line, current_character));
+                continue;
+            }
+
+            // built in types
+            if (word == "void") {
+                tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, current_character));
+                continue;
+            }
+
+            if (word == "u64") {
+                tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, current_character));
+                continue;
+            }
+
+            if (word == "string") {
+                tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, current_character));
+                continue;
+            }
 
             // check numbers
             try

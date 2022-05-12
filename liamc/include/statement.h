@@ -92,10 +92,12 @@ struct ImportStatement : Statement {
 };
 
 struct ForStatement : Statement {
+    Token value_identifier;
+    Token index_identifier;
     Expression* array_expression;
     ScopeStatement* body;
 
-    ForStatement(Expression* array_expression, ScopeStatement* body);
+    ForStatement(Expression* array_expression, ScopeStatement* body, Token value_identifier, Token index_identifier);
 };
 
 struct ReturnStatement: Statement {

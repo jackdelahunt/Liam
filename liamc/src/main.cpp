@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     std::cout << "Code generation time: " << code_generation_delta.count() << "ms\n";
 
     system(std::string("rustc " + std::string("main.rs")).c_str());
-    system(std::string("rustfmt " + std::string("main.rs")).c_str());
+    // system(std::string("rustfmt " + std::string("main.rs")).c_str());
 
     return 0;
 }

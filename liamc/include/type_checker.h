@@ -144,10 +144,12 @@ struct TypeCheckedLoopStatement : TypeCheckedStatement {
 };
 
 struct TypeCheckedForStatement : TypeCheckedStatement {
+    Token value_identifier;
+    Token index_identifier;
     TypeCheckedExpression* array_expression;
     TypeCheckedScopeStatement* body;
 
-    TypeCheckedForStatement(TypeCheckedExpression* array_expression, TypeCheckedScopeStatement* body);
+    TypeCheckedForStatement(TypeCheckedExpression* array_expression, TypeCheckedScopeStatement* body, Token value_identifier, Token index_identifier);
 };
 
 

@@ -36,9 +36,10 @@ enum TokenType {
     TOKEN_BRACKET_OPEN      = 26,
     TOKEN_BRACKET_CLOSE     = 27,
     TOKEN_FOR               = 28,
+    TOKEN_IN                = 29,
 };
 
-extern char* TokenTypeStrings[29];
+extern char* TokenTypeStrings[30];
 
 std::string get_token_type_string(TokenType type);
 
