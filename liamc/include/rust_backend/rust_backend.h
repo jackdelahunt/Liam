@@ -8,7 +8,7 @@
 
 struct RustBackend {
 	RustBackend() = default;
-	std::string emit(TypedFile& file);
+	std::string emit(TypedFile* file);
 
 	std::string emit_statement(TypeCheckedStatement* statement);
 	std::string emit_insert_statement(TypeCheckedInsertStatement* statement);

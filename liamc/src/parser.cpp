@@ -2,25 +2,39 @@
 #include <tuple>
 #include <utility>
 
-File::File() {
+File::
+File(std::filesystem::path path) {
     statements = std::vector<Statement*>();
+    imports = std::vector<std::string>();
+    this->path = std::move(path);
 }
 
-Parser::Parser(std::string path, std::vector<Token>& tokens) {
+Parser::
+Parser(std::filesystem::path path, std::vector<Token>& tokens) {
     this->tokens = tokens;
     this->current = 0;
-    this->root = File();
-    this->path = path;
+    this->path = std::move(path);
 }
 
-void Parser::parse() {
+File Parser::
+parse() {
+    auto file = File(path);
     while (current < tokens.size()) {
         auto [stmt, error] = eval_statement();
         if(error) {
             continue;
         }
-        root.statements.push_back(stmt);
+
+        if(stmt->statement_type == STATEMENT_IMPORT) {
+            auto import_stmt = dynamic_cast<ImportStatement*>(stmt);
+            auto import_path = dynamic_cast<StringLiteralExpression*>(import_stmt->file);
+            file.imports.emplace_back(import_path->token.string);
+        } else {
+            file.statements.push_back(stmt);
+        }
     }
+
+    return file;
 }
 
 std::tuple<Statement*, bool> Parser::

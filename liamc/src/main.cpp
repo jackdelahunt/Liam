@@ -9,6 +9,7 @@
 #include "parser.h"
 #include "rust_backend/rust_backend.h"
 #include "type_checker.h"
+#include "compiler.h"
 
 int main(int argc, char** argv) {
 
@@ -17,6 +18,21 @@ int main(int argc, char** argv) {
     }
     std::filesystem::path source = argv[1];
 
+    auto files = lex_parse(absolute(source).string());
+    auto typed_files = type_check(&files);
+
+    for(auto file : typed_files) {
+        auto rb = RustBackend();
+        auto code = rb.emit(&file);
+        auto out_path = file.path.parent_path().string() + "/" + file.path.filename().replace_extension(".rs").string();
+
+        std::ofstream out_file(out_path);
+        out_file << code;
+        out_file.close();
+    }
+
+    return 0;
+/*
     auto parse_lex_start = std::chrono::high_resolution_clock::now();
     auto lexer = Lexer(absolute(source).string());
     lexer.lex();
@@ -35,7 +51,7 @@ int main(int argc, char** argv) {
 
     auto typing_start = std::chrono::high_resolution_clock::now();
     auto type_checker = TypeChecker();
-    type_checker.type_file(&parser.root);
+    type_checker.type_check(&parser.root);
     auto typing_end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> typing_delta = typing_end - typing_start;
 
@@ -57,4 +73,5 @@ int main(int argc, char** argv) {
     // system(std::string("rustfmt " + std::string("main.rs")).c_str());
 
     return 0;
+    */
 }

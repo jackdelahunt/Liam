@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 std::vector<char> extract_chars(const char* path);
 
@@ -65,9 +66,9 @@ struct Lexer
     int current;
     int current_line;
     int current_character;
-    std::string path;
+    std::filesystem::path path;
 
-    Lexer(std::string path);
+    Lexer(std::filesystem::path path);
 
     void lex();
     void next_char();

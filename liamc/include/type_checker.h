@@ -171,12 +171,6 @@ struct TypeCheckedBreakStatement : TypeCheckedStatement {
     TypeCheckedBreakStatement(Token identifier);
 };
 
-struct TypeCheckedImportStatement : TypeCheckedStatement {
-	TypeCheckedExpression* file;
-
-    TypeCheckedImportStatement(TypeCheckedExpression* file);
-};
-
 struct TypeCheckedExpressionStatement : TypeCheckedStatement {
 	TypeCheckedExpression* expression;
 
@@ -291,20 +285,21 @@ struct TypeCheckedArrayTypeExpression : TypeCheckedTypeExpression {
 
 struct TypedFile {
 	std::vector<TypeCheckedStatement*> statements;
+    std::filesystem::path path;
+
+    TypedFile(std::filesystem::path path);
 };
 
 struct TypeChecker {
 	SymbolTable symbol_table;
-	TypedFile root;
 
 	TypeChecker();
 
-	void type_file(File* file);
+	TypedFile type_check(File* file);
 	TypeCheckedStatement* type_check_statement(Statement* statement, SymbolTable* symbol_table);
     TypeCheckedInsertStatement* type_check_insert_statement(InsertStatement* statement, SymbolTable* symbol_table);
     TypeCheckedReturnStatement* type_check_return_statement(ReturnStatement* statement, SymbolTable* symbol_table);
     TypeCheckedBreakStatement* type_check_break_statement(BreakStatement* statement, SymbolTable* symbol_table);
-    TypeCheckedImportStatement* type_check_import_statement(ImportStatement* statement, SymbolTable* symbol_table);
 	TypeCheckedLetStatement* type_check_let_statement(LetStatement* statement, SymbolTable* symbol_table);
     TypeCheckedScopeStatement* type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table = true);
     TypeCheckedFnStatement* type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table);

@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include <filesystem>
 
 char* TokenTypeStrings[30] = {
     "int Literal",
@@ -71,7 +72,7 @@ bool is_delim(char c) {
         c == '@' || c == '*' || c == '.' || c == '[' || c == ']';
 }
 
-Lexer::Lexer(std::string path) {
+Lexer::Lexer(std::filesystem::path path) {
     tokens = std::vector<Token>();
     current = 0;
     current_line = 1;
@@ -211,7 +212,7 @@ void Lexer::lex() {
                 continue;
             }
 
-            if (word == "import") {
+            if (word == "import!") {
                 tokens.emplace_back(Token(TokenType::TOKEN_IMPORT, word, current_line, word_start));
                 continue;
             }

@@ -1,4 +1,4 @@
-import "/home/jackdelahunt/Projects/Liam/build/std.liam";
+import! "/home/jackdelahunt/Projects/Liam/build/std.liam";
 
 fn main(): void {
 

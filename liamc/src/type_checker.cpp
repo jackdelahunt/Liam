@@ -119,12 +119,6 @@ TypeCheckedBreakStatement::TypeCheckedBreakStatement(Token identifier) {
 	this->statement_type = STATEMENT_BREAK;
 }
 
-TypeCheckedImportStatement::
-TypeCheckedImportStatement(TypeCheckedExpression* file) {
-	this->file = file;
-	this->statement_type = STATEMENT_BREAK;
-}
-
 TypeCheckedExpressionStatement::
 TypeCheckedExpressionStatement(TypeCheckedExpression* expression) {
 	this->expression = expression;
@@ -228,18 +222,26 @@ TypeCheckedArrayTypeExpression(TypeCheckedTypeExpression* array_of) {
     this->type = TypeExpressionType::TYPE_ARRAY;
 }
 
+TypedFile::
+TypedFile(std::filesystem::path path) {
+    this->statements = std::vector<TypeCheckedStatement*>();
+    this->path = std::move(path);
+}
+
 TypeChecker::
 TypeChecker() {
 	symbol_table = SymbolTable();
-	root = TypedFile();
 }
 
-void TypeChecker::
-type_file(File* file) {
+TypedFile TypeChecker::
+type_check(File* file) {
+    auto typed_file = TypedFile(file->path);
 	for (auto stmt : file->statements) {
 		auto p = type_check_statement(stmt, &symbol_table);
-		root.statements.push_back(p);
+		typed_file.statements.push_back(p);
 	}
+
+    return typed_file;
 }
 
 TypeCheckedStatement* TypeChecker::
@@ -248,7 +250,6 @@ type_check_statement(Statement* statement, SymbolTable* symbol_table) {
         case STATEMENT_INSERT: return type_check_insert_statement(dynamic_cast<InsertStatement *>(statement),symbol_table); break;
         case STATEMENT_RETURN: return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement),symbol_table); break;
         case STATEMENT_BREAK: return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table); break;
-        case STATEMENT_IMPORT: return type_check_import_statement(dynamic_cast<ImportStatement *>(statement),symbol_table); break;
         case STATEMENT_FN: return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table); break;
         case STATEMENT_LOOP: return type_check_loop_statement(dynamic_cast<LoopStatement *>(statement), symbol_table); break;
         case STATEMENT_STRUCT: return type_check_struct_statement(dynamic_cast<StructStatement *>(statement),symbol_table); break;
@@ -257,7 +258,7 @@ type_check_statement(Statement* statement, SymbolTable* symbol_table) {
         case STATEMENT_LET: return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table); break;
         case STATEMENT_FOR: return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table); break;
         default:
-            panic("Not implemented");
+            panic("Statement not implemented in type checker, id -> " + std::to_string(statement->statement_type));
             return nullptr;
     }
 }
@@ -281,16 +282,6 @@ TypeCheckedBreakStatement* TypeChecker::
 type_check_break_statement(BreakStatement* statement, SymbolTable* symbol_table) {
 	panic("Not implemented");
 	return nullptr;
-}
-
-TypeCheckedImportStatement* TypeChecker::
-type_check_import_statement(ImportStatement* statement, SymbolTable* symbol_table) {
-	auto expression = type_check_expression(statement->file, symbol_table);
-	if (expression->type_info->type != STRING) {
-		panic("Import requires a string");
-	}
-
-	return new TypeCheckedImportStatement(expression);
 }
 
 TypeCheckedLetStatement* TypeChecker::

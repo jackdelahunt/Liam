@@ -3,7 +3,7 @@
 #include "statement.h"
 #include "liam.h"
 
-std::string RustBackend::emit(TypedFile& file) {
+std::string RustBackend::emit(TypedFile* file) {
 	auto source_generated = std::string(""
                                         "#![allow(unused_unsafe)]"
                                         "#![allow(non_camel_case_types)]"
@@ -16,7 +16,7 @@ std::string RustBackend::emit(TypedFile& file) {
                                         "#![allow(unreachable_code)]"
                                         "type void = ();"
                                         "type string = String;");
-	for (auto stmt : file.statements) {
+	for (auto stmt : file->statements) {
 		source_generated.append(emit_statement(stmt));
 	}
 

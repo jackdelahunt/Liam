@@ -6,6 +6,7 @@
 #include "statement.h"
 #include "expression.h"
 #include "liam.h"
+#include <filesystem>
 
 struct Statement;
 struct LetStatement;
@@ -61,7 +62,10 @@ struct IdentifierTypeExpression;
 
 struct File {
     std::vector<Statement*> statements;
-    File();
+    std::vector<std::string> imports;
+    std::filesystem::path path;
+
+    File(std::filesystem::path path);
 };
 
 struct ErrorReport {
@@ -74,12 +78,11 @@ struct Parser {
     std::vector<Token> tokens;
     std::vector<ErrorReport> errors;
     int current;
-    File root;
-    std::string path;
+    std::filesystem::path path;
 
-    Parser(std::string path, std::vector<Token>& tokens);
+    Parser(std::filesystem::path path, std::vector<Token>& tokens);
 
-    void parse();
+    File parse();
 
     /* statements */
     std::tuple<Statement*, bool> eval_statement();
