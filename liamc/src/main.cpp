@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     parser.parse();
     if(parser.errors.size() > 0) {
         for(auto& err : parser.errors) {
-            std::cout << err.error << "\n";
+            std::cout << parser.path << ":" << err.line << ":" << err.character << " :: " << err.error << "\n";
         }
         return EXIT_FAILURE;
     }

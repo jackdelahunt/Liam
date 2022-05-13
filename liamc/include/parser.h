@@ -116,10 +116,9 @@ struct Parser {
 
     void report_error(int line, int character, std::string message);
     bool match(TokenType type);
-    Token* peek(int offset = 0);
+    inline Token* peek(int offset = 0);
     Token* consume_token();
     std::tuple<Token*, bool> consume_token_of_type(TokenType type);
-    void unexpected_token(Token* got, TokenType expected);
     std::tuple<std::vector<Expression*>, bool> consume_arguments(TokenType closer);
     std::tuple<CSV, bool> consume_comma_seperated_values();
 

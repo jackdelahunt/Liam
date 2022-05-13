@@ -118,11 +118,14 @@ eval_let_statement() {
 std::tuple<ScopeStatement*, bool> Parser::
 eval_scope_statement() {
     auto statements = std::vector<Statement*>();
-    TRY_TOKEN(TOKEN_BRACE_OPEN);
+    NAMED_TOKEN(open_brace, TOKEN_BRACE_OPEN);
     int closing_brace_index = find_balance_point(TOKEN_BRACE_OPEN, TOKEN_BRACE_CLOSE, current - 1);
     if (closing_brace_index == current + 1) { // if this scope is empty
         current++;
+    } else if(closing_brace_index < 0) {
+        FAIL(open_brace->line, open_brace->character, "No closing brace for scope found");
     }
+
     while (current < closing_brace_index) {
         TRY(Statement*, statement, eval_statement());
         statements.push_back(statement);
@@ -457,29 +460,22 @@ consume_token() {
 std::tuple<Token*, bool> Parser::
 consume_token_of_type(TokenType type) {
     if (current >= tokens.size()) {
-        std::ostringstream oss;
-        oss << "Expected " << type << " but there are no more tokens to consume";
-        panic(oss.str());
+        auto last_token = tokens.at(tokens.size() - 1);
+        FAIL(last_token.line, last_token.character,
+             std::string("Expected \'") + TokenTypeStrings[type] + std::string("\' but got unexpected end of file"));
     }
 
     auto t_ptr = &tokens.at(current++);
     if (t_ptr->type != type) {
-        unexpected_token(t_ptr, type);
+        FAIL(t_ptr->line, t_ptr->character,
+             std::string("Expected \'") +
+             TokenTypeStrings[type] +
+             "\' got \'" + t_ptr->string +
+             "\' at (" + std::to_string(t_ptr->line) +
+             ":" + std::to_string(t_ptr->character) + ")");
     }
 
     return {t_ptr, false};
-}
-
-void Parser::
-unexpected_token(Token* got, TokenType expected) {
-    // /home/jackdelahunt/Projects/Liam/liamc/src/parser.cpp:402:1
-    report_error(got->line, got->character, path + ":"+ std::to_string(got->line) +
-                                            ":" + std::to_string(got->character) + " :: Expected \'" +
-                                            TokenTypeStrings[expected] +
-                                            "\' got \'" + got->string +
-                                            "\' at (" + std::to_string(got->line) +
-                                            ":" + std::to_string(got->character) + ")"
-                                            );
 }
 
 std::tuple<std::vector<Expression*>, bool> Parser::consume_arguments(TokenType closer) {
