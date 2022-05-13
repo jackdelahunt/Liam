@@ -1,14 +1,14 @@
+fn range(start: u64, end: u64, step: u64): [u64] {
+    insert "
+        return (start..end).step_by(step as usize).collect();
+    ";
+    return [1,  2];
+}
+
 fn print_string(s: ^string): void {
     insert "println!(\"{}\", *s);";
 }
 
 fn print_u64(n: u64): void {
     insert "println!(\"{}\", n);";
-}
-
-fn range(start: u64, end: u64, step: u64): [u64] {
-    insert "
-        return (start..end).step_by(step as usize).collect();
-    ";
-    return [1, 2];
 }

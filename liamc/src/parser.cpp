@@ -21,37 +21,6 @@ void Parser::parse() {
         }
         root.statements.push_back(stmt);
     }
-
-    auto import_stmts = std::vector<ImportStatement*>();
-    auto other_stmts = std::vector<Statement*>();
-    for (int i = 0; i < root.statements.size(); i++) {
-        auto ptr = dynamic_cast<ImportStatement*>(root.statements.at(i));
-        if (ptr) {
-            import_stmts.push_back(ptr);
-        }
-        else {
-            other_stmts.push_back(root.statements.at(i));
-        }
-    }
-
-    root.statements = other_stmts;
-
-    for (auto i : import_stmts) {
-        auto string_lit = dynamic_cast<StringLiteralExpression*>(i->file);
-        if (!string_lit) { continue; }
-
-        auto lexer = Lexer(path);
-        lexer.lex();
-
-        auto other_parser = Parser(string_lit->token.string, lexer.tokens);
-        other_parser.parse();
-
-        for (auto stmt : root.statements) {
-            other_parser.root.statements.push_back(stmt);
-        }
-
-        root = other_parser.root;
-    }
 }
 
 std::tuple<Statement*, bool> Parser::
@@ -419,7 +388,7 @@ eval_pointer_type_expression() {
 
 std::tuple<ArrayTypeExpression*, bool> Parser::
 eval_array_type_expression() {
-    TRY_TOKEN(TOKEN_BRACE_OPEN);
+    TRY_TOKEN(TOKEN_BRACKET_OPEN);
     TRY(TypeExpression*, array_of, eval_type_expression());
     TRY_TOKEN(TOKEN_BRACKET_CLOSE);
     return WIN(new ArrayTypeExpression(array_of));
