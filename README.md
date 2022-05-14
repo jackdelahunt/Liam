@@ -4,14 +4,8 @@ Liam is a strongly typed compiled language intended for performance comparable t
 ## Examples
 ### Hello world
 ```rust
-fn print_string(s: string^): void {
-    // exact insertion into generated code
-    insert "println!(\"{}\", *s)";
-}
-
 fn main(): void {
-    let s: string = "Hello world";
-    print_string(@s);
+    print_string(@make_string(@"Hello world"));
 }
 ```
 
@@ -43,9 +37,9 @@ fn func_name(param: type): return_type {}
 
 ### For Loops
 ```rust
-for ["car", "dog", "house"] {
-    print_u64(i);       // generated index variable    - i
-    print_string(it);   // generated element variable  - it
+for str index in ["car", "dog", "house"] {
+    print_u64(index);
+    print_string(*str);   
 }
 ```
 
@@ -54,6 +48,13 @@ for ["car", "dog", "house"] {
 struct struct_name {
     member1: type,
     member2: type
+}
+```
+
+### Conditionals
+```rust
+if condition or another_condition {
+    ...
 }
 ```
 
