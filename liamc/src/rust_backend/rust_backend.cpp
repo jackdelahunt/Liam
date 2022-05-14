@@ -309,6 +309,7 @@ std::string RustBackend::emit_cloneable_expression(TypeCheckedExpression* expres
        || expression->type == ExpressionType::EXPRESSION_INT_LITERAL
        || expression->type == ExpressionType::EXPRESSION_NEW
        || expression->type == ExpressionType::EXPRESSION_ARRAY
+       || expression->type_info->type == INT
     ) {
         return emit_expression(expression);
     }

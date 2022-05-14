@@ -6,7 +6,11 @@ struct Person {
 }
 
 fn num(x: u64): u64 {
-    return x + num(x);
+    return num(x);
+}
+
+fn person(p: Person): void {
+
 }
 
 fn main(): void {
