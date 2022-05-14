@@ -217,6 +217,12 @@ TypeCheckedArraySubscriptExpression(TypeCheckedExpression* array, TypeCheckedExp
     this->type = ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT;
 }
 
+TypeCheckedGroupExpression::
+TypeCheckedGroupExpression(TypeCheckedExpression* expression) {
+    this->expression = expression;
+    this->type = ExpressionType::EXPRESSION_GROUP;
+}
+
 void TypeCheckedTypeExpression::
 print() {} // virtual function to keep compiler happy :^]
 
@@ -534,7 +540,9 @@ type_check_expression(Expression* expression, SymbolTable* symbol_table) {
         case ExpressionType::EXPRESSION_ARRAY:
             return type_check_array_expression(dynamic_cast<ArrayExpression*>(expression), symbol_table); break;
         case ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT:
-            return type_check_array_subscript_expression(dynamic_cast<ArraySubscriptExpression*>(expression), symbol_table); break;
+            return type_check_array_subscript_expression(dynamic_cast<ArraySubscriptExpression*>(expression), symbol_table);
+        case ExpressionType::EXPRESSION_GROUP:
+            return type_check_group_expression(dynamic_cast<GroupExpression*>(expression), symbol_table);
         default:
             panic("Not implemented");
             return nullptr;
@@ -793,6 +801,14 @@ type_check_array_subscript_expression(ArraySubscriptExpression* expression, Symb
     auto subscript_expression = new TypeCheckedArraySubscriptExpression(array, subscript);
     subscript_expression->type_info = array_type_info->array_type;
     return subscript_expression;
+}
+
+TypeCheckedGroupExpression* TypeChecker::
+type_check_group_expression(GroupExpression* expression, SymbolTable* symbol_table) {
+    auto expr = type_check_expression(expression->expression, symbol_table);
+    auto group = new TypeCheckedGroupExpression(expr);
+    group->type_info = expr->type_info;
+    return group;
 }
 
 TypeCheckedTypeExpression* TypeChecker::

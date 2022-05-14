@@ -293,7 +293,7 @@ eval_and() {
 
 std::tuple<Expression*, bool> Parser::
 eval_comparison() {
-    TRY(Expression*, expr, eval_factor());
+    TRY(Expression*, expr, eval_term());
 
     while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL)) {
         Token* op = consume_token();
@@ -413,6 +413,9 @@ eval_primary() {
         return WIN(new IdentifierExpression(*consume_token()));
     else if (type == TokenType::TOKEN_NEW)
         return eval_new_expression();
+    else if (type == TokenType::TOKEN_PAREN_OPEN) {
+        return eval_group_expression();
+    }
 
     return WIN(new Expression()); // empty expression found -- like when a return has no expression
 }
@@ -430,7 +433,16 @@ eval_new_expression() {
     return WIN(new NewExpression(*identifier, expressions));
 }
 
-std::tuple<TypeExpression*, bool> Parser::eval_type_expression() {
+std::tuple<Expression*, bool> Parser::
+eval_group_expression() {
+    TRY_TOKEN(TOKEN_PAREN_OPEN);
+    TRY(Expression*, expr, eval_expression());
+    TRY_TOKEN(TOKEN_PAREN_CLOSE);
+    return WIN(new GroupExpression(expr));
+}
+
+std::tuple<TypeExpression*, bool> Parser::
+eval_type_expression() {
     switch (peek()->type)
     {
         case TOKEN_IDENTIFIER: return eval_identifier_type_expression(); break;

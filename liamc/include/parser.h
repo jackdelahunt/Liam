@@ -70,6 +70,7 @@ struct Parser {
     std::tuple<Expression*, bool> eval_array();
     std::tuple<Expression*, bool> eval_primary();
     std::tuple<Expression*, bool> eval_new_expression();
+    std::tuple<Expression*, bool> eval_group_expression();
 
     /* type expressions */
     std::tuple<TypeExpression*, bool> eval_type_expression();

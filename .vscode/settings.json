@@ -9,6 +9,7 @@
         "[Naysayer88]": {
             "strings": "#02bb43",
             "keywords": "#85f0c8",
+            "functions": "#dddddd",
         }
     },
     "editor.cursorStyle": "block",

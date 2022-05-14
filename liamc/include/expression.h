@@ -14,6 +14,7 @@ enum class ExpressionType {
     EXPRESSION_NEW,
     EXPRESSION_ARRAY,
     EXPRESSION_ARRAY_SUBSCRIPT,
+    EXPRESSION_GROUP,
 };
 
 struct Expression {
@@ -98,6 +99,12 @@ struct ArraySubscriptExpression : Expression {
     Expression* subscript;
 
     ArraySubscriptExpression(Expression* array, Expression* subscript);
+};
+
+struct GroupExpression : Expression {
+    Expression* expression;
+
+    GroupExpression(Expression* expression);
 };
 
 enum class TypeExpressionType {

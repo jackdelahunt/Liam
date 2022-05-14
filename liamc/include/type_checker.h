@@ -278,6 +278,12 @@ struct TypeCheckedArraySubscriptExpression : TypeCheckedExpression {
     TypeCheckedArraySubscriptExpression(TypeCheckedExpression* array, TypeCheckedExpression* subscript);
 };
 
+struct TypeCheckedGroupExpression : TypeCheckedExpression {
+    TypeCheckedExpression* expression;
+
+    TypeCheckedGroupExpression(TypeCheckedExpression* expression);
+};
+
 struct TypeCheckedTypeExpression {
     TypeExpressionType type;
     TypeInfo* type_info = nullptr;
@@ -343,6 +349,7 @@ struct TypeChecker {
     TypeCheckedNewExpression* type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table);
     TypeCheckedArrayExpression* type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_table);
     TypeCheckedArraySubscriptExpression* type_check_array_subscript_expression(ArraySubscriptExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedGroupExpression* type_check_group_expression(GroupExpression* expression, SymbolTable* symbol_table);
 
     TypeCheckedTypeExpression* type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_table);
     TypeCheckedIdentifierTypeExpression* type_check_identifier_type_expression(IdentifierTypeExpression* type_expression, SymbolTable* symbol_table);

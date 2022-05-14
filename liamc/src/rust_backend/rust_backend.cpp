@@ -17,8 +17,7 @@ emit(TypedFile* file) {
                                         "#![allow(unreachable_code)]"
                                         "#![allow(unused_imports)]"
                                         "#![allow(unused_parens)]"
-                                        "type void = ();"
-                                        "type string = String;");
+                                        "type void = ();");
 
 	for (auto stmt : file->statements) {
 		source_generated.append(emit_statement(stmt));
@@ -293,6 +292,9 @@ emit_expression(TypeCheckedExpression* expression) {
             case ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT:
                 return emit_array_subscript_expression(dynamic_cast<TypeCheckedArraySubscriptExpression*>(expression));
                 break;
+            case ExpressionType::EXPRESSION_GROUP:
+                return emit_group_expression(dynamic_cast<TypeCheckedGroupExpression*>(expression));
+                break;
             default:
                 return "";
         }
@@ -454,6 +456,11 @@ emit_array_subscript_expression(TypeCheckedArraySubscriptExpression* expression)
     source.append(emit_cloneable_expression(expression->subscript));
     source.append("]).clone()");
     return source;
+}
+
+std::string RustBackend::
+emit_group_expression(TypeCheckedGroupExpression* expression) {
+    return "(" + emit_expression(expression->expression) + ")";
 }
 
 std::string RustBackend::

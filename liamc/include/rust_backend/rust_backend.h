@@ -37,6 +37,7 @@ struct RustBackend {
     std::string emit_new_expression(TypeCheckedNewExpression* expression);
     std::string emit_array_expression(TypeCheckedArrayExpression* expression);
     std::string emit_array_subscript_expression(TypeCheckedArraySubscriptExpression* expression);
+    std::string emit_group_expression(TypeCheckedGroupExpression* expression);
 
     std::string emit_type_expression(TypeCheckedTypeExpression* type_expression);
     std::string emit_identifier_type_expression(TypeCheckedIdentifierTypeExpression* type_expression);

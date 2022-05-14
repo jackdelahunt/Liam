@@ -1,14 +1,36 @@
+# 
+# stdlib string implementation
+#
+
+struct Str {
+    buffer: [char],
+    length: u64
+}
+
+fn make_string(c_arr: ^[char]): Str {
+    let length := 0;
+    for c i in *c_arr {
+        length = length + 1;
+    }
+
+    let str := new Str{*c_arr, length};
+    return str;
+}
+
+fn print_string(str: ^Str): void {
+    for c i in (*str).buffer {
+        print_char(*c);
+    }
+}
+
+# 
+# other helper functions
+#
 fn range(start: u64, end: u64, step: u64): [u64] {
     insert "
         return (start..end).step_by(step as usize).collect();
     ";
     return [1, 2];
-}
-
-fn print_string(str: ^[char]): void {
-    for c i in *str {
-        print_char(*c);
-    }
 }
 
 fn print_char(c: char): void {

@@ -67,6 +67,12 @@ ArraySubscriptExpression::ArraySubscriptExpression(Expression* array, Expression
     this->type = ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT;
 }
 
+GroupExpression::
+GroupExpression(Expression* expression) {
+    this->expression = expression;
+    this->type = ExpressionType::EXPRESSION_GROUP;
+}
+
 std::ostream& TypeExpression::format(std::ostream& os) const {
     os << "()";
     return os;
