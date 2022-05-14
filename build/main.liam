@@ -1,7 +1,14 @@
-import! "/home/jackdelahunt/Projects/Liam/build/liam.liam";
+import! "std.liam";
+
+struct Person {
+    name: string,
+    age: u64
+}
+
+fn num(x: u64): u64 {
+    return x + num(x);
+}
 
 fn main(): void {
-    for i e in range(0, 10000, 1) {
-        print_u64(e);
-    }
+    let x := num(2);
 }

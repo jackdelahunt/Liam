@@ -141,7 +141,7 @@ std::string RustBackend::emit_scope_statement(TypeCheckedScopeStatement* stateme
 
 std::string RustBackend::emit_fn_statement(TypeCheckedFnStatement* statement) {
 	auto fn_source = std::string();
-	fn_source.append("pub fn ");
+	fn_source.append("fn ");
 	fn_source.append(statement->identifier.string);
 	fn_source.append("(");	
 	
@@ -173,7 +173,7 @@ std::string RustBackend::emit_loop_statement(TypeCheckedLoopStatement* statement
 std::string RustBackend::emit_struct_statement(TypeCheckedStructStatement* statement) {
 	auto source = std::string();
 	source.append("#[derive(Clone)]");
-	source.append("pub struct " + statement->identifier.string + "{");
+	source.append("struct " + statement->identifier.string + "{");
 	for (auto& [identifier, type] : statement->members) {
 		source.append(identifier.string + ": " + emit_type_expression(type) + ",");
 	}
@@ -181,7 +181,7 @@ std::string RustBackend::emit_struct_statement(TypeCheckedStructStatement* state
 
     // struct impl block
     source.append("impl " + statement->identifier.string + " {");
-    source.append("pub fn new(");
+    source.append("fn new(");
     for (int i = 0; i < statement->members.size(); i++) {
         auto& [identifier, type] = statement->members.at(i);
         source.append(identifier.string + ": " + emit_type_expression(type));

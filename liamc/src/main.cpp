@@ -5,11 +5,17 @@
 #include <vector>
 #include <filesystem>
 #include "liam.h"
-#include "lexer.h"
-#include "parser.h"
 #include "rust_backend/rust_backend.h"
-#include "type_checker.h"
 #include "compiler.h"
+
+
+#define TIME_START(name) \
+    auto name = std::chrono::high_resolution_clock::now();
+
+#define TIME_END(name, message) \
+    {auto end = std::chrono::high_resolution_clock::now(); \
+    std::chrono::duration<double, std::milli> delta = end - name; \
+    std::cout << message << " :: " << delta.count() << "ms\n";}
 
 int main(int argc, char** argv) {
 
@@ -18,57 +24,22 @@ int main(int argc, char** argv) {
     }
     auto source = absolute(std::filesystem::path(argv[1]));
 
+    TIME_START(l_p_time);
     auto files = lex_parse(source.string());
+    TIME_END(l_p_time, "Lex and parsing time");
+
+    TIME_START(type_time);
     auto typed_file = type_check(&files);
+    TIME_END(type_time, "Type checking time");
 
+    TIME_START(code_gen);
     auto code = RustBackend().emit(&typed_file);
-    auto out_path = source.parent_path().string() + "/out.rs";
+    TIME_END(code_gen, "Code generation time");
 
+    auto out_path = source.parent_path().string() + "/out.rs";
     std::ofstream out_file(out_path);
     out_file << code;
     out_file.close();
 
     return 0;
-/*
-    auto parse_lex_start = std::chrono::high_resolution_clock::now();
-    auto lexer = Lexer(absolute(source).string());
-    lexer.lex();
-
-    auto parser = Parser(absolute(source).string(), lexer.tokens);
-    parser.parse();
-    if(parser.errors.size() > 0) {
-        for(auto& err : parser.errors) {
-            std::cout << parser.path << ":" << err.line << ":" << err.character << " :: " << err.error << "\n";
-        }
-        return EXIT_FAILURE;
-    }
-
-    auto parse_lex_end= std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> parse_lex_delta= parse_lex_end- parse_lex_start;
-
-    auto typing_start = std::chrono::high_resolution_clock::now();
-    auto type_checker = TypeChecker();
-    type_checker.type_check(&parser.root);
-    auto typing_end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> typing_delta = typing_end - typing_start;
-
-    auto code_generation_start = std::chrono::high_resolution_clock::now();
-    auto rust_backend = RustBackend();
-    auto code = rust_backend.emit(type_checker.root);
-    auto code_generation_end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> code_generation_delta = code_generation_end - code_generation_start;
-
-    std::ofstream out_file("main.rs");
-    out_file << code;
-    out_file.close();
-
-    std::cout << "Parse & Lex time: " << parse_lex_delta.count() << "ms\n";
-    std::cout << "Type check time: " << typing_delta.count() << "ms\n";
-    std::cout << "Code generation time: " << code_generation_delta.count() << "ms\n";
-
-    system(std::string("rustc " + std::string("main.rs")).c_str());
-    // system(std::string("rustfmt " + std::string("main.rs")).c_str());
-
-    return 0;
-    */
 }

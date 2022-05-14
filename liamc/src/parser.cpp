@@ -28,7 +28,7 @@ parse() {
         if(stmt->statement_type == STATEMENT_IMPORT) {
             auto import_stmt = dynamic_cast<ImportStatement*>(stmt);
             auto import_path = dynamic_cast<StringLiteralExpression*>(import_stmt->file);
-            file.imports.emplace_back(import_path->token.string);
+            file.imports.emplace_back(absolute(std::filesystem::path(import_path->token.string)).string());
         } else {
             file.statements.push_back(stmt);
         }

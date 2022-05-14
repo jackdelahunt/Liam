@@ -2,7 +2,7 @@ fn range(start: u64, end: u64, step: u64): [u64] {
     insert "
         return (start..end).step_by(step as usize).collect();
     ";
-    return [1,  2];
+    return [1, 2];
 }
 
 fn print_string(s: ^string): void {
