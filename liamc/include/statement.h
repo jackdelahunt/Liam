@@ -9,7 +9,7 @@ struct Token;
 
 typedef std::vector<std::tuple<Token, TypeExpression*>> CSV;
 
-enum StatementType {
+enum class StatementType {
     STATEMENT_EXPRESSION,
     STATEMENT_LET,
     STATEMENT_SCOPE,
@@ -22,6 +22,7 @@ enum StatementType {
     STATEMENT_RETURN,
     STATEMENT_BREAK,
     STATEMENT_FOR,
+    STATEMENT_IF,
 };
 
 struct Statement {
@@ -98,6 +99,13 @@ struct ForStatement : Statement {
     ScopeStatement* body;
 
     ForStatement(Expression* array_expression, ScopeStatement* body, Token value_identifier, Token index_identifier);
+};
+
+struct IfStatement : Statement {
+    Expression* expression;
+    ScopeStatement* body;
+
+    IfStatement(Expression* expression, ScopeStatement* body);
 };
 
 struct ReturnStatement: Statement {

@@ -26,7 +26,7 @@ parse() {
             continue;
         }
 
-        if(stmt->statement_type == STATEMENT_IMPORT) {
+        if(stmt->statement_type == StatementType::STATEMENT_IMPORT) {
             auto import_stmt = dynamic_cast<ImportStatement*>(stmt);
             auto import_path = dynamic_cast<StringLiteralExpression*>(import_stmt->file);
             file.imports.emplace_back(absolute(std::filesystem::path(import_path->token.string)).string());
@@ -68,6 +68,9 @@ eval_statement() {
         break;
     case TOKEN_FOR:
         return eval_for_statement();
+        break;
+    case TOKEN_IF:
+        return eval_if_statement();
         break;
     case TOKEN_IDENTIFIER:
         // x := y; ..or.. x();
@@ -226,6 +229,14 @@ eval_for_statement() {
     TRY(ScopeStatement*, body, eval_scope_statement())
 
     return WIN(new ForStatement(expression, body, *value_token, *index_token));
+}
+
+std::tuple<IfStatement*, bool> Parser::
+eval_if_statement() {
+    TRY_TOKEN(TOKEN_IF);
+    TRY(Expression*, expression, eval_expression())
+    TRY(ScopeStatement*, body, eval_scope_statement())
+    return WIN(new IfStatement(expression, body));
 }
 
 std::tuple<ExpressionStatement*, bool> Parser::

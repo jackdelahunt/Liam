@@ -2,78 +2,98 @@
 #include "expression.h"
 #include <tuple>
 
-std::ostream& Statement::format(std::ostream& os) const {
+std::ostream& Statement::
+format(std::ostream& os) const {
     os << "()";
     return os;
 }
 
-ExpressionStatement::ExpressionStatement(Expression* expression) {
+ExpressionStatement::
+ExpressionStatement(Expression* expression) {
     this->expression = expression;
-    this->statement_type = STATEMENT_EXPRESSION;
+    this->statement_type = StatementType::STATEMENT_EXPRESSION;
 }
 
-LetStatement::LetStatement(Token identifier, Expression* expression, TypeExpression* type) {
+LetStatement::
+LetStatement(Token identifier, Expression* expression, TypeExpression* type) {
     this->identifier = identifier;
     this->expression = expression;
     this->type= type;
-    this->statement_type = STATEMENT_LET;
+    this->statement_type = StatementType::STATEMENT_LET;
 }
 
-FnStatement::FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body) {
+FnStatement::
+FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body) {
     this->identifier = identifier;
     this->type = type;
     this->params = params;
     this->body = body;
-    this->statement_type = STATEMENT_FN;
+    this->statement_type = StatementType::STATEMENT_FN;
 }
 
-LoopStatement::LoopStatement(Token identifier, ScopeStatement* body) {
+LoopStatement::
+LoopStatement(Token identifier, ScopeStatement* body) {
     this->identifier = identifier;
     this->body = body;
-    this->statement_type = STATEMENT_LOOP;
+    this->statement_type = StatementType::STATEMENT_LOOP;
 }
 
-StructStatement::StructStatement(Token identifier, CSV members) {
+StructStatement::
+StructStatement(Token identifier, CSV members) {
     this->identifier = identifier;
     this->members = members;
-    this->statement_type = STATEMENT_STRUCT;
+    this->statement_type = StatementType::STATEMENT_STRUCT;
 }
 
-AssigmentStatement::AssigmentStatement(Token identifier, ExpressionStatement* assigned_to) {
+AssigmentStatement::
+AssigmentStatement(Token identifier, ExpressionStatement* assigned_to) {
     this->identifier = identifier;
     this->assigned_to = assigned_to;
-    this->statement_type = STATEMENT_ASSIGNMENT;
+    this->statement_type = StatementType::STATEMENT_ASSIGNMENT;
 }
 
-ScopeStatement::ScopeStatement(std::vector<Statement*> body) {
+ScopeStatement::
+ScopeStatement(std::vector<Statement*> body) {
     this->body = body;
-    this->statement_type = STATEMENT_SCOPE;
+    this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 
-InsertStatement::InsertStatement(Expression* byte_code) {
+InsertStatement::
+InsertStatement(Expression* byte_code) {
     this->byte_code = byte_code;
-    this->statement_type = STATEMENT_INSERT;
+    this->statement_type = StatementType::STATEMENT_INSERT;
 }
 
-ImportStatement::ImportStatement(Expression* file) {
+ImportStatement::
+ImportStatement(Expression* file) {
     this->file = file;
-    this->statement_type = STATEMENT_IMPORT;
+    this->statement_type = StatementType::STATEMENT_IMPORT;
 }
 
-ForStatement::ForStatement(Expression* array_expression, ScopeStatement* body, Token value_identifier, Token index_identifier) {
+ForStatement::
+ForStatement(Expression* array_expression, ScopeStatement* body, Token value_identifier, Token index_identifier) {
     this->array_expression = array_expression;
     this->body = body;
     this->value_identifier = value_identifier;
     this->index_identifier = index_identifier;
-    this->statement_type = STATEMENT_FOR;
+    this->statement_type = StatementType::STATEMENT_FOR;
 }
 
-ReturnStatement::ReturnStatement(Expression* expression) {
+IfStatement::
+IfStatement(Expression* expression, ScopeStatement* body) {
     this->expression = expression;
-    this->statement_type = STATEMENT_RETURN;
+    this->body = body;
+    this->statement_type = StatementType::STATEMENT_IF;
 }
 
-BreakStatement::BreakStatement(Token identifier) {
+ReturnStatement::
+ReturnStatement(Expression* expression) {
+    this->expression = expression;
+    this->statement_type = StatementType::STATEMENT_RETURN;
+}
+
+BreakStatement::
+BreakStatement(Token identifier) {
     this->identifier= identifier;
-    this->statement_type = STATEMENT_BREAK;
+    this->statement_type = StatementType::STATEMENT_BREAK;
 }

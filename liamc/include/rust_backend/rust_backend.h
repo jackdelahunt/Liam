@@ -22,6 +22,7 @@ struct RustBackend {
 	std::string emit_assigment_statement(TypeCheckedAssigmentStatement* statement);
     std::string emit_expression_statement(TypeCheckedExpressionStatement* statement);
     std::string emit_for_statement(TypeCheckedForStatement* statement);
+    std::string emit_if_statement(TypeCheckedIfStatement* statement);
 
     std::string emit_expression(TypeCheckedExpression* expression);
     std::string emit_cloneable_expression(TypeCheckedExpression* expression);

@@ -62,20 +62,20 @@ TypeCheckedLetStatement(Token identifier, TypeCheckedTypeExpression* type_expres
 	this->identifier = identifier;
 	this->type_expression = type_expression;
 	this->expression = expression;
-	this->statement_type = STATEMENT_LET;
+	this->statement_type = StatementType::STATEMENT_LET;
 }
 
 TypeCheckedScopeStatement::
 TypeCheckedScopeStatement(std::vector<TypeCheckedStatement*> statements) {
 	this->statements = statements;
-	this->statement_type = STATEMENT_SCOPE;
+	this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 
 TypeCheckedStructStatement::
 TypeCheckedStructStatement(Token identifier, Typed_CSV members) {
 	this->identifier = identifier;
 	this->members= members;
-	this->statement_type = STATEMENT_SCOPE;
+	this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 
 TypeCheckedFnStatement::
@@ -84,14 +84,14 @@ TypeCheckedFnStatement(Token identifier, Typed_CSV params, TypeCheckedTypeExpres
 	this->params = params;
 	this->return_type = return_type;
 	this->body = body;
-	this->statement_type = STATEMENT_FN;
+	this->statement_type = StatementType::STATEMENT_FN;
 }
 
 TypeCheckedLoopStatement::
 TypeCheckedLoopStatement(Token identifier, TypeCheckedScopeStatement* body) {
 	this->identifier = identifier;
 	this->body = body;
-	this->statement_type = STATEMENT_LOOP;
+	this->statement_type = StatementType::STATEMENT_LOOP;
 }
 
 TypeCheckedForStatement::
@@ -100,37 +100,44 @@ TypeCheckedForStatement(TypeCheckedExpression* array_expression, TypeCheckedScop
     this->body = body;
     this->value_identifier = value_identifier;
     this->index_identifier = index_identifier;
-    this->statement_type = STATEMENT_FOR;
+    this->statement_type = StatementType::STATEMENT_FOR;
+}
+
+TypeCheckedIfStatement::
+TypeCheckedIfStatement(TypeCheckedExpression* expression, TypeCheckedScopeStatement* body) {
+    this->expression = expression;
+    this->body = body;
+    this->statement_type = StatementType::STATEMENT_IF;
 }
 
 TypeCheckedInsertStatement::
 TypeCheckedInsertStatement(TypeCheckedStringLiteralExpression* code) {
 	this->code = code;
-	this->statement_type = STATEMENT_INSERT;
+	this->statement_type = StatementType::STATEMENT_INSERT;
 }
 
 TypeCheckedReturnStatement::
 TypeCheckedReturnStatement(TypeCheckedExpression* expression) {
 	this->expression = expression;
-	this->statement_type = STATEMENT_RETURN;
+	this->statement_type = StatementType::STATEMENT_RETURN;
 }
 
 TypeCheckedBreakStatement::TypeCheckedBreakStatement(Token identifier) {
 	this->identifier = identifier;
-	this->statement_type = STATEMENT_BREAK;
+	this->statement_type = StatementType::STATEMENT_BREAK;
 }
 
 TypeCheckedExpressionStatement::
 TypeCheckedExpressionStatement(TypeCheckedExpression* expression) {
 	this->expression = expression;
-	this->statement_type = STATEMENT_EXPRESSION;
+	this->statement_type = StatementType::STATEMENT_EXPRESSION;
 }
 
 TypeCheckedAssigmentStatement::
 TypeCheckedAssigmentStatement(Token identifier, TypeCheckedExpression* assigned_to) {
 	this->identifier = identifier;
 	this->assigned_to = assigned_to;
-	this->statement_type = STATEMENT_ASSIGNMENT;
+	this->statement_type = StatementType::STATEMENT_ASSIGNMENT;
 }
 
 TypeCheckedBinaryExpression::
@@ -250,9 +257,9 @@ type_check(std::vector<File>* files) {
 
     for(auto& file : *files) {
         for (auto stmt: file.statements) {
-            if (stmt->statement_type == STATEMENT_STRUCT) {
+            if (stmt->statement_type == StatementType::STATEMENT_STRUCT) {
                 structs.push_back(dynamic_cast<StructStatement *>(stmt));
-            } else if (stmt->statement_type == STATEMENT_FN) {
+            } else if (stmt->statement_type == StatementType::STATEMENT_FN) {
                 funcs.push_back(dynamic_cast<FnStatement*>(stmt));
                 others.push_back(stmt);
             } else {
@@ -299,18 +306,19 @@ type_check_fn_decl(FnStatement* statement, SymbolTable* symbol_table) {
 TypeCheckedStatement* TypeChecker::
 type_check_statement(Statement* statement, SymbolTable* symbol_table) {
     switch (statement->statement_type) {
-        case STATEMENT_INSERT: return type_check_insert_statement(dynamic_cast<InsertStatement *>(statement),symbol_table); break;
-        case STATEMENT_RETURN: return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement),symbol_table); break;
-        case STATEMENT_BREAK: return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table); break;
-        case STATEMENT_FN: return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table); break;
-        case STATEMENT_LOOP: return type_check_loop_statement(dynamic_cast<LoopStatement *>(statement), symbol_table); break;
-        case STATEMENT_STRUCT: return type_check_struct_statement(dynamic_cast<StructStatement *>(statement),symbol_table); break;
-        case STATEMENT_ASSIGNMENT: return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement),symbol_table); break;
-        case STATEMENT_EXPRESSION: return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement), symbol_table); break;
-        case STATEMENT_LET: return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table); break;
-        case STATEMENT_FOR: return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table); break;
+        case StatementType::STATEMENT_INSERT: return type_check_insert_statement(dynamic_cast<InsertStatement *>(statement),symbol_table); break;
+        case StatementType::STATEMENT_RETURN: return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement),symbol_table); break;
+        case StatementType::STATEMENT_BREAK: return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table); break;
+        case StatementType::STATEMENT_FN: return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table); break;
+        case StatementType::STATEMENT_LOOP: return type_check_loop_statement(dynamic_cast<LoopStatement *>(statement), symbol_table); break;
+        case StatementType::STATEMENT_STRUCT: return type_check_struct_statement(dynamic_cast<StructStatement *>(statement),symbol_table); break;
+        case StatementType::STATEMENT_ASSIGNMENT: return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement),symbol_table); break;
+        case StatementType::STATEMENT_EXPRESSION: return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement), symbol_table); break;
+        case StatementType::STATEMENT_LET: return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table); break;
+        case StatementType::STATEMENT_FOR: return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table); break;
+        case StatementType::STATEMENT_IF: return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table); break;
         default:
-            panic("Statement not implemented in type checker, id -> " + std::to_string(statement->statement_type));
+            panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
             return nullptr;
     }
 }
@@ -397,14 +405,14 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table, bool 
     auto typed_body = type_check_scope_statement(statement->body, &copied_symbol_table, false);
     if(existing_type_info->return_type->type == TypeInfoType::VOID) {
         for(auto stmt : typed_body->statements) {
-            if(stmt->statement_type == STATEMENT_RETURN) {
+            if(stmt->statement_type == StatementType::STATEMENT_RETURN) {
                 panic("found return statement when return type is void");
             }
         }
     } else {
         bool found_return = false;
         for(auto stmt : typed_body->statements) {
-            if (stmt->statement_type == STATEMENT_RETURN) {
+            if (stmt->statement_type == StatementType::STATEMENT_RETURN) {
                 found_return = true;
                 auto return_statement = dynamic_cast<TypeCheckedReturnStatement*>(stmt);
                 if(!type_match(return_statement->expression->type_info, existing_type_info->return_type)) {
@@ -448,6 +456,16 @@ type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     auto body = type_check_scope_statement(statement->body, &table_copy, false);
 
     return new TypeCheckedForStatement(array_expression, body, statement->value_identifier, statement->index_identifier);
+}
+
+TypeCheckedIfStatement* TypeChecker::
+type_check_if_statement(IfStatement* statement, SymbolTable* symbol_table) {
+    auto expression = type_check_expression(statement->expression, symbol_table);
+    if(!type_match(expression->type_info, symbol_table->get_type("bool"))) {
+        panic("If statement must be passed a boolean");
+    }
+    auto body = type_check_scope_statement(statement->body, symbol_table);
+    return new TypeCheckedIfStatement(expression, body);
 }
 
 TypeCheckedStructStatement* TypeChecker::

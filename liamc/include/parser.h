@@ -60,6 +60,7 @@ struct Parser {
     std::tuple<BreakStatement*, bool> eval_break_statement();
     std::tuple<ImportStatement*, bool> eval_import_statement();
     std::tuple<ForStatement*, bool> eval_for_statement();
+    std::tuple<IfStatement*, bool> eval_if_statement();
     std::tuple<ExpressionStatement*, bool> eval_expression_statement();
     std::tuple<AssigmentStatement*, bool> eval_assigment_statement();
 

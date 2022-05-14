@@ -153,6 +153,13 @@ struct TypeCheckedForStatement : TypeCheckedStatement {
     TypeCheckedForStatement(TypeCheckedExpression* array_expression, TypeCheckedScopeStatement* body, Token value_identifier, Token index_identifier);
 };
 
+struct TypeCheckedIfStatement : TypeCheckedStatement {
+    TypeCheckedExpression* expression;
+    TypeCheckedScopeStatement* body;
+
+    TypeCheckedIfStatement(TypeCheckedExpression* expression, TypeCheckedScopeStatement* body);
+};
+
 
 struct TypeCheckedInsertStatement : TypeCheckedStatement {
     TypeCheckedStringLiteralExpression* code;
@@ -313,6 +320,7 @@ struct TypeChecker {
     TypeCheckedFnStatement* type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table, bool first_pass = false);
     TypeCheckedLoopStatement* type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table);
     TypeCheckedForStatement* type_check_for_statement(ForStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedIfStatement* type_check_if_statement(IfStatement* statement, SymbolTable* symbol_table);
     TypeCheckedStructStatement* type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_table, bool first_pass = false);
     TypeCheckedAssigmentStatement* type_check_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table);
     TypeCheckedExpressionStatement* type_check_expression_statement(ExpressionStatement* statement, SymbolTable* symbol_table);
