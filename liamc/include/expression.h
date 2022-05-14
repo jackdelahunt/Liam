@@ -7,6 +7,7 @@ enum class ExpressionType {
     EXPRESSION_UNARY,
     EXPRESSION_INT_LITERAL,
     EXPRESSION_STRING_LITERAL,
+    EXPRESSION_BOOL_LITERAL,
     EXPRESSION_IDENTIFIER,
     EXPRESSION_CALL,
     EXPRESSION_GET,
@@ -53,6 +54,12 @@ struct StringLiteralExpression : Expression {
     Token token;
 
     StringLiteralExpression(const Token token);
+};
+
+struct BoolLiteralExpression : Expression {
+    Token value;
+
+    BoolLiteralExpression(Token value);
 };
 
 struct IdentifierExpression : Expression {

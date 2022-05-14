@@ -26,7 +26,8 @@ struct RustBackend {
     std::string emit_expression(TypeCheckedExpression* expression);
     std::string emit_cloneable_expression(TypeCheckedExpression* expression);
 	std::string emit_binary_expression(TypeCheckedBinaryExpression* expression);
-	std::string emit_string_literal_expression(TypeCheckedStringLiteralExpression* expression);
+    std::string emit_string_literal_expression(TypeCheckedStringLiteralExpression* expression);
+    std::string emit_bool_literal_expression(TypeCheckedBoolLiteralExpression* expression);
 	std::string emit_int_literal_expression(TypeCheckedIntLiteralExpression* expression);
 	std::string emit_unary_expression(TypeCheckedUnaryExpression* expression);
 	std::string emit_call_expression(TypeCheckedCallExpression* expression);

@@ -13,6 +13,15 @@ std::vector<File> lex_parse(std::filesystem::path path) {
     lexer.lex();
     auto parser = Parser(path, lexer.tokens);
     auto file = parser.parse();
+
+    // TODO: temp
+    if(!parser.errors.empty()) {
+        for(auto& error : parser.errors) {
+            std::cerr << error.error + "\n";
+            panic("Cannot continue with errors");
+        }
+    }
+
     files.emplace_back(file);
 
     for(auto& import_path : file.imports) {

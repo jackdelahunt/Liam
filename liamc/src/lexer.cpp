@@ -1,7 +1,7 @@
 #include "lexer.h"
 #include <filesystem>
 
-char* TokenTypeStrings[30] = {
+char* TokenTypeStrings[32] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -32,6 +32,8 @@ char* TokenTypeStrings[30] = {
     "]",
     "for",
     "in",
+    "false",
+    "true",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -240,6 +242,16 @@ void Lexer::lex() {
 
             if (word == "string") {
                 tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "true") {
+                tokens.emplace_back(Token(TokenType::TOKEN_TRUE, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "false") {
+                tokens.emplace_back(Token(TokenType::TOKEN_FALSE, word, current_line, word_start));
                 continue;
             }
 

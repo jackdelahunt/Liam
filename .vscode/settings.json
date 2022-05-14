@@ -1,4 +1,17 @@
 {
+    "workbench.colorCustomizations": {
+        "[Naysayer88]": {
+            "tab.activeBackground": "#83715c",
+            "activityBar.activeBackground": "#83715c",
+        }
+    },
+    "editor.tokenColorCustomizations": {
+        "[Naysayer88]": {
+            "strings": "#02bb43",
+            "keywords": "#85f0c8",
+        }
+    },
+    "editor.cursorStyle": "block",
     "files.associations": {
         "*.zig": "zig",
         "array": "cpp",

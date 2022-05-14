@@ -95,6 +95,7 @@ eval_let_statement() {
     } else {
         TRY_TOKEN(TOKEN_WALRUS);
         TRY(ExpressionStatement*, expression, eval_expression_statement());
+
         return WIN(new LetStatement(*identifier, expression->expression, nullptr));
     }
 }
@@ -302,10 +303,7 @@ eval_postfix() {
 
 std::tuple<Expression*, bool> Parser::
 eval_call() {
-    auto [expr, error] = eval_array();
-    if(error) {
-        return {nullptr, true};
-    }
+    TRY(Expression*, expr, eval_array());
 
     while (true) {
         if (match(TOKEN_PAREN_OPEN)) {
@@ -352,15 +350,17 @@ eval_primary() {
     auto type = peek()->type;
 
     if (type == TokenType::TOKEN_INT_LITERAL)
-        return {new IntLiteralExpression(*consume_token()), false};
+        return WIN(new IntLiteralExpression(*consume_token()));
     else if (type == TokenType::TOKEN_STRING_LITERAL)
-        return {new StringLiteralExpression(*consume_token()), false};
+        return WIN(new StringLiteralExpression(*consume_token()));
+    else if (type == TokenType::TOKEN_TRUE || type == TokenType::TOKEN_FALSE)
+        return WIN(new BoolLiteralExpression(*consume_token()));
     else if (type == TokenType::TOKEN_IDENTIFIER)
-        return {new IdentifierExpression(*consume_token()), false};
+        return WIN(new IdentifierExpression(*consume_token()));
     else if (type == TokenType::TOKEN_NEW)
         return eval_new_expression();
 
-    return {new Expression(), false}; // empty expression found -- like when a return has no expression
+    return WIN(new Expression()); // empty expression found -- like when a return has no expression
 }
 
 std::tuple<Expression*, bool> Parser::

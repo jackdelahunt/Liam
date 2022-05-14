@@ -8,9 +8,9 @@ SymbolTable() {
 	this->type_table = std::map<std::string, TypeInfo*>();
 	this->identifier_table = std::map<std::string, TypeInfo*>();
 
-	builtin_type_table["void"] = new VoidTypeInfo{VOID};
-	builtin_type_table["string"] = new StringTypeInfo{STRING};
-	builtin_type_table["u64"] = new IntTypeInfo{INT, false, 64};
+	builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
+	builtin_type_table["string"] = new StringTypeInfo{TypeInfoType::STRING};
+	builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
 }
 
 void SymbolTable::
@@ -150,8 +150,14 @@ TypeCheckedUnaryExpression(TypeCheckedExpression* expression, Token op) {
 TypeCheckedIntLiteralExpression::
 TypeCheckedIntLiteralExpression(Token token) {
 	this->token = token;
-	this->type_info = new IntTypeInfo{INT, false, 64};
     this->type = ExpressionType::EXPRESSION_INT_LITERAL;
+}
+
+TypeCheckedBoolLiteralExpression::
+TypeCheckedBoolLiteralExpression(Token value) {
+    this->value = value;
+    this->type_info = new BoolTypeInfo{TypeInfoType::BOOL};
+    this->type = ExpressionType::EXPRESSION_BOOL_LITERAL;
 }
 
 TypeCheckedCallExpression::
@@ -171,7 +177,7 @@ TypeCheckedIdentifierExpression(Token identifier, TypeInfo* type_info) {
 TypeCheckedStringLiteralExpression::
 TypeCheckedStringLiteralExpression(Token token) {
 	this->token = token;
-	this->type_info = new StringTypeInfo{ STRING };
+	this->type_info = new StringTypeInfo{TypeInfoType::STRING};
     this->type = ExpressionType::EXPRESSION_STRING_LITERAL;
 }
 
@@ -285,7 +291,7 @@ type_check_fn_decl(FnStatement* statement, SymbolTable* symbol_table) {
     }
 
     auto return_expression = type_check_type_expression(statement->type, symbol_table);
-    symbol_table->add_identifier(statement->identifier, new FnTypeInfo{FN, return_expression->type_info,param_type_infos});
+    symbol_table->add_identifier(statement->identifier, new FnTypeInfo{TypeInfoType::FN, return_expression->type_info,param_type_infos});
 }
 
 TypeCheckedStatement* TypeChecker::
@@ -310,7 +316,7 @@ type_check_statement(Statement* statement, SymbolTable* symbol_table) {
 TypeCheckedInsertStatement* TypeChecker::
 type_check_insert_statement(InsertStatement* statement, SymbolTable* symbol_table) {
 	auto expression = type_check_expression(statement->byte_code, symbol_table);
-	if (expression->type_info->type != STRING) {
+	if (expression->type_info->type != TypeInfoType::STRING) {
 		panic("Insert requires a string");
 	}
 
@@ -387,7 +393,7 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table, bool 
 
     // type body and check return exists if needed
     auto typed_body = type_check_scope_statement(statement->body, &copied_symbol_table, false);
-    if(existing_type_info->return_type->type == VOID) {
+    if(existing_type_info->return_type->type == TypeInfoType::VOID) {
         for(auto stmt : typed_body->statements) {
             if(stmt->statement_type == STATEMENT_RETURN) {
                 panic("found return statement when return type is void");
@@ -426,7 +432,7 @@ type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {
 TypeCheckedForStatement* TypeChecker::
 type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     auto array_expression = type_check_expression(statement->array_expression, symbol_table);
-    if(array_expression->type_info->type != ARRAY) {
+    if(array_expression->type_info->type != TypeInfoType::ARRAY) {
         panic("Cannot iterate over non-array value in for loop");
         return nullptr;
     }
@@ -435,7 +441,7 @@ type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     // type body but also add in generated values -> index & element
     auto table_copy = *symbol_table;
     // TODO: correct line and character here
-    table_copy.add_identifier(statement->value_identifier, new PointerTypeInfo{POINTER, array_type_info->array_type});
+    table_copy.add_identifier(statement->value_identifier, new PointerTypeInfo{TypeInfoType::POINTER, array_type_info->array_type});
     table_copy.add_identifier(statement->index_identifier, table_copy.get_type("u64"));
     auto body = type_check_scope_statement(statement->body, &table_copy, false);
 
@@ -454,9 +460,9 @@ type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_tabl
 	}
 
     if(first_pass) {
-        symbol_table->type_table[statement->identifier.string] = new StructTypeInfo{STRUCT, members_type_info};
+        symbol_table->type_table[statement->identifier.string] = new StructTypeInfo{TypeInfoType::STRUCT, members_type_info};
     } else {
-        symbol_table->add_identifier(statement->identifier, new StructTypeInfo{STRUCT, members_type_info});
+        symbol_table->add_identifier(statement->identifier, new StructTypeInfo{TypeInfoType::STRUCT, members_type_info});
     }
 
 	return new TypeCheckedStructStatement(statement->identifier, members);
@@ -491,6 +497,8 @@ type_check_expression(Expression* expression, SymbolTable* symbol_table) {
                                                         symbol_table); break;
         case ExpressionType::EXPRESSION_INT_LITERAL:
             return type_check_int_literal_expression(dynamic_cast<IntLiteralExpression *>(expression), symbol_table); break;
+        case ExpressionType::EXPRESSION_BOOL_LITERAL:
+            return type_check_bool_literal_expression(dynamic_cast<BoolLiteralExpression*>(expression), symbol_table); break;
         case ExpressionType::EXPRESSION_CALL:
             return type_check_call_expression(dynamic_cast<CallExpression*>(expression), symbol_table); break;
         case ExpressionType::EXPRESSION_IDENTIFIER:
@@ -522,7 +530,7 @@ type_check_binary_expression(BinaryExpression* expression, SymbolTable* symbol_t
 		return nullptr;
 	}
 
-	if (left->type_info->type != INT) {
+	if (left->type_info->type != TypeInfoType::INT) {
 		panic("Cannot use binary operator on non int type");
 		return nullptr;	
 	}
@@ -541,18 +549,30 @@ type_check_string_literal_expression(StringLiteralExpression* expression, Symbol
 
 TypeCheckedIntLiteralExpression* TypeChecker::
 type_check_int_literal_expression(IntLiteralExpression* expression, SymbolTable* symbol_table) {
-	return new TypeCheckedIntLiteralExpression(expression->token);
+    auto expr = new TypeCheckedIntLiteralExpression(expression->token);
+    if(expression->token.string == "u64") {
+        expr->type_info = new IntTypeInfo{TypeInfoType::INT, false, 64};
+    }
+
+    panic("This int type not implemented yet!!!");
+    return nullptr;
 }
+
+TypeCheckedBoolLiteralExpression* TypeChecker::
+type_check_bool_literal_expression(BoolLiteralExpression* expression, SymbolTable* symbol_table) {
+    return new TypeCheckedBoolLiteralExpression(expression->value);
+}
+
 TypeCheckedUnaryExpression* TypeChecker::
 type_check_unary_expression(UnaryExpression* expression, SymbolTable* symbol_table) {
 	auto typed_expression = type_check_expression(expression->expression, symbol_table);
 
 	TypeInfo* type_info;
 	if (expression->op.type == TOKEN_AT) {
-		type_info = new PointerTypeInfo{ POINTER, typed_expression->type_info };
+		type_info = new PointerTypeInfo{TypeInfoType::POINTER, typed_expression->type_info };
 	}
 	else if(expression->op.type == TOKEN_STAR) {
-		if (typed_expression->type_info->type != POINTER) {
+		if (typed_expression->type_info->type != TypeInfoType::POINTER) {
 			panic("Cannot dereference non-pointer value");
 		}
 
@@ -586,7 +606,7 @@ type_check_call_expression(CallExpression* expression, SymbolTable* symbol_table
 		arg_type_infos.push_back(typed_arg->type_info);
 	}
 
-	if (type_of_callee->type_info->type != FN) {
+	if (type_of_callee->type_info->type != TypeInfoType::FN) {
 		panic("Can only call a function");
 	}
 
@@ -630,7 +650,7 @@ type_check_identifier_expression(IdentifierExpression* expression, SymbolTable* 
 TypeCheckedGetExpression* TypeChecker::
 type_check_get_expression(GetExpression* expression, SymbolTable* symbol_table) {
 	auto typed_expression = type_check_expression(expression->expression, symbol_table);
-	if (typed_expression->type_info->type != STRUCT) {
+	if (typed_expression->type_info->type != TypeInfoType::STRUCT) {
 		panic("Cannot derive member from non struct type");
 	}
 
@@ -661,7 +681,7 @@ type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table) 
 	}
 
 	// check its a struct
-	if (symbol_table->type_table[expression->identifier.string]->type != STRUCT) {
+	if (symbol_table->type_table[expression->identifier.string]->type != TypeInfoType::STRUCT) {
 		panic("Cannot use new on non struct identifier");
 	}
 
@@ -718,7 +738,7 @@ type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_tab
     }
 
     auto typed_array_expression = new TypeCheckedArrayExpression(typed_expressions);
-    typed_array_expression->type_info = new ArrayTypeInfo{ARRAY, array_type};
+    typed_array_expression->type_info = new ArrayTypeInfo{TypeInfoType::ARRAY, array_type};
 
     return typed_array_expression;
 }
@@ -728,13 +748,13 @@ type_check_array_subscript_expression(ArraySubscriptExpression* expression, Symb
     auto array = type_check_expression(expression->array, symbol_table);
     auto subscript = type_check_expression(expression->subscript, symbol_table);
 
-    if(array->type_info->type != ARRAY) {
+    if(array->type_info->type != TypeInfoType::ARRAY) {
         panic("Cannot subscript into non array value");
         return nullptr;
     }
     auto array_type_info = static_cast<ArrayTypeInfo*>(array->type_info);
 
-    if(subscript->type_info->type != INT) {
+    if(subscript->type_info->type != TypeInfoType::INT) {
         panic("Cannot sub script array with non-int type");
         return nullptr;
     }
@@ -776,7 +796,7 @@ TypeCheckedPointerTypeExpression* TypeChecker::
 type_check_pointer_type_expression(PointerTypeExpression* type_expression, SymbolTable* symbol_table) {
     auto typed_pointer_of = type_check_type_expression(type_expression->pointer_of, symbol_table);
     auto typed_pointer_expression = new TypeCheckedPointerTypeExpression(typed_pointer_of);
-    auto info = new PointerTypeInfo{ POINTER, typed_pointer_of->type_info };
+    auto info = new PointerTypeInfo{TypeInfoType::POINTER, typed_pointer_of->type_info };
     typed_pointer_expression->type_info = info;
     return typed_pointer_expression;
 }
@@ -785,7 +805,7 @@ TypeCheckedArrayTypeExpression* TypeChecker::
 type_check_array_type_expression(ArrayTypeExpression* type_expression, SymbolTable* symbol_table) {
     auto array_of = type_check_type_expression(type_expression->array_of, symbol_table);
     auto typed_expression = new TypeCheckedArrayTypeExpression(array_of);
-    auto info = new ArrayTypeInfo{ARRAY, array_of->type_info};
+    auto info = new ArrayTypeInfo{TypeInfoType::ARRAY, array_of->type_info};
     typed_expression->type_info = info;
     return typed_expression;
 }
@@ -795,10 +815,10 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 		return false;
 	}
 
-	if (a->type == VOID || a->type == STRING) {
+	if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::STRING || a->type == TypeInfoType::BOOL) { // values don't matter
 		return true;
 	}
-	else if (a->type == INT) {
+	else if (a->type == TypeInfoType::INT) {
 		auto int_a = static_cast<IntTypeInfo*>(a);
 		auto int_b = static_cast<IntTypeInfo*>(b);
 
@@ -807,7 +827,7 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 
 		return false;
 	}
-	else if (a->type == FN) {
+	else if (a->type == TypeInfoType::FN) {
 		auto fn_a = static_cast<FnTypeInfo*>(a);
 		auto fn_b = static_cast<FnTypeInfo*>(b);
 
@@ -822,7 +842,7 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 
 		return false;
 	}
-	else if (a->type == STRUCT) {
+	else if (a->type == TypeInfoType::STRUCT) {
 		auto struct_a = static_cast<StructTypeInfo*>(a);
 		auto struct_b = static_cast<StructTypeInfo*>(b);
 
@@ -836,13 +856,13 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 
 		return true;
 	}
-	else if (a->type == POINTER) {
+	else if (a->type == TypeInfoType::POINTER) {
 		auto ptr_a = static_cast<PointerTypeInfo*>(a);
 		auto ptr_b = static_cast<PointerTypeInfo*>(b);
 
-		if (ptr_a->to->type == VOID) return true; // void^ can be equal to T^, not other way around
+		if (ptr_a->to->type == TypeInfoType::VOID) return true; // void^ can be equal to T^, not other way around
 		return ptr_a->to->type == ptr_b->to->type;
-	} else if (a->type == ARRAY) {
+	} else if (a->type == TypeInfoType::ARRAY) {
         auto ptr_a = static_cast<ArrayTypeInfo*>(a);
         auto ptr_b = static_cast<ArrayTypeInfo*>(b);
 

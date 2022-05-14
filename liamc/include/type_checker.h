@@ -43,10 +43,11 @@ struct TypedFile;
 
 typedef std::vector<std::tuple<Token, TypeCheckedTypeExpression*>> Typed_CSV;
 
-enum TypeInfoType {
+enum class TypeInfoType {
 	VOID,
 	INT,
-	STRING,
+    STRING,
+    BOOL,
 	FN,
 	STRUCT,
     POINTER,
@@ -57,16 +58,16 @@ struct TypeInfo {
 	TypeInfoType type;
 };
 
-struct VoidTypeInfo : TypeInfo {
-};
+struct VoidTypeInfo : TypeInfo {};
 
 struct IntTypeInfo : TypeInfo {
 	bool is_signed;
 	size_t size;
 };
 
-struct StringTypeInfo : TypeInfo {
-};
+struct BoolTypeInfo : TypeInfo {};
+
+struct StringTypeInfo : TypeInfo {};
 
 struct PointerTypeInfo : TypeInfo {
 	TypeInfo* to;
@@ -211,6 +212,11 @@ struct TypeCheckedIntLiteralExpression : TypeCheckedExpression {
     TypeCheckedIntLiteralExpression(Token token);
 };
 
+struct TypeCheckedBoolLiteralExpression : TypeCheckedExpression {
+    Token value;
+    TypeCheckedBoolLiteralExpression(Token value);
+};
+
 struct TypeCheckedCallExpression : TypeCheckedExpression {
 	// this is an expression but it must be a identifier
     TypeCheckedIdentifierExpression* identifier;
@@ -316,6 +322,7 @@ struct TypeChecker {
     TypeCheckedBinaryExpression* type_check_binary_expression(BinaryExpression* expression, SymbolTable* symbol_table);
     TypeCheckedStringLiteralExpression* type_check_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table);
     TypeCheckedIntLiteralExpression* type_check_int_literal_expression(IntLiteralExpression* expression, SymbolTable* symbol_table);
+    TypeCheckedBoolLiteralExpression* type_check_bool_literal_expression(BoolLiteralExpression* expression, SymbolTable* symbol_table);
     TypeCheckedUnaryExpression* type_check_unary_expression(UnaryExpression* expression, SymbolTable* symbol_table);
     TypeCheckedCallExpression* type_check_call_expression(CallExpression* expression, SymbolTable* symbol_table);
     TypeCheckedGetExpression* type_check_get_expression(GetExpression* expression, SymbolTable* symbol_table);

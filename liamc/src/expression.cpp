@@ -33,6 +33,11 @@ StringLiteralExpression::StringLiteralExpression(const Token token) {
     this->type = ExpressionType::EXPRESSION_STRING_LITERAL;
 }
 
+BoolLiteralExpression::BoolLiteralExpression(Token value) {
+    this->value = value;
+    this->type = ExpressionType::EXPRESSION_BOOL_LITERAL;
+}
+
 IdentifierExpression::IdentifierExpression(const Token identifier) {
     this->identifier = identifier;
     this->type = ExpressionType::EXPRESSION_IDENTIFIER;

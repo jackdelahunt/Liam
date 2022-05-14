@@ -242,6 +242,13 @@ std::string RustBackend::emit_expression(TypeCheckedExpression* expression) {
 		}
 	}
 
+    {
+        auto ptr = dynamic_cast<TypeCheckedBoolLiteralExpression*>(expression);
+        if (ptr) {
+            return emit_bool_literal_expression(ptr);
+        }
+    }
+
 	{
 		auto ptr = dynamic_cast<TypeCheckedCallExpression*>(expression);
 		if (ptr) {
@@ -304,12 +311,14 @@ std::string RustBackend::emit_expression(TypeCheckedExpression* expression) {
 
 std::string RustBackend::emit_cloneable_expression(TypeCheckedExpression* expression) {
     // no need to clone pointer, literals or new structs
-    if(expression->type_info->type == POINTER
+    if(expression->type_info->type == TypeInfoType::POINTER
        || expression->type == ExpressionType::EXPRESSION_STRING_LITERAL
        || expression->type == ExpressionType::EXPRESSION_INT_LITERAL
+       || expression->type == ExpressionType::EXPRESSION_BOOL_LITERAL
        || expression->type == ExpressionType::EXPRESSION_NEW
        || expression->type == ExpressionType::EXPRESSION_ARRAY
-       || expression->type_info->type == INT
+       || expression->type_info->type == TypeInfoType::INT
+       || expression->type_info->type == TypeInfoType::BOOL
     ) {
         return emit_expression(expression);
     }
@@ -340,6 +349,10 @@ std::string RustBackend::emit_int_literal_expression(TypeCheckedIntLiteralExpres
 
 std::string RustBackend::emit_string_literal_expression(TypeCheckedStringLiteralExpression* expression) {
 	return "String::from(\"" + expression->token.string + "\")";
+}
+
+std::string RustBackend::emit_bool_literal_expression(TypeCheckedBoolLiteralExpression* expression) {
+    return expression->value.string;
 }
 
 std::string RustBackend::emit_call_expression(TypeCheckedCallExpression* expression) {

@@ -1,10 +1,5 @@
-import! "std.liam";
-
 fn main(): void {
-    
-}
+    let x := true;
+    let y := "this is a string";
 
-struct Person {
-    name: string,
-    age: u64
 }
