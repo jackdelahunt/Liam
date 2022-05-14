@@ -44,7 +44,8 @@ struct TypedFile;
 typedef std::vector<std::tuple<Token, TypeCheckedTypeExpression*>> Typed_CSV;
 
 enum class TypeInfoType {
-	VOID,
+    ANY,
+    VOID,
 	INT,
     STRING,
     BOOL,
@@ -58,6 +59,8 @@ struct TypeInfo {
 	TypeInfoType type;
 };
 
+struct AnyTypeInfo : TypeInfo {};
+
 struct VoidTypeInfo : TypeInfo {};
 
 struct IntTypeInfo : TypeInfo {
@@ -68,6 +71,7 @@ struct IntTypeInfo : TypeInfo {
 struct BoolTypeInfo : TypeInfo {};
 
 struct StringTypeInfo : TypeInfo {};
+
 
 struct PointerTypeInfo : TypeInfo {
 	TypeInfo* to;

@@ -740,6 +740,8 @@ type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_tab
     TypeInfo* array_type = nullptr;
     if(!typed_expressions.empty()) {
         array_type = typed_expressions.at(0)->type_info;
+    } else {
+        array_type = new AnyTypeInfo{TypeInfoType::ANY};
     }
 
     if(typed_expressions.size() > 1) {
@@ -825,9 +827,20 @@ type_check_array_type_expression(ArrayTypeExpression* type_expression, SymbolTab
 }
 
 bool type_match(TypeInfo* a, TypeInfo* b) {
-	if (a->type != b->type) {
-		return false;
-	}
+
+    if(a->type == TypeInfoType::ANY && b->type == TypeInfoType::ANY) {
+        panic("cannot match types that are both any, will be fixed xx");
+    }
+
+    // TODO: any to any is actually ambigious so this is a bug
+    if (a->type != b->type) {
+        if(a->type != TypeInfoType::ANY && b->type != TypeInfoType::ANY) {
+            return false;
+        }
+    }
+
+    if(a->type == TypeInfoType::ANY) return true;
+    if(b->type == TypeInfoType::ANY) return true;
 
 	if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::STRING || a->type == TypeInfoType::BOOL) { // values don't matter
 		return true;
