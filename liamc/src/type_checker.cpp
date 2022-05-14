@@ -10,7 +10,8 @@ SymbolTable() {
 
 	builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
 	builtin_type_table["string"] = new StringTypeInfo{TypeInfoType::STRING};
-	builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
+    builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
+    builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOL};
 }
 
 void SymbolTable::
@@ -150,6 +151,7 @@ TypeCheckedUnaryExpression(TypeCheckedExpression* expression, Token op) {
 TypeCheckedIntLiteralExpression::
 TypeCheckedIntLiteralExpression(Token token) {
 	this->token = token;
+    this->type_info = new IntTypeInfo{TypeInfoType::INT, false, 64};
     this->type = ExpressionType::EXPRESSION_INT_LITERAL;
 }
 
@@ -549,13 +551,7 @@ type_check_string_literal_expression(StringLiteralExpression* expression, Symbol
 
 TypeCheckedIntLiteralExpression* TypeChecker::
 type_check_int_literal_expression(IntLiteralExpression* expression, SymbolTable* symbol_table) {
-    auto expr = new TypeCheckedIntLiteralExpression(expression->token);
-    if(expression->token.string == "u64") {
-        expr->type_info = new IntTypeInfo{TypeInfoType::INT, false, 64};
-    }
-
-    panic("This int type not implemented yet!!!");
-    return nullptr;
+    return new TypeCheckedIntLiteralExpression(expression->token);
 }
 
 TypeCheckedBoolLiteralExpression* TypeChecker::

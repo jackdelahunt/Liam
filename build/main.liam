@@ -1,5 +1,7 @@
 fn main(): void {
-    let x := true;
-    let y := "this is a string";
+    let arr: [bool] = [true, true, false];
 
+    if arr[0] {
+        print_string(@"hello world");
+    }
 }
