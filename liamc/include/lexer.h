@@ -41,9 +41,11 @@ enum TokenType {
     TOKEN_FALSE             = 30,
     TOKEN_TRUE              = 31,
     TOKEN_IF                = 32,
+    TOKEN_OR                = 33,
+    TOKEN_AND               = 34,
 };
 
-extern char* TokenTypeStrings[33];
+extern char* TokenTypeStrings[35];
 
 std::string get_token_type_string(TokenType type);
 

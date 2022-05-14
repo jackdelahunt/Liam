@@ -16,6 +16,7 @@ emit(TypedFile* file) {
                                         "#![allow(unused_braces)]"
                                         "#![allow(unreachable_code)]"
                                         "#![allow(unused_imports)]"
+                                        "#![allow(unused_parens)]"
                                         "type void = ();"
                                         "type string = String;");
 
@@ -249,8 +250,8 @@ emit_for_statement(TypeCheckedForStatement* statement) {
 
 std::string RustBackend::
 emit_if_statement(TypeCheckedIfStatement* statement) {
-    auto source = std::string("if ");
-    source.append(emit_expression(statement->expression));
+    auto source = std::string("if (");
+    source.append(emit_expression(statement->expression) + ")");
     source.append(emit_scope_statement(statement->body));
     return source;
 }
@@ -323,8 +324,17 @@ emit_binary_expression(TypeCheckedBinaryExpression* expression) {
 	switch (expression->op.type)
 	{
 	case TOKEN_PLUS:
-		source.append(" + ");
+		source.append("+");
 		break;
+    case TOKEN_STAR:
+        source.append("*");
+        break;
+    case TOKEN_OR:
+        source.append("||");
+        break;
+    case TOKEN_AND:
+        source.append("&&");
+        break;
 	default:
 		panic("Cannot use this operand");
 		break;

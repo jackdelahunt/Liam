@@ -258,7 +258,33 @@ eval_assigment_statement() {
 
 std::tuple<Expression*, bool> Parser::
 eval_expression() {
-    return eval_term();
+    return eval_or();
+}
+
+std::tuple<Expression*, bool> Parser::
+eval_or() {
+    TRY(Expression*, expr, eval_and());
+
+    while (match(TokenType::TOKEN_OR)) {
+        Token* op = consume_token();
+        TRY(Expression*, right, eval_expression());
+        expr = new BinaryExpression(expr, *op, right);
+    }
+
+    return WIN(expr);
+}
+
+std::tuple<Expression*, bool> Parser::
+eval_and() {
+    TRY(Expression*, expr, eval_term());
+
+    while (match(TokenType::TOKEN_AND)) {
+        Token* op = consume_token();
+        TRY(Expression*, right, eval_expression());
+        expr = new BinaryExpression(expr, *op, right);
+    }
+
+    return WIN(expr);
 }
 
 std::tuple<Expression*, bool> Parser::
@@ -267,7 +293,7 @@ eval_term() {
 
     while (match(TokenType::TOKEN_PLUS)) {
         Token* op = consume_token();
-        TRY(Expression*, right, eval_factor());
+        TRY(Expression*, right, eval_expression());
         expr = new BinaryExpression(expr, *op, right);
     }
 
@@ -280,7 +306,7 @@ eval_factor() {
 
     while (match(TokenType::TOKEN_STAR)) {
         Token* op = consume_token();
-        TRY(Expression*, right, eval_unary());
+        TRY(Expression*, right, eval_expression());
         expr = new BinaryExpression(expr, *op, right);
     }
 
@@ -291,7 +317,7 @@ std::tuple<Expression*, bool> Parser::
 eval_unary() {
     if (match(TOKEN_AT) || match(TOKEN_STAR)) {
         auto op = consume_token();
-        TRY(Expression*, expr, eval_unary());
+        TRY(Expression*, expr, eval_expression());
         return {new UnaryExpression(expr, *op), false};
     }
 

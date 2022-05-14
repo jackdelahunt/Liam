@@ -1,7 +1,7 @@
 #include "lexer.h"
 #include <filesystem>
 
-char* TokenTypeStrings[33] = {
+char* TokenTypeStrings[35] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -35,6 +35,8 @@ char* TokenTypeStrings[33] = {
     "false",
     "true",
     "if",
+    "or",
+    "and",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -72,7 +74,8 @@ bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || 
         c == ')' || c == '{' || c == '}' || c == ',' || 
         c == ':' || c == '=' || c == '+' || c == '^' || 
-        c == '@' || c == '*' || c == '.' || c == '[' || c == ']';
+        c == '@' || c == '*' || c == '.' || c == '[' ||
+        c == ']';
 }
 
 Lexer::Lexer(std::filesystem::path path) {
@@ -232,6 +235,16 @@ void Lexer::lex() {
 
             if (word == "if") {
                 tokens.emplace_back(Token(TokenType::TOKEN_IF, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "and") {
+                tokens.emplace_back(Token(TokenType::TOKEN_AND, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "or") {
+                tokens.emplace_back(Token(TokenType::TOKEN_OR, word, current_line, word_start));
                 continue;
             }
 

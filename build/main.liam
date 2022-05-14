@@ -1,3 +1,9 @@
+import! "std.liam";
+
 fn main(): void {
-    let arr : [bool] = [true, false];
+    
+
+    if 100 == 90 {
+        print_string(@"They are equal");
+    }
 }
