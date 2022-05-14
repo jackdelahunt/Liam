@@ -2,6 +2,7 @@
 #include <tuple>
 #include <utility>
 #include "macros.h"
+#include "errors.h"
 
 File::
 File(std::filesystem::path path) {
@@ -28,6 +29,9 @@ parse() {
 
         if(stmt->statement_type == StatementType::STATEMENT_IMPORT) {
             auto import_stmt = dynamic_cast<ImportStatement*>(stmt);
+            if(import_stmt->file->type != ExpressionType::EXPRESSION_STRING_LITERAL) {
+                panic("Import requires string literal");
+            }
             auto import_path = dynamic_cast<StringLiteralExpression*>(import_stmt->file);
             file.imports.emplace_back(absolute(std::filesystem::path(import_path->token.string)).string());
         } else {
@@ -111,7 +115,7 @@ eval_scope_statement() {
     if (closing_brace_index == current + 1) { // if this scope is empty
         current++;
     } else if(closing_brace_index < 0) {
-        FAIL(open_brace->line, open_brace->character, "No closing brace for scope found");
+        FAIL(path.string(), open_brace->line, open_brace->character, "No closing brace for scope found");
     }
 
     while (current < closing_brace_index) {
@@ -433,7 +437,8 @@ std::tuple<TypeExpression*, bool> Parser::eval_type_expression() {
         case TOKEN_HAT: return eval_pointer_type_expression(); break;
         case TOKEN_BRACKET_OPEN: return eval_array_type_expression(); break;
         default:
-            panic("Cannot parse token as the begining of a type expression");
+            FAIL(path.string(), peek()->line, peek()->character, "Cannot parse token as the beginning of a type expression \'" +
+                    peek()->string + "\'");
             break;
     }
 }
@@ -457,17 +462,6 @@ eval_array_type_expression() {
     TRY(TypeExpression*, array_of, eval_type_expression());
     TRY_TOKEN(TOKEN_BRACKET_CLOSE);
     return WIN(new ArrayTypeExpression(array_of));
-}
-
-void Parser::
-report_error(int line, int character, std::string message) {
-    ErrorReport report = {
-            line,
-            character,
-            std::move(message)
-    };
-
-    errors.push_back(report);
 }
 
 bool Parser::
@@ -495,13 +489,13 @@ std::tuple<Token*, bool> Parser::
 consume_token_of_type(TokenType type) {
     if (current >= tokens.size()) {
         auto last_token = tokens.at(tokens.size() - 1);
-        FAIL(last_token.line, last_token.character,
+        FAIL(path.string(), last_token.line, last_token.character,
              std::string("Expected \'") + TokenTypeStrings[type] + std::string("\' but got unexpected end of file"));
     }
 
     auto t_ptr = &tokens.at(current++);
     if (t_ptr->type != type) {
-        FAIL(t_ptr->line, t_ptr->character,
+        FAIL(path.string(), t_ptr->line, t_ptr->character,
              std::string("Expected \'") +
              TokenTypeStrings[type] +
              "\' got \'" + t_ptr->string +

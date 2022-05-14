@@ -40,6 +40,6 @@
 #define WIN(value)                                              \
     {value, false}
 
-#define FAIL(line, character, message)                           \
-    report_error(line, character, message);                      \
+#define FAIL(file, line, character, message)                           \
+    ErrorReporter::report_error(file, line, character, message);       \
     return {nullptr, true};

@@ -16,6 +16,7 @@ add_executable(liamc
         "src/liam.cpp"
         "src/rust_backend/rust_backend.cpp"
         "src/type_checker.cpp"
+        "src/errors.cpp"
 
         "include/liam.h"
         "include/generator.h"
@@ -27,4 +28,5 @@ add_executable(liamc
         "include/type_checker.h"
         "include/compiler.h"
         "include/macros.h"
+        "include/errors.h"
 )

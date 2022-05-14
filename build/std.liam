@@ -5,12 +5,14 @@ fn range(start: u64, end: u64, step: u64): [u64] {
     return [1, 2];
 }
 
-fn print_string(s: ^[char]): void {
-    insert "println!(\"{:?}\", *s);";
+fn print_string(str: ^[char]): void {
+    for c i in *str {
+        print_char(*c);
+    }
 }
 
 fn print_char(c: char): void {
-    insert "println!(\"{}\", c);";
+    insert "print!(\"{}\", c as char);";
 }
 
 fn print_u64(n: u64): void {

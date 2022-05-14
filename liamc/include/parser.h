@@ -31,15 +31,8 @@ struct File {
     File(std::filesystem::path path);
 };
 
-struct ErrorReport {
-    int line;
-    int character;
-    std::string error;
-};
-
 struct Parser {
     std::vector<Token> tokens;
-    std::vector<ErrorReport> errors;
     int current;
     std::filesystem::path path;
 
@@ -84,7 +77,6 @@ struct Parser {
     std::tuple<PointerTypeExpression*, bool> eval_pointer_type_expression();
     std::tuple<ArrayTypeExpression*, bool> eval_array_type_expression();
 
-    void report_error(int line, int character, std::string message);
     bool match(TokenType type);
     inline Token* peek(int offset = 0);
     Token* consume_token();

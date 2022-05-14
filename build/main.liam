@@ -1,9 +1,7 @@
-import "/home/jackdelahunt/Projects/Liam/build/std.liam";
+import "std.liam";
 
 fn main(): void {
-    let str: [char] = "this is a string";
+    let s := "this is a string";
 
-    for it i in str {
-        print_char(*it);
-    }
+    print_string(@s);
 }

@@ -241,8 +241,8 @@ emit_expression_statement(TypeCheckedExpressionStatement* statement) {
 std::string RustBackend::
 emit_for_statement(TypeCheckedForStatement* statement) {
     std::string source ="";
-    source.append("for (___i___generated, " + statement->value_identifier.string + ") in " + emit_expression(statement->array_expression));
-    source.append(".iter_mut().enumerate() { let " + statement->index_identifier.string + " = ___i___generated as u64;");
+    source.append("for (___i___generated, " + statement->value_identifier.string + ") in (" + emit_expression(statement->array_expression));
+    source.append(").iter_mut().enumerate() { let " + statement->index_identifier.string + " = ___i___generated as u64;");
     source.append(emit_scope_statement(statement->body));
     source.append("}");
     return source;
