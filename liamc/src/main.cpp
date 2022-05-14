@@ -16,9 +16,9 @@ int main(int argc, char** argv) {
     if (argc < 2) {
         panic("Not enough arguments");
     }
-    std::filesystem::path source = argv[1];
+    auto source = absolute(std::filesystem::path(argv[1]));
 
-    auto files = lex_parse(absolute(source).string());
+    auto files = lex_parse(source.string());
     auto typed_file = type_check(&files);
 
     auto code = RustBackend().emit(&typed_file);
