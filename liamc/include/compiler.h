@@ -23,14 +23,9 @@ std::vector<File> lex_parse(std::filesystem::path path) {
     return files;
 }
 
-std::vector<TypedFile> type_check(std::vector<File>* files) {
-    auto typed_files = std::vector<TypedFile>();
-    for(auto& file: *files) {
-        auto tc = TypeChecker();
-        auto typed_file = tc.type_check(&file);
-        typed_files.push_back(typed_file);
-    }
-    return typed_files;
+inline TypedFile type_check(std::vector<File>* files) {
+    auto tc = TypeChecker();
+    return TypeChecker().type_check(files);
 }
 
 

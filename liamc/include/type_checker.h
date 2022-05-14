@@ -285,9 +285,8 @@ struct TypeCheckedArrayTypeExpression : TypeCheckedTypeExpression {
 
 struct TypedFile {
 	std::vector<TypeCheckedStatement*> statements;
-    std::filesystem::path path;
 
-    TypedFile(std::filesystem::path path);
+    TypedFile();
 };
 
 struct TypeChecker {
@@ -295,7 +294,7 @@ struct TypeChecker {
 
 	TypeChecker();
 
-	TypedFile type_check(File* file);
+	TypedFile type_check(std::vector<File>* files);
 	TypeCheckedStatement* type_check_statement(Statement* statement, SymbolTable* symbol_table);
     TypeCheckedInsertStatement* type_check_insert_statement(InsertStatement* statement, SymbolTable* symbol_table);
     TypeCheckedReturnStatement* type_check_return_statement(ReturnStatement* statement, SymbolTable* symbol_table);

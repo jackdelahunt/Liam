@@ -223,9 +223,8 @@ TypeCheckedArrayTypeExpression(TypeCheckedTypeExpression* array_of) {
 }
 
 TypedFile::
-TypedFile(std::filesystem::path path) {
+TypedFile() {
     this->statements = std::vector<TypeCheckedStatement*>();
-    this->path = std::move(path);
 }
 
 TypeChecker::
@@ -234,12 +233,16 @@ TypeChecker() {
 }
 
 TypedFile TypeChecker::
-type_check(File* file) {
-    auto typed_file = TypedFile(file->path);
-	for (auto stmt : file->statements) {
-		auto p = type_check_statement(stmt, &symbol_table);
-		typed_file.statements.push_back(p);
-	}
+type_check(std::vector<File>* files) {
+    auto typed_file = TypedFile();
+
+    for(int i = files->size() - 1; i >= 0; i--) {
+        auto file = &files->at(i);
+        for (auto stmt: file->statements) {
+            auto p = type_check_statement(stmt, &symbol_table);
+            typed_file.statements.push_back(p);
+        }
+    }
 
     return typed_file;
 }

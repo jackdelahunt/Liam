@@ -1,5 +1,7 @@
-import! "/home/jackdelahunt/Projects/Liam/build/std.liam";
+import! "/home/jackdelahunt/Projects/Liam/build/liam.liam";
 
 fn main(): void {
-
+    for i e in range(0, 10000, 1) {
+        print_u64(e);
+    }
 }

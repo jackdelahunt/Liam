@@ -8,3 +8,6 @@ build/main.obj
 **/cmake-build-debug/
 **/main/
 build/main.rs
+build/out.rs
+build/out
+build/main

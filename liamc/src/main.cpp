@@ -19,17 +19,14 @@ int main(int argc, char** argv) {
     std::filesystem::path source = argv[1];
 
     auto files = lex_parse(absolute(source).string());
-    auto typed_files = type_check(&files);
+    auto typed_file = type_check(&files);
 
-    for(auto file : typed_files) {
-        auto rb = RustBackend();
-        auto code = rb.emit(&file);
-        auto out_path = file.path.parent_path().string() + "/" + file.path.filename().replace_extension(".rs").string();
+    auto code = RustBackend().emit(&typed_file);
+    auto out_path = source.parent_path().string() + "/out.rs";
 
-        std::ofstream out_file(out_path);
-        out_file << code;
-        out_file.close();
-    }
+    std::ofstream out_file(out_path);
+    out_file << code;
+    out_file.close();
 
     return 0;
 /*

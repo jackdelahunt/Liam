@@ -1,3 +1,0 @@
-#![allow(unused_unsafe)]#![allow(non_camel_case_types)]#![allow(dead_code)]#![allow(unused_mut)]#![allow(unused_variables)]#![allow(unused_assignments)]#![allow(non_snake_case)]#![allow(unused_braces)]#![allow(unreachable_code)]type void = ();type string = String;fn range(start: u64, end: u64, step: u64) -> Vec<u64> { unsafe {
-        return (start..end).step_by(step as usize).collect();
-    return vec![1, 2];}}fn print_string(s: *mut string) -> void { unsafe {println!("{}", *s);}}fn print_u64(n: u64) -> void { unsafe {println!("{}", n);}}
