@@ -33,7 +33,7 @@ std::vector<File> lex_parse(std::filesystem::path path) {
     return files;
 }
 
-inline TypedFile type_check(std::vector<File>* files) {
+inline File type_check(std::vector<File>* files) {
     auto tc = TypeChecker();
     return TypeChecker().type_check(files);
 }

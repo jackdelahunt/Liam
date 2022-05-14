@@ -20,7 +20,7 @@ char* TokenTypeStrings[38] = {
     ",",
     ":",
     "return",
-    "type",
+    "return_type",
     "^",
     "@",
     "struct",

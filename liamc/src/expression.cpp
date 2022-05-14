@@ -50,7 +50,7 @@ CallExpression::CallExpression(Expression* identifier, std::vector<Expression*> 
 }
 
 GetExpression::GetExpression(Expression* expression, Token member) {
-    this->expression = expression;
+    this->lhs = expression;
     this->member= member;
     this->type = ExpressionType::EXPRESSION_GET;
 }

@@ -17,7 +17,7 @@ ExpressionStatement(Expression* expression) {
 LetStatement::
 LetStatement(Token identifier, Expression* expression, TypeExpression* type) {
     this->identifier = identifier;
-    this->expression = expression;
+    this->rhs = expression;
     this->type= type;
     this->statement_type = StatementType::STATEMENT_LET;
 }
@@ -25,7 +25,7 @@ LetStatement(Token identifier, Expression* expression, TypeExpression* type) {
 FnStatement::
 FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body) {
     this->identifier = identifier;
-    this->type = type;
+    this->return_type = type;
     this->params = params;
     this->body = body;
     this->statement_type = StatementType::STATEMENT_FN;
@@ -53,8 +53,8 @@ AssigmentStatement(Token identifier, ExpressionStatement* assigned_to) {
 }
 
 ScopeStatement::
-ScopeStatement(std::vector<Statement*> body) {
-    this->body = body;
+ScopeStatement(std::vector<Statement*> statements) {
+    this->statements = statements;
     this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 

@@ -72,7 +72,7 @@ struct Parser {
     std::tuple<Expression*, bool> eval_new_expression();
     std::tuple<Expression*, bool> eval_group_expression();
 
-    /* type expressions */
+    /* return_type expressions */
     std::tuple<TypeExpression*, bool> eval_type_expression();
     std::tuple<IdentifierTypeExpression*, bool> eval_identifier_type_expression();
     std::tuple<PointerTypeExpression*, bool> eval_pointer_type_expression();
@@ -84,7 +84,4 @@ struct Parser {
     std::tuple<Token*, bool> consume_token_of_type(TokenType type);
     std::tuple<std::vector<Expression*>, bool> consume_arguments(TokenType closer);
     std::tuple<CSV, bool> consume_comma_seperated_values();
-
 };
-
-void unexpected_eof();

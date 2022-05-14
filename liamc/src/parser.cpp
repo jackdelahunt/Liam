@@ -92,7 +92,7 @@ eval_let_statement() {
     TRY_TOKEN(TOKEN_LET);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
-    // might be walrus or explicit type
+    // might be walrus or explicit return_type
     if(peek(0)->type == TOKEN_COLON) {
         TRY_TOKEN(TOKEN_COLON);
         TRY(TypeExpression*, type, eval_type_expression());
@@ -449,7 +449,7 @@ eval_type_expression() {
         case TOKEN_HAT: return eval_pointer_type_expression(); break;
         case TOKEN_BRACKET_OPEN: return eval_array_type_expression(); break;
         default:
-            FAIL(path.string(), peek()->line, peek()->character, "Cannot parse token as the beginning of a type expression \'" +
+            FAIL(path.string(), peek()->line, peek()->character, "Cannot parse token as the beginning of a return_type expression \'" +
                     peek()->string + "\'");
             break;
     }
@@ -568,8 +568,4 @@ std::tuple<CSV, bool> Parser::consume_comma_seperated_values() {
     }
 
     return WIN(args_types);
-}
-
-void unexpected_eof() {
-    panic("unexpexted end of file");
 }

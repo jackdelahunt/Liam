@@ -29,4 +29,5 @@ add_executable(liamc
         "include/compiler.h"
         "include/macros.h"
         "include/errors.h"
+        "include/type_info.h"
 )

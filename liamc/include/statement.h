@@ -38,22 +38,22 @@ struct ExpressionStatement : Statement {
 
 struct LetStatement : Statement {
     Token identifier;
-    Expression* expression;
+    Expression* rhs;
     TypeExpression* type;
 
     LetStatement(Token identifier, Expression* expression, TypeExpression* type);
 };
 
 struct ScopeStatement : Statement {
-    std::vector<Statement*> body;
+    std::vector<Statement*> statements;
 
-    ScopeStatement(std::vector<Statement*> body);
+    ScopeStatement(std::vector<Statement*> statements);
 };
 
 struct FnStatement : Statement {
     Token identifier;
     CSV params;
-    TypeExpression* type;
+    TypeExpression* return_type;
     ScopeStatement* body;
 
     FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body);

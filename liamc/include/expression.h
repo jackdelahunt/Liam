@@ -1,6 +1,7 @@
 #pragma once
 #include "lexer.h"
 #include "liam.h"
+#include "type_info.h"
 
 enum class ExpressionType {
     EXPRESSION_BINARY,
@@ -18,6 +19,7 @@ enum class ExpressionType {
 };
 
 struct Expression {
+    TypeInfo* type_info = nullptr;
     ExpressionType type;
     virtual std::ostream& format(std::ostream& os) const;
 };
@@ -79,7 +81,7 @@ struct CallExpression : Expression {
 
 struct GetExpression : Expression {
     // this is an expression but it must be a identifier
-    Expression* expression;
+    Expression* lhs;
     Token member;
 
     GetExpression(Expression* expression, Token member);
@@ -114,6 +116,7 @@ enum class TypeExpressionType {
 };
 
 struct TypeExpression {
+    TypeInfo* type_info = nullptr;
     TypeExpressionType type;
     virtual std::ostream& format(std::ostream& os) const;
 };

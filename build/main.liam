@@ -1,8 +1,6 @@
 import "std.liam";
 
 fn main(): void {
-    let str := make_string(@"this is a string");
-    print_string(@str);
-
-    let x := 1 + (1);
+    let s := make_string(@"this is another sentence");
+    print_string(@s);
 }
