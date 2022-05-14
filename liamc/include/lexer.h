@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include "liam.h"
 
 std::vector<char> extract_chars(const char* path);
 
@@ -55,12 +56,12 @@ std::string get_token_type_string(TokenType type);
 struct Token
 {
     TokenType type;
-    int line;
-    int character;
+    s32 line;
+    s32 character;
     std::string string;
 
     Token() = default;
-    Token(TokenType type, std::string string, int line, int character);
+    Token(TokenType type, std::string string, s32 line, s32 character);
 };
     
 std::ostream& operator<<(std::ostream& os, const Token& token);
@@ -71,9 +72,9 @@ struct Lexer
 {
     std::vector<Token> tokens;
     std::vector<char> chars;
-    int current;
-    int current_line;
-    int current_character;
+    s32 current;
+    s32 current_line;
+    s32 current_character;
     std::filesystem::path path;
 
     Lexer(std::filesystem::path path);

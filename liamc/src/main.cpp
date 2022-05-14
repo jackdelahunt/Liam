@@ -4,9 +4,8 @@
 #include "liam.h"
 #include "rust_backend/rust_backend.h"
 #include "compiler.h"
-#include "macros.h"
 
-int main(int argc, char** argv) {
+s32 main(s32 argc, char** argv) {
 
     if (argc < 2) {
         panic("Not enough arguments");

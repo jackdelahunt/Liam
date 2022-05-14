@@ -1,5 +1,6 @@
 #include "type_checker.h"
 #include "parser.h"
+#include "liam.h"
 
 SymbolTable::
 SymbolTable() {
@@ -409,7 +410,7 @@ type_check_call_expression(CallExpression* expression, SymbolTable* symbol_table
 		panic("Incorrect numbers of args passed to function call");
 	}
 
-	for (int i = 0; i < fn_type_info->args.size(); i++) {
+	for (s32 i = 0; i < fn_type_info->args.size(); i++) {
 		if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i))) {
 			panic("Type mismatch at function call");
 		}
@@ -488,7 +489,7 @@ type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table) 
 	}
 
 	// check types
-	for (int i = 0; i < members_type_info.size(); i++) {
+	for (s32 i = 0; i < members_type_info.size(); i++) {
 		auto [member, type] = struct_type_info->members.at(i);
 		if (!type_match(members_type_info.at(i), type)) {
 			panic("Incorect arguments to new constructor");
@@ -512,7 +513,7 @@ type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_tab
     }
 
     if(expression->expressions.size() > 1) {
-        for(int i = 0; i < expression->expressions.size(); i++) {
+        for(s32 i = 0; i < expression->expressions.size(); i++) {
             if(!type_match(array_member_type, expression->expressions.at(i)->type_info)) {
                 panic("Mismatched types in array expression, index " + std::to_string(i) + " has unexpected return_type");
             }
@@ -615,7 +616,7 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 		auto fn_b = static_cast<FnTypeInfo*>(b);
 
 		if (type_match(fn_a->return_type, fn_b->return_type)) {
-			for (int i = 0; i < fn_a->args.size(); i++) {
+			for (s32 i = 0; i < fn_a->args.size(); i++) {
 				if(type_match(fn_a->args.at(i), fn_b->args.at(i))) {}
 				else { return false;  }
 			}
@@ -629,7 +630,7 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 		auto struct_a = static_cast<StructTypeInfo*>(a);
 		auto struct_b = static_cast<StructTypeInfo*>(b);
 
-		for (int i = 0; i < struct_a->members.size(); i++) {
+		for (s32 i = 0; i < struct_a->members.size(); i++) {
 			auto [a_member, a_type] = struct_a->members.at(i);
 			auto [b_member, b_type] = struct_b->members.at(i);
 			if (!type_match(a_type, b_type)) {

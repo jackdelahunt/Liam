@@ -5,8 +5,8 @@
 #include "lexer.h"
 #include "statement.h"
 #include "expression.h"
-#include "liam.h"
 #include <filesystem>
+#include "liam.h"
 
 struct Statement;
 struct LetStatement;
@@ -33,7 +33,7 @@ struct File {
 
 struct Parser {
     std::vector<Token> tokens;
-    int current;
+    s32 current;
     std::filesystem::path path;
 
     Parser(std::filesystem::path path, std::vector<Token>& tokens);
@@ -47,7 +47,7 @@ struct Parser {
     std::tuple<StructStatement*, bool> eval_struct_statement();
     std::tuple<FnStatement*, bool> eval_fn_statement();
     std::tuple<LoopStatement*, bool> eval_loop_statement();
-    int find_balance_point(TokenType push, TokenType pull, int from);
+    s32 find_balance_point(TokenType push, TokenType pull, s32 from);
     std::tuple<InsertStatement*, bool> eval_insert_statement();
     std::tuple<ReturnStatement*, bool> eval_return_statement();
     std::tuple<BreakStatement*, bool> eval_break_statement();
@@ -79,7 +79,7 @@ struct Parser {
     std::tuple<ArrayTypeExpression*, bool> eval_array_type_expression();
 
     bool match(TokenType type);
-    inline Token* peek(int offset = 0);
+    inline Token* peek(s32 offset = 0);
     Token* consume_token();
     std::tuple<Token*, bool> consume_token_of_type(TokenType type);
     std::tuple<std::vector<Expression*>, bool> consume_arguments(TokenType closer);

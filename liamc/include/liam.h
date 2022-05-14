@@ -1,84 +1,62 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <string>
+#include <stdint.h>
 
-typedef uint64_t Byte;
+typedef int8_t s8;
+typedef uint8_t u8;
 
-template <typename T>
-struct Slice {
-    T* start;
-    size_t count;
-};
+typedef int16_t s16;
+typedef uint16_t u16;
 
-template <typename T>
-struct Array {
-    T* start;
-    size_t count;
-    size_t capacity;
+typedef int32_t s32;
+typedef uint32_t u32;
 
-    Array() {
-        this->count = 0;
-        this->capacity = 10;
-        this->start = (T*)malloc(sizeof(T) * this->capacity);
-    }
-
-    Array(size_t capacity) {
-        this->count = 0;
-        this->capacity = capacity;
-        this->start = (T*)malloc(sizeof(T) * capacity);
-    }
-
-    void add(T value) {
-        maybe_expand();
-        count++;
-        start[count - 1] = value;
-    }
-
-    void maybe_expand() {
-        if(count >= capacity) {
-            capacity *= 2;
-            start = (T*)realloc(start, capacity);
-        }
-    }
-
-    void print() {
-        if(count > 0) {
-            for(int i = 0; i < count; i++) {
-                printf("%d", start[i]);
-            }
-            printf("\n");
-        }
-    }
-};    
-
-enum OpCode : Byte {
-    ADD     = 0,
-    PRINT   = 1,
-    PUSH    = 2,
-    GOTO    = 3,
-};
-
-struct VM
-{
-    Byte byte_code[1024]    = {0};
-    Byte stack[1024]        = {0};
-    Byte stack_ptr          = 0; // one more then last valid value
-    Byte memory_ptr         = 0; // one more then last valid byte
-    Byte instruction_ptr    = 0; // current valid instruction
-
-    void push_byte(Byte byte);
-    void run();
-    void add_op();
-    void print_op();
-    void push_op();
-    void goto_op();
-    Byte next_byte();
-    void stack_push(Byte byte);
-    Byte stack_pop();
-};
+typedef int64_t s64;
+typedef uint64_t u64;
 
 void panic(const std::string& msg);
+
+#define TIME_START(name)                                            \
+    auto name = std::chrono::high_resolution_clock::now();
+
+#define TIME_END(name, message)                                     \
+    {auto end = std::chrono::high_resolution_clock::now();          \
+    std::chrono::duration<double, std::milli> delta = end - name;   \
+    std::cout << message << " :: " << delta.count() << "ms\n";}
+
+#define TRY(type, value, func)                                  \
+    type value = nullptr;                                       \
+     {                                                          \
+     auto [ptr, error] = func;                                  \
+        if(error) {                                             \
+            return {nullptr, true};                             \
+        }                                                       \
+        value = ptr;                                            \
+    }
+
+#define NAMED_TOKEN(value, type) \
+    Token* value = nullptr;                                     \
+    {                                                           \
+        auto tuple = consume_token_of_type(type);               \
+        value = std::get<0>(tuple);                             \
+        auto try_error = std::get<1>(tuple);                    \
+        if(try_error) {                                         \
+            return {nullptr, true};                             \
+        }                                                       \
+    }
+
+#define TRY_TOKEN(type)                                         \
+    {                                                           \
+        auto [_, _try_error_] = consume_token_of_type(type);    \
+        if(_try_error_) {                                       \
+            return {nullptr, true};                             \
+        }                                                       \
+    }
+
+#define WIN(value)                                              \
+    {value, false}
+
+#define FAIL(file, line, character, message)                           \
+    ErrorReporter::report_error(file, line, character, message);       \
+    return {nullptr, true};

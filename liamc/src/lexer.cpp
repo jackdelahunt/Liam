@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include <filesystem>
+#include "liam.h"
 
 char* TokenTypeStrings[38] = {
     "int Literal",
@@ -51,7 +52,7 @@ std::vector<char> extract_chars(const char* path) {
         std::cout << "cannot open file";
     }
 
-    for (int i = file.get(); i != EOF; i = file.get())
+    for (s32 i = file.get(); i != EOF; i = file.get())
     {
         vec.push_back((char)i);
     }
@@ -60,7 +61,7 @@ std::vector<char> extract_chars(const char* path) {
     return vec;
 }
 
-Token::Token(TokenType type, std::string string, int line, int character) {
+Token::Token(TokenType type, std::string string, s32 line, s32 character) {
     this->type = type;
     this->string = string;
     this->line = line;
@@ -190,7 +191,7 @@ void Lexer::lex() {
         }
         break;
         default:
-            int word_start = current_character;
+            s32 word_start = current_character;
             auto word = get_word();
 
             // check keywords
@@ -293,7 +294,7 @@ void Lexer::lex() {
             // check numbers
             try
             {
-                int i = std::stoi(word);
+                s32 i = std::stoi(word);
                 tokens.emplace_back(Token(TokenType::TOKEN_INT_LITERAL, word, current_line, word_start));
                 continue;
             }

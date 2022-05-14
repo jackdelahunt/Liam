@@ -28,89 +28,48 @@ emit(File* file) {
 
 std::string RustBackend::
 emit_statement(Statement* statement) {
-	{
-		auto ptr = dynamic_cast<InsertStatement*>(statement);
-		if (ptr) {
-			return emit_insert_statement(ptr);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<ReturnStatement*>(statement);
-		if (ptr) {
-			return emit_return_statement(ptr);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<BreakStatement*>(statement);
-		if (ptr) {
-			return emit_break_statement(ptr);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<LetStatement*>(statement);
-		if (ptr) {
-			return emit_let_statement(ptr);
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<FnStatement*>(statement);
-		if (ptr) {
-			auto s = emit_fn_statement(ptr);
-			return s;
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<LoopStatement*>(statement);
-		if (ptr) {
-			auto s = emit_loop_statement(ptr);
-			return s;
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<StructStatement*>(statement);
-		if (ptr) {
-			auto s = emit_struct_statement(ptr);
-			return s;
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<AssigmentStatement*>(statement);
-		if (ptr) {
-			auto s = emit_assigment_statement(ptr);
-			return s;
-		}
-	}
-
-	{
-		auto ptr = dynamic_cast<ExpressionStatement*>(statement);
-		if (ptr) {
-			return emit_expression_statement(ptr);
-		}
-	}
-
-    {
-        auto ptr = dynamic_cast<ForStatement*>(statement);
-        if (ptr) {
-            return emit_for_statement(ptr);
-        }
+    switch (statement->statement_type) {
+        case StatementType::STATEMENT_INSERT:
+            return emit_insert_statement(dynamic_cast<InsertStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_RETURN:
+            return emit_return_statement(dynamic_cast<ReturnStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_BREAK:
+            return emit_break_statement(dynamic_cast<BreakStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_LET:
+            return emit_let_statement(dynamic_cast<LetStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_FN:
+            return emit_fn_statement(dynamic_cast<FnStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_SCOPE:
+            return emit_scope_statement(dynamic_cast<ScopeStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_LOOP:
+            return emit_loop_statement(dynamic_cast<LoopStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_STRUCT:
+            return emit_struct_statement(dynamic_cast<StructStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_ASSIGNMENT:
+            return emit_assigment_statement(dynamic_cast<AssigmentStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_EXPRESSION:
+            return emit_expression_statement(dynamic_cast<ExpressionStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_FOR:
+            return emit_for_statement(dynamic_cast<ForStatement*>(statement));
+            break;
+        case StatementType::STATEMENT_IF:
+            return emit_if_statement(dynamic_cast<IfStatement*>(statement));
+            break;
     }
 
-    {
-        auto ptr = dynamic_cast<IfStatement*>(statement);
-        if (ptr) {
-            return emit_if_statement(ptr);
-        }
-    }
 
 	panic("Statement not implemented in rust back end :[");
-    return nullptr;
+    return "";
 }
 
 std::string RustBackend::
@@ -161,7 +120,7 @@ emit_fn_statement(FnStatement* statement) {
 	fn_source.append(statement->identifier.string);
 	fn_source.append("(");	
 	
-	int index = 0;
+	s32 index = 0;
 	for (auto& [identifier, type] : statement->params) {
 		fn_source.append(identifier.string + ": " + emit_type_expression(type));
 		index++;
@@ -200,7 +159,7 @@ emit_struct_statement(StructStatement* statement) {
     // struct impl block
     source.append("impl " + statement->identifier.string + " {");
     source.append("fn new(");
-    for (int i = 0; i < statement->members.size(); i++) {
+    for (s32 i = 0; i < statement->members.size(); i++) {
         auto& [identifier, type] = statement->members.at(i);
         source.append(identifier.string + ": " + emit_type_expression(type));
 
@@ -210,7 +169,7 @@ emit_struct_statement(StructStatement* statement) {
     }
     source.append(") -> Self {");
     source.append("Self{");
-    for (int i = 0; i < statement->members.size(); i++) {
+    for (s32 i = 0; i < statement->members.size(); i++) {
         auto& [identifier, _] = statement->members.at(i);
         source.append(identifier.string);
         if(i + 1 < statement->members.size()) {
@@ -374,7 +333,7 @@ emit_call_expression(CallExpression* expression) {
 	auto source = std::string();
     auto identifier = dynamic_cast<IdentifierExpression*>(expression->identifier);
 	source.append(identifier->identifier.string + "(");
-	int index = 0;
+	s32 index = 0;
 	for (auto expr : expression->args) {
         source.append(emit_cloneable_expression(expr));
 		index++;
@@ -389,14 +348,6 @@ emit_call_expression(CallExpression* expression) {
 
 std::string RustBackend::
 emit_unary_expression(UnaryExpression* expression) {
-	// int x = 10;
-	// int* a = &x;
-	// int b = *a;
-	
-	// let x: u64 = 10;
-	// let a: u64^ = @x;
-	// let b: u64 = *a;
-
 	if (expression->op.type == TOKEN_AT) {
 		return "(&mut " + emit_expression(expression->expression) + ") as *mut _";
 	}
@@ -421,7 +372,7 @@ emit_get_expression(GetExpression* expression) {
 std::string RustBackend::
 emit_new_expression(NewExpression* expression) {
 	std::string source = expression->identifier.string + "::new(";
-	int index = 0;
+	s32 index = 0;
 	for (auto expr : expression->expressions) {
 		source.append(emit_cloneable_expression(expr));
 		index++;
@@ -437,7 +388,7 @@ emit_new_expression(NewExpression* expression) {
 std::string RustBackend::
 emit_array_expression(ArrayExpression* expression) {
     std::string source = "vec![";
-    int index = 0;
+    s32 index = 0;
     for (auto expr : expression->expressions) {
         source.append(emit_cloneable_expression(expr));
         index++;

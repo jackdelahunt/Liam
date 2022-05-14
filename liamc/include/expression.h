@@ -1,6 +1,5 @@
 #pragma once
 #include "lexer.h"
-#include "liam.h"
 #include "type_info.h"
 
 enum class ExpressionType {

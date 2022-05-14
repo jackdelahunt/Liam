@@ -1,8 +1,8 @@
 #include "parser.h"
 #include <tuple>
 #include <utility>
-#include "macros.h"
 #include "errors.h"
+#include "liam.h"
 
 File::
 File(std::filesystem::path path) {
@@ -111,7 +111,7 @@ std::tuple<ScopeStatement*, bool> Parser::
 eval_scope_statement() {
     auto statements = std::vector<Statement*>();
     NAMED_TOKEN(open_brace, TOKEN_BRACE_OPEN);
-    int closing_brace_index = find_balance_point(TOKEN_BRACE_OPEN, TOKEN_BRACE_CLOSE, current - 1);
+    s32 closing_brace_index = find_balance_point(TOKEN_BRACE_OPEN, TOKEN_BRACE_CLOSE, current - 1);
     if (closing_brace_index == current + 1) { // if this scope is empty
         current++;
     } else if(closing_brace_index < 0) {
@@ -153,10 +153,10 @@ eval_loop_statement() {
     return WIN(new LoopStatement(*identifier, body));
 }
 
-int Parser::
-find_balance_point(TokenType push, TokenType pull, int from) {
-    int current_index = from;
-    int balance = 0;
+s32 Parser::
+find_balance_point(TokenType push, TokenType pull, s32 from) {
+    s32 current_index = from;
+    s32 balance = 0;
 
     while (current_index < tokens.size()) {
         if (tokens.at(current_index).type == push) {
@@ -485,7 +485,7 @@ match(TokenType type) {
 }
 
 Token* Parser::
-peek(int offset) {
+peek(s32 offset) {
     return &tokens.at(current + offset);
 }
 

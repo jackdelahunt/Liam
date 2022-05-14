@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lexer.h"
-#include "liam.h"
 #include "expression.h"
 
 struct Expression;

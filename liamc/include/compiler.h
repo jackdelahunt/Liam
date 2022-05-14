@@ -5,6 +5,7 @@
 #include "type_checker.h"
 #include "lexer.h"
 #include "errors.h"
+#include "liam.h"
 #include <filesystem>
 
 std::vector<File> lex_parse(std::filesystem::path path) {
