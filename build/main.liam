@@ -1,8 +1,9 @@
-import "std.liam";
+import "/home/jackdelahunt/Projects/Liam/build/std.liam";
 
 fn main(): void {
-    let contents := read(@"/home/jackdelahunt/Projects/Liam/build/std.liam");
-    let x := "this is a string";
+    let str: [char] = "this is a string";
 
-    let x: [char] := "this is a string";
+    for it i in str {
+        print_char(*it);
+    }
 }

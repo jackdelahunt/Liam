@@ -1,11 +1,3 @@
-fn read(path: ^string): string {
-    insert "
-        use std::fs;
-        return fs::read_to_string((*path).clone()).expect(\"Something went wrong reading the file\");
-    ";
-    return "";
-}
-
 fn range(start: u64, end: u64, step: u64): [u64] {
     insert "
         return (start..end).step_by(step as usize).collect();
@@ -13,8 +5,12 @@ fn range(start: u64, end: u64, step: u64): [u64] {
     return [1, 2];
 }
 
-fn print_string(s: ^string): void {
-    insert "println!(\"{}\", *s);";
+fn print_string(s: ^[char]): void {
+    insert "println!(\"{:?}\", *s);";
+}
+
+fn print_char(c: char): void {
+    insert "println!(\"{}\", c);";
 }
 
 fn print_u64(n: u64): void {

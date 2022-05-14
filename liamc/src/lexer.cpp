@@ -275,7 +275,7 @@ void Lexer::lex() {
                 continue;
             }
 
-            if (word == "string") {
+            if (word == "char") {
                 tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
                 continue;
             }

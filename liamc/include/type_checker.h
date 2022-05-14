@@ -47,7 +47,7 @@ enum class TypeInfoType {
     ANY,
     VOID,
 	INT,
-    STRING,
+    CHAR,
     BOOL,
 	FN,
 	STRUCT,
@@ -71,6 +71,8 @@ struct IntTypeInfo : TypeInfo {
 struct BoolTypeInfo : TypeInfo {};
 
 struct StringTypeInfo : TypeInfo {};
+
+struct CharTypeInfo : TypeInfo {};
 
 
 struct PointerTypeInfo : TypeInfo {

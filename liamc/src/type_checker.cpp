@@ -1,6 +1,5 @@
 #include "type_checker.h"
 #include "parser.h"
-#include <cassert>  
 
 SymbolTable::
 SymbolTable() {
@@ -9,7 +8,7 @@ SymbolTable() {
 	this->identifier_table = std::map<std::string, TypeInfo*>();
 
 	builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
-	builtin_type_table["string"] = new StringTypeInfo{TypeInfoType::STRING};
+    builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
     builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOL};
 }
@@ -186,7 +185,7 @@ TypeCheckedIdentifierExpression(Token identifier, TypeInfo* type_info) {
 TypeCheckedStringLiteralExpression::
 TypeCheckedStringLiteralExpression(Token token) {
 	this->token = token;
-	this->type_info = new StringTypeInfo{TypeInfoType::STRING};
+	this->type_info = new ArrayTypeInfo{TypeInfoType::ARRAY, new CharTypeInfo{TypeInfoType::CHAR}}; // kind of a mess
     this->type = ExpressionType::EXPRESSION_STRING_LITERAL;
 }
 
@@ -326,7 +325,8 @@ type_check_statement(Statement* statement, SymbolTable* symbol_table) {
 TypeCheckedInsertStatement* TypeChecker::
 type_check_insert_statement(InsertStatement* statement, SymbolTable* symbol_table) {
 	auto expression = type_check_expression(statement->byte_code, symbol_table);
-	if (expression->type_info->type != TypeInfoType::STRING) {
+    auto to_compare = ArrayTypeInfo{TypeInfoType::ARRAY, symbol_table->builtin_type_table["char"]};
+	if (!type_match(expression->type_info, &to_compare)) {
 		panic("Insert requires a string");
 	}
 
@@ -578,7 +578,7 @@ type_check_binary_expression(BinaryExpression* expression, SymbolTable* symbol_t
 TypeCheckedStringLiteralExpression* TypeChecker::
 type_check_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table) {
 	auto typed_expression = new TypeCheckedStringLiteralExpression(expression->token);
-	typed_expression->type_info = symbol_table->builtin_type_table["string"];
+	typed_expression->type_info = new ArrayTypeInfo{TypeInfoType::ARRAY, symbol_table->builtin_type_table["char"]};
 	return typed_expression;
 }
 
@@ -857,7 +857,7 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
     if(a->type == TypeInfoType::ANY) return true;
     if(b->type == TypeInfoType::ANY) return true;
 
-	if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::STRING || a->type == TypeInfoType::BOOL) { // values don't matter
+	if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOL || a->type == TypeInfoType::CHAR) { // values don't matter
 		return true;
 	}
 	else if (a->type == TypeInfoType::INT) {

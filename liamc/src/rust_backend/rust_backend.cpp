@@ -310,6 +310,7 @@ emit_cloneable_expression(TypeCheckedExpression* expression) {
        || expression->type == ExpressionType::EXPRESSION_ARRAY
        || expression->type_info->type == TypeInfoType::INT
        || expression->type_info->type == TypeInfoType::BOOL
+       || expression->type_info->type == TypeInfoType::CHAR
     ) {
         return emit_expression(expression);
     }
@@ -357,7 +358,7 @@ emit_int_literal_expression(TypeCheckedIntLiteralExpression* expression) {
 
 std::string RustBackend::
 emit_string_literal_expression(TypeCheckedStringLiteralExpression* expression) {
-	return "String::from(\"" + expression->token.string + "\")";
+	return "String::from(\"" + expression->token.string + "\").into_bytes()";
 }
 
 std::string RustBackend::
@@ -471,6 +472,10 @@ emit_type_expression(TypeCheckedTypeExpression *type_expression) {
 
 std::string RustBackend::
 emit_identifier_type_expression(TypeCheckedIdentifierTypeExpression* type_expression) {
+    // the identifier char already exists in rust, but we actually want u8
+    if(type_expression->type_info->type == TypeInfoType::CHAR) {
+        return "u8";
+    }
     return type_expression->identifier.string;
 }
 
