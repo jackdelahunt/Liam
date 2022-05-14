@@ -1,9 +1,8 @@
-import! "std.liam";
+import "std.liam";
 
 fn main(): void {
-    
+    let contents := read(@"/home/jackdelahunt/Projects/Liam/build/std.liam");
+    let x := "this is a string";
 
-    if 100 == 90 {
-        print_string(@"They are equal");
-    }
+    let x: [char] := "this is a string";
 }

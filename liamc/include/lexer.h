@@ -21,7 +21,7 @@ enum TokenType {
     TOKEN_BRACE_CLOSE       = 10,
     TOKEN_PLUS              = 11,
     TOKEN_STAR              = 12,
-    TOKEN_EQUAL             = 13,
+    TOKEN_ASSIGN            = 13,
     TOKEN_SEMI_COLON        = 14,
     TOKEN_COMMA             = 15,
     TOKEN_COLON             = 16,
@@ -43,9 +43,12 @@ enum TokenType {
     TOKEN_IF                = 32,
     TOKEN_OR                = 33,
     TOKEN_AND               = 34,
+    TOKEN_EQUAL             = 35,
+    TOKEN_NOT_EQUAL         = 36,
+    TOKEN_NOT               = 37,
 };
 
-extern char* TokenTypeStrings[35];
+extern char* TokenTypeStrings[38];
 
 std::string get_token_type_string(TokenType type);
 

@@ -74,7 +74,7 @@ eval_statement() {
         break;
     case TOKEN_IDENTIFIER:
         // x := y; ..or.. x();
-        if (peek(1)->type == TOKEN_EQUAL) {
+        if (peek(1)->type == TOKEN_ASSIGN) {
             return eval_assigment_statement();
         }
     default:
@@ -92,7 +92,7 @@ eval_let_statement() {
     if(peek(0)->type == TOKEN_COLON) {
         TRY_TOKEN(TOKEN_COLON);
         TRY(TypeExpression*, type, eval_type_expression());
-        TRY_TOKEN(TOKEN_EQUAL);
+        TRY_TOKEN(TOKEN_ASSIGN);
         TRY(ExpressionStatement*, expression, eval_expression_statement());
         return WIN(new LetStatement(*identifier, expression->expression, type));
     } else {
@@ -250,7 +250,7 @@ eval_expression_statement() {
 std::tuple<AssigmentStatement*, bool> Parser::
 eval_assigment_statement() {
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
-    TRY_TOKEN(TOKEN_EQUAL);
+    TRY_TOKEN(TOKEN_ASSIGN);
     TRY(ExpressionStatement*, expression, eval_expression_statement());
 
     return WIN(new AssigmentStatement(*identifier, expression));
@@ -276,9 +276,22 @@ eval_or() {
 
 std::tuple<Expression*, bool> Parser::
 eval_and() {
-    TRY(Expression*, expr, eval_term());
+    TRY(Expression*, expr, eval_comparison());
 
     while (match(TokenType::TOKEN_AND)) {
+        Token* op = consume_token();
+        TRY(Expression*, right, eval_expression());
+        expr = new BinaryExpression(expr, *op, right);
+    }
+
+    return WIN(expr);
+}
+
+std::tuple<Expression*, bool> Parser::
+eval_comparison() {
+    TRY(Expression*, expr, eval_factor());
+
+    while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL)) {
         Token* op = consume_token();
         TRY(Expression*, right, eval_expression());
         expr = new BinaryExpression(expr, *op, right);

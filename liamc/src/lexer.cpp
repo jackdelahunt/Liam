@@ -1,7 +1,7 @@
 #include "lexer.h"
 #include <filesystem>
 
-char* TokenTypeStrings[35] = {
+char* TokenTypeStrings[38] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -37,6 +37,9 @@ char* TokenTypeStrings[35] = {
     "if",
     "or",
     "and",
+    "==",
+    "!=",
+    "!",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -75,7 +78,7 @@ bool is_delim(char c) {
         c == ')' || c == '{' || c == '}' || c == ',' || 
         c == ':' || c == '=' || c == '+' || c == '^' || 
         c == '@' || c == '*' || c == '.' || c == '[' ||
-        c == ']';
+        c == ']' || c == '!';
 }
 
 Lexer::Lexer(std::filesystem::path path) {
@@ -107,7 +110,12 @@ void Lexer::lex() {
             tokens.emplace_back(TokenType::TOKEN_STAR, "*", current_line, current_character);
             break;
         case '=':
-            tokens.emplace_back(Token(TokenType::TOKEN_EQUAL, "=", current_line, current_character));
+            if(peek() == '=') {
+                next_char();
+                tokens.emplace_back(TokenType::TOKEN_EQUAL, "==", current_line, current_character);
+                break;
+            }
+            tokens.emplace_back(Token(TokenType::TOKEN_ASSIGN, "=", current_line, current_character));
             break;
         case ';':
             tokens.emplace_back(Token(TokenType::TOKEN_SEMI_COLON, ";", current_line, current_character));
@@ -149,6 +157,14 @@ void Lexer::lex() {
             break;
         case '.':
             tokens.emplace_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
+            break;
+        case '!':
+            if(peek() == '=') {
+                next_char();
+                tokens.emplace_back(TokenType::TOKEN_NOT_EQUAL, "!=", current_line, current_character);
+                break;
+            }
+            tokens.emplace_back(Token(TokenType::TOKEN_NOT, "!", current_line, current_character));
             break;
         case '#':
             while (current < chars.size() && chars.at(current) != '\n') {
@@ -218,7 +234,7 @@ void Lexer::lex() {
                 continue;
             }
 
-            if (word == "import!") {
+            if (word == "import") {
                 tokens.emplace_back(Token(TokenType::TOKEN_IMPORT, word, current_line, word_start));
                 continue;
             }

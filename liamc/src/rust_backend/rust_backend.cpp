@@ -335,6 +335,12 @@ emit_binary_expression(TypeCheckedBinaryExpression* expression) {
     case TOKEN_AND:
         source.append("&&");
         break;
+    case TOKEN_EQUAL:
+        source.append("==");
+        break;
+    case TOKEN_NOT_EQUAL:
+        source.append("!=");
+        break;
 	default:
 		panic("Cannot use this operand");
 		break;

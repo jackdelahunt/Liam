@@ -1,3 +1,11 @@
+fn read(path: ^string): string {
+    insert "
+        use std::fs;
+        return fs::read_to_string((*path).clone()).expect(\"Something went wrong reading the file\");
+    ";
+    return "";
+}
+
 fn range(start: u64, end: u64, step: u64): [u64] {
     insert "
         return (start..end).step_by(step as usize).collect();

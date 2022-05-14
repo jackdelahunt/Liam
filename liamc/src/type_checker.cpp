@@ -550,22 +550,28 @@ type_check_binary_expression(BinaryExpression* expression, SymbolTable* symbol_t
 		return nullptr;
 	}
 
+    TypeInfo* info = nullptr;
+    // logical ops - make type bool
     if(expression->op.type == TOKEN_AND || expression->op.type == TOKEN_OR) {
-        if (left->type_info->type != TypeInfoType::BOOL) {
+        if (left->type_info->type != TypeInfoType::BOOL && right->type_info->type != TypeInfoType::BOOL) {
             panic("Cannot use logical operators on non bool type");
             return nullptr;
         }
-    }
-
-    if(expression->op.type == TOKEN_PLUS || expression->op.type == TOKEN_STAR) {
+        info = symbol_table->get_type("bool");
+    }       // math ops - make type value types (int, float ...)
+    else if(expression->op.type == TOKEN_PLUS || expression->op.type == TOKEN_STAR) {
         if (left->type_info->type != TypeInfoType::INT) {
             panic("Cannot use arithmatic operator on non number type");
             return nullptr;
         }
+        info = left->type_info;
+    }  // must be using == or != which resolve to bool
+    else {
+        info = symbol_table->get_type("bool");
     }
 
 	auto binary = new TypeCheckedBinaryExpression(left, expression->op, right);
-	binary->type_info = left->type_info;
+	binary->type_info = info;
 	return binary;
 
 }
