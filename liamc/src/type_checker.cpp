@@ -236,15 +236,56 @@ TypedFile TypeChecker::
 type_check(std::vector<File>* files) {
     auto typed_file = TypedFile();
 
-    for(int i = files->size() - 1; i >= 0; i--) {
-        auto file = &files->at(i);
-        for (auto stmt: file->statements) {
-            auto p = type_check_statement(stmt, &symbol_table);
-            typed_file.statements.push_back(p);
+    auto structs = std::vector<StructStatement*>();
+    auto funcs = std::vector<FnStatement*>();
+    auto others = std::vector<Statement*>();
+
+    for(auto& file : *files) {
+        for (auto stmt: file.statements) {
+            if (stmt->statement_type == STATEMENT_STRUCT) {
+                structs.push_back(dynamic_cast<StructStatement *>(stmt));
+            } else if (stmt->statement_type == STATEMENT_FN) {
+                funcs.push_back(dynamic_cast<FnStatement*>(stmt));
+                others.push_back(stmt);
+            } else {
+                others.push_back(stmt);
+            }
         }
     }
 
+    //struct identifier pass
+    for(auto stmt : structs) {
+        symbol_table.add_type(stmt->identifier, nullptr);
+    }
+
+    //struct type pass
+    for (auto stmt : structs) {
+        typed_file.statements.push_back(type_check_struct_statement(stmt, &symbol_table, true));
+    }
+
+    // function decl pass
+    for (auto stmt : funcs) {
+        type_check_fn_decl(stmt, &symbol_table);
+    }
+
+    for (auto stmt: others) {
+        auto p = type_check_statement(stmt, &symbol_table);
+        typed_file.statements.push_back(p);
+    }
+
     return typed_file;
+}
+
+void TypeChecker::
+type_check_fn_decl(FnStatement* statement, SymbolTable* symbol_table) {
+    auto param_type_infos = std::vector<TypeInfo*>();
+    for (auto& [identifier, expr] : statement->params) {
+        auto p = type_check_type_expression(expr, symbol_table);
+        param_type_infos.push_back(p->type_info);
+    }
+
+    auto return_expression = type_check_type_expression(statement->type, symbol_table);
+    symbol_table->add_identifier(statement->identifier, new FnTypeInfo{FN, return_expression->type_info,param_type_infos});
 }
 
 TypeCheckedStatement* TypeChecker::
@@ -328,28 +369,25 @@ type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table,
 	return new TypeCheckedScopeStatement(statements);
 }
 TypeCheckedFnStatement* TypeChecker::
-type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
+type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table, bool first_pass) {
+    auto existing_type_info = static_cast<FnTypeInfo*>(symbol_table->identifier_table[statement->identifier.string]);
 
-	auto param_type_infos = std::vector<TypeInfo*>();
+    // type params and get type expressions
 	Typed_CSV t_csv = Typed_CSV();
 	for (auto& [identifier, expr] : statement->params) {
 		auto p = type_check_type_expression(expr, symbol_table);
-		param_type_infos.push_back(p->type_info);
 		t_csv.push_back({identifier, p});
 	}
 
-	auto return_expression = type_check_type_expression(statement->type, symbol_table);
-
-	symbol_table->add_identifier(statement->identifier, new FnTypeInfo{FN, return_expression->type_info, param_type_infos});
-
+    // copy table and add params
 	SymbolTable copied_symbol_table = *symbol_table;
 	for (auto& [identifier, expr] : t_csv) {
 		copied_symbol_table.add_identifier(identifier, expr->type_info);
 	}
 
-    // type body and check return
+    // type body and check return exists if needed
     auto typed_body = type_check_scope_statement(statement->body, &copied_symbol_table, false);
-    if(return_expression->type_info->type == VOID) {
+    if(existing_type_info->return_type->type == VOID) {
         for(auto stmt : typed_body->statements) {
             if(stmt->statement_type == STATEMENT_RETURN) {
                 panic("found return statement when return type is void");
@@ -361,7 +399,7 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table) {
             if (stmt->statement_type == STATEMENT_RETURN) {
                 found_return = true;
                 auto return_statement = dynamic_cast<TypeCheckedReturnStatement*>(stmt);
-                if(!type_match(return_statement->expression->type_info, return_expression->type_info)) {
+                if(!type_match(return_statement->expression->type_info, existing_type_info->return_type)) {
                     panic("Mismatch types in function, return types do not match");
                 }
             }
@@ -405,7 +443,7 @@ type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
 }
 
 TypeCheckedStructStatement* TypeChecker::
-type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_table) {
+type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_table, bool first_pass) {
 	
 	auto members = Typed_CSV();
 	auto members_type_info = std::vector<std::tuple<std::string, TypeInfo*>>();
@@ -415,7 +453,11 @@ type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_tabl
 		members_type_info.push_back({member.string, expression->type_info});
 	}
 
-	symbol_table->add_type(statement->identifier, new StructTypeInfo{STRUCT, members_type_info});
+    if(first_pass) {
+        symbol_table->type_table[statement->identifier.string] = new StructTypeInfo{STRUCT, members_type_info};
+    } else {
+        symbol_table->add_identifier(statement->identifier, new StructTypeInfo{STRUCT, members_type_info});
+    }
 
 	return new TypeCheckedStructStatement(statement->identifier, members);
 }

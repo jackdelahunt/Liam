@@ -295,16 +295,19 @@ struct TypeChecker {
 	TypeChecker();
 
 	TypedFile type_check(std::vector<File>* files);
+
+    void type_check_fn_decl(FnStatement* statement, SymbolTable* symbol_table);
+
 	TypeCheckedStatement* type_check_statement(Statement* statement, SymbolTable* symbol_table);
     TypeCheckedInsertStatement* type_check_insert_statement(InsertStatement* statement, SymbolTable* symbol_table);
     TypeCheckedReturnStatement* type_check_return_statement(ReturnStatement* statement, SymbolTable* symbol_table);
     TypeCheckedBreakStatement* type_check_break_statement(BreakStatement* statement, SymbolTable* symbol_table);
 	TypeCheckedLetStatement* type_check_let_statement(LetStatement* statement, SymbolTable* symbol_table);
     TypeCheckedScopeStatement* type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table = true);
-    TypeCheckedFnStatement* type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedFnStatement* type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table, bool first_pass = false);
     TypeCheckedLoopStatement* type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table);
     TypeCheckedForStatement* type_check_for_statement(ForStatement* statement, SymbolTable* symbol_table);
-    TypeCheckedStructStatement* type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_table);
+    TypeCheckedStructStatement* type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_table, bool first_pass = false);
     TypeCheckedAssigmentStatement* type_check_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table);
     TypeCheckedExpressionStatement* type_check_expression_statement(ExpressionStatement* statement, SymbolTable* symbol_table);
 

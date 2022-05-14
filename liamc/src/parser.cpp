@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <tuple>
 #include <utility>
+#include "macros.h"
 
 File::
 File(std::filesystem::path path) {

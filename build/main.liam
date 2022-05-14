@@ -1,18 +1,10 @@
 import! "std.liam";
 
+fn main(): void {
+    
+}
+
 struct Person {
     name: string,
     age: u64
-}
-
-fn num(x: u64): u64 {
-    return num(x);
-}
-
-fn person(p: Person): void {
-
-}
-
-fn main(): void {
-    let x := num(2);
 }

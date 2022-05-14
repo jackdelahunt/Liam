@@ -1,21 +1,10 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <iostream>
 #include <chrono>
-#include <vector>
 #include <filesystem>
 #include "liam.h"
 #include "rust_backend/rust_backend.h"
 #include "compiler.h"
-
-
-#define TIME_START(name) \
-    auto name = std::chrono::high_resolution_clock::now();
-
-#define TIME_END(name, message) \
-    {auto end = std::chrono::high_resolution_clock::now(); \
-    std::chrono::duration<double, std::milli> delta = end - name; \
-    std::cout << message << " :: " << delta.count() << "ms\n";}
+#include "macros.h"
 
 int main(int argc, char** argv) {
 

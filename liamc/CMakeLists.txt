@@ -26,4 +26,5 @@ add_executable(liamc
         "include/rust_backend/rust_backend.h"
         "include/type_checker.h"
         "include/compiler.h"
+        "include/macros.h"
 )
