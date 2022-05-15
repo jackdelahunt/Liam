@@ -3,7 +3,7 @@ project(liamc)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_COMPILER  /usr/bin/clang++)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
 include_directories(liamc "include/")
 

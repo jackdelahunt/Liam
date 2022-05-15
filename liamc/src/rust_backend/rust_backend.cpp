@@ -1,5 +1,6 @@
 #include "rust_backend/rust_backend.h"
-
+#include <algorithm>
+#include <string>
 #include "statement.h"
 #include "liam.h"
 
@@ -74,8 +75,11 @@ emit_statement(Statement* statement) {
 
 std::string RustBackend::
 emit_insert_statement(InsertStatement* statement) {
+    // copies and removes all \n from the insert, stops weird formatting, might remove who knows
     auto string_lit = dynamic_cast<StringLiteralExpression*>(statement->byte_code);
-    return string_lit->token.string;
+    auto copy = string_lit->token.string;
+    copy.erase(std::remove(copy.begin(), copy.end(), '\n'), copy.end());
+    return copy;
 }
 
 std::string RustBackend::
