@@ -10,4 +10,5 @@ build/main.obj
 build/main.rs
 build/out.rs
 build/out
+build/a.out
 build/main

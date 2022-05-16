@@ -1,3 +1,7 @@
-fn main(): void {
+struct Person {
+    
+}
 
+fn main(): u64 {
+    return 0;
 }

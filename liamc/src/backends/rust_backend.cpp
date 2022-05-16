@@ -1,4 +1,4 @@
-#include "rust_backend/rust_backend.h"
+#include "backends/rust_backend.h"
 #include <algorithm>
 #include <string>
 #include "statement.h"
@@ -221,48 +221,48 @@ emit_if_statement(IfStatement* statement) {
 
 std::string RustBackend::
 emit_expression(Expression* expression) {
-	{
-        switch (expression->type) {
-            case ExpressionType::EXPRESSION_STRING_LITERAL:
-                return emit_string_literal_expression(dynamic_cast<StringLiteralExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_INT_LITERAL:
-                return emit_int_literal_expression(dynamic_cast<IntLiteralExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_BOOL_LITERAL:
-                return emit_bool_literal_expression(dynamic_cast<BoolLiteralExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_CALL:
-                return emit_call_expression(dynamic_cast<CallExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_IDENTIFIER:
-                return emit_identifier_expression(dynamic_cast<IdentifierExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_BINARY:
-                return emit_binary_expression(dynamic_cast<BinaryExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_UNARY:
-                return emit_unary_expression(dynamic_cast<UnaryExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_GET:
-                return emit_get_expression(dynamic_cast<GetExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_NEW:
-                return emit_new_expression(dynamic_cast<NewExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_ARRAY:
-                return emit_array_expression(dynamic_cast<ArrayExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT:
-                return emit_array_subscript_expression(dynamic_cast<ArraySubscriptExpression*>(expression));
-                break;
-            case ExpressionType::EXPRESSION_GROUP:
-                return emit_group_expression(dynamic_cast<GroupExpression*>(expression));
-                break;
-            default:
-                return "";
-        }
-	}
+
+    switch (expression->type) {
+        case ExpressionType::EXPRESSION_STRING_LITERAL:
+            return emit_string_literal_expression(dynamic_cast<StringLiteralExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_INT_LITERAL:
+            return emit_int_literal_expression(dynamic_cast<IntLiteralExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_BOOL_LITERAL:
+            return emit_bool_literal_expression(dynamic_cast<BoolLiteralExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_CALL:
+            return emit_call_expression(dynamic_cast<CallExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_IDENTIFIER:
+            return emit_identifier_expression(dynamic_cast<IdentifierExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_BINARY:
+            return emit_binary_expression(dynamic_cast<BinaryExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_UNARY:
+            return emit_unary_expression(dynamic_cast<UnaryExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_GET:
+            return emit_get_expression(dynamic_cast<GetExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_NEW:
+            return emit_new_expression(dynamic_cast<NewExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_ARRAY:
+            return emit_array_expression(dynamic_cast<ArrayExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT:
+            return emit_array_subscript_expression(dynamic_cast<ArraySubscriptExpression*>(expression));
+            break;
+        case ExpressionType::EXPRESSION_GROUP:
+            return emit_group_expression(dynamic_cast<GroupExpression*>(expression));
+            break;
+        default:
+            return "";
+    }
+
 }
 
 std::string RustBackend::
