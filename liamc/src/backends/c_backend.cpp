@@ -2,7 +2,8 @@
 
 std::string CBackend::
 emit(File* file) {
-    auto source_generated = std::string("typedef unsigned long u64;\n"
+    auto source_generated = std::string("#include <stdio.h>\n"
+                                        "typedef unsigned long u64;\n"
                                         "#define true 1\n"
                                         "#define false 0\n\n\n");
 
@@ -61,8 +62,12 @@ emit_statement(Statement* statement) {
 
 std::string CBackend::
 emit_insert_statement(InsertStatement* statement) {
-    panic("Not implemented in C backend");
-    return "";
+    if(statement->byte_code->type != ExpressionType::EXPRESSION_STRING_LITERAL) {
+        panic("Cannot emit non string literal in insert");
+    }
+
+    auto string_literal = dynamic_cast<StringLiteralExpression*>(statement->byte_code);
+    return string_literal->token.string;
 }
 
 std::string CBackend::
@@ -142,8 +147,7 @@ emit_assigment_statement(AssigmentStatement* statement) {
 
 std::string CBackend::
 emit_expression_statement(ExpressionStatement* statement) {
-    panic("Not implemented in C backend");
-    return "";
+    return emit_expression(statement->expression) + ";\n";
 }
 
 std::string CBackend::
@@ -234,8 +238,15 @@ emit_int_literal_expression(IntLiteralExpression* expression) {
 
 std::string CBackend::
 emit_unary_expression(UnaryExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    if (expression->op.type == TOKEN_AT) {
+        return "&(" + emit_expression(expression->expression) + ")";
+    }
+    else if (expression->op.type == TOKEN_STAR) {
+        return "*(" + emit_expression(expression->expression) + ")";
+    }
+
+    panic("Got a unrecognized operand");
+    return nullptr;
 }
 
 std::string CBackend::
@@ -326,8 +337,7 @@ emit_identifier_type_expression(IdentifierTypeExpression* type_expression) {
 
 std::string CBackend::
 emit_pointer_type_expression(PointerTypeExpression* type_expression) {
-    panic("Not implemented in C backend");
-    return "";
+    return emit_type_expression(type_expression->pointer_of) + "*";
 }
 
 std::string CBackend::
