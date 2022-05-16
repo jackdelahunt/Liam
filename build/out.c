@@ -3,9 +3,11 @@ typedef unsigned long u64;
 #define false 0
 
 
-typedef struct Person {
-} Person;
-
 u64 main(){
-return 0;
+return add(1);
 }
+
+u64 add(u64 x){
+return x;
+}
+

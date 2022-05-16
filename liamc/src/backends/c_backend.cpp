@@ -81,8 +81,8 @@ emit_let_statement(LetStatement* statement) {
     auto source = std::string();
     source.append(emit_type_expression(statement->type) + " ");
     source.append(statement->identifier.string);
-    source.append("=");
-    source.append(emit_expression(statement->rhs) + ";");
+    source.append(" = ");
+    source.append(emit_expression(statement->rhs) + ";\n");
     return source;
 }
 
@@ -93,7 +93,7 @@ emit_scope_statement(ScopeStatement* statement) {
     for(auto stmt : statement->statements) {
         source.append(emit_statement(stmt));
     }
-    source.append("\n}");
+    source.append("\n}\n\n");
     return source;
 }
 
@@ -102,7 +102,16 @@ emit_fn_statement(FnStatement* statement) {
     auto source = std::string();
     source.append(emit_type_expression(statement->return_type) + " ");
     source.append(statement->identifier.string);
-    source.append("()");
+    source.append("(");
+    int index = 0;
+    for(auto [identifier, type] : statement->params) {
+        source.append(emit_type_expression(type) + " " + identifier.string);
+        if(index + 1 < statement->params.size()) {
+            source.append(", ");
+        }
+        index++;
+    }
+    source.append(")");
     source.append(emit_scope_statement(statement->body));
     return source;
 }
@@ -231,14 +240,25 @@ emit_unary_expression(UnaryExpression* expression) {
 
 std::string CBackend::
 emit_call_expression(CallExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    auto source = std::string();
+    source.append(emit_expression(expression->identifier) + "(");
+    int index = 0;
+    for(auto expr : expression->args) {
+
+        source.append(emit_expression(expr));
+
+        if(index + 1 < expression->args.size()) {
+            source.append(", ");
+        }
+        index++;
+    }
+    source.append(")");
+    return source;
 }
 
 std::string CBackend::
 emit_identifier_expression(IdentifierExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    return expression->identifier.string;
 }
 
 std::string CBackend::
@@ -249,8 +269,21 @@ emit_get_expression(GetExpression* expression) {
 
 std::string CBackend::
 emit_new_expression(NewExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    auto source = std::string();
+    source.append("(" + expression->identifier.string + ") ");
+    source.append("{");
+    int index = 0;
+    for(auto expr : expression->expressions) {
+
+        source.append(emit_expression(expr));
+
+        if(index + 1 < expression->expressions.size()) {
+            source.append(", ");
+        }
+        index++;
+    }
+    source.append("}");
+    return source;
 }
 
 std::string CBackend::

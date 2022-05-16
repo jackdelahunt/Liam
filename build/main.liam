@@ -1,7 +1,8 @@
-struct Person {
-    
+fn main(): u64 {
+    return add(1);
 }
 
-fn main(): u64 {
-    return 0;
+fn add(x: u64): u64 {
+    return x;
 }
+
