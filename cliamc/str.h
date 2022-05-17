@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
+#include <math.h>
 #include "arena.h"
 
 #define GROW(ptr, size) \
@@ -46,17 +48,29 @@ void print_slice(Slice* slice) {
     printf("\n");
 }
 
+bool is_char_num(char c) {
+    // 48 is zero... 57 is 9
+    return (int)c >= 48 && (int)c <= 57;
+}
+
 bool slice_to_int(Slice* slice, int* dest) {
-    // copy slice value into buffer and null terminate the string
-    char buffer[128];
-    memcpy(buffer, slice->start, slice->length);
-    buffer[slice->length] = '\0';
+    const char* current = slice->start;
+    int factor = slice->length - 1;
+    int final_value = 0;
 
-    errno = 0;
-    int value = strtol(buffer, NULL, 10); // NOTE: converting long to int here, might break something
-    if(errno == ERANGE) return false;
+    for(int i = 0; i < slice->length; i++) {
 
-    *dest = value;
+        if(is_char_num(*current)) {
+            int converted = *current - 48; // remove 0 base number to map 0 -> 0 and so on
+            int multiplier = (int)pow(10, factor);
+            final_value += converted * multiplier;
+        } else {return false; };
+
+        factor--;
+        current += 1;
+    }
+
+    *dest = final_value;
     return true;
 }
 

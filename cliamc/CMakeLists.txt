@@ -11,3 +11,6 @@ add_executable(cliamc
         arena.h
         macros.h
         )
+
+# math library
+target_link_libraries(cliamc m)

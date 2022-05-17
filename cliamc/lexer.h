@@ -61,7 +61,7 @@ typedef struct Lexer {
 } Lexer;
 
 bool is_delim(char c) {
-    return c == ' ' || c == '\n' || c == EOF || c == '\0';
+    return c == ' ' || c == '\n' || c == EOF || c == '\0' || c == ';' || c == '"' || c == '(' || c == ')';
 }
 
 Lexer make_lexer() {
@@ -164,6 +164,21 @@ void lex(Lexer* lexer, const char* path) {
 
                 lexer->tokens[lexer->count] = make_token(make_slice(&source.buffer[index], 1), TOKEN_NOT);
                 break;
+            case '"': {
+                size_t start = index;
+                index++;
+                while(char_at_string(&source, index) != '"') {
+                    if(index >= source.length) {
+                        assert("Unexpected EOF string does not end... like my pain");
+                    }
+                    index++;
+                }
+
+                size_t length = (index - 1) - start;
+                lexer->tokens[lexer->count] = make_token(make_slice(&source.buffer[start + 1], length), TOKEN_STRING_LITERAL);
+                index++; // passover quote at the end
+            }
+                break;
             case '#': {
                 while (current_char != '\n' && index < source.length) {
                     current_char = char_at_string(&source, index);
@@ -218,6 +233,11 @@ void lex(Lexer* lexer, const char* path) {
             lexer->tokens[lexer->count] = make_token(word, TOKEN_OR);
         } else if(compare_slice(&word, "and")) {
             lexer->tokens[lexer->count] = make_token(word, TOKEN_AND);
+        }
+
+        int n = 0;
+        if(slice_to_int(&word, &n)) {
+            lexer->tokens[lexer->count] = make_token(word, TOKEN_INT_LITERAL);
         } else {
             lexer->tokens[lexer->count] = make_token(word, TOKEN_IDENTIFIER);
         }

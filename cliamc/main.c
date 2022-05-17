@@ -10,7 +10,7 @@ int main(void) {
     lex(&lexer, "/home/jackdelahunt/Projects/Liam/cliamc/main.liam");
 
     for(int i = 0; i < lexer.count; i++) {
-        printf("Token :: id -> %d, string -> ", lexer.tokens[i].type);
+        printf("Token :: id -> %d, length -> %lu, string -> ", lexer.tokens[i].type, lexer.tokens[i].slice.length);
         print_slice(&lexer.tokens[i].slice);
     }
 
