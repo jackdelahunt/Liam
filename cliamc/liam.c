@@ -439,23 +439,98 @@ AstNode* make_expr(Parser* parser) {
 }
 
 AstNode* make_or(Parser* parser) {
-    return make_and(parser);
+    AstNode* left = make_and(parser);
+
+    if(peek(parser)->type == TOKEN_OR) {
+        consume_token(parser, TOKEN_OR);
+        AstNode* right = make_expr(parser);
+        AstNode* binary = make_node(NODE_BINARY_EXPR);
+        binary->data.binary_expr_node = (BinaryExprNode) {
+            .left = left,
+            .OpType = OP_OR,
+            .right = right
+        };
+
+        return binary;
+    }
+
+    return left;
 }
 
 AstNode* make_and(Parser* parser) {
-    return make_compare(parser);
+    AstNode* left = make_compare(parser);
+
+    if(peek(parser)->type == TOKEN_AND) {
+        consume_token(parser, TOKEN_AND);
+        AstNode* right = make_expr(parser);
+        AstNode* binary = make_node(NODE_BINARY_EXPR);
+        binary->data.binary_expr_node = (BinaryExprNode) {
+                .left = left,
+                .OpType = OP_AND,
+                .right = right
+        };
+
+        return binary;
+    }
+
+    return left;
 }
 
 AstNode* make_compare(Parser* parser) {
-    return make_term(parser);
+    AstNode* left = make_term(parser);
+
+    if(peek(parser)->type == TOKEN_EQUAL) {
+        consume_token(parser, TOKEN_EQUAL);
+        AstNode* right = make_expr(parser);
+        AstNode* binary = make_node(NODE_BINARY_EXPR);
+        binary->data.binary_expr_node = (BinaryExprNode) {
+                .left = left,
+                .OpType = OP_EQUAL,
+                .right = right
+        };
+
+        return binary;
+    }
+
+    return left;
 }
 
 AstNode* make_term(Parser* parser) {
-    return make_factor(parser);
+    AstNode* left = make_factor(parser);
+
+    if(peek(parser)->type == TOKEN_PLUS) {
+        consume_token(parser, TOKEN_PLUS);
+        AstNode* right = make_expr(parser);
+        AstNode* binary = make_node(NODE_BINARY_EXPR);
+        binary->data.binary_expr_node = (BinaryExprNode) {
+                .left = left,
+                .OpType = OP_ADD,
+                .right = right
+        };
+
+        return binary;
+    }
+
+    return left;
 }
 
 AstNode* make_factor(Parser* parser) {
-    return make_postfix(parser);
+    AstNode* left = make_postfix(parser);
+
+    if(peek(parser)->type == TOKEN_STAR) {
+        consume_token(parser, TOKEN_STAR);
+        AstNode* right = make_expr(parser);
+        AstNode* binary = make_node(NODE_BINARY_EXPR);
+        binary->data.binary_expr_node = (BinaryExprNode) {
+                .left = left,
+                .OpType = OP_MULT,
+                .right = right
+        };
+
+        return binary;
+    }
+
+    return left;
 }
 
 AstNode* make_postfix(Parser* parser) {
@@ -525,6 +600,7 @@ void print_node(AstNode* node, int indent) {
 
     for(int i = 0; i < indent; i++) {
         printf(" ");
+        return;
     }
 
     if(node->node_type == NODE_ASSIGNMENT) {
@@ -532,11 +608,20 @@ void print_node(AstNode* node, int indent) {
         printf(" = ");
         print_node(node->data.assignment_node.assigned_to, 0);
         printf("\n");
-    } else if(node->node_type == NODE_IDEN_EXPR) {
+        return;
+    }
+
+    if(node->node_type == NODE_IDEN_EXPR) {
         print_slice(&node->data.iden_expr_node.identifier);
-    } else if(node->node_type == NODE_INT_EXPR) {
+        return;
+    }
+
+    if(node->node_type == NODE_INT_EXPR) {
         print_slice(&node->data.int_expr_node.literal);
-    } else if(node->node_type == NODE_FN_DECL) {
+        return;
+    }
+
+    if(node->node_type == NODE_FN_DECL) {
         print_slice(&node->data.fn_node.identifier);
         printf("()\n");
         for(int i = 0; i < SUB_NODE_SIZE; i++) {
@@ -545,9 +630,24 @@ void print_node(AstNode* node, int indent) {
 
             print_node(sub_node, indent + 3);
         }
-    } else {
-        assert(0);
+        return;
     }
+
+    if(node->node_type == NODE_BINARY_EXPR) {
+        print_node(node->data.binary_expr_node.left, indent);
+        switch (node->data.binary_expr_node.OpType) {
+            case OP_ADD: printf(" + "); break;
+            case OP_AND: printf(" and "); break;
+            case OP_OR: printf(" or "); break;
+            case OP_MULT: printf(" * "); break;
+            case OP_EQUAL: printf(" == "); break;
+            default: ASSERT(0, "This op is not supported to print yet..."); break;
+        }
+        print_node(node->data.binary_expr_node.right, indent);
+        return;
+    }
+
+    ASSERT(0, "This node is not printable yet...")
 }
 
 void print_ast(Parser* parser) {

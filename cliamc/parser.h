@@ -11,6 +11,7 @@ typedef struct AssignmentNode AssignmentNode;
 typedef struct FnDeclNode FnDeclNode;
 typedef struct  IdenExprNode IdenExprNode;
 typedef struct IntExprNode IntExprNode;
+typedef struct BinaryExprNode BinaryExprNode;
 typedef struct AstNode AstNode;
 typedef struct Parser Parser;
 
@@ -21,6 +22,7 @@ typedef enum NodeType {
     NODE_IDEN_EXPR,
     NODE_INT_EXPR,
     NODE_SCOPE,
+    NODE_BINARY_EXPR,
 } NodeType;
 
 typedef struct FileNode {
@@ -49,6 +51,17 @@ typedef struct IntExprNode {
     Slice literal;
 } IntExprNode;
 
+typedef struct BinaryExprNode {
+    AstNode* left;
+    enum OpType {
+        OP_ADD,
+        OP_MULT,
+        OP_OR,
+        OP_AND,
+        OP_EQUAL,
+    } OpType;
+    AstNode* right;
+} BinaryExprNode;
 
 typedef struct AstNode {
     NodeType node_type;
@@ -59,6 +72,7 @@ typedef struct AstNode {
         IdenExprNode iden_expr_node;
         IntExprNode int_expr_node;
         ScopeNode scope_node;
+        BinaryExprNode binary_expr_node;
     } data;
 } AstNode;
 
