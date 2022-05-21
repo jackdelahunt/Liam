@@ -341,7 +341,7 @@ void lex(Lexer* lexer, const char* path) {
 /*
  *  --- parser.h
  */
-AstNode* make_node_of_type(NodeType type) {
+AstNode* make_node(NodeType type) {
     AstNode* node = ALLOC(sizeof(AstNode));
     node->node_type = type;
     return node;
@@ -358,14 +358,14 @@ Parser make_parser(Lexer* lexer) {
     *(parser.root) = (AstNode) {
         .node_type = NODE_FILE,
         .data.file_node = {
-            .sub_nodes = NULL
+            .sub_nodes = {}
         }
     };
 
     int sub_node_count = 0;
 
     while(parser.current_token < parser.count) {
-        assert(sub_node_count < FILE_NODE_SIZE); // if this trigger good luck : ]
+        assert(sub_node_count < SUB_NODE_SIZE); // if this trigger good luck : ]
         AstNode* node = make_ast(&parser);
         parser.root->data.file_node.sub_nodes[sub_node_count] = node; // oh boy
         sub_node_count++;
@@ -389,7 +389,7 @@ AstNode* make_assign(Parser* parser) {
     consume_token(parser, TOKEN_ASSIGN);
     AstNode* assigned_to = make_expr_stmt(parser);
 
-    AstNode* node = make_node_of_type(NODE_ASSIGNMENT);
+    AstNode* node = make_node(NODE_ASSIGNMENT);
     node->data.assignment_node = (AssignmentNode){
         .identifier = identifier->slice,
         .assigned_to = assigned_to
@@ -399,8 +399,33 @@ AstNode* make_assign(Parser* parser) {
 
 AstNode* make_fn(Parser* parser) {
     consume_token(parser, TOKEN_FN);
-    consume_token(parser, TOKEN_IDENTIFIER);
-    return NULL;
+    Token* identifier_token = consume_token(parser, TOKEN_IDENTIFIER);
+    consume_token(parser, TOKEN_PAREN_OPEN);
+    consume_token(parser, TOKEN_PAREN_CLOSE);
+    AstNode* body = make_scope(parser);
+    AstNode* node  = make_node(NODE_FN_DECL);
+    node->data.fn_node.identifier = identifier_token->slice;
+    node->data.fn_node.body = body;
+    return node;
+}
+
+AstNode* make_scope(Parser* parser) {
+    consume_token(parser, TOKEN_BRACE_OPEN);
+    AstNode* node = make_node(NODE_SCOPE);
+    node->data.scope_node = (ScopeNode) {
+        .sub_nodes = {}
+    };
+
+    // TODO: nested braces do not work with this
+    int node_count = 0;
+    while(peek(parser)->type != TOKEN_BRACE_CLOSE) {
+        AstNode* sub_node = make_ast(parser);
+        node->data.scope_node.sub_nodes[node_count] = sub_node;
+        node_count++;
+    }
+
+    consume_token(parser, TOKEN_BRACE_CLOSE);
+    return node;
 }
 
 AstNode* make_expr_stmt(Parser* parser) {
@@ -449,7 +474,7 @@ AstNode* make_primary(Parser* parser) {
     TokenType type = peek(parser)->type;
     if(type == TOKEN_INT_LITERAL) {
         Token* token = consume_token(parser, TOKEN_INT_LITERAL);
-        AstNode* literal = make_node_of_type(NODE_INT_EXPR);
+        AstNode* literal = make_node(NODE_INT_EXPR);
         literal->data.int_expr_node = (IntExprNode) {
                 .literal = token->slice
         };
@@ -458,7 +483,7 @@ AstNode* make_primary(Parser* parser) {
 
     if(type == TOKEN_IDENTIFIER) {
         Token* token = consume_token(parser, TOKEN_IDENTIFIER);
-        AstNode* literal = make_node_of_type(NODE_IDEN_EXPR);
+        AstNode* literal = make_node(NODE_IDEN_EXPR);
         literal->data.iden_expr_node = (IdenExprNode) {
                 .identifier = token->slice
         };
@@ -474,16 +499,6 @@ AstNode* make_new(Parser* parser) {
 
 AstNode* make_group(Parser* parser) {
     ASSERT(0, "Not implemented");
-}
-
-
-AstNode* make_iden_expr(Parser* parser) {
-    Token* token = consume_token(parser, TOKEN_IDENTIFIER);
-    AstNode* node = make_node_of_type(NODE_IDEN_EXPR);
-    node->data.iden_expr_node = (IdenExprNode){
-        .identifier = token->slice
-    };
-    return node;
 }
 
 Token* peek(Parser* parser) {
@@ -515,21 +530,29 @@ void print_node(AstNode* node, int indent) {
     if(node->node_type == NODE_ASSIGNMENT) {
         print_slice(&node->data.assignment_node.identifier);
         printf(" = ");
-        print_node(node->data.assignment_node.assigned_to, indent);
+        print_node(node->data.assignment_node.assigned_to, 0);
+        printf("\n");
     } else if(node->node_type == NODE_IDEN_EXPR) {
         print_slice(&node->data.iden_expr_node.identifier);
     } else if(node->node_type == NODE_INT_EXPR) {
         print_slice(&node->data.int_expr_node.literal);
+    } else if(node->node_type == NODE_FN_DECL) {
+        print_slice(&node->data.fn_node.identifier);
+        printf("()\n");
+        for(int i = 0; i < SUB_NODE_SIZE; i++) {
+            AstNode* sub_node = node->data.fn_node.body->data.scope_node.sub_nodes[i];
+            if(sub_node == NULL) continue;
+
+            print_node(sub_node, indent + 3);
+        }
     } else {
         assert(0);
     }
-
-    printf("\n");
 }
 
 void print_ast(Parser* parser) {
     assert(parser->root->node_type == NODE_FILE);
-    for(int i = 0; i < FILE_NODE_SIZE; i++) {
+    for(int i = 0; i < SUB_NODE_SIZE; i++) {
         AstNode* sub_node = parser->root->data.file_node.sub_nodes[i];
         if(sub_node) {
             print_node(sub_node, 0);
