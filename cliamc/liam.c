@@ -377,21 +377,22 @@ Parser make_parser(Lexer* lexer) {
 AstNode* make_ast(Parser* parser) {
     switch (peek(parser)->type) {
         case TOKEN_FN: return make_fn(parser); break;
-        case TOKEN_LET: return make_let(parser); break;
+        case TOKEN_LET: return make_assign(parser); break;
         default:
             assert(0);
     }
 }
 
-AstNode* make_let(Parser* parser) {
+AstNode* make_assign(Parser* parser) {
     consume_token(parser, TOKEN_LET);
     Token* identifier = consume_token(parser, TOKEN_IDENTIFIER);
     consume_token(parser, TOKEN_ASSIGN);
+    AstNode* assigned_to = make_expr_stmt(parser);
 
     AstNode* node = make_node_of_type(NODE_ASSIGNMENT);
     node->data.assignment_node = (AssignmentNode){
         .identifier = identifier->slice,
-        .assigned_to = NULL
+        .assigned_to = assigned_to
     };
     return node;
 }
@@ -402,26 +403,128 @@ AstNode* make_fn(Parser* parser) {
     return NULL;
 }
 
+AstNode* make_expr_stmt(Parser* parser) {
+    AstNode* node = make_expr(parser);
+    consume_token(parser, TOKEN_SEMI_COLON);
+    return node;
+}
+
+AstNode* make_expr(Parser* parser) {
+    return make_or(parser);
+}
+
+AstNode* make_or(Parser* parser) {
+    return make_and(parser);
+}
+
+AstNode* make_and(Parser* parser) {
+    return make_compare(parser);
+}
+
+AstNode* make_compare(Parser* parser) {
+    return make_term(parser);
+}
+
+AstNode* make_term(Parser* parser) {
+    return make_factor(parser);
+}
+
+AstNode* make_factor(Parser* parser) {
+    return make_postfix(parser);
+}
+
+AstNode* make_postfix(Parser* parser) {
+    return make_call(parser);
+}
+
+AstNode* make_call(Parser* parser) {
+    return make_array(parser);
+}
+
+AstNode* make_array(Parser* parser) {
+    return make_primary(parser);
+}
+
+AstNode* make_primary(Parser* parser) {
+    TokenType type = peek(parser)->type;
+    if(type == TOKEN_INT_LITERAL) {
+        Token* token = consume_token(parser, TOKEN_INT_LITERAL);
+        AstNode* literal = make_node_of_type(NODE_INT_EXPR);
+        literal->data.int_expr_node = (IntExprNode) {
+                .literal = token->slice
+        };
+        return literal;
+    }
+
+    if(type == TOKEN_IDENTIFIER) {
+        Token* token = consume_token(parser, TOKEN_IDENTIFIER);
+        AstNode* literal = make_node_of_type(NODE_IDEN_EXPR);
+        literal->data.iden_expr_node = (IdenExprNode) {
+                .identifier = token->slice
+        };
+        return literal;
+    }
+
+    ASSERT(0, "This primary is not supported yet...");
+}
+
+AstNode* make_new(Parser* parser) {
+    ASSERT(0, "Not implemented");
+}
+
+AstNode* make_group(Parser* parser) {
+    ASSERT(0, "Not implemented");
+}
+
+
+AstNode* make_iden_expr(Parser* parser) {
+    Token* token = consume_token(parser, TOKEN_IDENTIFIER);
+    AstNode* node = make_node_of_type(NODE_IDEN_EXPR);
+    node->data.iden_expr_node = (IdenExprNode){
+        .identifier = token->slice
+    };
+    return node;
+}
+
 Token* peek(Parser* parser) {
+    if(parser->current_token >= parser->count) {
+        return NULL;
+    }
     return &parser->tokens[parser->current_token];
 }
 
 Token* consume_token(Parser* parser, TokenType type) {
     Token* token = peek(parser);
-    assert(token->type == type);
+
+    if(token == NULL) {
+        ASSERT(0, "Unexpected end of tokens");
+    } else if(token->type != type) {
+        ASSERT(0, "Unexpected token");
+    }
+
     parser->current_token++;
     return token;
 }
 
-void print_node(AstNode* node) {
+void print_node(AstNode* node, int indent) {
+
+    for(int i = 0; i < indent; i++) {
+        printf(" ");
+    }
+
     if(node->node_type == NODE_ASSIGNMENT) {
         print_slice(&node->data.assignment_node.identifier);
         printf(" = ");
-        // print assigned to
+        print_node(node->data.assignment_node.assigned_to, indent);
+    } else if(node->node_type == NODE_IDEN_EXPR) {
+        print_slice(&node->data.iden_expr_node.identifier);
+    } else if(node->node_type == NODE_INT_EXPR) {
+        print_slice(&node->data.int_expr_node.literal);
     } else {
         assert(0);
     }
 
+    printf("\n");
 }
 
 void print_ast(Parser* parser) {
@@ -429,7 +532,7 @@ void print_ast(Parser* parser) {
     for(int i = 0; i < FILE_NODE_SIZE; i++) {
         AstNode* sub_node = parser->root->data.file_node.sub_nodes[i];
         if(sub_node) {
-            print_node(sub_node);
+            print_node(sub_node, 0);
         }
     }
 }

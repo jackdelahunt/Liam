@@ -1,1 +1,2 @@
-let x =
+let x = 10;
+let f = g;
