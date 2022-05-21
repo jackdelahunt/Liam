@@ -1,3 +1,1 @@
-int main() {
-    string s := "jack";
-}
+let x =
