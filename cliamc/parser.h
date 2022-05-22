@@ -8,7 +8,7 @@
 typedef enum NodeType NodeType;
 typedef struct FileNode FileNode;
 typedef struct AssignmentNode AssignmentNode;
-typedef struct FnDeclNode FnDeclNode;
+typedef struct FnNode FnNode;
 typedef struct  IdenExprNode IdenExprNode;
 typedef struct IntExprNode IntExprNode;
 typedef struct BinaryExprNode BinaryExprNode;
@@ -34,7 +34,7 @@ typedef struct AssignmentNode {
     AstNode* assigned_to;
 } AssignmentNode;
 
-typedef struct FnDeclNode {
+typedef struct FnNode {
     Slice identifier;
     AstNode* body;
 } FnDeclNode;
@@ -66,7 +66,7 @@ typedef struct BinaryExprNode {
 typedef struct AstNode {
     NodeType node_type;
     union {
-        FnDeclNode fn_node;
+        FnNode fn_node;
         AssignmentNode assignment_node;
         FileNode file_node;
         IdenExprNode iden_expr_node;

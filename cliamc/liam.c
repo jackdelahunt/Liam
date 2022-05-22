@@ -576,7 +576,7 @@ AstNode* make_group(Parser* parser) {
     ASSERT(0, "Not implemented");
 }
 
-Token* peek(Parser* parser) {
+ Token* peek(Parser* parser) {
     if(parser->current_token >= parser->count) {
         return NULL;
     }
@@ -600,7 +600,6 @@ void print_node(AstNode* node, int indent) {
 
     for(int i = 0; i < indent; i++) {
         printf(" ");
-        return;
     }
 
     if(node->node_type == NODE_ASSIGNMENT) {
