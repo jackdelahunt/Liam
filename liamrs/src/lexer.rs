@@ -1,11 +1,20 @@
+use std::str;
+
+#[derive(Debug)]
 pub enum TokenType {
     Identifier(String),
-    Number(u32),
+    Number(u64),
     Let,
+    Fn,
     Assign,
     SemiColon,
+    ParenOpen,
+    ParenClose,
+    BraceOpen,
+    BraceClose,
 }
 
+#[derive(Debug)]
 pub struct Token {
     token_type: TokenType,
     span: Span
@@ -20,83 +29,97 @@ impl Token {
     }
 }
 
-pub struct Lexer {
-    index: usize,
-    chars: Vec<char>
-}
+pub fn lex(source: String) -> Vec<Token>  {
+    let mut tokens: Vec<Token> = vec![];
+    let mut index: usize = 0;
+    let bytes = source.as_bytes();
 
-impl Lexer {
-    pub fn new() -> Self {
-        return Self {
-            index: 0,
-            chars: vec![]
-        };
-    }
-
-    pub fn lex(mut self, source: String) -> Vec<Token>  {
-        let mut tokens: Vec<Token> = vec![];
-        let source_chars: Vec<char> = source.chars().collect();
-    
-        while self.index < source.len() {
-            let current = source_chars[self.index];
-            let mut is_single = true;
-            
-            match current {
-                '=' => tokens.push(Token::new(TokenType::Assign,Span::new(self.index, self.index + 1))),
-                ';' => tokens.push(Token::new(TokenType::SemiColon,Span::new(self.index, self.index + 1))),
-                _ => is_single = false,
-            }
-    
-            if is_single {
-                self.index += 1;
-                continue;
-            }
-
-            let word = self.get_word();
-            
-
-            if self.compare(&word, "let") {
-                tokens.push(Token::new(TokenType::Let,word.clone()));
-                self.index += word.len();
-                continue;
-            }
-    
-        }
-    
-        return tokens;
-    }
-
-    pub fn get_word(&self) -> Span {
-        let start = self.index;
-        let mut end = start;
-        while end < self.chars.len() && !is_delim(self.chars[end]){
-            end += 1;
+    while index < source.len() {
+        let current = bytes[index];
+        let mut is_single = true;
+        
+        match current {
+            b' ' | b'\n' | b'\t' => { index += 1; continue; }
+            b'=' => tokens.push(Token::new(TokenType::Assign,Span::new(index, index + 1))),
+            b';' => tokens.push(Token::new(TokenType::SemiColon,Span::new(index, index + 1))),
+            b'(' => tokens.push(Token::new(TokenType::ParenOpen,Span::new(index, index + 1))),
+            b')' => tokens.push(Token::new(TokenType::ParenClose,Span::new(index, index + 1))),
+            b'{' => tokens.push(Token::new(TokenType::BraceOpen,Span::new(index, index + 1))),
+            b'}' => tokens.push(Token::new(TokenType::BraceClose,Span::new(index, index + 1))),
+            _ => is_single = false,
         }
 
-        return Span::new(start, end);
-    }
-
-    fn compare(&self, span: &Span, string: &'static str) -> bool {
-        if span.end - span.start != string.len() {
-            return false;
+        if is_single {
+            index += 1;
+            continue;
         }
 
+        let word = get_word(bytes, index);
+        
 
-        let slice1 = &self.chars[span.start..span.end];
-    
-        let string_chars: Vec<char> = string.chars().collect(); 
-        let slice2 = &string_chars[0..string_chars.len()];
-    
-        return slice1 == slice2;
+        if compare(&word, bytes, "let") {
+            tokens.push(Token::new(TokenType::Let,word.clone()));
+            index += word.len();
+            continue;
+        }
+
+        if compare(&word, bytes, "fn") {
+            tokens.push(Token::new(TokenType::Fn,word.clone()));
+            index += word.len();
+            continue;
+        }
+
+        let as_str = byte_span_string(word.clone(), bytes).expect("This blew up oh no");
+        if let Ok(n) = as_str.parse::<u64>() {
+            tokens.push(Token::new(TokenType::Number(n),word.clone()));
+            index += word.len();
+            continue;
+        } 
+
+        tokens.push(Token::new(TokenType::Identifier(as_str),word.clone()));
+        index += word.len();
+
     }
 
+    return tokens;
 }
 
-fn is_delim(c: char) -> bool {
-    return c == ' ' || c == ';';
+fn byte_span_string(span: Span, bytes: &[u8]) -> Option<String> {
+    return match str::from_utf8(&bytes[span.start..span.end]) {
+        Ok(s) => Some(String::from(s)),
+        Err(_) => None,
+    };
 }
 
-#[derive(Clone)]
+fn get_word(bytes: &[u8], start: usize) -> Span {
+    let mut end = start;
+    while end < bytes.len() && !is_delim(bytes[end]){
+        end += 1;
+    }
+
+    return Span::new(start, end);
+}
+
+fn compare(span: &Span, bytes: &[u8], string: &'static str) -> bool {
+    if span.end - span.start != string.len() {
+        return false;
+    }
+
+    let str = String::from(string);
+    let slice1 = &bytes[span.start..span.end];
+    let slice2= str.as_bytes(); 
+
+    return slice1 == slice2;
+}
+
+
+fn is_delim(b: u8) -> bool {
+    return b == b' ' || b == b';' || b == b'\n' 
+        || b == b'\t' || b == b'(' || b == b')'
+        || b == b'{' || b == b'}';
+}
+
+#[derive(Clone, Debug)]
 pub struct Span {
     start: usize,
     end: usize
