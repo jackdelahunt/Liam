@@ -527,7 +527,7 @@ std::tuple<std::vector<Expression*>, bool> Parser::consume_arguments(TokenType c
 
             auto [expr, error] = eval_expression();
             if(error) {
-                return {{}, true};
+                return {std::vector<Expression*>(), true};
             }
 
             args.push_back(expr);
@@ -548,17 +548,17 @@ std::tuple<CSV, bool> Parser::consume_comma_seperated_values() {
 
             auto [arg, identifier_error] = consume_token_of_type(TOKEN_IDENTIFIER);
             if(identifier_error) {
-                return {{}, true};
+                return {CSV(), true};
             }
 
             auto [_, colon_error] = consume_token_of_type(TOKEN_COLON);
             if(colon_error) {
-                return {{}, true};
+                return {CSV(), true};
             }
 
             auto [type, type_error] = eval_type_expression();
             if(type_error) {
-                return {{}, true};
+                return {CSV(), true};
             }
 
             args_types.emplace_back(*arg, type);
