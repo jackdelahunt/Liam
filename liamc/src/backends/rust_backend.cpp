@@ -360,7 +360,7 @@ emit_unary_expression(UnaryExpression* expression) {
 	}
 
 	panic("Got a unrecognized operand");
-    return nullptr;
+    return "";
 }
 
 std::string RustBackend::

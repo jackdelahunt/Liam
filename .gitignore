@@ -1,7 +1,5 @@
-liamvm/src/target
-liamvm/target
-liamc/.vs
-liamc/out
+liamvm/src/target/
+liamvm/target/
 build/main.exe
 build/main.obj
 **/.idea/
@@ -14,3 +12,12 @@ build/a.out
 build/main
 liamrs/target
 liamrs/Cargo.lock
+**/bin/
+**/obj/
+**/target/
+**/.vs
+**/out
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user

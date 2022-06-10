@@ -1,3 +1,0 @@
-/home/jackdelahunt/Projects/Liam/liamc/build/CMakeFiles/rebuild_cache.dir
-/home/jackdelahunt/Projects/Liam/liamc/build/CMakeFiles/edit_cache.dir
-/home/jackdelahunt/Projects/Liam/liamc/build/CMakeFiles/liamc.dir

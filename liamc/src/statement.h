@@ -1,0 +1,120 @@
+#pragma once
+
+#include "lexer.h"
+#include "expression.h"
+
+struct Expression;
+struct Token;
+
+typedef std::vector<std::tuple<Token, TypeExpression*>> CSV;
+
+enum class StatementType {
+    STATEMENT_EXPRESSION,
+    STATEMENT_LET,
+    STATEMENT_SCOPE,
+    STATEMENT_FN,
+    STATEMENT_LOOP,
+    STATEMENT_STRUCT,
+    STATEMENT_ASSIGNMENT,
+    STATEMENT_INSERT,
+    STATEMENT_IMPORT,
+    STATEMENT_RETURN,
+    STATEMENT_BREAK,
+    STATEMENT_FOR,
+    STATEMENT_IF,
+};
+
+struct Statement {
+    StatementType statement_type;
+    virtual std::ostream& format(std::ostream& os) const;
+};
+
+struct ExpressionStatement : Statement {
+    Expression* expression;
+
+    ExpressionStatement(Expression* expression);
+};
+
+struct LetStatement : Statement {
+    Token identifier;
+    Expression* rhs;
+    TypeExpression* type;
+
+    LetStatement(Token identifier, Expression* expression, TypeExpression* type);
+};
+
+struct ScopeStatement : Statement {
+    std::vector<Statement*> statements;
+
+    ScopeStatement(std::vector<Statement*> statements);
+};
+
+struct FnStatement : Statement {
+    Token identifier;
+    CSV params;
+    TypeExpression* return_type;
+    ScopeStatement* body;
+
+    FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body);
+};
+
+struct LoopStatement : Statement {
+    Token identifier;
+    ScopeStatement* body;
+
+    LoopStatement(Token identifier, ScopeStatement* body);
+};
+
+struct StructStatement : Statement {
+    Token identifier;
+    CSV members;
+
+    StructStatement(Token identifier, CSV members);
+};
+
+struct AssigmentStatement : Statement {
+    Token identifier;
+    ExpressionStatement* assigned_to;
+
+    AssigmentStatement(Token identifier, ExpressionStatement* assigned_to);
+};
+
+struct InsertStatement : Statement {
+    Expression* byte_code;
+
+    InsertStatement(Expression* byte_code);
+};
+
+struct ImportStatement : Statement {
+    Expression* file;
+
+    ImportStatement(Expression* file);
+};
+
+struct ForStatement : Statement {
+    Token value_identifier;
+    Token index_identifier;
+    Expression* array_expression;
+    ScopeStatement* body;
+
+    ForStatement(Expression* array_expression, ScopeStatement* body, Token value_identifier, Token index_identifier);
+};
+
+struct IfStatement : Statement {
+    Expression* expression;
+    ScopeStatement* body;
+
+    IfStatement(Expression* expression, ScopeStatement* body);
+};
+
+struct ReturnStatement: Statement {
+    Expression* expression;
+
+    ReturnStatement(Expression* expression);
+};
+
+struct BreakStatement : Statement {
+    Token identifier;
+
+    BreakStatement(Token identifier);
+};

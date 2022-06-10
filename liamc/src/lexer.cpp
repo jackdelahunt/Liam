@@ -2,7 +2,7 @@
 #include <filesystem>
 #include "liam.h"
 
-char* TokenTypeStrings[38] = {
+const char* TokenTypeStrings[38] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -91,7 +91,7 @@ Lexer::Lexer(std::filesystem::path path) {
  }
 
 void Lexer::lex() {
-    chars = extract_chars(path.c_str());
+    chars = extract_chars(path.string().c_str());
     for (; current < chars.size(); next_char()) {
         char c = chars.at(current);
         switch (c)

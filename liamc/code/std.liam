@@ -1,0 +1,56 @@
+struct Str {
+    buffer: [char],
+    length: u64
+}
+
+fn make_string(c_arr: ^[char]): Str {
+    let length := 0;
+    for c i in *c_arr {
+        length = length + 1;
+    }
+
+    let str := new Str{*c_arr, length};
+    return str;
+}
+
+fn print_string(str: ^Str): void {
+    for c i in (*str).buffer {
+        print_char(*c);
+    }
+}
+
+fn range(start: u64, end: u64, step: u64): [u64] {
+    let arr: [u64] = [];
+    insert "arr = (start..end).step_by(step as usize).collect();";
+    return arr;
+}
+
+fn print_char(c: char): void {
+    insert "print!(\"{}\", c as char);";
+}
+
+fn print_u64(n: u64): void {
+    insert "println!(\"{}\", n);";
+}
+
+fn input(): Str {
+    let buffer := "";
+
+    insert "
+    use std::io::stdin;
+    let mut input_string = String::new();
+    stdin().read_line(&mut input_string)
+    	.ok()
+        .expect(\"Failed to read line\");
+    buffer = input_string.into_bytes();
+    ";
+    return make_string(@buffer);
+}
+
+fn println(buffer: [char]): void {
+    insert "
+        use std::str;
+        let string = str::from_utf8(&buffer[..]).unwrap();
+        println!(\"{}\", string);
+    ";
+}
