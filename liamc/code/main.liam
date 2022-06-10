@@ -1,17 +1,1 @@
-struct Person {
-    age: u64
-}
-
-fn print_age(p: ^Person): void {
-    insert "
-        printf(\"%d\", p->age);
-    ";
-}
-
-fn main(): u64 {
-    let p : Person = new Person{21};
-    print_age(@p);
-    return 0;
-}
-
-
+let x: u64 = 0;

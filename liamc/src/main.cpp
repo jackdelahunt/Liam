@@ -3,7 +3,7 @@
 #include <filesystem>
 #include "liam.h"
 #include "backends/rust_backend.h"
-#include "backends/c_backend.h"
+#include "backends/cpp_backend.h"
 #include "compiler.h"
 
 s32 main(s32 argc, char** argv) {
@@ -29,9 +29,9 @@ s32 main(s32 argc, char** argv) {
         std::ofstream out_file(out_path);
         out_file << code;
         out_file.close();
-    } else if(target == "c") {
+    } else if(target == "cpp") {
         auto code = CBackend().emit(&typed_file);
-        auto out_path = source.parent_path().string() + "/out.c";
+        auto out_path = source.parent_path().string() + "/out.cpp";
         std::ofstream out_file(out_path);
         out_file << code;
         out_file.close();

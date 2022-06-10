@@ -19,12 +19,12 @@ goto :eof
 
 :run_debug
 MSBuild.exe /property:Configuration=Debug
-.\bin\Debug-windows-x86_64\liamc\liamc.exe rust code/main.liam
+.\bin\Debug-windows-x86_64\liamc\liamc.exe cpp code/main.liam
 goto :eof
 
 :run_release 
 MSBuild.exe /property:Configuration=Release
-.\bin\Release-windows-x86_64\liamc\liamc.exe rust code/main.liam
+.\bin\Release-windows-x86_64\liamc\liamc.exe cpp code/main.liam
 goto :eof
 
 :eof
