@@ -137,8 +137,11 @@ emit_struct_statement(StructStatement* statement) {
 
 std::string CppBackend::
 emit_assigment_statement(AssigmentStatement* statement) {
-    panic("Not implemented in C backend");
-    return "";
+    auto source = std::string();
+	source.append(statement->identifier.string + " = ");
+	source.append(emit_expression(statement->assigned_to->expression));
+	source.append(";\n");
+	return source;
 }
 
 std::string CppBackend::

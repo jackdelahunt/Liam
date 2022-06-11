@@ -12,6 +12,11 @@ SymbolTable() {
     builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
     builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOL};
+    
+    builtin_type_table["print"] = new FnTypeInfo{
+        TypeInfoType::FN, builtin_type_table["void"], 
+        {new PointerTypeInfo{TypeInfoType::POINTER, builtin_type_table["char"]}}
+    };
 }
 
 void SymbolTable::
