@@ -65,14 +65,11 @@ struct TypeChecker {
     void type_check_call_expression(CallExpression* expression, SymbolTable* symbol_table);
     void type_check_get_expression(GetExpression* expression, SymbolTable* symbol_table);
     void type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table);
-    void type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_table);
-    void type_check_array_subscript_expression(ArraySubscriptExpression* expression, SymbolTable* symbol_table);
     void type_check_group_expression(GroupExpression* expression, SymbolTable* symbol_table);
 
     void type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_table);
     void type_check_identifier_type_expression(IdentifierTypeExpression* type_expression, SymbolTable* symbol_table);
     void type_check_pointer_type_expression(PointerTypeExpression* type_expression, SymbolTable* symbol_table);
-    void type_check_array_type_expression(ArrayTypeExpression* type_expression, SymbolTable* symbol_table);
 };
 
 bool type_match(TypeInfo* a, TypeInfo* b);

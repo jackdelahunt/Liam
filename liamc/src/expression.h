@@ -12,8 +12,6 @@ enum class ExpressionType {
     EXPRESSION_CALL,
     EXPRESSION_GET,
     EXPRESSION_NEW,
-    EXPRESSION_ARRAY,
-    EXPRESSION_ARRAY_SUBSCRIPT,
     EXPRESSION_GROUP,
 };
 
@@ -94,14 +92,6 @@ struct NewExpression : Expression {
     NewExpression(Token identifier, std::vector<Expression*> expressions);
 };
 
-struct ArraySubscriptExpression : Expression {
-    // this is an expression but it must be a identifier
-    Expression* array;
-    Expression* subscript;
-
-    ArraySubscriptExpression(Expression* array, Expression* subscript);
-};
-
 struct GroupExpression : Expression {
     Expression* expression;
 
@@ -130,10 +120,4 @@ struct PointerTypeExpression : TypeExpression {
     TypeExpression* pointer_of;
 
     PointerTypeExpression(TypeExpression* pointer_of);
-};
-
-struct ArrayTypeExpression : TypeExpression {
-    TypeExpression* array_of;
-
-    ArrayTypeExpression(TypeExpression* array_of);
 };

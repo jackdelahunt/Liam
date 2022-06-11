@@ -36,11 +36,9 @@ struct RustBackend {
 	std::string emit_get_expression(GetExpression* expression);
     std::string emit_new_expression(NewExpression* expression);
     std::string emit_array_expression(ArrayExpression* expression);
-    std::string emit_array_subscript_expression(ArraySubscriptExpression* expression);
     std::string emit_group_expression(GroupExpression* expression);
 
     std::string emit_type_expression(TypeExpression* type_expression);
     std::string emit_identifier_type_expression(IdentifierTypeExpression* type_expression);
     std::string emit_pointer_type_expression(PointerTypeExpression* type_expression);
-    std::string emit_array_type_expression(ArrayTypeExpression* type_expression);
 };

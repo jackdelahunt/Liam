@@ -18,11 +18,6 @@ UnaryExpression::UnaryExpression(Expression* expression, Token op) {
     this->type = ExpressionType::EXPRESSION_UNARY;
 }
 
-ArrayExpression::ArrayExpression(std::vector<Expression*> expressions) {
-    this->expressions = std::move(expressions);
-    this->type = ExpressionType::EXPRESSION_ARRAY;
-}
-
 IntLiteralExpression::IntLiteralExpression(const Token token) {
     this->token = token;
     this->type = ExpressionType::EXPRESSION_INT_LITERAL;
@@ -61,12 +56,6 @@ NewExpression::NewExpression(Token identifier, std::vector<Expression*> expressi
     this->type = ExpressionType::EXPRESSION_NEW;
 }
 
-ArraySubscriptExpression::ArraySubscriptExpression(Expression* array, Expression* subscript) {
-    this->array = array;
-    this->subscript = subscript;
-    this->type = ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT;
-}
-
 GroupExpression::
 GroupExpression(Expression* expression) {
     this->expression = expression;
@@ -90,10 +79,4 @@ PointerTypeExpression::
 PointerTypeExpression(TypeExpression* pointer_of) {
     this->pointer_of = pointer_of;
     this->type = TypeExpressionType::TYPE_POINTER;
-}
-
-ArrayTypeExpression::
-ArrayTypeExpression(TypeExpression *array_of) {
-    this->array_of = array_of;
-    this->type = TypeExpressionType::TYPE_ARRAY;
 }

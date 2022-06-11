@@ -138,7 +138,7 @@ type_check_statement(Statement* statement, SymbolTable* symbol_table) {
 void TypeChecker::
 type_check_insert_statement(InsertStatement* statement, SymbolTable* symbol_table) {
 	type_check_expression(statement->byte_code, symbol_table);
-    auto to_compare = ArrayTypeInfo{TypeInfoType::ARRAY, symbol_table->builtin_type_table["char"]};
+    auto to_compare = PointerTypeInfo{TypeInfoType::POINTER, symbol_table->builtin_type_table["char"]};
 	if (!type_match(statement->byte_code->type_info, &to_compare)) {
 		panic("Insert requires a string");
 	}
@@ -233,7 +233,7 @@ type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {
 
 void TypeChecker::
 type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
-    type_check_expression(statement->array_expression, symbol_table);
+    /*type_check_expression(statement->array_expression, symbol_table);
     if(statement->array_expression->type_info->type != TypeInfoType::ARRAY) {
         panic("Cannot iterate over non-array value in for loop");
     }
@@ -243,6 +243,7 @@ type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     table_copy.add_identifier(statement->value_identifier, new PointerTypeInfo{TypeInfoType::POINTER, array_type_info->array_type});
     table_copy.add_identifier(statement->index_identifier, table_copy.get_type("u64"));
     type_check_scope_statement(statement->body, &table_copy, false);
+    */ exit(69);
 }
 
 void TypeChecker::
@@ -310,10 +311,6 @@ type_check_expression(Expression* expression, SymbolTable* symbol_table) {
             return type_check_get_expression(dynamic_cast<GetExpression*>(expression), symbol_table); break;
         case ExpressionType::EXPRESSION_NEW:
             return type_check_new_expression(dynamic_cast<NewExpression*>(expression), symbol_table); break;
-        case ExpressionType::EXPRESSION_ARRAY:
-            return type_check_array_expression(dynamic_cast<ArrayExpression*>(expression), symbol_table); break;
-        case ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT:
-            return type_check_array_subscript_expression(dynamic_cast<ArraySubscriptExpression*>(expression), symbol_table);
         case ExpressionType::EXPRESSION_GROUP:
             return type_check_group_expression(dynamic_cast<GroupExpression*>(expression), symbol_table);
         default:
@@ -351,7 +348,7 @@ type_check_binary_expression(BinaryExpression* expression, SymbolTable* symbol_t
 }
 void TypeChecker::
 type_check_string_literal_expression(StringLiteralExpression* expression, SymbolTable* symbol_table) {
-	expression->type_info = new ArrayTypeInfo{TypeInfoType::ARRAY, symbol_table->builtin_type_table["char"]};
+	expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, symbol_table->builtin_type_table["char"]};
 }
 
 void TypeChecker::
@@ -500,47 +497,6 @@ type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table) 
 }
 
 void TypeChecker::
-type_check_array_expression(ArrayExpression* expression, SymbolTable* symbol_table) {
-    for(auto expr : expression->expressions) {
-        type_check_expression(expr, symbol_table);
-    }
-
-    TypeInfo* array_member_type = nullptr;
-    if(!expression->expressions.empty()) {
-        array_member_type = expression->expressions.at(0)->type_info;
-    } else {
-        array_member_type = new AnyTypeInfo{TypeInfoType::ANY};
-    }
-
-    if(expression->expressions.size() > 1) {
-        for(s32 i = 0; i < expression->expressions.size(); i++) {
-            if(!type_match(array_member_type, expression->expressions.at(i)->type_info)) {
-                panic("Mismatched types in array expression, index " + std::to_string(i) + " has unexpected return_type");
-            }
-        }
-    }
-
-    expression->type_info = new ArrayTypeInfo{TypeInfoType::ARRAY, array_member_type};
-}
-
-void TypeChecker::
-type_check_array_subscript_expression(ArraySubscriptExpression* expression, SymbolTable* symbol_table) {
-    type_check_expression(expression->array, symbol_table);
-    type_check_expression(expression->subscript, symbol_table);
-
-    if(expression->array->type_info->type != TypeInfoType::ARRAY) {
-        panic("Cannot subscript into non array value");
-    }
-    auto array_type_info = static_cast<ArrayTypeInfo*>(expression->array->type_info);
-
-    if(expression->subscript->type_info->type != TypeInfoType::INT) {
-        panic("Cannot sub script array with non-int return_type");
-    }
-
-    expression->type_info = array_type_info->array_type;
-}
-
-void TypeChecker::
 type_check_group_expression(GroupExpression* expression, SymbolTable* symbol_table) {
     type_check_expression(expression->expression, symbol_table);
     expression->type_info = expression->expression->type_info;
@@ -553,8 +509,6 @@ type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_
             type_check_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression), symbol_table); break;
         case TypeExpressionType::TYPE_POINTER:
             type_check_pointer_type_expression(dynamic_cast<PointerTypeExpression *>(type_expression), symbol_table); break;
-        case TypeExpressionType::TYPE_ARRAY:
-            type_check_array_type_expression(dynamic_cast<ArrayTypeExpression *>(type_expression), symbol_table); break;
         default:
             panic("Not implemented for return_type checker");
     }
@@ -575,12 +529,6 @@ void TypeChecker::
 type_check_pointer_type_expression(PointerTypeExpression* type_expression, SymbolTable* symbol_table) {
     type_check_type_expression(type_expression->pointer_of, symbol_table);
     type_expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, type_expression->pointer_of->type_info};
-}
-
-void TypeChecker::
-type_check_array_type_expression(ArrayTypeExpression* type_expression, SymbolTable* symbol_table) {
-    type_check_type_expression(type_expression->array_of, symbol_table);
-    type_expression->type_info = new ArrayTypeInfo{TypeInfoType::ARRAY, type_expression->array_of->type_info};
 }
 
 bool type_match(TypeInfo* a, TypeInfo* b) {
@@ -646,12 +594,7 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 
 		if (ptr_a->to->type == TypeInfoType::VOID) return true; // void^ can be equal to T^, not other way around
 		return ptr_a->to->type == ptr_b->to->type;
-	} else if (a->type == TypeInfoType::ARRAY) {
-        auto ptr_a = static_cast<ArrayTypeInfo*>(a);
-        auto ptr_b = static_cast<ArrayTypeInfo*>(b);
-
-        return type_match(ptr_a->array_type, ptr_b->array_type);
-    }
+	}
 
     panic("Cannot return_type check this return_type info");
     return false;

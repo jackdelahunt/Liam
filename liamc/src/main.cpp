@@ -30,7 +30,7 @@ s32 main(s32 argc, char** argv) {
         out_file << code;
         out_file.close();
     } else if(target == "cpp") {
-        auto code = CBackend().emit(&typed_file);
+        auto code = CppBackend().emit(&typed_file);
         auto out_path = source.parent_path().string() + "/out.cpp";
         std::ofstream out_file(out_path);
         out_file << code;

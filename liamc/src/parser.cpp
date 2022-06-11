@@ -338,26 +338,13 @@ eval_unary() {
         return {new UnaryExpression(expr, *op), false};
     }
 
-    return eval_postfix();
+    return eval_call();
 }
 
-std::tuple<Expression*, bool> Parser::
-eval_postfix() {
-    TRY(Expression*, expr, eval_call());
-
-    if (match(TOKEN_BRACKET_OPEN)) {
-        TRY_TOKEN(TOKEN_BRACKET_OPEN);
-        TRY(Expression*, expression, eval_expression());
-        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
-        return {new ArraySubscriptExpression(expr, expression), false};
-    }
-
-    return {expr, false};
-}
 
 std::tuple<Expression*, bool> Parser::
 eval_call() {
-    TRY(Expression*, expr, eval_array());
+    TRY(Expression*, expr, eval_primary());
 
     while (true) {
         if (match(TOKEN_PAREN_OPEN)) {
@@ -381,22 +368,6 @@ eval_call() {
     }
 
     return {expr, false};
-}
-
-std::tuple<Expression*, bool> Parser::
-eval_array() {
-    if (match(TOKEN_BRACKET_OPEN)) {
-        TRY_TOKEN(TOKEN_BRACKET_OPEN);
-        auto [args, error] = consume_arguments(TOKEN_BRACKET_CLOSE);
-        if(error) {
-            return {nullptr, true};
-        }
-        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
-
-        return {new ArrayExpression(args), false};
-    }
-
-    return eval_primary();
 }
 
 std::tuple<Expression*, bool> Parser::
@@ -447,7 +418,6 @@ eval_type_expression() {
     {
         case TOKEN_IDENTIFIER: return eval_identifier_type_expression(); break;
         case TOKEN_HAT: return eval_pointer_type_expression(); break;
-        case TOKEN_BRACKET_OPEN: return eval_array_type_expression(); break;
         default:
             FAIL(path.string(), peek()->line, peek()->character, "Cannot parse token as the beginning of a return_type expression \'" +
                     peek()->string + "\'");
@@ -466,14 +436,6 @@ eval_pointer_type_expression() {
     TRY_TOKEN(TOKEN_HAT);
     TRY(TypeExpression*, pointer_of, eval_type_expression());
     return WIN(new PointerTypeExpression(pointer_of));
-}
-
-std::tuple<ArrayTypeExpression*, bool> Parser::
-eval_array_type_expression() {
-    TRY_TOKEN(TOKEN_BRACKET_OPEN);
-    TRY(TypeExpression*, array_of, eval_type_expression());
-    TRY_TOKEN(TOKEN_BRACKET_CLOSE);
-    return WIN(new ArrayTypeExpression(array_of));
 }
 
 bool Parser::

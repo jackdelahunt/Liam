@@ -9,7 +9,6 @@ enum class TypeInfoType {
     FN,
     STRUCT,
     POINTER,
-    ARRAY,
 };
 
 struct TypeInfo {
@@ -37,10 +36,6 @@ struct PointerTypeInfo : TypeInfo {
 };
 
 struct TypeTypeInfo : TypeInfo {
-};
-
-struct ArrayTypeInfo : TypeInfo {
-    TypeInfo* array_type;
 };
 
 struct FnTypeInfo : TypeInfo {

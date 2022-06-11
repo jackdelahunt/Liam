@@ -65,9 +65,7 @@ struct Parser {
     std::tuple<Expression*, bool> eval_term();
     std::tuple<Expression*, bool> eval_factor();
     std::tuple<Expression*, bool> eval_unary();
-    std::tuple<Expression*, bool> eval_postfix();
     std::tuple<Expression*, bool> eval_call();
-    std::tuple<Expression*, bool> eval_array();
     std::tuple<Expression*, bool> eval_primary();
     std::tuple<Expression*, bool> eval_new_expression();
     std::tuple<Expression*, bool> eval_group_expression();
@@ -76,7 +74,6 @@ struct Parser {
     std::tuple<TypeExpression*, bool> eval_type_expression();
     std::tuple<IdentifierTypeExpression*, bool> eval_identifier_type_expression();
     std::tuple<PointerTypeExpression*, bool> eval_pointer_type_expression();
-    std::tuple<ArrayTypeExpression*, bool> eval_array_type_expression();
 
     bool match(TokenType type);
     inline Token* peek(s32 offset = 0);

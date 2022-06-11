@@ -250,12 +250,6 @@ emit_expression(Expression* expression) {
         case ExpressionType::EXPRESSION_NEW:
             return emit_new_expression(dynamic_cast<NewExpression*>(expression));
             break;
-        case ExpressionType::EXPRESSION_ARRAY:
-            return emit_array_expression(dynamic_cast<ArrayExpression*>(expression));
-            break;
-        case ExpressionType::EXPRESSION_ARRAY_SUBSCRIPT:
-            return emit_array_subscript_expression(dynamic_cast<ArraySubscriptExpression*>(expression));
-            break;
         case ExpressionType::EXPRESSION_GROUP:
             return emit_group_expression(dynamic_cast<GroupExpression*>(expression));
             break;
@@ -273,7 +267,6 @@ emit_cloneable_expression(Expression* expression) {
        || expression->type == ExpressionType::EXPRESSION_INT_LITERAL
        || expression->type == ExpressionType::EXPRESSION_BOOL_LITERAL
        || expression->type == ExpressionType::EXPRESSION_NEW
-       || expression->type == ExpressionType::EXPRESSION_ARRAY
        || expression->type_info->type == TypeInfoType::INT
        || expression->type_info->type == TypeInfoType::BOOL
        || expression->type_info->type == TypeInfoType::CHAR
@@ -406,15 +399,6 @@ emit_array_expression(ArrayExpression* expression) {
 }
 
 std::string RustBackend::
-emit_array_subscript_expression(ArraySubscriptExpression* expression) {
-    std::string source = "(" + emit_expression(expression->array);
-    source.append("[");
-    source.append(emit_cloneable_expression(expression->subscript));
-    source.append("]).clone()");
-    return source;
-}
-
-std::string RustBackend::
 emit_group_expression(GroupExpression* expression) {
     return "(" + emit_expression(expression->expression) + ")";
 }
@@ -426,8 +410,6 @@ emit_type_expression(TypeExpression *type_expression) {
             return emit_identifier_type_expression(dynamic_cast<IdentifierTypeExpression*>(type_expression)); break;
         case TypeExpressionType::TYPE_POINTER:
             return emit_pointer_type_expression(dynamic_cast<PointerTypeExpression*>(type_expression)); break;
-        case TypeExpressionType::TYPE_ARRAY:
-            return emit_array_type_expression(dynamic_cast<ArrayTypeExpression*>(type_expression)); break;
         default:
             panic("Rust back end does not support this return_type expression");
     }
@@ -445,8 +427,4 @@ emit_identifier_type_expression(IdentifierTypeExpression* type_expression) {
 std::string RustBackend::
 emit_pointer_type_expression(PointerTypeExpression* type_expression) {
     return "*mut " + emit_type_expression(type_expression->pointer_of);
-}
-std::string RustBackend::
-emit_array_type_expression(ArrayTypeExpression* type_expression) {
-    return "Vec<" + emit_type_expression(type_expression->array_of) + ">";
 }
