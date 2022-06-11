@@ -148,14 +148,21 @@ emit_expression_statement(ExpressionStatement* statement) {
 
 std::string CppBackend::
 emit_for_statement(ForStatement* statement) {
-    panic("Not implemented in C backend");
-    return "";
+    std::string source ="";
+    source.append("for(" + emit_let_statement(statement->let_statement)  + "; i++)");
+    source.append(emit_scope_statement(statement->body));
+    return source;
 }
 
 std::string CppBackend::
 emit_if_statement(IfStatement* statement) {
-    panic("Not implemented in C backend");
-    return "";
+    std::string source = "";
+
+    source.append("if (");
+    source.append(emit_expression(statement->expression));
+    source.append(") ");
+    source.append(emit_scope_statement(statement->body));
+    return source;
 }
 
 
@@ -198,27 +205,46 @@ emit_expression(Expression* expression) {
 }
 
 std::string CppBackend::
-emit_cloneable_expression(Expression* expression) {
-    panic("Not implemented in C backend");
-    return "";
-}
-
-std::string CppBackend::
 emit_binary_expression(BinaryExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    auto source = std::string();
+	source.append(emit_expression(expression->left));
+	switch (expression->op.type)
+	{
+	case TOKEN_PLUS:
+		source.append(" + ");
+		break;
+    case TOKEN_STAR:
+        source.append(" * ");
+        break;
+    case TOKEN_OR:
+        source.append(" || ");
+        break;
+    case TOKEN_AND:
+        source.append(" && ");
+        break;
+    case TOKEN_EQUAL:
+        source.append(" == ");
+        break;
+    case TOKEN_NOT_EQUAL:
+        source.append(" != ");
+        break;
+	default:
+		panic("Cannot use this operand");
+		break;
+	}
+	source.append(emit_expression(expression->right));
+
+	return source;
 }
 
 std::string CppBackend::
 emit_string_literal_expression(StringLiteralExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    return "(char*)\"" + expression->token.string + "\"";
 }
 
 std::string CppBackend::
 emit_bool_literal_expression(BoolLiteralExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    return expression->value.string;
 }
 
 std::string CppBackend::
@@ -264,15 +290,13 @@ emit_identifier_expression(IdentifierExpression* expression) {
 
 std::string CppBackend::
 emit_get_expression(GetExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    return emit_expression(expression->lhs) + "." + expression->member.string;
 }
 
 std::string CppBackend::
 emit_new_expression(NewExpression* expression) {
     auto source = std::string();
-    source.append("(" + expression->identifier.string + ") ");
-    source.append("{");
+    source.append(expression->identifier.string + "{");
     int index = 0;
     for(auto expr : expression->expressions) {
 
@@ -288,15 +312,8 @@ emit_new_expression(NewExpression* expression) {
 }
 
 std::string CppBackend::
-emit_array_expression(ArrayExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
-}
-
-std::string CppBackend::
 emit_group_expression(GroupExpression* expression) {
-    panic("Not implemented in C backend");
-    return "";
+    return "(" + emit_expression(expression->expression) + ")";
 }
 
 

@@ -233,17 +233,20 @@ type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {
 
 void TypeChecker::
 type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
-    /*type_check_expression(statement->array_expression, symbol_table);
-    if(statement->array_expression->type_info->type != TypeInfoType::ARRAY) {
-        panic("Cannot iterate over non-array value in for loop");
+    /*type_check_let_statement(statement->let_statement, symbol_table);
+    type_check_expression(statement->condition, symbol_table);
+    type_check_statement(statement->update, symbol_table);
+
+
+    if(statement->min->type_info->type != TypeInfoType::INT || statement->max->type_info->type != TypeInfoType::INT) {
+        panic("Need to use int types in for loop");
     }
-    auto array_type_info = static_cast<ArrayTypeInfo*>(statement->array_expression->type_info);
+    auto min_type_info = static_cast<IntTypeInfo*>(statement->min->type_info);
 
     auto table_copy = *symbol_table;
-    table_copy.add_identifier(statement->value_identifier, new PointerTypeInfo{TypeInfoType::POINTER, array_type_info->array_type});
-    table_copy.add_identifier(statement->index_identifier, table_copy.get_type("u64"));
-    type_check_scope_statement(statement->body, &table_copy, false);
-    */ exit(69);
+    // TODO line info here
+    table_copy.add_identifier(Token(TokenType::TOKEN_IDENTIFIER, "i", 0, 0), min_type_info);
+    type_check_scope_statement(statement->body, &table_copy, false);*/
 }
 
 void TypeChecker::

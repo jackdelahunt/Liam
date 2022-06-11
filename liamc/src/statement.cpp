@@ -71,11 +71,11 @@ ImportStatement(Expression* file) {
 }
 
 ForStatement::
-ForStatement(Expression* array_expression, ScopeStatement* body, Token value_identifier, Token index_identifier) {
-    this->array_expression = array_expression;
+ForStatement(LetStatement* let_statement, Expression* condition, Statement* update, ScopeStatement* body) {
+    this->let_statement = let_statement;
+    this->condition = condition;
+    this->update = update;
     this->body = body;
-    this->value_identifier = value_identifier;
-    this->index_identifier = index_identifier;
     this->statement_type = StatementType::STATEMENT_FOR;
 }
 

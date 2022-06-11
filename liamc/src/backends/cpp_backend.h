@@ -25,7 +25,6 @@ struct CppBackend {
     std::string emit_if_statement(IfStatement* statement);
 
     std::string emit_expression(Expression* expression);
-    std::string emit_cloneable_expression(Expression* expression);
     std::string emit_binary_expression(BinaryExpression* expression);
     std::string emit_string_literal_expression(StringLiteralExpression* expression);
     std::string emit_bool_literal_expression(BoolLiteralExpression* expression);
@@ -35,7 +34,6 @@ struct CppBackend {
     std::string emit_identifier_expression(IdentifierExpression* expression);
     std::string emit_get_expression(GetExpression* expression);
     std::string emit_new_expression(NewExpression* expression);
-    std::string emit_array_expression(ArrayExpression* expression);
     std::string emit_group_expression(GroupExpression* expression);
 
     std::string emit_type_expression(TypeExpression* type_expression);
