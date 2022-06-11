@@ -149,7 +149,7 @@ emit_expression_statement(ExpressionStatement* statement) {
 std::string CppBackend::
 emit_for_statement(ForStatement* statement) {
     std::string source ="";
-    source.append("for(" + emit_let_statement(statement->let_statement)  + "; i++)");
+    source.append("for(" + emit_let_statement(statement->let_statement) + emit_expression(statement->condition) + ";" + emit_expression(statement->update) + ")");
     source.append(emit_scope_statement(statement->body));
     return source;
 }

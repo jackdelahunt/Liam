@@ -233,20 +233,17 @@ type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table) {
 
 void TypeChecker::
 type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
-    /*type_check_let_statement(statement->let_statement, symbol_table);
-    type_check_expression(statement->condition, symbol_table);
-    type_check_statement(statement->update, symbol_table);
-
-
-    if(statement->min->type_info->type != TypeInfoType::INT || statement->max->type_info->type != TypeInfoType::INT) {
-        panic("Need to use int types in for loop");
-    }
-    auto min_type_info = static_cast<IntTypeInfo*>(statement->min->type_info);
-
     auto table_copy = *symbol_table;
-    // TODO line info here
-    table_copy.add_identifier(Token(TokenType::TOKEN_IDENTIFIER, "i", 0, 0), min_type_info);
-    type_check_scope_statement(statement->body, &table_copy, false);*/
+    type_check_let_statement(statement->let_statement, &table_copy);
+    type_check_expression(statement->condition, &table_copy);
+    type_check_expression(statement->update, &table_copy);
+
+
+    if(statement->condition->type_info->type != TypeInfoType::BOOL) {
+        panic("Second statement in for loop needs to evaluate to a bool");
+    }
+
+    type_check_scope_statement(statement->body, &table_copy, false);
 }
 
 void TypeChecker::
