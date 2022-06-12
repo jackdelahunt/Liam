@@ -101,6 +101,21 @@ emit_scope_statement(ScopeStatement* statement) {
 std::string CppBackend::
 emit_fn_statement(FnStatement* statement) {
     auto source = std::string();
+
+    if(statement->generics.size() > 0) {
+        int index = 0;
+        source.append("template <");
+        for(auto& generic : statement->generics) {
+            source.append("typename " + generic.string);
+            if(index + 1 < statement->generics.size()) {
+                source.append(", ");
+            }
+            index++;
+        }
+            source.append(">\n");
+    }
+
+
     source.append(emit_type_expression(statement->return_type) + " ");
     source.append(statement->identifier.string);
     source.append("(");

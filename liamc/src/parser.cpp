@@ -131,6 +131,19 @@ std::tuple<FnStatement*, bool> Parser::
 eval_fn_statement() {
     TRY_TOKEN(TOKEN_FN);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+
+    auto generics = std::vector<Token>();
+    if(peek()->type == TokenType::TOKEN_LESS) {
+        TRY_TOKEN(TOKEN_LESS);
+        auto [types, error] = consume_token_arguments(TOKEN_GREATER);
+        if(error) {
+            return {nullptr, true};
+        }
+        TRY_TOKEN(TOKEN_GREATER);
+
+        generics = types;
+    }
+
     TRY_TOKEN(TOKEN_PAREN_OPEN);
     auto [params, error] = consume_comma_seperated_values();
     if(error) {
@@ -142,7 +155,7 @@ eval_fn_statement() {
     TRY(TypeExpression*, type, eval_type_expression());
     TRY(ScopeStatement*, body, eval_scope_statement());
 
-    return WIN(new FnStatement(*identifier, params, type, body));
+    return WIN(new FnStatement(*identifier, generics, params, type, body));
 }
 
 std::tuple<LoopStatement*, bool> Parser::
@@ -481,7 +494,8 @@ consume_token_of_type(TokenType type) {
     return {t_ptr, false};
 }
 
-std::tuple<std::vector<Expression*>, bool> Parser::consume_arguments(TokenType closer) {
+std::tuple<std::vector<Expression*>, bool> Parser::
+consume_arguments(TokenType closer) {
     auto args = std::vector<Expression*>();
     bool is_first = true;
     if (!match(closer)) {
@@ -502,7 +516,26 @@ std::tuple<std::vector<Expression*>, bool> Parser::consume_arguments(TokenType c
     return WIN(args);
 }
 
-std::tuple<CSV, bool> Parser::consume_comma_seperated_values() {
+std::tuple<std::vector<Token>, bool> Parser::
+consume_token_arguments(TokenType closer) {
+    auto args = std::vector<Token>();
+    bool is_first = true;
+    if (!match(closer)) {
+        do {
+            if (!is_first) current++; // only iterate current by one when it is not the first time
+
+            auto token = consume_token();
+            args.push_back(*token);
+
+            if (is_first) is_first = false;
+        } while (match(TOKEN_COMMA));
+    }
+
+    return WIN(args);
+}
+
+std::tuple<CSV, bool> Parser::
+consume_comma_seperated_values() {
     auto args_types = std::vector<std::tuple<Token, TypeExpression*>>();
     bool is_first = true;
     if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE)) {

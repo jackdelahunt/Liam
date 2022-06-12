@@ -51,11 +51,12 @@ struct ScopeStatement : Statement {
 
 struct FnStatement : Statement {
     Token identifier;
+    std::vector<Token> generics;
     CSV params;
     TypeExpression* return_type;
     ScopeStatement* body;
 
-    FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body);
+    FnStatement(Token identifier, std::vector<Token> generics, CSV params, TypeExpression* type, ScopeStatement* body);
 };
 
 struct LoopStatement : Statement {

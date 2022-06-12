@@ -80,5 +80,6 @@ struct Parser {
     Token* consume_token();
     std::tuple<Token*, bool> consume_token_of_type(TokenType type);
     std::tuple<std::vector<Expression*>, bool> consume_arguments(TokenType closer);
+    std::tuple<std::vector<Token>, bool> consume_token_arguments(TokenType closer);
     std::tuple<CSV, bool> consume_comma_seperated_values();
 };

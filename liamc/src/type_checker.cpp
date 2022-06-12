@@ -15,7 +15,12 @@ SymbolTable() {
     
     builtin_type_table["print"] = new FnTypeInfo{
         TypeInfoType::FN, builtin_type_table["void"], 
-        {new PointerTypeInfo{TypeInfoType::POINTER, builtin_type_table["char"]}}
+        {new GenericTypeInfo{TypeInfoType::GENERIC}}
+    };
+
+    builtin_type_table["alloc"] = new FnTypeInfo{
+        TypeInfoType::FN, new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
+        {builtin_type_table["u64"]}
     };
 }
 
@@ -111,13 +116,27 @@ type_check(std::vector<File>* files) {
 
 void TypeChecker::
 type_check_fn_decl(FnStatement* statement, SymbolTable* symbol_table) {
+
+    SymbolTable* symbol_table_in_use = symbol_table;
+    if(!statement->generics.empty()) {
+        SymbolTable* copy = new SymbolTable();
+        *copy = *symbol_table;
+        for(auto& generic : statement->generics) {
+            copy->add_type(generic, new GenericTypeInfo{TypeInfoType::GENERIC});
+        }
+
+        symbol_table_in_use = copy;
+    }
+
     auto param_type_infos = std::vector<TypeInfo*>();
     for (auto& [identifier, expr] : statement->params) {
-        type_check_type_expression(expr, symbol_table);
+        type_check_type_expression(expr, symbol_table_in_use);
         param_type_infos.push_back(expr->type_info);
     }
 
-    type_check_type_expression(statement->return_type, symbol_table);
+    type_check_type_expression(statement->return_type, symbol_table_in_use);
+
+    // add this fn decl to parent symbol table
     symbol_table->add_identifier(statement->identifier, new FnTypeInfo{TypeInfoType::FN, statement->return_type->type_info,param_type_infos});
 }
 
@@ -193,16 +212,16 @@ type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table, bool 
     auto existing_type_info = static_cast<FnTypeInfo*>(symbol_table->identifier_table[statement->identifier.string]);
 
     // params and get return_type expressions
-	CSV t_csv = CSV();
-	for (auto& [identifier, expr] : statement->params) {
-		type_check_type_expression(expr, symbol_table);
-		t_csv.push_back({identifier, expr});
-	}
+	auto args = std::vector<std::tuple<Token, TypeInfo*>>();
+    for(int i = 0; i < existing_type_info->args.size(); i++) {
+        auto& [identifier, expr] = statement->params.at(i);
+        args.push_back({identifier, existing_type_info->args.at(i)});
+    }
 
     // copy table and add params
 	SymbolTable copied_symbol_table = *symbol_table;
-	for (auto& [identifier, expr] : t_csv) {
-		copied_symbol_table.add_identifier(identifier, expr->type_info);
+	for (auto& [identifier, type_info] : args) {
+		copied_symbol_table.add_identifier(identifier, type_info);
 	}
 
     // type statements and check return exists if needed
@@ -541,6 +560,8 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
     if(a->type == TypeInfoType::ANY && b->type == TypeInfoType::ANY) {
         panic("cannot match types that are both any, will be fixed xx");
     }
+    
+    if(a->type == TypeInfoType::GENERIC) return true; // TODO: this might be a bug not checking b but not sure what to do here...
 
     // TODO: any to any is actually ambigious so this is a bug
     if (a->type != b->type) {
@@ -548,6 +569,7 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
             return false;
         }
     }
+    
 
     if(a->type == TypeInfoType::ANY) return true;
     if(b->type == TypeInfoType::ANY) return true;

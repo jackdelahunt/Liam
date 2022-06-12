@@ -9,6 +9,7 @@ enum class TypeInfoType {
     FN,
     STRUCT,
     POINTER,
+    GENERIC,
 };
 
 struct TypeInfo {
@@ -46,3 +47,5 @@ struct FnTypeInfo : TypeInfo {
 struct StructTypeInfo : TypeInfo {
     std::vector<std::tuple<std::string, TypeInfo*>> members;
 };
+
+struct GenericTypeInfo : TypeInfo {};

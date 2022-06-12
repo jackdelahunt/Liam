@@ -47,9 +47,11 @@ enum TokenType {
     TOKEN_EQUAL             = 35,
     TOKEN_NOT_EQUAL         = 36,
     TOKEN_NOT               = 37,
+    TOKEN_LESS              = 38,
+    TOKEN_GREATER           = 39,
 };
 
-extern const char* TokenTypeStrings[38];
+extern const char* TokenTypeStrings[40];
 
 std::string get_token_type_string(TokenType type);
 

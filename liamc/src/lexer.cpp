@@ -2,7 +2,7 @@
 #include <filesystem>
 #include "liam.h"
 
-const char* TokenTypeStrings[38] = {
+const char* TokenTypeStrings[40] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -41,6 +41,8 @@ const char* TokenTypeStrings[38] = {
     "==",
     "!=",
     "!",
+    "<",
+    ">",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -79,7 +81,7 @@ bool is_delim(char c) {
         c == ')' || c == '{' || c == '}' || c == ',' || 
         c == ':' || c == '=' || c == '+' || c == '^' || 
         c == '@' || c == '*' || c == '.' || c == '[' ||
-        c == ']' || c == '!';
+        c == ']' || c == '!' || c == '<' || c == '>';
 }
 
 Lexer::Lexer(std::filesystem::path path) {
@@ -158,6 +160,12 @@ void Lexer::lex() {
             break;
         case '.':
             tokens.emplace_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
+            break;
+        case '<':
+            tokens.emplace_back(Token(TokenType::TOKEN_LESS, "<", current_line, current_character));
+            break;
+        case '>':
+            tokens.emplace_back(Token(TokenType::TOKEN_GREATER, ">", current_line, current_character));
             break;
         case '!':
             if(peek() == '=') {

@@ -23,8 +23,9 @@ LetStatement(Token identifier, Expression* expression, TypeExpression* type) {
 }
 
 FnStatement::
-FnStatement(Token identifier, CSV params, TypeExpression* type, ScopeStatement* body) {
+FnStatement(Token identifier, std::vector<Token> generics, CSV params, TypeExpression* type, ScopeStatement* body) {
     this->identifier = identifier;
+    this->generics = generics;
     this->return_type = type;
     this->params = params;
     this->body = body;
