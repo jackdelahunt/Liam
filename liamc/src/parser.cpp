@@ -79,13 +79,8 @@ eval_statement() {
     case TOKEN_IF:
         return eval_if_statement();
         break;
-    case TOKEN_IDENTIFIER:
-        // x := y; ..or.. x();
-        if (peek(1)->type == TOKEN_ASSIGN) {
-            return eval_assigment_statement();
-        }
-    default:
-        return eval_expression_statement();
+    default: 
+        return eval_line_starting_expression();
         break;
     }
 }
@@ -287,6 +282,20 @@ eval_assigment_statement() {
     TRY(ExpressionStatement*, expression, eval_expression_statement());
 
     return WIN(new AssigmentStatement(*identifier, expression));
+}
+
+std::tuple<Statement*, bool> Parser::eval_line_starting_expression() {
+    auto expr = eval_expression();
+    if (peek()->type == TOKEN_ASSIGN) {
+        TRY_TOKEN(TOKEN_ASSIGN);
+        TRY(ExpressionStatement*, expression, eval_expression_statement());
+
+        return WIN(new AssigmentStatement(*identifier, expression));
+    } else {
+        return eval_expression_statement();
+    }
+        break;
+    }
 }
 
 std::tuple<Expression*, bool> Parser::

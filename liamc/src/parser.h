@@ -57,6 +57,8 @@ struct Parser {
     std::tuple<IfStatement*, bool> eval_if_statement();
     std::tuple<ExpressionStatement*, bool> eval_expression_statement();
     std::tuple<AssigmentStatement*, bool> eval_assigment_statement();
+    
+    std::tuple<Statement*, bool> eval_line_starting_expression();
 
     /* normal expressions */
     std::tuple<Expression*, bool> eval_expression();
