@@ -55,8 +55,8 @@ StructStatement(Token identifier, CSV members) {
 }
 
 AssigmentStatement::
-AssigmentStatement(Token identifier, ExpressionStatement* assigned_to) {
-    this->identifier = identifier;
+AssigmentStatement(Expression* lhs, ExpressionStatement* assigned_to) {
+    this->lhs = lhs;
     this->assigned_to = assigned_to;
     this->statement_type = StatementType::STATEMENT_ASSIGNMENT;
 }

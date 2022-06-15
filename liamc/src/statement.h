@@ -83,10 +83,10 @@ struct StructStatement : Statement {
 };
 
 struct AssigmentStatement : Statement {
-    Token identifier;
+    Expression* lhs;
     ExpressionStatement* assigned_to;
 
-    AssigmentStatement(Token identifier, ExpressionStatement* assigned_to);
+    AssigmentStatement(Expression* lhs, ExpressionStatement* assigned_to);
 };
 
 struct InsertStatement : Statement {

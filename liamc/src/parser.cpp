@@ -275,27 +275,18 @@ eval_expression_statement() {
     return WIN(new ExpressionStatement(expression));
 }
 
-std::tuple<AssigmentStatement*, bool> Parser::
-eval_assigment_statement() {
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
-    TRY_TOKEN(TOKEN_ASSIGN);
-    TRY(ExpressionStatement*, expression, eval_expression_statement());
-
-    return WIN(new AssigmentStatement(*identifier, expression));
-}
-
 std::tuple<Statement*, bool> Parser::eval_line_starting_expression() {
-    auto expr = eval_expression();
+    TRY(Expression*, lhs, eval_expression());
     if (peek()->type == TOKEN_ASSIGN) {
         TRY_TOKEN(TOKEN_ASSIGN);
-        TRY(ExpressionStatement*, expression, eval_expression_statement());
+        TRY(ExpressionStatement*, rhs, eval_expression_statement());
 
-        return WIN(new AssigmentStatement(*identifier, expression));
-    } else {
-        return eval_expression_statement();
+        return WIN(new AssigmentStatement(lhs, rhs));
     }
-        break;
-    }
+    
+    // not assign, after eval expresion only semi colon is left
+    TRY_TOKEN(TOKEN_SEMI_COLON);
+    return {new ExpressionStatement(lhs), false};
 }
 
 std::tuple<Expression*, bool> Parser::

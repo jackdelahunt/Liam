@@ -166,7 +166,8 @@ emit_struct_statement(StructStatement* statement) {
 std::string CppBackend::
 emit_assigment_statement(AssigmentStatement* statement) {
     auto source = std::string();
-	source.append(statement->identifier.string + " = ");
+	source.append(emit_expression(statement->lhs));
+    source.append(" = ");   
 	source.append(emit_expression(statement->assigned_to->expression));
 	source.append(";\n");
 	return source;

@@ -309,13 +309,10 @@ type_check_struct_statement(StructStatement* statement, SymbolTable* symbol_tabl
 void TypeChecker::
 type_check_assigment_statement(AssigmentStatement* statement, SymbolTable* symbol_table) {
 
-	if (!symbol_table->identifier_table.contains(statement->identifier.string)) {
-		panic("Trying to assign un-declared identifier");
-	}
-
+	type_check_expression(statement->lhs, symbol_table);
 	type_check_expression(statement->assigned_to->expression, symbol_table);
 
-	if (!type_match(symbol_table->identifier_table[statement->identifier.string], statement->assigned_to->expression->type_info)) {
+	if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info)) {
 		panic("Type mismatch, trying to assign a identifier to an expression of different return_type");
 	}
 }
