@@ -43,6 +43,7 @@ struct Parser {
     /* statements */
     std::tuple<Statement*, bool> eval_statement();
     std::tuple<LetStatement*, bool> eval_let_statement();
+    std::tuple<OverrideStatement*, bool> eval_override_statement();
     std::tuple<ScopeStatement*, bool> eval_scope_statement();
     std::tuple<StructStatement*, bool> eval_struct_statement();
     std::tuple<FnStatement*, bool> eval_fn_statement();
@@ -79,7 +80,8 @@ struct Parser {
     inline Token* peek(s32 offset = 0);
     Token* consume_token();
     std::tuple<Token*, bool> consume_token_of_type(TokenType type);
-    std::tuple<std::vector<Expression*>, bool> consume_arguments(TokenType closer);
-    std::tuple<std::vector<Token>, bool> consume_token_arguments(TokenType closer);
-    std::tuple<CSV, bool> consume_comma_seperated_values();
+    std::tuple<std::vector<Expression*>, bool> consume_comma_seperated_arguments(TokenType closer);
+    std::tuple<std::vector<TypeExpression*>, bool> consume_comma_seperated_types(TokenType closer);
+    std::tuple<std::vector<Token>, bool> consume_comma_seperated_token_arguments(TokenType closer);
+    std::tuple<CSV, bool> consume_comma_seperated_params();
 };

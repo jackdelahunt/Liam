@@ -2,7 +2,7 @@
 #include <filesystem>
 #include "liam.h"
 
-const char* TokenTypeStrings[40] = {
+const char* TokenTypeStrings[41] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -43,6 +43,7 @@ const char* TokenTypeStrings[40] = {
     "!",
     "<",
     ">",
+    "override",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -51,7 +52,7 @@ std::vector<char> extract_chars(const char* path) {
     std::ifstream file;
     file.open(path);
     if (!file.is_open()) {
-        std::cout << "cannot open file";
+        panic("cannot open file");
     }
 
     for (s32 i = file.get(); i != EOF; i = file.get())
@@ -296,6 +297,11 @@ void Lexer::lex() {
 
             if (word == "false") {
                 tokens.emplace_back(Token(TokenType::TOKEN_FALSE, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "override") {
+                tokens.emplace_back(Token(TokenType::TOKEN_OVERRIDE, word, current_line, word_start));
                 continue;
             }
 

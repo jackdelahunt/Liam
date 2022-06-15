@@ -14,13 +14,15 @@ SymbolTable() {
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOL};
     
     builtin_type_table["print"] = new FnTypeInfo{
-        TypeInfoType::FN, builtin_type_table["void"], 
+        TypeInfoType::FN, 
+        builtin_type_table["void"], 
         {new GenericTypeInfo{TypeInfoType::GENERIC}}
     };
 
     builtin_type_table["alloc"] = new FnTypeInfo{
-        TypeInfoType::FN, new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
-        {builtin_type_table["u64"]}
+        TypeInfoType::FN, 
+        new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
+        {}
     };
 }
 
@@ -152,6 +154,7 @@ type_check_statement(Statement* statement, SymbolTable* symbol_table) {
         case StatementType::STATEMENT_ASSIGNMENT: return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement),symbol_table); break;
         case StatementType::STATEMENT_EXPRESSION: return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement), symbol_table); break;
         case StatementType::STATEMENT_LET: return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table); break;
+        case StatementType::STATEMENT_OVERRIDE: return type_check_override_statement(dynamic_cast<OverrideStatement *>(statement), symbol_table); break;
         case StatementType::STATEMENT_FOR: return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table); break;
         case StatementType::STATEMENT_IF: return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table); break;
         default:
@@ -192,6 +195,15 @@ type_check_let_statement(LetStatement* statement, SymbolTable* symbol_table) {
     // with no rhs this will break... :[
     symbol_table->add_identifier(statement->identifier, statement->rhs->type_info);
 }
+
+void TypeChecker::
+type_check_override_statement(OverrideStatement* statement, SymbolTable* symbol_table) {
+    type_check_expression(statement->rhs, symbol_table);
+    type_check_type_expression(statement->type, symbol_table);
+
+    symbol_table->add_identifier(statement->identifier, statement->rhs->type_info);
+}
+
 void TypeChecker::
 type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table) {
 	// this is kind of a mess... oh jeez

@@ -25,6 +25,9 @@ emit_statement(Statement* statement) {
         case StatementType::STATEMENT_LET:
             return emit_let_statement(dynamic_cast<LetStatement*>(statement));
             break;
+        case StatementType::STATEMENT_OVERRIDE:
+            return emit_override_statement(dynamic_cast<OverrideStatement*>(statement));
+            break;
         case StatementType::STATEMENT_FN:
             return emit_fn_statement(dynamic_cast<FnStatement*>(statement));
             break;
@@ -79,6 +82,16 @@ emit_break_statement(BreakStatement* statement) {
 
 std::string CppBackend::
 emit_let_statement(LetStatement* statement) {
+    auto source = std::string();
+    source.append(emit_type_expression(statement->type) + " ");
+    source.append(statement->identifier.string);
+    source.append(" = ");
+    source.append(emit_expression(statement->rhs) + ";\n");
+    return source;
+}
+
+std::string CppBackend::
+emit_override_statement(OverrideStatement* statement) {
     auto source = std::string();
     source.append(emit_type_expression(statement->type) + " ");
     source.append(statement->identifier.string);
@@ -286,8 +299,26 @@ emit_unary_expression(UnaryExpression* expression) {
 std::string CppBackend::
 emit_call_expression(CallExpression* expression) {
     auto source = std::string();
-    source.append(emit_expression(expression->identifier) + "(");
+    source.append(emit_expression(expression->identifier));
+
+    if(expression->generics.size() > 0) {
+        int index = 0;
+        source.append("<");
+        for(auto type : expression->generics) {
+
+            source.append(emit_type_expression(type));
+
+            if(index + 1 < expression->generics.size()) {
+                source.append(", ");
+            }
+            index++;
+        }
+        source.append(">");
+    }
+
+
     int index = 0;
+    source.append("(");
     for(auto expr : expression->args) {
 
         source.append(emit_expression(expr));

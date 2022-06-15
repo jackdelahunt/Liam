@@ -11,6 +11,7 @@ typedef std::vector<std::tuple<Token, TypeExpression*>> CSV;
 enum class StatementType {
     STATEMENT_EXPRESSION,
     STATEMENT_LET,
+    STATEMENT_OVERRIDE,
     STATEMENT_SCOPE,
     STATEMENT_FN,
     STATEMENT_LOOP,
@@ -41,6 +42,14 @@ struct LetStatement : Statement {
     TypeExpression* type;
 
     LetStatement(Token identifier, Expression* expression, TypeExpression* type);
+};
+
+struct OverrideStatement : Statement {
+    Token identifier;
+    Expression* rhs;
+    TypeExpression* type;
+
+    OverrideStatement(Token identifier, Expression* expression, TypeExpression* type);
 };
 
 struct ScopeStatement : Statement {

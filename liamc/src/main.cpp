@@ -7,10 +7,15 @@
 
 s32 main(s32 argc, char** argv) {
 
+#ifdef DEBUG
+    auto source = std::filesystem::path("E:/JacksDocuments/Projects/Liam/liamc/Code/Code/main.liam");
+#else
     if (argc < 2) {
         panic("Not enough arguments: liamc <path>");
     }
+
     auto source = absolute(std::filesystem::path(argv[1]));
+#endif
 
     TIME_START(l_p_time);
     auto files = lex_parse(source.string());

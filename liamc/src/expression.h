@@ -2,6 +2,8 @@
 #include "lexer.h"
 #include "type_info.h"
 
+struct TypeExpression;
+
 enum class ExpressionType {
     EXPRESSION_BINARY,
     EXPRESSION_UNARY,
@@ -72,8 +74,9 @@ struct CallExpression : Expression {
     // this is an expression but it must be a identifier
     Expression* identifier;
     std::vector<Expression*> args;
+    std::vector<TypeExpression*> generics;
 
-    CallExpression(Expression* identifier, std::vector<Expression*> args);
+    CallExpression(Expression* identifier, std::vector<Expression*> args, std::vector<TypeExpression*> generics);
 };
 
 struct GetExpression : Expression {

@@ -49,6 +49,9 @@ eval_statement() {
     case TOKEN_LET:
         return eval_let_statement();
         break;
+    case TOKEN_OVERRIDE:
+        return eval_override_statement();
+        break;
     case TOKEN_FN:
         return eval_fn_statement();
         break;
@@ -107,6 +110,18 @@ eval_let_statement() {
     }
 }
 
+std::tuple<OverrideStatement*, bool> Parser::
+eval_override_statement() {
+    TRY_TOKEN(TOKEN_OVERRIDE);
+    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+
+    TRY_TOKEN(TOKEN_COLON);
+    TRY(TypeExpression*, type, eval_type_expression());
+    TRY_TOKEN(TOKEN_ASSIGN);
+    TRY(ExpressionStatement*, expression, eval_expression_statement());
+    return WIN(new OverrideStatement(*identifier, expression->expression, type));
+}
+
 std::tuple<ScopeStatement*, bool> Parser::
 eval_scope_statement() {
     auto statements = std::vector<Statement*>();
@@ -135,7 +150,7 @@ eval_fn_statement() {
     auto generics = std::vector<Token>();
     if(peek()->type == TokenType::TOKEN_LESS) {
         TRY_TOKEN(TOKEN_LESS);
-        auto [types, error] = consume_token_arguments(TOKEN_GREATER);
+        auto [types, error] = consume_comma_seperated_token_arguments(TOKEN_GREATER);
         if(error) {
             return {nullptr, true};
         }
@@ -145,7 +160,7 @@ eval_fn_statement() {
     }
 
     TRY_TOKEN(TOKEN_PAREN_OPEN);
-    auto [params, error] = consume_comma_seperated_values();
+    auto [params, error] = consume_comma_seperated_params();
     if(error) {
         return {nullptr, true};
     }
@@ -194,7 +209,7 @@ eval_struct_statement() {
     TRY_TOKEN(TOKEN_STRUCT);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
     TRY_TOKEN(TOKEN_BRACE_OPEN);
-    auto [member, error] = consume_comma_seperated_values();
+    auto [member, error] = consume_comma_seperated_params();
     if(error) {
         return {nullptr, true};
     }
@@ -361,15 +376,28 @@ eval_call() {
     TRY(Expression*, expr, eval_primary());
 
     while (true) {
-        if (match(TOKEN_PAREN_OPEN)) {
+        if (match(TOKEN_PAREN_OPEN) || match(TOKEN_LESS)) {
+
+            auto generics = std::vector<TypeExpression*>();
+            if(peek()->type == TOKEN_LESS) {
+                TRY_TOKEN(TOKEN_LESS);
+                auto [types, error] = consume_comma_seperated_types(TOKEN_GREATER);
+                if(error) {
+                    return {nullptr, true};
+                }
+                TRY_TOKEN(TOKEN_GREATER);
+
+                generics = types;
+            }
+
             TRY_TOKEN(TOKEN_PAREN_OPEN);
-            auto [args, error] = consume_arguments(TOKEN_PAREN_CLOSE);
+            auto [args, error] = consume_comma_seperated_arguments(TOKEN_PAREN_CLOSE);
             if(error) {
                 return {nullptr, true};
             }
             TRY_TOKEN(TOKEN_PAREN_CLOSE);
 
-            return {new CallExpression(expr, args), false};
+            return {new CallExpression(expr, args, generics), false};
         }
         else if (match(TOKEN_DOT)) {
             consume_token();
@@ -410,7 +438,7 @@ eval_new_expression() {
     consume_token();
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
     TRY_TOKEN(TOKEN_BRACE_OPEN);
-    auto [expressions, error] = consume_arguments(TOKEN_BRACE_CLOSE);
+    auto [expressions, error] = consume_comma_seperated_arguments(TOKEN_BRACE_CLOSE);
     if(error) {
         return {nullptr, true};
     }
@@ -494,8 +522,9 @@ consume_token_of_type(TokenType type) {
     return {t_ptr, false};
 }
 
+// e.g. (0, "hello sailor", ...)
 std::tuple<std::vector<Expression*>, bool> Parser::
-consume_arguments(TokenType closer) {
+consume_comma_seperated_arguments(TokenType closer) {
     auto args = std::vector<Expression*>();
     bool is_first = true;
     if (!match(closer)) {
@@ -516,8 +545,9 @@ consume_arguments(TokenType closer) {
     return WIN(args);
 }
 
+// e.g. (X, Y, Z, ...)
 std::tuple<std::vector<Token>, bool> Parser::
-consume_token_arguments(TokenType closer) {
+consume_comma_seperated_token_arguments(TokenType closer) {
     auto args = std::vector<Token>();
     bool is_first = true;
     if (!match(closer)) {
@@ -534,8 +564,32 @@ consume_token_arguments(TokenType closer) {
     return WIN(args);
 }
 
+// e.g. (int32, ^char, ...)
+std::tuple<std::vector<TypeExpression*>, bool> Parser::
+consume_comma_seperated_types(TokenType closer) {
+    auto types = std::vector<TypeExpression*>();
+    bool is_first = true;
+    if (!match(closer)) {
+        do {
+            if (!is_first) current++; // only iterate current by one when it is not the first time
+
+            auto [type, error] = eval_type_expression();
+            if(error) {
+                return {std::vector<TypeExpression*>(), true};
+            }
+
+            types.push_back(type);
+
+            if (is_first) is_first = false;
+        } while (match(TOKEN_COMMA));
+    }
+
+    return WIN(types);
+}
+
+// e.g. (int x, int y, ...)
 std::tuple<CSV, bool> Parser::
-consume_comma_seperated_values() {
+consume_comma_seperated_params() {
     auto args_types = std::vector<std::tuple<Token, TypeExpression*>>();
     bool is_first = true;
     if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE)) {
