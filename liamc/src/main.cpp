@@ -8,7 +8,7 @@
 s32 main(s32 argc, char** argv) {
 
 #ifdef DEBUG
-    auto source = std::filesystem::path("Code/Code/main.liam");
+    auto source = std::filesystem::path("C:/Users/Jack/Projects/Liam/liamc/Code/Code/main.liam");
 #else
     if (argc < 2) {
         panic("Not enough arguments: liamc <path>");

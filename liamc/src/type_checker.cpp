@@ -24,6 +24,12 @@ SymbolTable() {
         new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
         {}
     };
+
+    builtin_type_table["alloc_array"] = new FnTypeInfo{
+        TypeInfoType::FN, 
+        new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
+        {builtin_type_table["u64"]}
+    };
 }
 
 void SymbolTable::
@@ -201,7 +207,7 @@ type_check_override_statement(OverrideStatement* statement, SymbolTable* symbol_
     type_check_expression(statement->rhs, symbol_table);
     type_check_type_expression(statement->type, symbol_table);
 
-    symbol_table->add_identifier(statement->identifier, statement->rhs->type_info);
+    symbol_table->add_identifier(statement->identifier, statement->type->type_info);
 }
 
 void TypeChecker::
