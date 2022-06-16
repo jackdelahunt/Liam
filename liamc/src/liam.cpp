@@ -3,6 +3,6 @@
 
 void panic(const std::string& msg)
 {
-    std::cerr << msg << std::endl;
+    std::cerr << "PANIC :: " << msg << std::endl;
     exit(69);
 }
