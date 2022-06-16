@@ -49,3 +49,9 @@ project "liamc"
 		defines {
 			"WINDOWS",
 		}
+
+	-- windows specific stuffy
+	filter "system:linux"
+		defines {
+			"LINUX",
+		}

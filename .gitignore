@@ -22,3 +22,5 @@ liamrs/Cargo.lock
 **.vcxproj.filters
 **.vcxproj.user
 liamc/Code
+liamc/Makefile
+liamc/src/Makefile
