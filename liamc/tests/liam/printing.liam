@@ -1,0 +1,6 @@
+fn main(): u64 {
+    print("Hello");
+    print(100);
+    print(false);
+    return 0;
+}

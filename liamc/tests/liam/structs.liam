@@ -1,0 +1,11 @@
+struct Person {
+    name: ^char,
+    age: u64
+}
+
+fn main(): u64 {
+    let p: Person = new Person{"jack", 21};
+    print(p.name);
+    print(p.age);
+    return 0;
+}
