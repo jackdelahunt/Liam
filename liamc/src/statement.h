@@ -103,10 +103,10 @@ struct ImportStatement : Statement {
 struct ForStatement : Statement {
     LetStatement* let_statement;
     Expression* condition;
-    Expression* update;
+    Statement* update;
     ScopeStatement* body;
 
-    ForStatement(LetStatement* let_statement, Expression* condition, Expression* update, ScopeStatement* body);
+    ForStatement(LetStatement* let_statement, Expression* condition, Statement* update, ScopeStatement* body);
 };
 
 struct IfStatement : Statement {

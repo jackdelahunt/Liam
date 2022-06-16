@@ -1,4 +1,6 @@
 #include "cpp_backend.h"
+#include <string>
+#include <algorithm>
 
 std::string CppBackend::
 emit(File* file) {
@@ -181,7 +183,11 @@ emit_expression_statement(ExpressionStatement* statement) {
 std::string CppBackend::
 emit_for_statement(ForStatement* statement) {
     std::string source ="";
-    source.append("for(" + emit_let_statement(statement->let_statement) + emit_expression(statement->condition) + ";" + emit_expression(statement->update) + ")");
+    source.append(
+        "for(" + emit_let_statement(statement->let_statement) + 
+        emit_expression(statement->condition) + ";" + 
+        strip_semi_colon(emit_statement(statement->update)) + ")"
+    );
     source.append(emit_scope_statement(statement->body));
     return source;
 }
@@ -387,4 +393,17 @@ emit_identifier_type_expression(IdentifierTypeExpression* type_expression) {
 std::string CppBackend::
 emit_pointer_type_expression(PointerTypeExpression* type_expression) {
     return emit_type_expression(type_expression->pointer_of) + "*";
+}
+
+std::string strip_semi_colon(std::string str) {
+    if(str.size() == 0) return str;
+
+    str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+
+    if(str.back() == ';') { 
+        return str.substr(0, str.size()-1);
+    } else { 
+        return str;
+    }
+    //return (str[str.size() - 1] == ';') ? str.substr(0, str.size()-1) : str;
 }

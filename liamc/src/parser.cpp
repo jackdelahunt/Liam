@@ -252,8 +252,7 @@ eval_for_statement() {
     TRY(LetStatement*, let_statement, eval_let_statement())
     TRY(Expression*, condition, eval_expression())
     TRY_TOKEN(TOKEN_SEMI_COLON);
-    TRY(Expression*, update, eval_expression())
-    TRY_TOKEN(TOKEN_SEMI_COLON);
+    TRY(Statement*, update, eval_statement())
     TRY(ScopeStatement*, body, eval_scope_statement())
 
     return WIN(new ForStatement(let_statement, condition, update, body));

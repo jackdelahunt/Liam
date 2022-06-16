@@ -80,7 +80,7 @@ ImportStatement(Expression* file) {
 }
 
 ForStatement::
-ForStatement(LetStatement* let_statement, Expression* condition, Expression* update, ScopeStatement* body) {
+ForStatement(LetStatement* let_statement, Expression* condition, Statement* update, ScopeStatement* body) {
     this->let_statement = let_statement;
     this->condition = condition;
     this->update = update;

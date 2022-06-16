@@ -41,3 +41,5 @@ struct CppBackend {
     std::string emit_identifier_type_expression(IdentifierTypeExpression* type_expression);
     std::string emit_pointer_type_expression(PointerTypeExpression* type_expression);
 };
+
+std::string strip_semi_colon(std::string str);

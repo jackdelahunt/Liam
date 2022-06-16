@@ -278,7 +278,7 @@ type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     auto table_copy = *symbol_table;
     type_check_let_statement(statement->let_statement, &table_copy);
     type_check_expression(statement->condition, &table_copy);
-    type_check_expression(statement->update, &table_copy);
+    type_check_statement(statement->update, &table_copy);
 
 
     if(statement->condition->type_info->type != TypeInfoType::BOOL) {
