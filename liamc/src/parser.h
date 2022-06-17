@@ -46,7 +46,7 @@ struct Parser {
     std::tuple<OverrideStatement*, bool> eval_override_statement();
     std::tuple<ScopeStatement*, bool> eval_scope_statement();
     std::tuple<StructStatement*, bool> eval_struct_statement();
-    std::tuple<FnStatement*, bool> eval_fn_statement();
+    std::tuple<FnStatement*, bool> eval_fn_statement(bool is_extern = false);
     std::tuple<LoopStatement*, bool> eval_loop_statement();
     s32 find_balance_point(TokenType push, TokenType pull, s32 from);
     std::tuple<InsertStatement*, bool> eval_insert_statement();
@@ -56,6 +56,7 @@ struct Parser {
     std::tuple<ForStatement*, bool> eval_for_statement();
     std::tuple<IfStatement*, bool> eval_if_statement();
     std::tuple<ExpressionStatement*, bool> eval_expression_statement();
+    std::tuple<Statement*, bool> eval_extern_statement();
             
     std::tuple<Statement*, bool> eval_line_starting_expression();
 

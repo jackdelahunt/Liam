@@ -1,4 +1,4 @@
-fn print[T](t: T): void extern;
+extern fn print[T](t: T): void;
 
 fn main(): u64 {
     for let i: u64 = 0; i < 5; i = i + 1; {

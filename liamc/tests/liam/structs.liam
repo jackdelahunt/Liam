@@ -1,4 +1,4 @@
-fn print[T](t: T): void extern;
+extern fn print[T](t: T): void;
 
 struct Person {
     name: ^char,

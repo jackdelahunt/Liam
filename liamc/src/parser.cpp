@@ -79,6 +79,10 @@ eval_statement() {
     case TOKEN_IF:
         return eval_if_statement();
         break;
+    case TOKEN_EXTERN:
+        return eval_extern_statement();
+        break;
+
     default: 
         return eval_line_starting_expression();
         break;
@@ -138,7 +142,7 @@ eval_scope_statement() {
 }
 
 std::tuple<FnStatement*, bool> Parser::
-eval_fn_statement() {
+eval_fn_statement(bool is_extern) {
     TRY_TOKEN(TOKEN_FN);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
@@ -164,15 +168,13 @@ eval_fn_statement() {
 
     TRY(TypeExpression*, type, eval_type_expression());
 
-    if(peek()->type == TOKEN_EXTERN) {
-        TRY_TOKEN(TOKEN_EXTERN);
+    if(is_extern) {
         TRY_TOKEN(TOKEN_SEMI_COLON);
         return WIN(new FnStatement(*identifier, generics, params, type, NULL, true));
     } else {
         TRY(ScopeStatement*, body, eval_scope_statement());
         return WIN(new FnStatement(*identifier, generics, params, type, body, false));
     }
-
 }
 
 std::tuple<LoopStatement*, bool> Parser::
@@ -279,6 +281,17 @@ eval_expression_statement() {
     TRY_TOKEN(TOKEN_SEMI_COLON)
 
     return WIN(new ExpressionStatement(expression));
+}
+
+std::tuple<Statement*, bool> Parser::
+eval_extern_statement() {
+    TRY_TOKEN(TOKEN_EXTERN);
+
+    if(peek()->type == TOKEN_FN) {
+        return eval_fn_statement(true);
+    }
+
+    panic("Cannot extern this statement");
 }
 
 std::tuple<Statement*, bool> Parser::
