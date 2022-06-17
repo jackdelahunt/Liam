@@ -16,19 +16,22 @@ SymbolTable() {
     builtin_type_table["print"] = new FnTypeInfo{
         TypeInfoType::FN, 
         builtin_type_table["void"], 
-        {new GenericTypeInfo{TypeInfoType::GENERIC}}
+        {new GenericTypeInfo{TypeInfoType::GENERIC}},
+        1
     };
 
     builtin_type_table["alloc"] = new FnTypeInfo{
         TypeInfoType::FN, 
         new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
-        {}
+        {},
+        1
     };
 
     builtin_type_table["alloc_array"] = new FnTypeInfo{
         TypeInfoType::FN, 
         new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
-        {builtin_type_table["u64"]}
+        {builtin_type_table["u64"]},
+        1
     };
 }
 
@@ -145,7 +148,12 @@ type_check_fn_decl(FnStatement* statement, SymbolTable* symbol_table) {
     type_check_type_expression(statement->return_type, symbol_table_in_use);
 
     // add this fn decl to parent symbol table
-    symbol_table->add_identifier(statement->identifier, new FnTypeInfo{TypeInfoType::FN, statement->return_type->type_info,param_type_infos});
+    symbol_table->add_identifier(statement->identifier, new FnTypeInfo{
+        TypeInfoType::FN, 
+        statement->return_type->type_info, 
+        param_type_infos, 
+        statement->generics.size()
+    });
 }
 
 void TypeChecker::
@@ -459,6 +467,10 @@ type_check_call_expression(CallExpression* expression, SymbolTable* symbol_table
 	auto fn_type_info = static_cast<FnTypeInfo*>(type_of_callee->type_info);
 	if (fn_type_info->args.size() != arg_type_infos.size()) {
 		panic("Incorrect numbers of args passed to function call");
+	}
+
+	if (fn_type_info->generic_count != expression->generics.size()) {
+		panic("Incorrect numbers of type params passed to function call");
 	}
 
 	for (s32 i = 0; i < fn_type_info->args.size(); i++) {

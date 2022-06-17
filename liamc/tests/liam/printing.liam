@@ -1,6 +1,6 @@
 fn main(): u64 {
-    print("Hello");
-    print(100);
-    print(false);
+    print[^char]("Hello");
+    print[u64](100);
+    print[bool](false);
     return 0;
 }

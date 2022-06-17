@@ -42,6 +42,7 @@ struct TypeTypeInfo : TypeInfo {
 struct FnTypeInfo : TypeInfo {
     TypeInfo* return_type;
     std::vector<TypeInfo*> args;
+    u64 generic_count;
 };
 
 struct StructTypeInfo : TypeInfo {
