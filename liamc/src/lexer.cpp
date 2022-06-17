@@ -2,7 +2,7 @@
 #include <filesystem>
 #include "liam.h"
 
-const char* TokenTypeStrings[41] = {
+const char* TokenTypeStrings[42] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -44,6 +44,7 @@ const char* TokenTypeStrings[41] = {
     "<",
     ">",
     "override",
+    "extern",
 };
 
 std::vector<char> extract_chars(const char* path) {
@@ -302,6 +303,11 @@ void Lexer::lex() {
 
             if (word == "override") {
                 tokens.emplace_back(Token(TokenType::TOKEN_OVERRIDE, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "extern") {
+                tokens.emplace_back(Token(TokenType::TOKEN_EXTERN, word, current_line, word_start));
                 continue;
             }
 

@@ -1,3 +1,5 @@
+fn print[T](t: T): void extern;
+
 struct Person {
     name: ^char,
     age: u64

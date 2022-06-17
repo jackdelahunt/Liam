@@ -163,9 +163,16 @@ eval_fn_statement() {
     TRY_TOKEN(TOKEN_COLON);
 
     TRY(TypeExpression*, type, eval_type_expression());
-    TRY(ScopeStatement*, body, eval_scope_statement());
 
-    return WIN(new FnStatement(*identifier, generics, params, type, body));
+    if(peek()->type == TOKEN_EXTERN) {
+        TRY_TOKEN(TOKEN_EXTERN);
+        TRY_TOKEN(TOKEN_SEMI_COLON);
+        return WIN(new FnStatement(*identifier, generics, params, type, NULL, true));
+    } else {
+        TRY(ScopeStatement*, body, eval_scope_statement());
+        return WIN(new FnStatement(*identifier, generics, params, type, body, false));
+    }
+
 }
 
 std::tuple<LoopStatement*, bool> Parser::

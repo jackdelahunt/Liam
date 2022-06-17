@@ -31,12 +31,13 @@ OverrideStatement(Token identifier, Expression* expression, TypeExpression* type
 }
 
 FnStatement::
-FnStatement(Token identifier, std::vector<Token> generics, CSV params, TypeExpression* type, ScopeStatement* body) {
+FnStatement(Token identifier, std::vector<Token> generics, CSV params, TypeExpression* type, ScopeStatement* body, bool is_extern) {
     this->identifier = identifier;
     this->generics = generics;
     this->return_type = type;
     this->params = params;
     this->body = body;
+    this->is_extern = is_extern;
     this->statement_type = StatementType::STATEMENT_FN;
 }
 

@@ -12,27 +12,6 @@ SymbolTable() {
     builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
     builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOL};
-    
-    builtin_type_table["print"] = new FnTypeInfo{
-        TypeInfoType::FN, 
-        builtin_type_table["void"], 
-        {new GenericTypeInfo{TypeInfoType::GENERIC}},
-        1
-    };
-
-    builtin_type_table["alloc"] = new FnTypeInfo{
-        TypeInfoType::FN, 
-        new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
-        {},
-        1
-    };
-
-    builtin_type_table["alloc_array"] = new FnTypeInfo{
-        TypeInfoType::FN, 
-        new PointerTypeInfo{TypeInfoType::POINTER, new GenericTypeInfo{TypeInfoType::GENERIC}}, 
-        {builtin_type_table["u64"]},
-        1
-    };
 }
 
 void SymbolTable::
@@ -172,7 +151,7 @@ type_check_statement(Statement* statement, SymbolTable* symbol_table) {
         case StatementType::STATEMENT_FOR: return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table); break;
         case StatementType::STATEMENT_IF: return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table); break;
         default:
-            panic("Statement not implemented in return_type checker, id -> " + std::to_string((int)statement->statement_type));
+            panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
     }
 }
 
@@ -235,6 +214,7 @@ type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table,
 }
 void TypeChecker::
 type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table, bool first_pass) {
+    if(statement->is_extern) return;
     auto existing_type_info = static_cast<FnTypeInfo*>(symbol_table->identifier_table[statement->identifier.string]);
 
     // params and get return_type expressions

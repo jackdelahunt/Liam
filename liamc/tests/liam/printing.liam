@@ -1,3 +1,5 @@
+fn print[T](t: T): void extern;
+
 fn main(): u64 {
     print[^char]("Hello");
     print[u64](100);

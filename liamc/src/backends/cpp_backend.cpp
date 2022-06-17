@@ -115,8 +115,9 @@ emit_scope_statement(ScopeStatement* statement) {
 
 std::string CppBackend::
 emit_fn_statement(FnStatement* statement) {
-    auto source = std::string();
+    if(statement->is_extern) return "";
 
+    auto source = std::string();
     if(statement->generics.size() > 0) {
         int index = 0;
         source.append("template <");

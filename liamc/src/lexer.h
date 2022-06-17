@@ -50,9 +50,10 @@ enum TokenType {
     TOKEN_LESS              = 38,
     TOKEN_GREATER           = 39,
     TOKEN_OVERRIDE          = 40,
+    TOKEN_EXTERN            = 41,
 };
 
-extern const char* TokenTypeStrings[41];
+extern const char* TokenTypeStrings[42];
 
 std::string get_token_type_string(TokenType type);
 
