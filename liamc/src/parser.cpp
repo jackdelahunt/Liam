@@ -143,13 +143,13 @@ eval_fn_statement() {
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
     auto generics = std::vector<Token>();
-    if(peek()->type == TokenType::TOKEN_LESS) {
-        TRY_TOKEN(TOKEN_LESS);
-        auto [types, error] = consume_comma_seperated_token_arguments(TOKEN_GREATER);
+    if(peek()->type == TOKEN_BRACKET_OPEN) {
+        TRY_TOKEN(TOKEN_BRACKET_OPEN);
+        auto [types, error] = consume_comma_seperated_token_arguments(TOKEN_BRACKET_CLOSE);
         if(error) {
             return {nullptr, true};
         }
-        TRY_TOKEN(TOKEN_GREATER);
+        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
 
         generics = types;
     }
@@ -274,7 +274,8 @@ eval_expression_statement() {
     return WIN(new ExpressionStatement(expression));
 }
 
-std::tuple<Statement*, bool> Parser::eval_line_starting_expression() {
+std::tuple<Statement*, bool> Parser::
+eval_line_starting_expression() {
     TRY(Expression*, lhs, eval_expression());
     if (peek()->type == TOKEN_ASSIGN) {
         TRY_TOKEN(TOKEN_ASSIGN);
@@ -323,7 +324,10 @@ std::tuple<Expression*, bool> Parser::
 eval_comparison() {
     TRY(Expression*, expr, eval_term());
 
-    while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL)) {
+    while (match(TokenType::TOKEN_NOT_EQUAL) || 
+    match(TokenType::TOKEN_EQUAL) || 
+    match(TokenType::TOKEN_LESS) || 
+    match(TokenType::TOKEN_GREATER)) {
         Token* op = consume_token();
         TRY(Expression*, right, eval_expression());
         expr = new BinaryExpression(expr, *op, right);
@@ -375,16 +379,16 @@ eval_call() {
     TRY(Expression*, expr, eval_primary());
 
     while (true) {
-        if (match(TOKEN_PAREN_OPEN) || match(TOKEN_LESS)) {
+        if (match(TOKEN_PAREN_OPEN) || match(TOKEN_BRACKET_OPEN)) {
 
             auto generics = std::vector<TypeExpression*>();
-            if(peek()->type == TOKEN_LESS) {
-                TRY_TOKEN(TOKEN_LESS);
-                auto [types, error] = consume_comma_seperated_types(TOKEN_GREATER);
+            if(peek()->type == TOKEN_BRACKET_OPEN) {
+                TRY_TOKEN(TOKEN_BRACKET_OPEN);
+                auto [types, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
                 if(error) {
                     return {nullptr, true};
                 }
-                TRY_TOKEN(TOKEN_GREATER);
+                TRY_TOKEN(TOKEN_BRACKET_CLOSE);
 
                 generics = types;
             }

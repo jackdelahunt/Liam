@@ -1,6 +1,6 @@
 fn main(): u64 {
-    for let i: u64 = 0; true; print("Hello"); {
-        print<u64>(i);
+    for let i: u64 = 0; i < 5; i = i + 1; {
+        print[u64](i);
     }
     return 0;
 }

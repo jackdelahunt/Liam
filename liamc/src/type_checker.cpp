@@ -366,20 +366,35 @@ type_check_binary_expression(BinaryExpression* expression, SymbolTable* symbol_t
 	}
 
     TypeInfo* info = nullptr;
-    // logical ops - make return_type bool
+
+
+
+    // logical ops - bools -> bool
     if(expression->op.type == TOKEN_AND || expression->op.type == TOKEN_OR) {
         if (expression->left->type_info->type != TypeInfoType::BOOL && expression->right->type_info->type != TypeInfoType::BOOL) {
             panic("Cannot use logical operators on non bool return_type");
         }
         info = symbol_table->get_type("bool");
-    }       // math ops - make return_type value types (int, float ...)
-    else if(expression->op.type == TOKEN_PLUS || expression->op.type == TOKEN_STAR) {
+    }
+    
+    // math ops - numbers -> numbers
+    if(expression->op.type == TOKEN_PLUS || expression->op.type == TOKEN_STAR) {
         if (expression->left->type_info->type != TypeInfoType::INT) {
-            panic("Cannot use arithmatic operator on non number return_type");
+            panic("Cannot use arithmatic operator on non number");
         }
         info = expression->left->type_info;
-    }  // must be using == or != which resolve to bool
-    else {
+    }  
+
+    // math ops - numbers -> bool
+    if(expression->op.type == TOKEN_LESS || expression->op.type == TOKEN_GREATER) {
+        if (expression->left->type_info->type != TypeInfoType::INT) {
+            panic("Cannot use arithmatic operator on non number");
+        }
+        info = symbol_table->get_type("bool");
+    } 
+    
+    // compare - any -> bool
+    if(expression->op.type == TOKEN_EQUAL || expression->op.type == TOKEN_NOT_EQUAL) {
         info = symbol_table->get_type("bool");
     }
 

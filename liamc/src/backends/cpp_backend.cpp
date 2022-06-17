@@ -266,6 +266,12 @@ emit_binary_expression(BinaryExpression* expression) {
     case TOKEN_NOT_EQUAL:
         source.append(" != ");
         break;
+    case TOKEN_LESS:
+        source.append(" < ");
+        break;
+    case TOKEN_GREATER:
+        source.append(" > ");
+        break;
 	default:
 		panic("Cannot use this operand");
 		break;
