@@ -156,6 +156,9 @@ emit_loop_statement(LoopStatement* statement) {
 
 std::string CppBackend::
 emit_struct_statement(StructStatement* statement) {
+
+    if(statement->is_extern) return "";
+
     auto source = std::string();
     source.append("struct " + statement->identifier.string + " {");
     for(auto [identifier, type] : statement->members) {

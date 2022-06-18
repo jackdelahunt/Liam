@@ -82,7 +82,6 @@ eval_statement() {
     case TOKEN_EXTERN:
         return eval_extern_statement();
         break;
-
     default: 
         return eval_line_starting_expression();
         break;
@@ -209,7 +208,7 @@ find_balance_point(TokenType push, TokenType pull, s32 from) {
 }
 
 std::tuple<StructStatement*, bool> Parser::
-eval_struct_statement() {
+eval_struct_statement(bool is_extern) {
     TRY_TOKEN(TOKEN_STRUCT);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
     TRY_TOKEN(TOKEN_BRACE_OPEN);
@@ -218,7 +217,7 @@ eval_struct_statement() {
         return {nullptr, true};
     }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
-    return WIN(new StructStatement(*identifier, member));
+    return WIN(new StructStatement(*identifier, member, is_extern));
 }
 
 std::tuple<InsertStatement*, bool> Parser::
@@ -289,6 +288,10 @@ eval_extern_statement() {
 
     if(peek()->type == TOKEN_FN) {
         return eval_fn_statement(true);
+    }
+
+    if(peek()->type == TOKEN_STRUCT) {
+        return eval_struct_statement(true);
     }
 
     panic("Cannot extern this statement");

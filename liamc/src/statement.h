@@ -79,8 +79,9 @@ struct LoopStatement : Statement {
 struct StructStatement : Statement {
     Token identifier;
     CSV members;
+    bool is_extern;
 
-    StructStatement(Token identifier, CSV members);
+    StructStatement(Token identifier, CSV members, bool is_extern);
 };
 
 struct AssigmentStatement : Statement {

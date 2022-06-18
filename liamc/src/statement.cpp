@@ -49,9 +49,10 @@ LoopStatement(Token identifier, ScopeStatement* body) {
 }
 
 StructStatement::
-StructStatement(Token identifier, CSV members) {
+StructStatement(Token identifier, CSV members, bool is_extern) {
     this->identifier = identifier;
     this->members = members;
+    this->is_extern = is_extern;
     this->statement_type = StatementType::STATEMENT_STRUCT;
 }
 
