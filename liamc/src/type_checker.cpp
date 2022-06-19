@@ -154,7 +154,6 @@ type_check_statement(Statement* statement, SymbolTable* symbol_table) {
         case StatementType::STATEMENT_ASSIGNMENT: return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement),symbol_table); break;
         case StatementType::STATEMENT_EXPRESSION: return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement), symbol_table); break;
         case StatementType::STATEMENT_LET: return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table); break;
-        case StatementType::STATEMENT_OVERRIDE: return type_check_override_statement(dynamic_cast<OverrideStatement *>(statement), symbol_table); break;
         case StatementType::STATEMENT_FOR: return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table); break;
         case StatementType::STATEMENT_IF: return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table); break;
         default:
@@ -194,14 +193,6 @@ type_check_let_statement(LetStatement* statement, SymbolTable* symbol_table) {
     // let type could be null here that is why rhs is added. if there is ever lets
     // with no rhs this will break... :[
     symbol_table->add_identifier(statement->identifier, statement->rhs->type_info);
-}
-
-void TypeChecker::
-type_check_override_statement(OverrideStatement* statement, SymbolTable* symbol_table) {
-    type_check_expression(statement->rhs, symbol_table);
-    type_check_type_expression(statement->type, symbol_table);
-
-    symbol_table->add_identifier(statement->identifier, statement->type->type_info);
 }
 
 void TypeChecker::
@@ -472,7 +463,19 @@ type_check_call_expression(CallExpression* expression, SymbolTable* symbol_table
 		}
 	}
 
-    expression->type_info = fn_type_info->return_type;
+    for(u64 i = 0; i < expression->generics.size(); i++) {
+        type_check_type_expression(expression->generics.at(i), symbol_table);
+    }
+
+    // if generic return resolve this generic
+    if(fn_type_info->return_type->type == TypeInfoType::GENERIC) {
+        auto generic_return = static_cast<GenericTypeInfo*>(fn_type_info->return_type);
+        assert(generic_return->id >= 0 && generic_return->id < expression->generics.size());
+        expression->type_info = expression->generics.at(generic_return->id)->type_info;
+    } else {
+        expression->type_info = fn_type_info->return_type;
+    }
+
 }
 void TypeChecker::
 type_check_identifier_expression(IdentifierExpression* expression, SymbolTable* symbol_table) {

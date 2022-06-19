@@ -47,7 +47,6 @@ struct TypeChecker {
     void type_check_return_statement(ReturnStatement* statement, SymbolTable* symbol_table);
     void type_check_break_statement(BreakStatement* statement, SymbolTable* symbol_table);
 	void type_check_let_statement(LetStatement* statement, SymbolTable* symbol_table);
-	void type_check_override_statement(OverrideStatement* statement, SymbolTable* symbol_table);
     void type_check_scope_statement(ScopeStatement* statement, SymbolTable* symbol_table, bool copy_symbol_table = true);
     void type_check_fn_statement(FnStatement* statement, SymbolTable* symbol_table, bool first_pass = false);
     void type_check_loop_statement(LoopStatement* statement, SymbolTable* symbol_table);

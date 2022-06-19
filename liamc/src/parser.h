@@ -43,7 +43,6 @@ struct Parser {
     /* statements */
     std::tuple<Statement*, bool> eval_statement();
     std::tuple<LetStatement*, bool> eval_let_statement();
-    std::tuple<OverrideStatement*, bool> eval_override_statement();
     std::tuple<ScopeStatement*, bool> eval_scope_statement();
     std::tuple<StructStatement*, bool> eval_struct_statement(bool is_extern = false);
     std::tuple<FnStatement*, bool> eval_fn_statement(bool is_extern = false);

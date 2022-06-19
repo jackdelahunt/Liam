@@ -18,7 +18,6 @@ struct CppBackend {
     std::string emit_return_statement(ReturnStatement* statement);
     std::string emit_break_statement(BreakStatement* statement);
     std::string emit_let_statement(LetStatement* statement);
-    std::string emit_override_statement(OverrideStatement* statement);
     std::string emit_scope_statement(ScopeStatement* statement);
     std::string emit_fn_statement(FnStatement* statement);
     std::string emit_loop_statement(LoopStatement* statement);

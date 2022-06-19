@@ -2,7 +2,7 @@
 #include <filesystem>
 #include "liam.h"
 
-const char* TokenTypeStrings[42] = {
+const char* TokenTypeStrings[41] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -43,7 +43,6 @@ const char* TokenTypeStrings[42] = {
     "!",
     "<",
     ">",
-    "override",
     "extern",
 };
 
@@ -298,11 +297,6 @@ void Lexer::lex() {
 
             if (word == "false") {
                 tokens.emplace_back(Token(TokenType::TOKEN_FALSE, word, current_line, word_start));
-                continue;
-            }
-
-            if (word == "override") {
-                tokens.emplace_back(Token(TokenType::TOKEN_OVERRIDE, word, current_line, word_start));
                 continue;
             }
 

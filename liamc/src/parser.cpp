@@ -58,9 +58,6 @@ eval_statement() {
     case TOKEN_LET:
         return eval_let_statement();
         break;
-    case TOKEN_OVERRIDE:
-        return eval_override_statement();
-        break;
     case TOKEN_FN:
         return eval_fn_statement();
         break;
@@ -115,18 +112,6 @@ eval_let_statement() {
 
         return WIN(new LetStatement(*identifier, expression->expression, nullptr));
     }
-}
-
-std::tuple<OverrideStatement*, bool> Parser::
-eval_override_statement() {
-    TRY_TOKEN(TOKEN_OVERRIDE);
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
-
-    TRY_TOKEN(TOKEN_COLON);
-    TRY(TypeExpression*, type, eval_type_expression());
-    TRY_TOKEN(TOKEN_ASSIGN);
-    TRY(ExpressionStatement*, expression, eval_expression_statement());
-    return WIN(new OverrideStatement(*identifier, expression->expression, type));
 }
 
 std::tuple<ScopeStatement*, bool> Parser::

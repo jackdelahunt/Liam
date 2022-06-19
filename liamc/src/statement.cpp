@@ -22,14 +22,6 @@ LetStatement(Token identifier, Expression* expression, TypeExpression* type) {
     this->statement_type = StatementType::STATEMENT_LET;
 }
 
-OverrideStatement::
-OverrideStatement(Token identifier, Expression* expression, TypeExpression* type) {
-    this->identifier = identifier;
-    this->rhs = expression;
-    this->type= type;
-    this->statement_type = StatementType::STATEMENT_OVERRIDE;
-}
-
 FnStatement::
 FnStatement(Token identifier, std::vector<Token> generics, CSV params, TypeExpression* type, ScopeStatement* body, bool is_extern) {
     this->identifier = identifier;
