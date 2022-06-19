@@ -1,13 +1,14 @@
-#include <iostream>
 #include <chrono>
 #include <filesystem>
-#include "liam.h"
+#include <iostream>
+
+#include "args.h"
 #include "backends/cpp_backend.h"
 #include "compiler.h"
-#include "args.h"
+#include "liam.h"
 
-s32 main(s32 argc, char** argv) {
-
+s32 main(s32 argc, char **argv)
+{
     Arguments::New(argc, argv);
 
     TIME_START(l_p_time);
@@ -20,15 +21,17 @@ s32 main(s32 argc, char** argv) {
 
     TIME_START(code_gen);
     auto code = CppBackend().emit(&typed_file);
-    if(args->value<bool>("codegen")) {
+    if (args->value<bool>("codegen"))
+    {
         std::cout << code;
-    } else {
+    }
+    else
+    {
         std::ofstream out_file(args->value<std::string>("out"));
         out_file << code;
         out_file.close();
     }
     TIME_END(code_gen, "Code generation time");
-
 
     return 0;
 }

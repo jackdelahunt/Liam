@@ -4,7 +4,8 @@
 
 struct TypeExpression;
 
-enum class ExpressionType {
+enum class ExpressionType
+{
     EXPRESSION_BINARY,
     EXPRESSION_UNARY,
     EXPRESSION_INT_LITERAL,
@@ -17,118 +18,135 @@ enum class ExpressionType {
     EXPRESSION_GROUP,
 };
 
-struct Expression {
-    TypeInfo* type_info = nullptr;
+struct Expression
+{
+    TypeInfo *type_info = nullptr;
     ExpressionType type;
-    virtual std::ostream& format(std::ostream& os) const;
+    virtual std::ostream &format(std::ostream &os) const;
 };
 
-std::ostream& operator<<(std::ostream& os, const Expression& expression);
+std::ostream &operator<<(std::ostream &os, const Expression &expression);
 
-struct BinaryExpression : Expression {
-    Expression* left;
+struct BinaryExpression : Expression
+{
+    Expression *left;
     Token op;
-    Expression* right;
+    Expression *right;
 
-    BinaryExpression(Expression* left, Token op, Expression* right);
+    BinaryExpression(Expression *left, Token op, Expression *right);
 };
 
-struct UnaryExpression : Expression {
+struct UnaryExpression : Expression
+{
     Token op;
-    Expression* expression;
+    Expression *expression;
 
-    UnaryExpression(Expression* expression, Token op);
+    UnaryExpression(Expression *expression, Token op);
 };
 
-struct ArrayExpression : Expression {
-    std::vector<Expression*> expressions;
+struct ArrayExpression : Expression
+{
+    std::vector<Expression *> expressions;
 
-    ArrayExpression(std::vector<Expression*> expressions);
+    ArrayExpression(std::vector<Expression *> expressions);
 };
 
-struct IntLiteralExpression : Expression {
+struct IntLiteralExpression : Expression
+{
     Token token;
 
     IntLiteralExpression(const Token token);
 };
 
-struct StringLiteralExpression : Expression {
+struct StringLiteralExpression : Expression
+{
     Token token;
 
     StringLiteralExpression(const Token token);
 };
 
-struct BoolLiteralExpression : Expression {
+struct BoolLiteralExpression : Expression
+{
     Token value;
 
     BoolLiteralExpression(Token value);
 };
 
-struct IdentifierExpression : Expression {
+struct IdentifierExpression : Expression
+{
     Token identifier;
 
     IdentifierExpression(const Token identifier);
 };
 
-struct CallExpression : Expression {
+struct CallExpression : Expression
+{
     // this is an expression but it must be a identifier
-    Expression* identifier;
-    std::vector<Expression*> args;
-    std::vector<TypeExpression*> generics;
+    Expression *identifier;
+    std::vector<Expression *> args;
+    std::vector<TypeExpression *> generics;
 
-    CallExpression(Expression* identifier, std::vector<Expression*> args, std::vector<TypeExpression*> generics);
+    CallExpression(Expression *identifier, std::vector<Expression *> args, std::vector<TypeExpression *> generics);
 };
 
-struct GetExpression : Expression {
+struct GetExpression : Expression
+{
     // this is an expression but it must be a identifier
-    Expression* lhs;
+    Expression *lhs;
     Token member;
 
-    GetExpression(Expression* expression, Token member);
+    GetExpression(Expression *expression, Token member);
 };
 
-struct NewExpression : Expression {
+struct NewExpression : Expression
+{
     Token identifier;
-    std::vector<TypeExpression*> generics;
-    std::vector<Expression*> expressions;
+    std::vector<TypeExpression *> generics;
+    std::vector<Expression *> expressions;
 
-    NewExpression(Token identifier, std::vector<TypeExpression*> generics, std::vector<Expression*> expressions);
+    NewExpression(Token identifier, std::vector<TypeExpression *> generics, std::vector<Expression *> expressions);
 };
 
-struct GroupExpression : Expression {
-    Expression* expression;
+struct GroupExpression : Expression
+{
+    Expression *expression;
 
-    GroupExpression(Expression* expression);
+    GroupExpression(Expression *expression);
 };
 
-enum class TypeExpressionType {
+enum class TypeExpressionType
+{
     TYPE_IDENTIFIER,
     TYPE_UNARY,
     TYPE_SPECIFIED_GENERICS,
 };
 
-struct TypeExpression {
-    TypeInfo* type_info = nullptr;
+struct TypeExpression
+{
+    TypeInfo *type_info = nullptr;
     TypeExpressionType type;
-    virtual std::ostream& format(std::ostream& os) const;
+    virtual std::ostream &format(std::ostream &os) const;
 };
 
-struct IdentifierTypeExpression : TypeExpression {
+struct IdentifierTypeExpression : TypeExpression
+{
     Token identifier;
 
     IdentifierTypeExpression(Token identifier);
 };
 
-struct UnaryTypeExpression : TypeExpression {
+struct UnaryTypeExpression : TypeExpression
+{
     Token op;
-    TypeExpression* type_expression;
+    TypeExpression *type_expression;
 
-    UnaryTypeExpression(Token op, TypeExpression* type_expression);
+    UnaryTypeExpression(Token op, TypeExpression *type_expression);
 };
 
-struct SpecifiedGenericsTypeExpression : TypeExpression {
-    IdentifierTypeExpression* struct_type;
-    std::vector<TypeExpression*> generics;
+struct SpecifiedGenericsTypeExpression : TypeExpression
+{
+    IdentifierTypeExpression *struct_type;
+    std::vector<TypeExpression *> generics;
 
-    SpecifiedGenericsTypeExpression(IdentifierTypeExpression* struct_type, std::vector<TypeExpression*> generics);
+    SpecifiedGenericsTypeExpression(IdentifierTypeExpression *struct_type, std::vector<TypeExpression *> generics);
 };

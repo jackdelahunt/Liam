@@ -1,57 +1,41 @@
 #include "lexer.h"
+
 #include <filesystem>
+
 #include "liam.h"
 
-const char* TokenTypeStrings[41] = {
-    "int Literal",
-    "string Literal",
-    "identifier",
-    "let",
-    "insert",
-    "fn",
-    "loop",
-    "(",
-    ")",
-    "{",
-    "}",
-    "+",
-    "*",
-    "=",
-    ";",
-    ",",
-    ":",
-    "return",
-    "return_type",
-    "^",
-    "@",
-    "struct",
-    ".",
-    "new",
-    "break",
-    ":=",
-    "[",
-    "]",
-    "for",
-    "in",
-    "false",
-    "true",
-    "if",
-    "or",
-    "and",
-    "==",
-    "!=",
-    "!",
-    "<",
-    ">",
+const char *TokenTypeStrings[41] = {
+    "int Literal", "string Literal",
+    "identifier",  "let",
+    "insert",      "fn",
+    "loop",        "(",
+    ")",           "{",
+    "}",           "+",
+    "*",           "=",
+    ";",           ",",
+    ":",           "return",
+    "return_type", "^",
+    "@",           "struct",
+    ".",           "new",
+    "break",       ":=",
+    "[",           "]",
+    "for",         "in",
+    "false",       "true",
+    "if",          "or",
+    "and",         "==",
+    "!=",          "!",
+    "<",           ">",
     "extern",
 };
 
-std::vector<char> extract_chars(const char* path) {
+std::vector<char> extract_chars(const char *path)
+{
     auto vec = std::vector<char>();
 
     std::ifstream file;
     file.open(path);
-    if (!file.is_open()) {
+    if (!file.is_open())
+    {
         panic("cannot open file");
     }
 
@@ -64,38 +48,41 @@ std::vector<char> extract_chars(const char* path) {
     return vec;
 }
 
-Token::Token(TokenType type, std::string string, s32 line, s32 character) {
+Token::Token(TokenType type, std::string string, s32 line, s32 character)
+{
     this->type = type;
     this->string = string;
     this->line = line;
     this->character = character;
 }
 
-std::ostream& operator<<(std::ostream& os, const Token& token)
+std::ostream &operator<<(std::ostream &os, const Token &token)
 {
     os << token.string;
     return os;
 }
 
-bool is_delim(char c) {
-    return c == ' ' || c == '\n' || c == ';' || c == '(' || 
-        c == ')' || c == '{' || c == '}' || c == ',' || 
-        c == ':' || c == '=' || c == '+' || c == '^' || 
-        c == '@' || c == '*' || c == '.' || c == '[' ||
-        c == ']' || c == '!' || c == '<' || c == '>';
+bool is_delim(char c)
+{
+    return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' ||
+           c == '=' || c == '+' || c == '^' || c == '@' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
+           c == '<' || c == '>';
 }
 
-Lexer::Lexer(std::filesystem::path path) {
+Lexer::Lexer(std::filesystem::path path)
+{
     tokens = std::vector<Token>();
     current = 0;
     current_line = 1;
     current_character = 0;
     this->path = path;
- }
+}
 
-void Lexer::lex() {
+void Lexer::lex()
+{
     chars = extract_chars(path.string().c_str());
-    for (; current < chars.size(); next_char()) {
+    for (; current < chars.size(); next_char())
+    {
         char c = chars.at(current);
         switch (c)
         {
@@ -114,7 +101,8 @@ void Lexer::lex() {
             tokens.emplace_back(TokenType::TOKEN_STAR, "*", current_line, current_character);
             break;
         case '=':
-            if(peek() == '=') {
+            if (peek() == '=')
+            {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_EQUAL, "==", current_line, current_character);
                 break;
@@ -146,7 +134,8 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_BRACKET_CLOSE, "]", current_line, current_character));
             break;
         case ':':
-            if(peek() == '=') {
+            if (peek() == '=')
+            {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_WALRUS, ":=", current_line, current_character);
                 break;
@@ -169,7 +158,8 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_GREATER, ">", current_line, current_character));
             break;
         case '!':
-            if(peek() == '=') {
+            if (peek() == '=')
+            {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_NOT_EQUAL, "!=", current_line, current_character);
                 break;
@@ -177,17 +167,19 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_NOT, "!", current_line, current_character));
             break;
         case '#':
-            while (current < chars.size() && chars.at(current) != '\n') {
+            while (current < chars.size() && chars.at(current) != '\n')
+            {
                 next_char();
             }
             break;
-        case '"':
-        {
+        case '"': {
             next_char();
             std::string str = std::string();
-            while (current < chars.size() && chars.at(current) != '"') {
+            while (current < chars.size() && chars.at(current) != '"')
+            {
                 // skip back slash and accept next char
-                if (chars.at(current) == '\\') {
+                if (chars.at(current) == '\\')
+                {
                     next_char();
                     str.append(std::string(1, chars.at(current)));
                     next_char();
@@ -204,103 +196,123 @@ void Lexer::lex() {
             auto word = get_word();
 
             // check keywords
-            if (word == "let") {
+            if (word == "let")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_LET, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "insert") {
+            if (word == "insert")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_INSERT, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "fn") {
+            if (word == "fn")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_FN, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "return") {
+            if (word == "return")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_RETURN, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "loop") {
+            if (word == "loop")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_LOOP, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "struct") {
+            if (word == "struct")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_STRUCT, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "new") {
+            if (word == "new")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_NEW, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "break") {
+            if (word == "break")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_BREAK, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "import") {
+            if (word == "import")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_IMPORT, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "for") {
+            if (word == "for")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_FOR, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "in") {
+            if (word == "in")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_IN, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "if") {
+            if (word == "if")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_IF, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "and") {
+            if (word == "and")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_AND, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "or") {
+            if (word == "or")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_OR, word, current_line, word_start));
                 continue;
             }
 
             // built in types
-            if (word == "void") {
+            if (word == "void")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "u64") {
+            if (word == "u64")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "char") {
+            if (word == "char")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "true") {
+            if (word == "true")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_TRUE, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "false") {
+            if (word == "false")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_FALSE, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "extern") {
+            if (word == "extern")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_EXTERN, word, current_line, word_start));
                 continue;
             }
@@ -312,7 +324,9 @@ void Lexer::lex() {
                 tokens.emplace_back(Token(TokenType::TOKEN_INT_LITERAL, word, current_line, word_start));
                 continue;
             }
-            catch (const std::exception& e) {}
+            catch (const std::exception &e)
+            {
+            }
 
             tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
 
@@ -321,18 +335,22 @@ void Lexer::lex() {
     }
 }
 
-void Lexer::next_char() {
+void Lexer::next_char()
+{
     current++;
     current_character++;
 }
 
-char Lexer::peek() {
+char Lexer::peek()
+{
     return chars.at(current + 1);
 }
 
-std::string Lexer::get_word() {
+std::string Lexer::get_word()
+{
     std::string word = std::string();
-    while (current < chars.size() && !is_delim(chars.at(current))) {
+    while (current < chars.size() && !is_delim(chars.at(current)))
+    {
         word.append(1, chars.at(current));
         next_char();
     }
