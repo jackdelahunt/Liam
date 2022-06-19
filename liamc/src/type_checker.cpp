@@ -497,17 +497,22 @@ type_check_identifier_expression(IdentifierExpression* expression, SymbolTable* 
 void TypeChecker::
 type_check_get_expression(GetExpression* expression, SymbolTable* symbol_table) {
 	type_check_expression(expression->lhs, symbol_table);
-	if (expression->lhs->type_info->type != TypeInfoType::STRUCT_INSTANCE) {
+	if (expression->lhs->type_info->type != TypeInfoType::STRUCT_INSTANCE &&
+        expression->lhs->type_info->type != TypeInfoType::STRUCT) {
 		panic("Cannot derive member from non struct type");
 	}
 
 
 	TypeInfo* member_type_info = NULL;
-	auto struct_instance_type_info = static_cast<StructInstanceTypeInfo*>(expression->lhs->type_info);
+	StructTypeInfo* struct_type_info = NULL;
 
-    assert(struct_instance_type_info->struct_type->type == TypeInfoType::STRUCT);
-
-	auto struct_type_info = static_cast<StructTypeInfo*>(struct_instance_type_info->struct_type);
+    if(expression->lhs->type_info->type == TypeInfoType::STRUCT) {
+        struct_type_info = static_cast<StructTypeInfo*>(expression->lhs->type_info);
+    } else {
+        auto struct_instance_type_info = static_cast<StructInstanceTypeInfo*>(expression->lhs->type_info);
+        assert(struct_instance_type_info->struct_type->type == TypeInfoType::STRUCT);
+        struct_type_info = static_cast<StructTypeInfo*>(struct_instance_type_info->struct_type);
+    }
 
     // find the type infp in the struct definition, here it could be a base type
     // or it could be a generic type
@@ -523,6 +528,11 @@ type_check_get_expression(GetExpression* expression, SymbolTable* symbol_table) 
 
     // if it is generic then resolve the id of it in the struct instance
     if(member_type_info->type == TypeInfoType::GENERIC) {
+        if(expression->lhs->type_info->type == TypeInfoType::STRUCT) {
+            panic("No generic parameters set for struct type");
+        }
+
+        auto struct_instance_type_info = static_cast<StructInstanceTypeInfo*>(expression->lhs->type_info);
         auto generic_member_info = static_cast<GenericTypeInfo*>(member_type_info);
         assert(generic_member_info->id >= 0 && generic_member_info->id < struct_instance_type_info->generic_types.size());
         member_type_info = struct_instance_type_info->generic_types[generic_member_info->id];
@@ -546,9 +556,6 @@ type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table) 
 	}
 
 	auto struct_type_info = static_cast<StructTypeInfo*>(symbol_table->type_table[expression->identifier.string]);
-
-    auto struct_instance_type_info = new StructInstanceTypeInfo{};
-    struct_instance_type_info->type = TypeInfoType::STRUCT_INSTANCE;
 
 	// collect members from new constructor
 	auto members_type_infos = std::vector<TypeInfo*>();
@@ -584,9 +591,11 @@ type_check_new_expression(NewExpression* expression, SymbolTable* symbol_table) 
         }
 	}
 
-    struct_instance_type_info->generic_types = generic_type_infos;
-    struct_instance_type_info->struct_type = struct_type_info;    
-    expression->type_info = struct_instance_type_info;
+    if(generic_type_infos.size() > 0) {
+        expression->type_info = new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE, struct_type_info, generic_type_infos};
+    } else {
+        expression->type_info = struct_type_info;
+    }
 }
 
 void TypeChecker::
@@ -726,6 +735,8 @@ bool type_match(TypeInfo* a, TypeInfo* b) {
 
             return true;
         }
+
+        return true;
     }
 
     panic("Cannot type check this type info");
