@@ -15,7 +15,7 @@ Parser::
 Parser(std::filesystem::path path, std::vector<Token>& tokens) {
     this->tokens = tokens;
     this->current = 0;
-    this->path = std::move(path);
+    this->path = absolute(std::filesystem::path(path));
 }
 
 File Parser::
@@ -33,7 +33,16 @@ parse() {
                 panic("Import requires string literal");
             }
             auto import_path = dynamic_cast<StringLiteralExpression*>(import_stmt->file);
-            file.imports.emplace_back(absolute(std::filesystem::path(import_path->token.string)).string());
+            auto parent = this->path.parent_path().string();
+
+            std::string final_path;
+            if(std::filesystem::path(import_path->token.string).is_absolute()) {
+                final_path = import_path->token.string;
+            } else {
+                final_path = this->path.parent_path().string() + "/" + import_path->token.string;
+            }
+
+            file.imports.emplace_back(final_path);
         } else {
             file.statements.push_back(stmt);
         }

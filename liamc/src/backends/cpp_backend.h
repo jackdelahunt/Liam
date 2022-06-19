@@ -10,6 +10,9 @@ struct CppBackend {
     CppBackend() = default;
     std::string emit(File* file);
 
+    std::string forward_declare_struct(StructStatement* statement);
+    std::string forward_declare_function(FnStatement* statement);
+
     std::string emit_statement(Statement* statement);
     std::string emit_insert_statement(InsertStatement* statement);
     std::string emit_return_statement(ReturnStatement* statement);

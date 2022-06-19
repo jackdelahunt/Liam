@@ -1,0 +1,11 @@
+fn hello(str: ^char): void {
+    
+}
+
+fn helloToYou[T](t: T): void {
+
+}
+
+struct ImportMe {
+    number: u64
+}

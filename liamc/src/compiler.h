@@ -8,7 +8,7 @@
 #include "liam.h"
 #include <filesystem>
 
-std::vector<File> lex_parse(std::filesystem::path path) {
+std::vector<File> lex_parse(std::filesystem::path path, std::vector<std::string>* imports = NULL) {
     auto files = std::vector<File>();
 
     auto lexer = Lexer(path);
@@ -18,8 +18,24 @@ std::vector<File> lex_parse(std::filesystem::path path) {
 
     files.emplace_back(file);
 
+    if(imports == NULL) { // if this is the top level call
+        imports = new std::vector<std::string>();
+    }
+
+    imports->emplace_back(path.string());
+
     for(auto& import_path : file.imports) {
-        auto imported = lex_parse(import_path);
+        bool already_declared = false;
+        for(u64 i = 0; i < imports->size(); i++) {
+            if(import_path == imports->at(i)) {
+                already_declared = true;
+                continue;
+            }
+        }
+
+        if(already_declared) continue;
+
+        auto imported = lex_parse(import_path, imports);
         files.insert(files.end(), imported.begin(), imported.end());
     }
 

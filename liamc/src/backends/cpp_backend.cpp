@@ -5,11 +5,86 @@
 std::string CppBackend::
 emit(File* file) {
     auto source_generated = std::string("#include \"lib.h\"\n\n");
+
+    source_generated.append("// struct forward declarations\n");
+    for (auto stmt : file->statements) {
+        if(stmt->statement_type == StatementType::STATEMENT_STRUCT) {
+            source_generated.append(forward_declare_struct(static_cast<StructStatement*>(stmt)));
+        }
+    }
+
+    source_generated.append("\n// function forward declarations\n");
+
+    for (auto stmt : file->statements) {
+        if(stmt->statement_type == StatementType::STATEMENT_FN) {
+            source_generated.append(forward_declare_function(static_cast<FnStatement*>(stmt)));
+        }
+    }
+
+    source_generated.append("\n// Source\n");
+
     for (auto stmt : file->statements) {
         source_generated.append(emit_statement(stmt));
     }
 
     return source_generated;
+}
+
+std::string CppBackend::forward_declare_struct(StructStatement* statement) {
+
+    if(statement->is_extern) return "";
+
+    std::string source = "";
+     if(statement->generics.size() > 0) {
+        int index = 0;
+        source.append("template <");
+        for(auto& generic : statement->generics) {
+            source.append("typename " + generic.string);
+            if(index + 1 < statement->generics.size()) {
+                source.append(", ");
+            }
+            index++;
+        }
+            source.append(">\n");
+    }
+
+    source.append("struct " + statement->identifier.string + ";\n");
+
+    return source;
+}
+
+std::string CppBackend::forward_declare_function(FnStatement* statement) {
+    
+    if(statement->is_extern) return "";
+
+    std::string source = "";
+
+    if(statement->generics.size() > 0) {
+        int index = 0;
+        source.append("template <");
+        for(auto& generic : statement->generics) {
+            source.append("typename " + generic.string);
+            if(index + 1 < statement->generics.size()) {
+                source.append(", ");
+            }
+            index++;
+        }
+            source.append(">\n");
+    }
+
+    source.append(emit_type_expression(statement->return_type) + " ");
+    source.append(statement->identifier.string);
+    source.append("(");
+    int index = 0;
+    for(auto [identifier, type] : statement->params) {
+        source.append(emit_type_expression(type) + " " + identifier.string);
+        if(index + 1 < statement->params.size()) {
+            source.append(", ");
+        }
+        index++;
+    }
+    source.append(");\n");
+    return source;
 }
 
 std::string CppBackend::

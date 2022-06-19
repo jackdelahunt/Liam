@@ -11,7 +11,7 @@ s32 main(s32 argc, char** argv) {
     Arguments::New(argc, argv);
 
     TIME_START(l_p_time);
-    auto files = lex_parse(args->value<std::string>("in"));
+    auto files = lex_parse(std::filesystem::absolute(args->value<std::string>("in")));
     TIME_END(l_p_time, "Lex and parsing time");
 
     TIME_START(type_time);
