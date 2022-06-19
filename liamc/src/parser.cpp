@@ -211,13 +211,26 @@ std::tuple<StructStatement*, bool> Parser::
 eval_struct_statement(bool is_extern) {
     TRY_TOKEN(TOKEN_STRUCT);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+
+    auto generics = std::vector<Token>();
+    if(peek()->type == TOKEN_BRACKET_OPEN) {
+        TRY_TOKEN(TOKEN_BRACKET_OPEN);
+        auto [types, error] = consume_comma_seperated_token_arguments(TOKEN_BRACKET_CLOSE);
+        if(error) {
+            return {nullptr, true};
+        }
+        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
+
+        generics = types;
+    }
+
     TRY_TOKEN(TOKEN_BRACE_OPEN);
     auto [member, error] = consume_comma_seperated_params();
     if(error) {
         return {nullptr, true};
     }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
-    return WIN(new StructStatement(*identifier, member, is_extern));
+    return WIN(new StructStatement(*identifier, generics, member, is_extern));
 }
 
 std::tuple<InsertStatement*, bool> Parser::
@@ -463,13 +476,26 @@ std::tuple<Expression*, bool> Parser::
 eval_new_expression() {
     consume_token();
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+
+    auto generics = std::vector<TypeExpression*>();
+    if(peek()->type == TOKEN_BRACKET_OPEN) {
+        TRY_TOKEN(TOKEN_BRACKET_OPEN);
+        auto [types, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
+        if(error) {
+            return {nullptr, true};
+        }
+        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
+
+        generics = types;
+    }
+
     TRY_TOKEN(TOKEN_BRACE_OPEN);
     auto [expressions, error] = consume_comma_seperated_arguments(TOKEN_BRACE_CLOSE);
     if(error) {
         return {nullptr, true};
     }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
-    return WIN(new NewExpression(*identifier, expressions));
+    return WIN(new NewExpression(*identifier, generics,expressions));
 }
 
 std::tuple<Expression*, bool> Parser::
@@ -482,28 +508,42 @@ eval_group_expression() {
 
 std::tuple<TypeExpression*, bool> Parser::
 eval_type_expression() {
-    switch (peek()->type)
-    {
-        case TOKEN_IDENTIFIER: return eval_identifier_type_expression(); break;
-        case TOKEN_HAT: return eval_pointer_type_expression(); break;
-        default:
-            FAIL(path.string(), peek()->line, peek()->character, "Cannot parse token as the beginning of a return_type expression \'" +
-                    peek()->string + "\'");
-            break;
+    return eval_type_unary();
+}
+
+std::tuple<TypeExpression*, bool> Parser::
+eval_type_unary() {
+    if(match(TokenType::TOKEN_HAT)) {
+        Token* op = consume_token();
+        TRY(TypeExpression*, type_expression, eval_type_expression());
+        return WIN(new UnaryTypeExpression(*op, type_expression));
     }
+
+    return eval_type_specified_generics();
+}
+
+std::tuple<TypeExpression*, bool> Parser::
+eval_type_specified_generics() {
+    TRY(IdentifierTypeExpression*, struct_type, eval_type_identifier());
+
+    if(match(TOKEN_BRACKET_OPEN)) {
+        TRY_TOKEN(TOKEN_BRACKET_OPEN);
+        auto [generics, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
+        if(error) {
+            return {nullptr, true};
+        }
+        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
+
+        return WIN(new SpecifiedGenericsTypeExpression(struct_type, generics));
+    }
+
+    return WIN(struct_type);
 }
 
 std::tuple<IdentifierTypeExpression*, bool> Parser::
-eval_identifier_type_expression() {
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
-    return WIN(new IdentifierTypeExpression(*identifier));
-}
-
-std::tuple<PointerTypeExpression*, bool> Parser::
-eval_pointer_type_expression() {
-    TRY_TOKEN(TOKEN_HAT);
-    TRY(TypeExpression*, pointer_of, eval_type_expression());
-    return WIN(new PointerTypeExpression(pointer_of));
+eval_type_identifier() {
+    NAMED_TOKEN(struct_identifier, TOKEN_IDENTIFIER);
+    return WIN(new IdentifierTypeExpression(*struct_identifier));
 }
 
 bool Parser::

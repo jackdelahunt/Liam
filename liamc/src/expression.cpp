@@ -51,8 +51,9 @@ GetExpression::GetExpression(Expression* expression, Token member) {
     this->type = ExpressionType::EXPRESSION_GET;
 }
 
-NewExpression::NewExpression(Token identifier, std::vector<Expression*> expressions) {
+NewExpression::NewExpression(Token identifier, std::vector<TypeExpression*> generics, std::vector<Expression*> expressions) {
     this->identifier = identifier;
+    this->generics = generics;
     this->expressions = expressions;
     this->type = ExpressionType::EXPRESSION_NEW;
 }
@@ -76,8 +77,17 @@ IdentifierTypeExpression::IdentifierTypeExpression(Token identifier) {
     this->identifier = identifier;
     this->type = TypeExpressionType::TYPE_IDENTIFIER;
 }
-PointerTypeExpression::
-PointerTypeExpression(TypeExpression* pointer_of) {
-    this->pointer_of = pointer_of;
-    this->type = TypeExpressionType::TYPE_POINTER;
+
+UnaryTypeExpression::
+UnaryTypeExpression(Token op, TypeExpression* type_expression) {
+    this->op = op;
+    this->type_expression = type_expression;
+    this->type = TypeExpressionType::TYPE_UNARY;
+}
+
+SpecifiedGenericsTypeExpression::
+SpecifiedGenericsTypeExpression(IdentifierTypeExpression* struct_type, std::vector<TypeExpression*> generics) {
+    this->struct_type = struct_type;
+    this->generics = generics;
+    this->type = TypeExpressionType::TYPE_SPECIFIED_GENERICS;
 }

@@ -156,10 +156,22 @@ emit_loop_statement(LoopStatement* statement) {
 
 std::string CppBackend::
 emit_struct_statement(StructStatement* statement) {
-
     if(statement->is_extern) return "";
-
     auto source = std::string();
+
+    if(statement->generics.size() > 0) {
+        int index = 0;
+        source.append("template <");
+        for(auto& generic : statement->generics) {
+            source.append("typename " + generic.string);
+            if(index + 1 < statement->generics.size()) {
+                source.append(", ");
+            }
+            index++;
+        }
+            source.append(">\n");
+    }
+    
     source.append("struct " + statement->identifier.string + " {");
     for(auto [identifier, type] : statement->members) {
         source.append("\n" + emit_type_expression(type) + " ");
@@ -333,7 +345,6 @@ emit_call_expression(CallExpression* expression) {
         source.append(">");
     }
 
-
     int index = 0;
     source.append("(");
     for(auto expr : expression->args) {
@@ -362,18 +373,35 @@ emit_get_expression(GetExpression* expression) {
 std::string CppBackend::
 emit_new_expression(NewExpression* expression) {
     auto source = std::string();
-    source.append(expression->identifier.string + "{");
+    source.append(expression->identifier.string);
+
+    if(expression->generics.size() > 0) {
+        int index = 0;
+        source.append("<");
+        for(auto type : expression->generics) {
+
+            source.append(emit_type_expression(type));
+
+            if(index + 1 < expression->generics.size()) {
+                source.append(", ");
+            }
+            index++;
+        }
+        source.append(">");
+    }
+    
+    source.append("{");
     int index = 0;
     for(auto expr : expression->expressions) {
 
         source.append(emit_expression(expr));
-
         if(index + 1 < expression->expressions.size()) {
             source.append(", ");
         }
         index++;
     }
     source.append("}");
+    
     return source;
 }
 
@@ -388,21 +416,46 @@ emit_type_expression(TypeExpression* type_expression) {
     switch (type_expression->type) {
         case TypeExpressionType::TYPE_IDENTIFIER:
             return emit_identifier_type_expression(dynamic_cast<IdentifierTypeExpression*>(type_expression)); break;
-        case TypeExpressionType::TYPE_POINTER:
-            return emit_pointer_type_expression(dynamic_cast<PointerTypeExpression*>(type_expression)); break;
+        case TypeExpressionType::TYPE_UNARY:
+            return emit_unary_type_expression(dynamic_cast<UnaryTypeExpression*>(type_expression)); break;
+        case TypeExpressionType::TYPE_SPECIFIED_GENERICS:
+            return emit_specified_generics_type_expression(dynamic_cast<SpecifiedGenericsTypeExpression*>(type_expression)); break;
         default:
-            panic("C back end does not support this return_type expression");
+            panic("Cpp back end does not support this return_type expression");
     }
+}
+
+std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression* type_expression) {
+    if(type_expression->op.type == TokenType::TOKEN_HAT) {
+        return emit_type_expression(type_expression->type_expression) + "*";
+    }
+
+    panic("Cpp backend does not support this op yet...");
+}
+
+std::string CppBackend::emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression* type_expression) {
+    auto source = emit_identifier_type_expression(type_expression->struct_type);
+    if(type_expression->generics.size() > 0) {
+        int index = 0;
+        source.append("<");
+        for(auto type : type_expression->generics) {
+
+            source.append(emit_type_expression(type));
+
+            if(index + 1 < type_expression->generics.size()) {
+                source.append(", ");
+            }
+            index++;
+        }
+        source.append(">");
+    }
+
+    return source;
 }
 
 std::string CppBackend::
 emit_identifier_type_expression(IdentifierTypeExpression* type_expression) {
     return type_expression->identifier.string;
-}
-
-std::string CppBackend::
-emit_pointer_type_expression(PointerTypeExpression* type_expression) {
-    return emit_type_expression(type_expression->pointer_of) + "*";
 }
 
 std::string strip_semi_colon(std::string str) {

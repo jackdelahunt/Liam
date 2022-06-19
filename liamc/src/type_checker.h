@@ -30,6 +30,7 @@ struct SymbolTable {
 	void add_identifier(Token identifier, TypeInfo* type_info);
     TypeInfo* get_type(Token* identifier);
     TypeInfo* get_type(std::string identifier);
+    SymbolTable copy();
 };
 
 struct TypeChecker {
@@ -69,8 +70,9 @@ struct TypeChecker {
     void type_check_group_expression(GroupExpression* expression, SymbolTable* symbol_table);
 
     void type_check_type_expression(TypeExpression* type_expression, SymbolTable* symbol_table);
+    void type_check_unary_type_expression(UnaryTypeExpression* type_expression, SymbolTable* symbol_table);
+    void type_check_specified_generics_type_expression(SpecifiedGenericsTypeExpression* type_expression, SymbolTable* symbol_table);
     void type_check_identifier_type_expression(IdentifierTypeExpression* type_expression, SymbolTable* symbol_table);
-    void type_check_pointer_type_expression(PointerTypeExpression* type_expression, SymbolTable* symbol_table);
 };
 
 bool type_match(TypeInfo* a, TypeInfo* b);

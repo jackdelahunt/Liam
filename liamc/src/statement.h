@@ -78,10 +78,11 @@ struct LoopStatement : Statement {
 
 struct StructStatement : Statement {
     Token identifier;
+    std::vector<Token> generics;
     CSV members;
     bool is_extern;
 
-    StructStatement(Token identifier, CSV members, bool is_extern);
+    StructStatement(Token identifier, std::vector<Token> generics, CSV members, bool is_extern);
 };
 
 struct AssigmentStatement : Statement {

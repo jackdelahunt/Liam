@@ -75,8 +75,9 @@ struct Parser {
 
     /* return_type expressions */
     std::tuple<TypeExpression*, bool> eval_type_expression();
-    std::tuple<IdentifierTypeExpression*, bool> eval_identifier_type_expression();
-    std::tuple<PointerTypeExpression*, bool> eval_pointer_type_expression();
+    std::tuple<TypeExpression*, bool> eval_type_unary();
+    std::tuple<TypeExpression*, bool> eval_type_specified_generics();
+    std::tuple<IdentifierTypeExpression*, bool> eval_type_identifier();
 
     bool match(TokenType type);
     inline Token* peek(s32 offset = 0);

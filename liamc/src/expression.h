@@ -88,11 +88,11 @@ struct GetExpression : Expression {
 };
 
 struct NewExpression : Expression {
-    // this is an expression but it must be a identifier
     Token identifier;
+    std::vector<TypeExpression*> generics;
     std::vector<Expression*> expressions;
 
-    NewExpression(Token identifier, std::vector<Expression*> expressions);
+    NewExpression(Token identifier, std::vector<TypeExpression*> generics, std::vector<Expression*> expressions);
 };
 
 struct GroupExpression : Expression {
@@ -103,8 +103,8 @@ struct GroupExpression : Expression {
 
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
-    TYPE_POINTER,
-    TYPE_ARRAY,
+    TYPE_UNARY,
+    TYPE_SPECIFIED_GENERICS,
 };
 
 struct TypeExpression {
@@ -119,8 +119,16 @@ struct IdentifierTypeExpression : TypeExpression {
     IdentifierTypeExpression(Token identifier);
 };
 
-struct PointerTypeExpression : TypeExpression {
-    TypeExpression* pointer_of;
+struct UnaryTypeExpression : TypeExpression {
+    Token op;
+    TypeExpression* type_expression;
 
-    PointerTypeExpression(TypeExpression* pointer_of);
+    UnaryTypeExpression(Token op, TypeExpression* type_expression);
+};
+
+struct SpecifiedGenericsTypeExpression : TypeExpression {
+    IdentifierTypeExpression* struct_type;
+    std::vector<TypeExpression*> generics;
+
+    SpecifiedGenericsTypeExpression(IdentifierTypeExpression* struct_type, std::vector<TypeExpression*> generics);
 };

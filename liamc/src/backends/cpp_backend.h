@@ -38,8 +38,9 @@ struct CppBackend {
     std::string emit_group_expression(GroupExpression* expression);
 
     std::string emit_type_expression(TypeExpression* type_expression);
+    std::string emit_unary_type_expression(UnaryTypeExpression* type_expression);
+    std::string emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression* type_expression);
     std::string emit_identifier_type_expression(IdentifierTypeExpression* type_expression);
-    std::string emit_pointer_type_expression(PointerTypeExpression* type_expression);
 };
 
 std::string strip_semi_colon(std::string str);

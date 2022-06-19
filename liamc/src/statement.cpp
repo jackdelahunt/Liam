@@ -49,8 +49,9 @@ LoopStatement(Token identifier, ScopeStatement* body) {
 }
 
 StructStatement::
-StructStatement(Token identifier, CSV members, bool is_extern) {
+StructStatement(Token identifier, std::vector<Token> generics, CSV members, bool is_extern) {
     this->identifier = identifier;
+    this->generics = generics;
     this->members = members;
     this->is_extern = is_extern;
     this->statement_type = StatementType::STATEMENT_STRUCT;

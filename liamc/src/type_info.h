@@ -8,6 +8,7 @@ enum class TypeInfoType {
     BOOL,
     FN,
     STRUCT,
+    STRUCT_INSTANCE,
     POINTER,
     GENERIC,
 };
@@ -49,4 +50,11 @@ struct StructTypeInfo : TypeInfo {
     std::vector<std::tuple<std::string, TypeInfo*>> members;
 };
 
-struct GenericTypeInfo : TypeInfo {};
+struct StructInstanceTypeInfo : TypeInfo {
+    TypeInfo* struct_type;
+    std::vector<TypeInfo*> generic_types;
+};
+
+struct GenericTypeInfo : TypeInfo {
+    u64 id;
+};
