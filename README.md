@@ -1,23 +1,23 @@
 # Liam
-Liam is a strongly typed compiled language intended for performance comparable to C++ but less pain along the way. Liam generates and outputs `rust` which is then compiled to a final binary. 
+Liam is a strongly typed compiled language intended for performance comparable to C++ but less pain along the way. Liam generates and outputs `c++` which is then compiled to a final binary. 
 
 ## Examples
 ### Hello world
 ```rust
-fn main(): void {
-    print_string(@make_string(@"Hello world"));
+fn main(): u64 {
+    print[^char]("Hello world");
 }
 ```
 
 ### Structs
 ```rust
 struct Person {
-    name: string
+    name: ^char
 }
 
-fn main(): void {
+fn main(): u64 {
     let s: Person = new Person{"liam"};
-    print_string(@s.name);
+    print[^char](s.name);
 }
 ```
 
@@ -35,11 +35,15 @@ let var_name := ... ; // type inferance
 fn func_name(param: type): return_type {}
 ```
 
+### Generic Functions
+```rust
+fn func_name[T](param: T): ^T {}
+```
+
 ### For Loops
 ```rust
-for str index in ["car", "dog", "house"] {
-    print_u64(index);
-    print_string(*str);   
+for let i: u64 = 0; i < 10; i = i + 1; {
+    print[u64](i);   
 }
 ```
 
@@ -51,16 +55,19 @@ struct struct_name {
 }
 ```
 
+### Generic Structs
+```rust
+struct struct_name[T] {
+    member1: T,
+    member2: type
+}
+```
+
 ### Conditionals
 ```rust
 if condition or another_condition {
     ...
 }
-```
-
-### Array
-```rust
-let arr : [type] = [...];
 ```
 
 ### Pointers
