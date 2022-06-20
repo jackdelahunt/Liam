@@ -232,7 +232,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
         type_check_type_expression(statement->type, symbol_table);
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
         {
-            panic("Mis matched types in let statement");
+            panic("Mismatched types in let statement");
         }
     }
 
@@ -564,17 +564,9 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
         type_check_type_expression(expression->generics.at(i), symbol_table);
     }
 
-    // if generic return resolve this generic
-    if (fn_type_info->return_type->type == TypeInfoType::GENERIC)
-    {
-        auto generic_return = static_cast<GenericTypeInfo *>(fn_type_info->return_type);
-        assert(generic_return->id >= 0 && generic_return->id < expression->generics.size());
-        expression->type_info = expression->generics.at(generic_return->id)->type_info;
-    }
-    else
-    {
-        expression->type_info = fn_type_info->return_type;
-    }
+    resolve_generics(fn_type_info->return_type, symbol_table, &expression->generics);
+
+    expression->type_info = fn_type_info->return_type;
 }
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table)
 {
@@ -795,6 +787,18 @@ void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression
     }
 
     panic("Unrecognised type in type expression: " + type_expression->identifier.string);
+}
+
+void TypeChecker::resolve_generics(TypeInfo *type_info, SymbolTable *symbol_table, std::vector<TypeExpression *> *generics) {
+    if(type_info->type == TypeInfoType::GENERIC) 
+    {
+        auto generic_type_info = static_cast<GenericTypeInfo *>(type_info);
+        *type_info = *generics->at(generic_type_info->id)->type_info;
+    } 
+    else if(type_info->type == TypeInfoType::POINTER) {
+        auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
+        resolve_generics(pointer_type_info->to, symbol_table, generics);
+    }
 }
 
 bool type_match(TypeInfo *a, TypeInfo *b)

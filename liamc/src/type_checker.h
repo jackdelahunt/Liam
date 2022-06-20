@@ -74,9 +74,10 @@ struct TypeChecker
 
     void type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table);
-    void type_check_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression,
-                                                       SymbolTable *symbol_table);
+    void type_check_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_identifier_type_expression(IdentifierTypeExpression *type_expression, SymbolTable *symbol_table);
+
+    void resolve_generics(TypeInfo *type_info, SymbolTable *symbol_table, std::vector<TypeExpression *> *generics);
 };
 
 bool type_match(TypeInfo *a, TypeInfo *b);
