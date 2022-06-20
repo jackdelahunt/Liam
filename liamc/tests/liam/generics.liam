@@ -1,4 +1,4 @@
-extern fn print[T](t: T): void;
+import "../../stdlib/io.liam";
 
 struct Vector[T] {
     x: T,
@@ -12,9 +12,9 @@ fn vec[T](v: Vector[T]): void {
 
 fn main(): u64 {
     let v: Vector[u64] = new Vector[u64]{1, 2, 3};
-    print[u64](v.x);
-    print[u64](v.y);
-    print[u64](v.z);
+    println[u64](v.x);
+    println[u64](v.y);
+    println[u64](v.z);
     vec[u64](v);
     return 0; 
 }

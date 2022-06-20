@@ -379,8 +379,7 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info))
     {
-        panic("Type mismatch, trying to assign a identifier to an expression of "
-              "different type");
+        panic("Type mismatch, trying to assign a identifier to an expression of different type");
     }
 }
 
@@ -564,7 +563,7 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
         type_check_type_expression(expression->generics.at(i), symbol_table);
     }
 
-    resolve_generics(fn_type_info->return_type, symbol_table, &expression->generics);
+    fn_type_info->return_type = resolve_generics(fn_type_info->return_type, &expression->generics);
 
     expression->type_info = fn_type_info->return_type;
 }
@@ -789,16 +788,21 @@ void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression
     panic("Unrecognised type in type expression: " + type_expression->identifier.string);
 }
 
-void TypeChecker::resolve_generics(TypeInfo *type_info, SymbolTable *symbol_table, std::vector<TypeExpression *> *generics) {
+TypeInfo *TypeChecker::resolve_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params) {
+    if(type_info->type == TypeInfoType::POINTER) 
+    {
+        auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
+        pointer_type_info->to = resolve_generics(pointer_type_info->to, generic_params);
+        return pointer_type_info;
+    } 
+    
     if(type_info->type == TypeInfoType::GENERIC) 
     {
         auto generic_type_info = static_cast<GenericTypeInfo *>(type_info);
-        *type_info = *generics->at(generic_type_info->id)->type_info;
+        return generic_params->at(generic_type_info->id)->type_info;
     } 
-    else if(type_info->type == TypeInfoType::POINTER) {
-        auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
-        resolve_generics(pointer_type_info->to, symbol_table, generics);
-    }
+
+    return type_info;
 }
 
 bool type_match(TypeInfo *a, TypeInfo *b)
@@ -887,7 +891,8 @@ bool type_match(TypeInfo *a, TypeInfo *b)
 
         if (ptr_a->to->type == TypeInfoType::VOID)
             return true; // void^ can be equal to T^, not other way around
-        return ptr_a->to->type == ptr_b->to->type;
+
+        return type_match(ptr_a->to, ptr_b->to);
     }
     else if (a->type == TypeInfoType::STRUCT_INSTANCE)
     {

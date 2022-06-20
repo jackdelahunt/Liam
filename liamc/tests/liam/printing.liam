@@ -1,8 +1,8 @@
-extern fn print[T](t: T): void;
+import "../../stdlib/io.liam";
 
 fn main(): u64 {
-    print[^char]("Hello");
-    print[u64](100);
-    print[bool](false);
+    println[^char]("Hello");
+    println[u64](100);
+    println[bool](false);
     return 0;
 }

@@ -1,0 +1,2 @@
+extern fn make[T](t: T): ^T;
+extern fn destroy[T](t: ^T): void;

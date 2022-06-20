@@ -1,4 +1,4 @@
-extern fn print[T](t: T): void;
+import "../../stdlib/io.liam";
 
 struct Person {
     name: ^char,
@@ -7,7 +7,7 @@ struct Person {
 
 fn main(): u64 {
     let p: Person = new Person{"jack", 21};
-    print[^char](p.name);
-    print[u64](p.age);
+    println[^char](p.name);
+    println[u64](p.age);
     return 0;
 }
