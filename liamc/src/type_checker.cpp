@@ -15,6 +15,7 @@ SymbolTable::SymbolTable()
     builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
     builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOL};
+    builtin_type_table["string"] = new StrTypeInfo{TypeInfoType::STRING};
 }
 
 void SymbolTable::add_type(Token type, TypeInfo *type_info)
@@ -478,7 +479,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
 }
 void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *expression, SymbolTable *symbol_table)
 {
-    expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, symbol_table->builtin_type_table["char"]};
+    expression->type_info = symbol_table->builtin_type_table["string"];
 }
 
 void TypeChecker::type_check_int_literal_expression(IntLiteralExpression *expression, SymbolTable *symbol_table)
@@ -788,19 +789,20 @@ void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression
     panic("Unrecognised type in type expression: " + type_expression->identifier.string);
 }
 
-TypeInfo *TypeChecker::resolve_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params) {
-    if(type_info->type == TypeInfoType::POINTER) 
+TypeInfo *TypeChecker::resolve_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params)
+{
+    if (type_info->type == TypeInfoType::POINTER)
     {
         auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
         pointer_type_info->to = resolve_generics(pointer_type_info->to, generic_params);
         return pointer_type_info;
-    } 
-    
-    if(type_info->type == TypeInfoType::GENERIC) 
+    }
+
+    if (type_info->type == TypeInfoType::GENERIC)
     {
         auto generic_type_info = static_cast<GenericTypeInfo *>(type_info);
         return generic_params->at(generic_type_info->id)->type_info;
-    } 
+    }
 
     return type_info;
 }
@@ -830,7 +832,8 @@ bool type_match(TypeInfo *a, TypeInfo *b)
     if (b->type == TypeInfoType::ANY)
         return true;
 
-    if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOL || a->type == TypeInfoType::CHAR)
+    if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOL || a->type == TypeInfoType::CHAR ||
+        a->type == TypeInfoType::STRING)
     { // values don't matter
         return true;
     }

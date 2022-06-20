@@ -33,6 +33,12 @@ std::string CppBackend::emit(File *file)
         source_generated.append(emit_statement(stmt));
     }
 
+    source_generated.append(R"(
+int main(int argc, char** argv) {
+    __liam__main__();
+}
+    )");
+
     return source_generated;
 }
 
@@ -87,7 +93,16 @@ std::string CppBackend::forward_declare_function(FnStatement *statement)
     }
 
     source.append(emit_type_expression(statement->return_type) + " ");
-    source.append(statement->identifier.string);
+
+    if (statement->identifier.string == "main")
+    {
+        source.append(" __liam__main__");
+    }
+    else
+    {
+        source.append(statement->identifier.string);
+    }
+
     source.append("(");
     int index = 0;
     for (auto [identifier, type] : statement->params)
@@ -216,7 +231,16 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement)
     }
 
     source.append(emit_type_expression(statement->return_type) + " ");
-    source.append(statement->identifier.string);
+
+    if (statement->identifier.string == "main")
+    {
+        source.append("__liam__main__");
+    }
+    else
+    {
+        source.append(statement->identifier.string);
+    }
+
     source.append("(");
     int index = 0;
     for (auto [identifier, type] : statement->params)
@@ -262,12 +286,33 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement)
     }
 
     source.append("struct " + statement->identifier.string + " {");
+    // members
     for (auto [identifier, type] : statement->members)
     {
         source.append("\n" + emit_type_expression(type) + " ");
         source.append(identifier.string + ";");
     }
-    source.append("\n};\n\n");
+
+    // pretty print
+    source.append("\nstd::string pretty_string(std::string indentation) {\nauto text = std::string(indentation + \"" +
+                  statement->identifier.string + " {\\n\");\n");
+    for (auto [identifier, type] : statement->members)
+    {
+        if (type->type_info->type == TypeInfoType::POINTER)
+        {
+            source.append("text.append(indentation + pretty_string_pointer(indentation + \"  \", (void*)" +
+                          identifier.string + ") + \",\\n\");\n");
+        }
+        else
+        {
+            source.append("text.append(indentation + " + identifier.string +
+                          ".pretty_string(indentation + \"  \") + \",\\n\");\n");
+        }
+    }
+    source.append("text.append(indentation + \"}\");\n");
+    source.append("return text;\n}\n");
+
+    source.append("};\n\n");
     return source;
 }
 
@@ -386,7 +431,8 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression)
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression)
 {
-    return "(char*)\"" + expression->token.string + "\"";
+    return "make_string((char*)\"" + expression->token.string + "\", " +
+           std::to_string(expression->token.string.size()) + ")";
 }
 
 std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression)
@@ -396,7 +442,14 @@ std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expr
 
 std::string CppBackend::emit_int_literal_expression(IntLiteralExpression *expression)
 {
-    return expression->token.string;
+    auto int_type = static_cast<IntTypeInfo *>(expression->type_info);
+
+    if (int_type->size == 64)
+    {
+        return "make_u64(" + expression->token.string + ")";
+    }
+
+    panic("This int size cannot be emitted yet");
 }
 
 std::string CppBackend::emit_unary_expression(UnaryExpression *expression)
