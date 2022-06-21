@@ -16,11 +16,44 @@ typedef int32_t s32;
 typedef uint32_t u32;
 typedef float f32;
 
+struct u64;
+u64 make_u64(uint64_t n);
+
 struct u64 {    
     uint64_t n;
 
     std::string pretty_string(std::string indentation) {
         return indentation + std::to_string(n);
+    }
+
+    friend bool operator<(const u64& l, const u64& r)
+    {
+        return l.n < r.n;
+    }
+
+    friend bool operator>(const u64& l, const u64& r)
+    {
+        return !(l.n < r.n);
+    }
+
+    friend bool operator<=(const u64& l, const u64& r)
+    {
+        return !(l.n > r.n);
+    }
+
+    friend bool operator>=(const u64& l, const u64& r)
+    {
+        return !(l.n < r.n);
+    }
+
+    friend u64 operator+(const u64& l, const u64& r)
+    {
+        return make_u64(l.n + r.n);
+    }
+
+    friend u64 operator-(const u64& l, const u64& r)
+    {
+        return make_u64(l.n - r.n);
     }
 };
 
@@ -119,4 +152,9 @@ void array_add(Array<T>* array, T t) {
 template <typename T>
 T array_at(Array<T>* array, u64 index) {
     return array->data.at(index.n);
+}
+
+template <typename T>
+u64 array_size(Array<T>* array) {
+    return make_u64(array->data.size());
 }

@@ -189,7 +189,7 @@ std::string CppBackend::emit_break_statement(BreakStatement *statement)
 std::string CppBackend::emit_let_statement(LetStatement *statement)
 {
     auto source = std::string();
-    source.append(emit_type_expression(statement->type) + " ");
+    source.append("auto ");
     source.append(statement->identifier.string);
     source.append(" = ");
     source.append(emit_expression(statement->rhs) + ";\n");

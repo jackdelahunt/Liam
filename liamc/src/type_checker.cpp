@@ -339,7 +339,7 @@ void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable 
 void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table)
 {
     type_check_expression(statement->expression, symbol_table);
-    if (!type_match(statement->expression->type_info, symbol_table->get_type("bool")))
+    if (!type_match(statement->expression->type_info, symbol_table->get_type("boolean")))
     {
         panic("If statement must be passed a boolean");
     }
@@ -446,7 +446,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
         {
             panic("Cannot use logical operators on non bool type");
         }
-        info = symbol_table->get_type("bool");
+        info = symbol_table->get_type("boolean");
     }
 
     // math ops - numbers -> numbers
@@ -466,13 +466,13 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
         {
             panic("Cannot use arithmatic operator on non number");
         }
-        info = symbol_table->get_type("bool");
+        info = symbol_table->get_type("boolean");
     }
 
     // compare - any -> bool
     if (expression->op.type == TOKEN_EQUAL || expression->op.type == TOKEN_NOT_EQUAL)
     {
-        info = symbol_table->get_type("bool");
+        info = symbol_table->get_type("boolean");
     }
 
     expression->type_info = info;
