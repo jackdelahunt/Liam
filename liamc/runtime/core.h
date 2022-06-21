@@ -72,3 +72,7 @@ void destroy(T* t) {
     free(t);
 }
 
+template <typename T>
+u64 hashcode(T* t) {
+    return u64{(uint64_t)t};
+}
