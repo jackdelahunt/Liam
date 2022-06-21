@@ -2,19 +2,23 @@ import "../../stdlib/io.liam";
 
 struct Vector[T] {
     x: T,
-    y: T,
-    z: T
+    y: ^T
 }
 
 fn vec[T](v: Vector[T]): void {
 
 }
 
+fn generic_func[T, E](t: T, e: E): ^E {
+    return @e;
+}
+
 fn main(): u64 {
-    let v: Vector[u64] = new Vector[u64]{1, 2, 3};
+    let n: u64 = 100;
+    let v: Vector[u64] = new Vector[u64]{n, @n};
     println[u64](v.x);
-    println[u64](v.y);
-    println[u64](v.z);
-    vec[u64](v);
+    println[u64](*(v.y));
+
+    generic_func[u64, string](100, "jack");
     return 0; 
 }

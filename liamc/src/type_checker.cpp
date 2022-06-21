@@ -14,7 +14,7 @@ SymbolTable::SymbolTable()
     builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
     builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
     builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
-    builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOL};
+    builtin_type_table["boolean"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
     builtin_type_table["string"] = new StrTypeInfo{TypeInfoType::STRING};
 }
 
@@ -328,7 +328,7 @@ void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable 
     type_check_expression(statement->condition, &table_copy);
     type_check_statement(statement->update, &table_copy);
 
-    if (statement->condition->type_info->type != TypeInfoType::BOOL)
+    if (statement->condition->type_info->type != TypeInfoType::BOOLEAN)
     {
         panic("Second statement in for loop needs to evaluate to a bool");
     }
@@ -365,12 +365,12 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
     if (first_pass)
     {
         symbol_table->type_table[statement->identifier.string] =
-            new StructTypeInfo{TypeInfoType::STRUCT, members_type_info};
+            new StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()};
     }
     else
     {
         symbol_table->add_identifier(statement->identifier,
-                                     new StructTypeInfo{TypeInfoType::STRUCT, members_type_info});
+                                     new StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()});
     }
 }
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table)
@@ -441,8 +441,8 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     // logical ops - bools -> bool
     if (expression->op.type == TOKEN_AND || expression->op.type == TOKEN_OR)
     {
-        if (expression->left->type_info->type != TypeInfoType::BOOL &&
-            expression->right->type_info->type != TypeInfoType::BOOL)
+        if (expression->left->type_info->type != TypeInfoType::BOOLEAN &&
+            expression->right->type_info->type != TypeInfoType::BOOLEAN)
         {
             panic("Cannot use logical operators on non bool type");
         }
@@ -489,7 +489,7 @@ void TypeChecker::type_check_int_literal_expression(IntLiteralExpression *expres
 
 void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expression, SymbolTable *symbol_table)
 {
-    expression->type_info = new BoolTypeInfo{TypeInfoType::BOOL};
+    expression->type_info = new BoolTypeInfo{TypeInfoType::BOOLEAN};
 }
 
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table)
@@ -528,16 +528,16 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
         panic("Can only call on identifier expressions");
     }
 
+    if (type_of_callee->type_info->type != TypeInfoType::FN)
+    {
+        panic("Can only call a function");
+    }
+
     auto arg_type_infos = std::vector<TypeInfo *>();
     for (auto arg : expression->args)
     {
         type_check_expression(arg, symbol_table);
         arg_type_infos.push_back(arg->type_info);
-    }
-
-    if (type_of_callee->type_info->type != TypeInfoType::FN)
-    {
-        panic("Can only call a function");
     }
 
     auto fn_type_info = static_cast<FnTypeInfo *>(type_of_callee->type_info);
@@ -665,11 +665,11 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     auto struct_type_info = static_cast<StructTypeInfo *>(symbol_table->type_table[expression->identifier.string]);
 
     // collect members from new constructor
-    auto members_type_infos = std::vector<TypeInfo *>();
+    auto calling_args_type_infos = std::vector<TypeInfo *>();
     for (auto expr : expression->expressions)
     {
         type_check_expression(expr, symbol_table);
-        members_type_infos.push_back(expr->type_info);
+        calling_args_type_infos.push_back(expr->type_info);
     }
 
     // collect generic types from new constructor
@@ -681,33 +681,40 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     }
 
     // check counts
-    if (struct_type_info->members.size() != members_type_infos.size())
+    if (struct_type_info->members.size() != calling_args_type_infos.size())
     {
         panic("Incorrect number of arguments in new constructor");
     }
 
     // check types
-    for (s32 i = 0; i < members_type_infos.size(); i++)
+    for (s32 i = 0; i < calling_args_type_infos.size(); i++)
     {
         auto [member, type] = struct_type_info->members.at(i);
-        if (type->type == TypeInfoType::GENERIC)
+        
+        auto resolved_member_type = resolve_generics(type, &expression->generics);
+        if (!type_match(resolved_member_type, calling_args_type_infos.at(i)))
         {
-            auto generic_type = static_cast<GenericTypeInfo *>(type);
-            if (!type_match(members_type_infos.at(i), generic_type_infos[generic_type->id]))
-            {
-                panic("Incorect arguments to new constructor");
-            }
+            panic("Incorect arguments to new constructor argument " + std::to_string(i));
         }
-        else
-        {
-            if (!type_match(members_type_infos.at(i), type))
-            {
-                panic("Incorect arguments to new constructor");
-            }
-        }
+
+        // if (type->type == TypeInfoType::GENERIC)
+        // {
+            // auto generic_type = static_cast<GenericTypeInfo *>(type);
+            // if (!type_match(members_type_infos.at(i), generic_type_infos[generic_type->id]))
+            // {
+                // panic("Incorect arguments to new constructor");
+            // }
+        // }
+        // else
+        // {
+            // if (!type_match(members_type_infos.at(i), type))
+            // {
+                // panic("Incorect arguments to new constructor");
+            // }
+        // }
     }
 
-    if (generic_type_infos.size() > 0)
+    if (struct_type_info->generic_count > 0)
     {
         expression->type_info =
             new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE, struct_type_info, generic_type_infos};
@@ -804,6 +811,15 @@ TypeInfo *TypeChecker::resolve_generics(TypeInfo *type_info, std::vector<TypeExp
         return generic_params->at(generic_type_info->id)->type_info;
     }
 
+    if (type_info->type == TypeInfoType::STRUCT_INSTANCE)
+    {
+        auto instance_type_info = static_cast<StructInstanceTypeInfo *>(type_info);
+        for(int i = 0; i < instance_type_info->generic_types.size(); i++) {
+            instance_type_info->generic_types[i] = resolve_generics(instance_type_info->generic_types[i], generic_params);
+        }
+    }
+
+
     return type_info;
 }
 
@@ -832,7 +848,7 @@ bool type_match(TypeInfo *a, TypeInfo *b)
     if (b->type == TypeInfoType::ANY)
         return true;
 
-    if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOL || a->type == TypeInfoType::CHAR ||
+    if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOLEAN || a->type == TypeInfoType::CHAR ||
         a->type == TypeInfoType::STRING)
     { // values don't matter
         return true;
@@ -912,8 +928,6 @@ bool type_match(TypeInfo *a, TypeInfo *b)
             {
                 return false;
             }
-
-            return true;
         }
 
         return true;

@@ -437,7 +437,7 @@ std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *
 
 std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression)
 {
-    return expression->value.string;
+    return "make_boolean(" + expression->value.string + ")";
 }
 
 std::string CppBackend::emit_int_literal_expression(IntLiteralExpression *expression)

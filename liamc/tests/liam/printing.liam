@@ -1,8 +1,8 @@
 import "../../stdlib/io.liam";
 
 fn main(): u64 {
-    println[^char]("Hello");
+    println[string]("Hello");
     println[u64](100);
-    println[bool](false);
+    println[boolean](false);
     return 0;
 }
