@@ -2,7 +2,9 @@
 #include <stdint.h>
 #include <iostream>
 #include <stdlib.h>
-#include <sstream> 
+#include <string.h>
+#include <sstream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -82,7 +84,12 @@ struct str {
     uint64_t length;
 
     std::string pretty_string(std::string indentation) {
-        return indentation +  std::string(chars);
+        char* cpy = (char*)malloc(sizeof(char) * length); 
+        memcpy(cpy, chars, length);
+        cpy[length] = '\0';
+        auto print = indentation +  std::string(cpy);
+        free(cpy);
+        return print;
     }
 };
 
@@ -185,4 +192,23 @@ str to_str(String* s) {
 
 void string_append(String* s, String* x) {
     s->string.append(x->string);
+}
+
+String read(str path) {
+    const std::ifstream input_stream(std::string(path.chars), std::ios_base::binary);
+
+    if (input_stream.fail()) {
+        throw std::runtime_error("Failed to open file");
+    }
+
+    std::stringstream buffer;
+    buffer << input_stream.rdbuf();
+
+    return String {
+        .string = buffer.str()
+    };
+}
+
+str string_substring(String* string, u64 start, u64 length) {
+    return make_str((char*) &string->string.c_str()[start.n], length.n);
 }

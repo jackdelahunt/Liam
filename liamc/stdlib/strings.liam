@@ -1,1 +1,0 @@
-extern fn len(string: string): u64;
