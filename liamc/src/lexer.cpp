@@ -36,7 +36,7 @@ std::vector<char> extract_chars(const char *path)
     file.open(path);
     if (!file.is_open())
     {
-        panic("cannot open file");
+        panic("cannot open file " + std::string(path));
     }
 
     for (s32 i = file.get(); i != EOF; i = file.get())

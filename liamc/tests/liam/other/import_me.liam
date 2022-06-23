@@ -1,4 +1,4 @@
-fn hello(str: string): void {
+fn hello(s: str): void {
     
 }
 

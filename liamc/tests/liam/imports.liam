@@ -2,7 +2,7 @@ import "other/import_me.liam";
 
 fn main(): u64 {
     hello("Hello");
-    helloToYou[string]("Hello to you");
+    helloToYou[str]("Hello to you");
     let i: ImportMe = new ImportMe{100};
     return 0; 
 }

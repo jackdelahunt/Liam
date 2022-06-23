@@ -9,8 +9,8 @@ fn vec[T](v: Vector[T]): void {
 
 }
 
-fn generic_func[T, E](t: T, e: E): ^E {
-    return @e;
+fn generic_func[T, E](t: T, e: ^E): ^E {
+    return e;
 }
 
 fn main(): u64 {
@@ -19,6 +19,7 @@ fn main(): u64 {
     println[u64](v.x);
     println[u64](*(v.y));
 
-    generic_func[u64, string](100, "jack");
+    let s := "jack";
+    generic_func[u64, str](100, @s);
     return 0; 
 }

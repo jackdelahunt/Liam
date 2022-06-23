@@ -1,13 +1,13 @@
 import "../../stdlib/io.liam";
 
 struct Person {
-    name: string,
+    name: str,
     age: u64
 }
 
 fn main(): u64 {
     let p: Person = new Person{"jack", 21};
-    println[string](p.name);
+    println[str](p.name);
     println[u64](p.age);
     return 0;
 }

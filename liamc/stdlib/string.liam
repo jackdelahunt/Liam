@@ -1,0 +1,6 @@
+extern struct String {}
+
+extern fn make_string(): String;
+extern fn make_string_from(s: str): String;
+extern fn to_str(s: ^String): str;
+extern fn string_append(s: ^String, x: ^String): void;

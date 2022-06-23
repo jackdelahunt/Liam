@@ -15,7 +15,7 @@ SymbolTable::SymbolTable()
     builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
     builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
     builtin_type_table["boolean"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
-    builtin_type_table["string"] = new StrTypeInfo{TypeInfoType::STRING};
+    builtin_type_table["str"] = new StrTypeInfo{TypeInfoType::STRING};
 }
 
 void SymbolTable::add_type(Token type, TypeInfo *type_info)
@@ -479,7 +479,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
 }
 void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *expression, SymbolTable *symbol_table)
 {
-    expression->type_info = symbol_table->builtin_type_table["string"];
+    expression->type_info = symbol_table->builtin_type_table["str"];
 }
 
 void TypeChecker::type_check_int_literal_expression(IntLiteralExpression *expression, SymbolTable *symbol_table)

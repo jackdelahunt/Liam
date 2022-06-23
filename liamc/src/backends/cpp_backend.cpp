@@ -431,7 +431,7 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression)
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression)
 {
-    return "make_string((char*)\"" + expression->token.string + "\", " +
+    return "make_str((char*)\"" + expression->token.string + "\", " +
            std::to_string(expression->token.string.size()) + ")";
 }
 

@@ -77,7 +77,7 @@ boolean make_boolean(bool v) {
     return boolean{v};
 }
 
-struct string {
+struct str {
     char* chars;
     uint64_t length;
 
@@ -86,12 +86,12 @@ struct string {
     }
 };
 
-string make_string(char* chars, uint64_t length) {
-    return string{chars, length};
+str make_str(char* chars, uint64_t length) {
+    return str{chars, length};
 }
 
-u64 len(string str) {
-    return make_u64(str.length);
+u64 len(str s) {
+    return make_u64(s.length);
 }
 
 std::string pretty_string_pointer(std::string indentation, void *ptr) {
@@ -157,4 +157,32 @@ T array_at(Array<T>* array, u64 index) {
 template <typename T>
 u64 array_size(Array<T>* array) {
     return make_u64(array->data.size());
+}
+
+struct String {
+    std::string string;
+
+    std::string pretty_string(std::string indentation) {
+        return indentation +  string;
+    }
+};
+
+String make_string() {
+    return String {
+        .string = std::string()
+    };
+}
+
+String make_string_from(str s) {
+    return String {
+        .string = std::string(s.chars)
+    };
+}
+
+str to_str(String* s) {
+    return make_str((char*)s->string.c_str(), s->string.size());
+}
+
+void string_append(String* s, String* x) {
+    s->string.append(x->string);
 }
