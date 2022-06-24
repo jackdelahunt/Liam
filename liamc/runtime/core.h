@@ -91,6 +91,18 @@ struct str {
         free(cpy);
         return print;
     }
+
+    friend bool operator==(const str& l, const str& r)
+    {
+        if(l.length != r.length) return false;
+
+        for(uint64_t i = 0; i < l.length; i++) {
+            if(l.chars[i] == r.chars[i]) {}
+            else return false;
+        }
+
+        return true;
+    }
 };
 
 str make_str(char* chars, uint64_t length) {
@@ -195,20 +207,25 @@ void string_append(String* s, String* x) {
 }
 
 String read(str path) {
-    const std::ifstream input_stream(std::string(path.chars), std::ios_base::binary);
+    std::ifstream input{path.chars};
 
-    if (input_stream.fail()) {
-        throw std::runtime_error("Failed to open file");
+    if (!input.is_open()) {
+        std::cerr << "Couldn't read file: " << path.chars << "\n";
+        exit(1);
     }
 
-    std::stringstream buffer;
-    buffer << input_stream.rdbuf();
+    std::string s;
+    input >> s;
 
     return String {
-        .string = buffer.str()
+        .string = s
     };
 }
 
 str string_substring(String* string, u64 start, u64 length) {
     return make_str((char*) &string->string.c_str()[start.n], length.n);
+}
+
+u64 string_length(String* string) {
+    return make_u64(string->string.size());
 }

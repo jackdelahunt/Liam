@@ -8,7 +8,7 @@ workspace "Liam"
 		"Release",
 	}
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+outputdir = "%{cfg.system}-%{cfg.architecture}"
 		
 project "liamc"
 	location "src"

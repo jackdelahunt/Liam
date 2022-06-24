@@ -1,0 +1,17 @@
+import "../stdlib/io.liam";
+
+struct Token {
+    
+}
+
+fn main(): void {
+    let path := "/home/jackdelahunt/Projects/Liam/liamc/selfhost/test.liam";
+    let source := read(path);
+
+    for let index := 0; index < string_length(@source); index = index + 1; {
+        let current_char := string_substring(@source, index, 1);
+        
+
+    }
+}
+
