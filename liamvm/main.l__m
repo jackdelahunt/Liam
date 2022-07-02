@@ -1,6 +1,0 @@
-@main
-push 10
-push 10
-add
-print
-ret
