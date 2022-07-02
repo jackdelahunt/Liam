@@ -1,6 +1,40 @@
 # Liam
 Liam is a strongly typed compiled language intended for performance comparable to C++ but less pain along the way. Liam generates and outputs `c++` which is then compiled to a final binary. 
 
+## Building on Linux
+
+### Requirements
+- G++
+- Make
+- Bash
+
+``` bash
+cd liamc
+```
+
+``` bash
+mkdir Code
+```
+``` bash
+touch main.liam
+```
+
+``` bash
+bash scripts/build_run.sh
+```
+
+## Building on Windows
+### Requirements
+- Visual Studio 2022
+
+```powershell
+cd liamc
+```
+```powershell
+.\vendor\premake\premake5.exe vs2022
+```
+Creates Visual Studio project to use as normal
+
 ## Examples
 ### Hello world
 ```rust
