@@ -369,8 +369,8 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
     }
     else
     {
-        symbol_table->add_identifier(statement->identifier,
-                                     new StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()});
+        symbol_table->add_identifier(statement->identifier, new StructTypeInfo{TypeInfoType::STRUCT, members_type_info,
+                                                                               statement->generics.size()});
     }
 }
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table)
@@ -690,7 +690,7 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     for (s32 i = 0; i < calling_args_type_infos.size(); i++)
     {
         auto [member, type] = struct_type_info->members.at(i);
-        
+
         auto resolved_member_type = resolve_generics(type, &expression->generics);
         if (!type_match(resolved_member_type, calling_args_type_infos.at(i)))
         {
@@ -699,18 +699,18 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
 
         // if (type->type == TypeInfoType::GENERIC)
         // {
-            // auto generic_type = static_cast<GenericTypeInfo *>(type);
-            // if (!type_match(members_type_infos.at(i), generic_type_infos[generic_type->id]))
-            // {
-                // panic("Incorect arguments to new constructor");
-            // }
+        // auto generic_type = static_cast<GenericTypeInfo *>(type);
+        // if (!type_match(members_type_infos.at(i), generic_type_infos[generic_type->id]))
+        // {
+        // panic("Incorect arguments to new constructor");
+        // }
         // }
         // else
         // {
-            // if (!type_match(members_type_infos.at(i), type))
-            // {
-                // panic("Incorect arguments to new constructor");
-            // }
+        // if (!type_match(members_type_infos.at(i), type))
+        // {
+        // panic("Incorect arguments to new constructor");
+        // }
         // }
     }
 
@@ -814,11 +814,12 @@ TypeInfo *TypeChecker::resolve_generics(TypeInfo *type_info, std::vector<TypeExp
     if (type_info->type == TypeInfoType::STRUCT_INSTANCE)
     {
         auto instance_type_info = static_cast<StructInstanceTypeInfo *>(type_info);
-        for(int i = 0; i < instance_type_info->generic_types.size(); i++) {
-            instance_type_info->generic_types[i] = resolve_generics(instance_type_info->generic_types[i], generic_params);
+        for (int i = 0; i < instance_type_info->generic_types.size(); i++)
+        {
+            instance_type_info->generic_types[i] =
+                resolve_generics(instance_type_info->generic_types[i], generic_params);
         }
     }
-
 
     return type_info;
 }
