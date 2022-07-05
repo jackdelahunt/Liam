@@ -16,4 +16,4 @@ jobs:
         source: './liamc/src/'
         extensions: 'h,cpp'
         clangFormatVersion: 14.0.0
-        style: microsoft
+        style: file:.clang-format
