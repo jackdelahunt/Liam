@@ -8,14 +8,12 @@
 struct Arguments;
 Arguments *args = NULL;
 
-struct Arguments
-{
+struct Arguments {
     std::string out_path;
     cxxopts::Options *options;
     cxxopts::ParseResult result;
 
-    static void New(int argc, char **argv)
-    {
+    static void New(int argc, char **argv) {
         args = new Arguments{};
         auto options = new cxxopts::Options("liamc", "Liam programming language compiler");
         options->add_options()("o,out", "Output file path", cxxopts::value<std::string>()->default_value("out.cpp"));
@@ -27,13 +25,10 @@ struct Arguments
         args->options = options;
 
         if (!args->result.hasValue<std::string>("in"))
-        {
-            panic("No in flag given");
-        }
+        { panic("No in flag given"); }
     }
 
-    template <typename T> T value(std::string option)
-    {
+    template <typename T> T value(std::string option) {
         return this->result[option].as<T>();
     }
 };

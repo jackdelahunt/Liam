@@ -20,8 +20,7 @@ struct StringLiteralExpression;
 struct Expression;
 struct File;
 
-struct SymbolTable
-{
+struct SymbolTable {
     std::map<std::string, TypeInfo *> builtin_type_table; // u64 string...
     std::map<std::string, TypeInfo *> type_table;         // structs
     std::map<std::string, TypeInfo *> identifier_table;   // variables or funcs
@@ -35,8 +34,7 @@ struct SymbolTable
     SymbolTable copy();
 };
 
-struct TypeChecker
-{
+struct TypeChecker {
     SymbolTable symbol_table;
 
     TypeChecker();

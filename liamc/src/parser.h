@@ -24,8 +24,7 @@ struct Expression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
 
-struct File
-{
+struct File {
     std::vector<Statement *> statements;
     std::vector<std::string> imports;
     std::filesystem::path path;
@@ -33,8 +32,7 @@ struct File
     File(std::filesystem::path path);
 };
 
-struct Parser
-{
+struct Parser {
     std::vector<Token> tokens;
     s32 current;
     std::filesystem::path path;

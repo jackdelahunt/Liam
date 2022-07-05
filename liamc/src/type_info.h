@@ -1,7 +1,6 @@
 #pragma once
 
-enum class TypeInfoType
-{
+enum class TypeInfoType {
     ANY,
     VOID,
     INT,
@@ -15,66 +14,47 @@ enum class TypeInfoType
     GENERIC,
 };
 
-struct TypeInfo
-{
+struct TypeInfo {
     TypeInfoType type;
 };
 
-struct AnyTypeInfo : TypeInfo
-{
-};
+struct AnyTypeInfo : TypeInfo {};
 
-struct VoidTypeInfo : TypeInfo
-{
-};
+struct VoidTypeInfo : TypeInfo {};
 
-struct IntTypeInfo : TypeInfo
-{
+struct IntTypeInfo : TypeInfo {
     bool is_signed;
     size_t size;
 };
 
-struct BoolTypeInfo : TypeInfo
-{
-};
+struct BoolTypeInfo : TypeInfo {};
 
-struct CharTypeInfo : TypeInfo
-{
-};
+struct CharTypeInfo : TypeInfo {};
 
-struct PointerTypeInfo : TypeInfo
-{
+struct PointerTypeInfo : TypeInfo {
     TypeInfo *to;
 };
 
-struct StrTypeInfo : TypeInfo
-{
-};
+struct StrTypeInfo : TypeInfo {};
 
-struct TypeTypeInfo : TypeInfo
-{
-};
+struct TypeTypeInfo : TypeInfo {};
 
-struct FnTypeInfo : TypeInfo
-{
+struct FnTypeInfo : TypeInfo {
     TypeInfo *return_type;
     std::vector<TypeInfo *> args;
     u64 generic_count;
 };
 
-struct StructTypeInfo : TypeInfo
-{
+struct StructTypeInfo : TypeInfo {
     std::vector<std::tuple<std::string, TypeInfo *>> members;
     u64 generic_count;
 };
 
-struct StructInstanceTypeInfo : TypeInfo
-{
+struct StructInstanceTypeInfo : TypeInfo {
     TypeInfo *struct_type;
     std::vector<TypeInfo *> generic_types;
 };
 
-struct GenericTypeInfo : TypeInfo
-{
+struct GenericTypeInfo : TypeInfo {
     u64 id;
 };

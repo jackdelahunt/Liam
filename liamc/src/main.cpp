@@ -7,8 +7,7 @@
 #include "compiler.h"
 #include "liam.h"
 
-s32 main(s32 argc, char **argv)
-{
+s32 main(s32 argc, char **argv) {
     Arguments::New(argc, argv);
 
     TIME_START(l_p_time);
@@ -22,9 +21,7 @@ s32 main(s32 argc, char **argv)
     TIME_START(code_gen);
     auto code = CppBackend().emit(&typed_file);
     if (args->value<bool>("codegen"))
-    {
-        std::cout << code;
-    }
+    { std::cout << code; }
     else
     {
         std::ofstream out_file(args->value<std::string>("out"));

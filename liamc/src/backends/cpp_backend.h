@@ -7,8 +7,7 @@
 #include "statement.h"
 #include "type_checker.h"
 
-struct CppBackend
-{
+struct CppBackend {
     CppBackend() = default;
     std::string emit(File *file);
 

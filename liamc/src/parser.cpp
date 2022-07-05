@@ -6,64 +6,50 @@
 #include "errors.h"
 #include "liam.h"
 
-File::File(std::filesystem::path path)
-{
+File::File(std::filesystem::path path) {
     statements = std::vector<Statement *>();
     imports = std::vector<std::string>();
     this->path = std::move(path);
 }
 
-Parser::Parser(std::filesystem::path path, std::vector<Token> &tokens)
-{
+Parser::Parser(std::filesystem::path path, std::vector<Token> &tokens) {
     this->tokens = tokens;
     this->current = 0;
     this->path = absolute(std::filesystem::path(path));
 }
 
-File Parser::parse()
-{
+File Parser::parse() {
     auto file = File(path);
     while (current < tokens.size())
     {
         auto [stmt, error] = eval_statement();
         if (error)
-        {
-            continue;
-        }
+        { continue; }
 
         if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
         {
             auto import_stmt = dynamic_cast<ImportStatement *>(stmt);
             if (import_stmt->file->type != ExpressionType::EXPRESSION_STRING_LITERAL)
-            {
-                panic("Import requires string literal");
-            }
+            { panic("Import requires string literal"); }
             auto import_path = dynamic_cast<StringLiteralExpression *>(import_stmt->file);
             auto parent = this->path.parent_path().string();
 
             std::string final_path;
             if (std::filesystem::path(import_path->token.string).is_absolute())
-            {
-                final_path = import_path->token.string;
-            }
+            { final_path = import_path->token.string; }
             else
-            {
-                final_path = this->path.parent_path().string() + "/" + import_path->token.string;
-            }
+            { final_path = this->path.parent_path().string() + "/" + import_path->token.string; }
 
             file.imports.emplace_back(final_path);
         }
         else
-        {
-            file.statements.push_back(stmt);
-        }
+        { file.statements.push_back(stmt); }
     }
 
     return file;
 }
 
-std::tuple<Statement *, bool> Parser::eval_statement()
-{
+std::tuple<Statement *, bool> Parser::eval_statement() {
     switch (peek()->type)
     {
     case TOKEN_LET:
@@ -105,8 +91,7 @@ std::tuple<Statement *, bool> Parser::eval_statement()
     }
 }
 
-std::tuple<LetStatement *, bool> Parser::eval_let_statement()
-{
+std::tuple<LetStatement *, bool> Parser::eval_let_statement() {
     TRY_TOKEN(TOKEN_LET);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
@@ -128,8 +113,7 @@ std::tuple<LetStatement *, bool> Parser::eval_let_statement()
     }
 }
 
-std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement()
-{
+std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement() {
     auto statements = std::vector<Statement *>();
     NAMED_TOKEN(open_brace, TOKEN_BRACE_OPEN);
     s32 closing_brace_index = find_balance_point(TOKEN_BRACE_OPEN, TOKEN_BRACE_CLOSE, current - 1);
@@ -138,9 +122,7 @@ std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement()
         current++;
     }
     else if (closing_brace_index < 0)
-    {
-        FAIL(path.string(), open_brace->line, open_brace->character, "No closing brace for scope found");
-    }
+    { FAIL(path.string(), open_brace->line, open_brace->character, "No closing brace for scope found"); }
 
     while (current < closing_brace_index)
     {
@@ -152,8 +134,7 @@ std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement()
     return WIN(new ScopeStatement(statements));
 }
 
-std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern)
-{
+std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern) {
     TRY_TOKEN(TOKEN_FN);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
@@ -163,9 +144,7 @@ std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern)
         TRY_TOKEN(TOKEN_BRACKET_OPEN);
         auto [types, error] = consume_comma_seperated_token_arguments(TOKEN_BRACKET_CLOSE);
         if (error)
-        {
-            return {nullptr, true};
-        }
+        { return {nullptr, true}; }
         TRY_TOKEN(TOKEN_BRACKET_CLOSE);
 
         generics = types;
@@ -174,9 +153,7 @@ std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern)
     TRY_TOKEN(TOKEN_PAREN_OPEN);
     auto [params, error] = consume_comma_seperated_params();
     if (error)
-    {
-        return {nullptr, true};
-    }
+    { return {nullptr, true}; }
     TRY_TOKEN(TOKEN_PAREN_CLOSE);
     TRY_TOKEN(TOKEN_COLON);
 
@@ -194,16 +171,14 @@ std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern)
     }
 }
 
-std::tuple<LoopStatement *, bool> Parser::eval_loop_statement()
-{
+std::tuple<LoopStatement *, bool> Parser::eval_loop_statement() {
     TRY_TOKEN(TOKEN_LOOP);
     NAMED_TOKEN(identifier, TOKEN_STRING_LITERAL);
     TRY(ScopeStatement *, body, eval_scope_statement());
     return WIN(new LoopStatement(*identifier, body));
 }
 
-s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from)
-{
+s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {
     s32 current_index = from;
     s32 balance = 0;
 
@@ -228,8 +203,7 @@ s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from)
     return -1;
 }
 
-std::tuple<StructStatement *, bool> Parser::eval_struct_statement(bool is_extern)
-{
+std::tuple<StructStatement *, bool> Parser::eval_struct_statement(bool is_extern) {
     TRY_TOKEN(TOKEN_STRUCT);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
@@ -239,9 +213,7 @@ std::tuple<StructStatement *, bool> Parser::eval_struct_statement(bool is_extern
         TRY_TOKEN(TOKEN_BRACKET_OPEN);
         auto [types, error] = consume_comma_seperated_token_arguments(TOKEN_BRACKET_CLOSE);
         if (error)
-        {
-            return {nullptr, true};
-        }
+        { return {nullptr, true}; }
         TRY_TOKEN(TOKEN_BRACKET_CLOSE);
 
         generics = types;
@@ -250,15 +222,12 @@ std::tuple<StructStatement *, bool> Parser::eval_struct_statement(bool is_extern
     TRY_TOKEN(TOKEN_BRACE_OPEN);
     auto [member, error] = consume_comma_seperated_params();
     if (error)
-    {
-        return {nullptr, true};
-    }
+    { return {nullptr, true}; }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
     return WIN(new StructStatement(*identifier, generics, member, is_extern));
 }
 
-std::tuple<InsertStatement *, bool> Parser::eval_insert_statement()
-{
+std::tuple<InsertStatement *, bool> Parser::eval_insert_statement() {
     TRY_TOKEN(TOKEN_INSERT);
     TRY(Expression *, byte_code, eval_expression());
     TRY_TOKEN(TOKEN_SEMI_COLON);
@@ -266,15 +235,13 @@ std::tuple<InsertStatement *, bool> Parser::eval_insert_statement()
     return WIN(new InsertStatement(byte_code));
 }
 
-std::tuple<ReturnStatement *, bool> Parser::eval_return_statement()
-{
+std::tuple<ReturnStatement *, bool> Parser::eval_return_statement() {
     TRY_TOKEN(TOKEN_RETURN);
     TRY(ExpressionStatement *, expression, eval_expression_statement());
     return WIN(new ReturnStatement(expression->expression));
 }
 
-std::tuple<BreakStatement *, bool> Parser::eval_break_statement()
-{
+std::tuple<BreakStatement *, bool> Parser::eval_break_statement() {
     // might just use an expression statement for this but for now it is a string
     // lit
     TRY_TOKEN(TOKEN_BREAK);
@@ -283,16 +250,14 @@ std::tuple<BreakStatement *, bool> Parser::eval_break_statement()
     return WIN(new BreakStatement(*identifier));
 }
 
-std::tuple<ImportStatement *, bool> Parser::eval_import_statement()
-{
+std::tuple<ImportStatement *, bool> Parser::eval_import_statement() {
     TRY_TOKEN(TOKEN_IMPORT);
     TRY(ExpressionStatement *, file, eval_expression_statement());
 
     return WIN(new ImportStatement(file->expression));
 }
 
-std::tuple<ForStatement *, bool> Parser::eval_for_statement()
-{
+std::tuple<ForStatement *, bool> Parser::eval_for_statement() {
     TRY_TOKEN(TOKEN_FOR);
     TRY(LetStatement *, let_statement, eval_let_statement())
     TRY(Expression *, condition, eval_expression())
@@ -303,41 +268,33 @@ std::tuple<ForStatement *, bool> Parser::eval_for_statement()
     return WIN(new ForStatement(let_statement, condition, update, body));
 }
 
-std::tuple<IfStatement *, bool> Parser::eval_if_statement()
-{
+std::tuple<IfStatement *, bool> Parser::eval_if_statement() {
     TRY_TOKEN(TOKEN_IF);
     TRY(Expression *, expression, eval_expression())
     TRY(ScopeStatement *, body, eval_scope_statement())
     return WIN(new IfStatement(expression, body));
 }
 
-std::tuple<ExpressionStatement *, bool> Parser::eval_expression_statement()
-{
+std::tuple<ExpressionStatement *, bool> Parser::eval_expression_statement() {
     TRY(Expression *, expression, eval_expression());
     TRY_TOKEN(TOKEN_SEMI_COLON)
 
     return WIN(new ExpressionStatement(expression));
 }
 
-std::tuple<Statement *, bool> Parser::eval_extern_statement()
-{
+std::tuple<Statement *, bool> Parser::eval_extern_statement() {
     TRY_TOKEN(TOKEN_EXTERN);
 
     if (peek()->type == TOKEN_FN)
-    {
-        return eval_fn_statement(true);
-    }
+    { return eval_fn_statement(true); }
 
     if (peek()->type == TOKEN_STRUCT)
-    {
-        return eval_struct_statement(true);
-    }
+    { return eval_struct_statement(true); }
 
     panic("Cannot extern this statement");
 }
 
-std::tuple<Statement *, bool> Parser::eval_line_starting_expression()
-{
+std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
     TRY(Expression *, lhs, eval_expression());
     if (peek()->type == TOKEN_ASSIGN)
     {
@@ -352,13 +309,11 @@ std::tuple<Statement *, bool> Parser::eval_line_starting_expression()
     return {new ExpressionStatement(lhs), false};
 }
 
-std::tuple<Expression *, bool> Parser::eval_expression()
-{
+std::tuple<Expression *, bool> Parser::eval_expression() {
     return eval_or();
 }
 
-std::tuple<Expression *, bool> Parser::eval_or()
-{
+std::tuple<Expression *, bool> Parser::eval_or() {
     TRY(Expression *, expr, eval_and());
 
     while (match(TokenType::TOKEN_OR))
@@ -371,8 +326,7 @@ std::tuple<Expression *, bool> Parser::eval_or()
     return WIN(expr);
 }
 
-std::tuple<Expression *, bool> Parser::eval_and()
-{
+std::tuple<Expression *, bool> Parser::eval_and() {
     TRY(Expression *, expr, eval_comparison());
 
     while (match(TokenType::TOKEN_AND))
@@ -385,8 +339,7 @@ std::tuple<Expression *, bool> Parser::eval_and()
     return WIN(expr);
 }
 
-std::tuple<Expression *, bool> Parser::eval_comparison()
-{
+std::tuple<Expression *, bool> Parser::eval_comparison() {
     TRY(Expression *, expr, eval_term());
 
     while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL) || match(TokenType::TOKEN_LESS) ||
@@ -400,8 +353,7 @@ std::tuple<Expression *, bool> Parser::eval_comparison()
     return WIN(expr);
 }
 
-std::tuple<Expression *, bool> Parser::eval_term()
-{
+std::tuple<Expression *, bool> Parser::eval_term() {
     TRY(Expression *, expr, eval_factor());
 
     while (match(TokenType::TOKEN_PLUS))
@@ -414,8 +366,7 @@ std::tuple<Expression *, bool> Parser::eval_term()
     return WIN(expr);
 }
 
-std::tuple<Expression *, bool> Parser::eval_factor()
-{
+std::tuple<Expression *, bool> Parser::eval_factor() {
     TRY(Expression *, expr, eval_unary());
 
     while (match(TokenType::TOKEN_STAR))
@@ -428,8 +379,7 @@ std::tuple<Expression *, bool> Parser::eval_factor()
     return {expr, false};
 }
 
-std::tuple<Expression *, bool> Parser::eval_unary()
-{
+std::tuple<Expression *, bool> Parser::eval_unary() {
     if (match(TOKEN_AT) || match(TOKEN_STAR))
     {
         auto op = consume_token();
@@ -440,8 +390,7 @@ std::tuple<Expression *, bool> Parser::eval_unary()
     return eval_call();
 }
 
-std::tuple<Expression *, bool> Parser::eval_call()
-{
+std::tuple<Expression *, bool> Parser::eval_call() {
     TRY(Expression *, expr, eval_primary());
 
     while (true)
@@ -454,9 +403,7 @@ std::tuple<Expression *, bool> Parser::eval_call()
                 TRY_TOKEN(TOKEN_BRACKET_OPEN);
                 auto [types, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
                 if (error)
-                {
-                    return {nullptr, true};
-                }
+                { return {nullptr, true}; }
                 TRY_TOKEN(TOKEN_BRACKET_CLOSE);
 
                 generics = types;
@@ -465,9 +412,7 @@ std::tuple<Expression *, bool> Parser::eval_call()
             TRY_TOKEN(TOKEN_PAREN_OPEN);
             auto [args, error] = consume_comma_seperated_arguments(TOKEN_PAREN_CLOSE);
             if (error)
-            {
-                return {nullptr, true};
-            }
+            { return {nullptr, true}; }
             TRY_TOKEN(TOKEN_PAREN_CLOSE);
 
             return {new CallExpression(expr, args, generics), false};
@@ -479,16 +424,13 @@ std::tuple<Expression *, bool> Parser::eval_call()
             expr = new GetExpression(expr, *identifier);
         }
         else
-        {
-            break;
-        }
+        { break; }
     }
 
     return {expr, false};
 }
 
-std::tuple<Expression *, bool> Parser::eval_primary()
-{
+std::tuple<Expression *, bool> Parser::eval_primary() {
     auto type = peek()->type;
 
     if (type == TokenType::TOKEN_INT_LITERAL)
@@ -502,16 +444,13 @@ std::tuple<Expression *, bool> Parser::eval_primary()
     else if (type == TokenType::TOKEN_NEW)
         return eval_new_expression();
     else if (type == TokenType::TOKEN_PAREN_OPEN)
-    {
-        return eval_group_expression();
-    }
+    { return eval_group_expression(); }
 
     return WIN(new Expression()); // empty expression found -- like when a
                                   // return has no expression
 }
 
-std::tuple<Expression *, bool> Parser::eval_new_expression()
-{
+std::tuple<Expression *, bool> Parser::eval_new_expression() {
     consume_token();
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
@@ -521,9 +460,7 @@ std::tuple<Expression *, bool> Parser::eval_new_expression()
         TRY_TOKEN(TOKEN_BRACKET_OPEN);
         auto [types, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
         if (error)
-        {
-            return {nullptr, true};
-        }
+        { return {nullptr, true}; }
         TRY_TOKEN(TOKEN_BRACKET_CLOSE);
 
         generics = types;
@@ -532,28 +469,23 @@ std::tuple<Expression *, bool> Parser::eval_new_expression()
     TRY_TOKEN(TOKEN_BRACE_OPEN);
     auto [expressions, error] = consume_comma_seperated_arguments(TOKEN_BRACE_CLOSE);
     if (error)
-    {
-        return {nullptr, true};
-    }
+    { return {nullptr, true}; }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
     return WIN(new NewExpression(*identifier, generics, expressions));
 }
 
-std::tuple<Expression *, bool> Parser::eval_group_expression()
-{
+std::tuple<Expression *, bool> Parser::eval_group_expression() {
     TRY_TOKEN(TOKEN_PAREN_OPEN);
     TRY(Expression *, expr, eval_expression());
     TRY_TOKEN(TOKEN_PAREN_CLOSE);
     return WIN(new GroupExpression(expr));
 }
 
-std::tuple<TypeExpression *, bool> Parser::eval_type_expression()
-{
+std::tuple<TypeExpression *, bool> Parser::eval_type_expression() {
     return eval_type_unary();
 }
 
-std::tuple<TypeExpression *, bool> Parser::eval_type_unary()
-{
+std::tuple<TypeExpression *, bool> Parser::eval_type_unary() {
     if (match(TokenType::TOKEN_HAT))
     {
         Token *op = consume_token();
@@ -564,8 +496,7 @@ std::tuple<TypeExpression *, bool> Parser::eval_type_unary()
     return eval_type_specified_generics();
 }
 
-std::tuple<TypeExpression *, bool> Parser::eval_type_specified_generics()
-{
+std::tuple<TypeExpression *, bool> Parser::eval_type_specified_generics() {
     TRY(IdentifierTypeExpression *, struct_type, eval_type_identifier());
 
     if (match(TOKEN_BRACKET_OPEN))
@@ -573,9 +504,7 @@ std::tuple<TypeExpression *, bool> Parser::eval_type_specified_generics()
         TRY_TOKEN(TOKEN_BRACKET_OPEN);
         auto [generics, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
         if (error)
-        {
-            return {nullptr, true};
-        }
+        { return {nullptr, true}; }
         TRY_TOKEN(TOKEN_BRACKET_CLOSE);
 
         return WIN(new SpecifiedGenericsTypeExpression(struct_type, generics));
@@ -584,35 +513,30 @@ std::tuple<TypeExpression *, bool> Parser::eval_type_specified_generics()
     return WIN(struct_type);
 }
 
-std::tuple<IdentifierTypeExpression *, bool> Parser::eval_type_identifier()
-{
+std::tuple<IdentifierTypeExpression *, bool> Parser::eval_type_identifier() {
     NAMED_TOKEN(struct_identifier, TOKEN_IDENTIFIER);
     return WIN(new IdentifierTypeExpression(*struct_identifier));
 }
 
-bool Parser::match(TokenType type)
-{
+bool Parser::match(TokenType type) {
     if (tokens.size() > 0)
         return peek()->type == type;
 
     return false;
 }
 
-Token *Parser::peek(s32 offset)
-{
+Token *Parser::peek(s32 offset) {
     return &tokens.at(current + offset);
 }
 
-Token *Parser::consume_token()
-{
+Token *Parser::consume_token() {
     if (current >= tokens.size())
         panic("No more tokens to consume");
 
     return &tokens.at(current++);
 }
 
-std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type)
-{
+std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type) {
     if (current >= tokens.size())
     {
         auto last_token = tokens.at(tokens.size() - 1);
@@ -632,8 +556,7 @@ std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type)
 }
 
 // e.g. (0, "hello sailor", ...)
-std::tuple<std::vector<Expression *>, bool> Parser::consume_comma_seperated_arguments(TokenType closer)
-{
+std::tuple<std::vector<Expression *>, bool> Parser::consume_comma_seperated_arguments(TokenType closer) {
     auto args = std::vector<Expression *>();
     bool is_first = true;
     if (!match(closer))
@@ -646,23 +569,21 @@ std::tuple<std::vector<Expression *>, bool> Parser::consume_comma_seperated_argu
 
             auto [expr, error] = eval_expression();
             if (error)
-            {
-                return {std::vector<Expression *>(), true};
-            }
+            { return {std::vector<Expression *>(), true}; }
 
             args.push_back(expr);
 
             if (is_first)
                 is_first = false;
-        } while (match(TOKEN_COMMA));
+        }
+        while (match(TOKEN_COMMA));
     }
 
     return WIN(args);
 }
 
 // e.g. (X, Y, Z, ...)
-std::tuple<std::vector<Token>, bool> Parser::consume_comma_seperated_token_arguments(TokenType closer)
-{
+std::tuple<std::vector<Token>, bool> Parser::consume_comma_seperated_token_arguments(TokenType closer) {
     auto args = std::vector<Token>();
     bool is_first = true;
     if (!match(closer))
@@ -678,15 +599,15 @@ std::tuple<std::vector<Token>, bool> Parser::consume_comma_seperated_token_argum
 
             if (is_first)
                 is_first = false;
-        } while (match(TOKEN_COMMA));
+        }
+        while (match(TOKEN_COMMA));
     }
 
     return WIN(args);
 }
 
 // e.g. (int32, ^char, ...)
-std::tuple<std::vector<TypeExpression *>, bool> Parser::consume_comma_seperated_types(TokenType closer)
-{
+std::tuple<std::vector<TypeExpression *>, bool> Parser::consume_comma_seperated_types(TokenType closer) {
     auto types = std::vector<TypeExpression *>();
     bool is_first = true;
     if (!match(closer))
@@ -699,23 +620,21 @@ std::tuple<std::vector<TypeExpression *>, bool> Parser::consume_comma_seperated_
 
             auto [type, error] = eval_type_expression();
             if (error)
-            {
-                return {std::vector<TypeExpression *>(), true};
-            }
+            { return {std::vector<TypeExpression *>(), true}; }
 
             types.push_back(type);
 
             if (is_first)
                 is_first = false;
-        } while (match(TOKEN_COMMA));
+        }
+        while (match(TOKEN_COMMA));
     }
 
     return WIN(types);
 }
 
 // e.g. (int x, int y, ...)
-std::tuple<CSV, bool> Parser::consume_comma_seperated_params()
-{
+std::tuple<CSV, bool> Parser::consume_comma_seperated_params() {
     auto args_types = std::vector<std::tuple<Token, TypeExpression *>>();
     bool is_first = true;
     if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE))
@@ -728,27 +647,22 @@ std::tuple<CSV, bool> Parser::consume_comma_seperated_params()
 
             auto [arg, identifier_error] = consume_token_of_type(TOKEN_IDENTIFIER);
             if (identifier_error)
-            {
-                return {CSV(), true};
-            }
+            { return {CSV(), true}; }
 
             auto [_, colon_error] = consume_token_of_type(TOKEN_COLON);
             if (colon_error)
-            {
-                return {CSV(), true};
-            }
+            { return {CSV(), true}; }
 
             auto [type, type_error] = eval_type_expression();
             if (type_error)
-            {
-                return {CSV(), true};
-            }
+            { return {CSV(), true}; }
 
             args_types.emplace_back(*arg, type);
 
             if (is_first)
                 is_first = false;
-        } while (match(TOKEN_COMMA));
+        }
+        while (match(TOKEN_COMMA));
     }
 
     return WIN(args_types);

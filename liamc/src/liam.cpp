@@ -2,8 +2,7 @@
 
 #include <iostream>
 
-void panic(const std::string &msg)
-{
+void panic(const std::string &msg) {
     std::cerr << "PANIC :: " << msg << std::endl;
     exit(69);
 }

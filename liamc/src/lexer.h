@@ -9,8 +9,7 @@
 
 std::vector<char> extract_chars(const char *path);
 
-enum TokenType
-{
+enum TokenType {
     TOKEN_INT_LITERAL = 0,
     TOKEN_STRING_LITERAL = 1,
     TOKEN_IDENTIFIER = 2,
@@ -58,8 +57,7 @@ extern const char *TokenTypeStrings[41];
 
 std::string get_token_type_string(TokenType type);
 
-struct Token
-{
+struct Token {
     TokenType type;
     s32 line;
     s32 character;
@@ -73,8 +71,7 @@ std::ostream &operator<<(std::ostream &os, const Token &token);
 
 bool is_delim(char c);
 
-struct Lexer
-{
+struct Lexer {
     std::vector<Token> tokens;
     std::vector<char> chars;
     s32 current;

@@ -5,16 +5,14 @@
 
 #include "liam.h"
 
-struct ErrorReport
-{
+struct ErrorReport {
     std::string file;
     s32 line;
     s32 character;
     std::string error;
 };
 
-struct ErrorReporter
-{
+struct ErrorReporter {
     static ErrorReporter *singleton;
     std::vector<ErrorReport> reports;
 

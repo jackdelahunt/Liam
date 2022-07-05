@@ -9,8 +9,7 @@
 #include "parser.h"
 #include "type_checker.h"
 
-std::vector<File> lex_parse(std::filesystem::path path, std::vector<std::string> *imports = NULL)
-{
+std::vector<File> lex_parse(std::filesystem::path path, std::vector<std::string> *imports = NULL) {
     auto files = std::vector<File>();
 
     auto lexer = Lexer(path);
@@ -49,9 +48,7 @@ std::vector<File> lex_parse(std::filesystem::path path, std::vector<std::string>
     if (ErrorReporter::has_errors())
     {
         for (auto error : *ErrorReporter::all_reports())
-        {
-            std::cout << error.file << ":" << error.line << ":" << error.character << " :: " << error.error << "\n";
-        }
+        { std::cout << error.file << ":" << error.line << ":" << error.character << " :: " << error.error << "\n"; }
 
         panic("Cannot continue with errors :: count (" + std::to_string(ErrorReporter::all_reports()->size()) + ")");
     }
@@ -59,8 +56,7 @@ std::vector<File> lex_parse(std::filesystem::path path, std::vector<std::string>
     return files;
 }
 
-inline File type_check(std::vector<File> *files)
-{
+inline File type_check(std::vector<File> *files) {
     auto tc = TypeChecker();
     return TypeChecker().type_check(files);
 }

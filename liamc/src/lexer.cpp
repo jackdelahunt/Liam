@@ -28,49 +28,40 @@ const char *TokenTypeStrings[41] = {
     "extern",
 };
 
-std::vector<char> extract_chars(const char *path)
-{
+std::vector<char> extract_chars(const char *path) {
     auto vec = std::vector<char>();
 
     std::ifstream file;
     file.open(path);
     if (!file.is_open())
-    {
-        panic("cannot open file " + std::string(path));
-    }
+    { panic("cannot open file " + std::string(path)); }
 
     for (s32 i = file.get(); i != EOF; i = file.get())
-    {
-        vec.push_back((char)i);
-    }
+    { vec.push_back((char)i); }
 
     file.close();
     return vec;
 }
 
-Token::Token(TokenType type, std::string string, s32 line, s32 character)
-{
+Token::Token(TokenType type, std::string string, s32 line, s32 character) {
     this->type = type;
     this->string = string;
     this->line = line;
     this->character = character;
 }
 
-std::ostream &operator<<(std::ostream &os, const Token &token)
-{
+std::ostream &operator<<(std::ostream &os, const Token &token) {
     os << token.string;
     return os;
 }
 
-bool is_delim(char c)
-{
+bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' ||
            c == '=' || c == '+' || c == '^' || c == '@' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
            c == '<' || c == '>';
 }
 
-Lexer::Lexer(std::filesystem::path path)
-{
+Lexer::Lexer(std::filesystem::path path) {
     tokens = std::vector<Token>();
     current = 0;
     current_line = 1;
@@ -78,8 +69,7 @@ Lexer::Lexer(std::filesystem::path path)
     this->path = path;
 }
 
-void Lexer::lex()
-{
+void Lexer::lex() {
     chars = extract_chars(path.string().c_str());
     for (; current < chars.size(); next_char())
     {
@@ -168,9 +158,7 @@ void Lexer::lex()
             break;
         case '#':
             while (current < chars.size() && chars.at(current) != '\n')
-            {
-                next_char();
-            }
+            { next_char(); }
             break;
         case '"': {
             next_char();
@@ -325,8 +313,7 @@ void Lexer::lex()
                 continue;
             }
             catch (const std::exception &e)
-            {
-            }
+            {}
 
             tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
 
@@ -335,19 +322,16 @@ void Lexer::lex()
     }
 }
 
-void Lexer::next_char()
-{
+void Lexer::next_char() {
     current++;
     current_character++;
 }
 
-char Lexer::peek()
-{
+char Lexer::peek() {
     return chars.at(current + 1);
 }
 
-std::string Lexer::get_word()
-{
+std::string Lexer::get_word() {
     std::string word = std::string();
     while (current < chars.size() && !is_delim(chars.at(current)))
     {

@@ -25,9 +25,7 @@ void panic(const std::string &msg);
         auto end = std::chrono::high_resolution_clock::now();                                                          \
         std::chrono::duration<double, std::milli> delta = end - name;                                                  \
         if (args->value<bool>("time"))                                                                                 \
-        {                                                                                                              \
-            std::cout << message << " :: " << delta.count() << "ms\n";                                                 \
-        }                                                                                                              \
+        { std::cout << message << " :: " << delta.count() << "ms\n"; }                                                 \
     }
 
 #define TRY(type, value, func)                                                                                         \
@@ -35,9 +33,7 @@ void panic(const std::string &msg);
     {                                                                                                                  \
         auto [ptr, error] = func;                                                                                      \
         if (error)                                                                                                     \
-        {                                                                                                              \
-            return {nullptr, true};                                                                                    \
-        }                                                                                                              \
+        { return {nullptr, true}; }                                                                                    \
         value = ptr;                                                                                                   \
     }
 
@@ -48,24 +44,18 @@ void panic(const std::string &msg);
         value = std::get<0>(tuple);                                                                                    \
         auto try_error = std::get<1>(tuple);                                                                           \
         if (try_error)                                                                                                 \
-        {                                                                                                              \
-            return {nullptr, true};                                                                                    \
-        }                                                                                                              \
+        { return {nullptr, true}; }                                                                                    \
     }
 
 #define TRY_TOKEN(type)                                                                                                \
     {                                                                                                                  \
         auto [_, _try_error_] = consume_token_of_type(type);                                                           \
         if (_try_error_)                                                                                               \
-        {                                                                                                              \
-            return {nullptr, true};                                                                                    \
-        }                                                                                                              \
+        { return {nullptr, true}; }                                                                                    \
     }
 
 #define WIN(value)                                                                                                     \
-    {                                                                                                                  \
-        value, false                                                                                                   \
-    }
+    { value, false }
 
 #define FAIL(file, line, character, message)                                                                           \
     ErrorReporter::report_error(file, line, character, message);                                                       \

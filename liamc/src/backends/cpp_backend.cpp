@@ -3,17 +3,14 @@
 #include <algorithm>
 #include <string>
 
-std::string CppBackend::emit(File *file)
-{
+std::string CppBackend::emit(File *file) {
     auto source_generated = std::string("#include \"lib.h\"\n\n");
 
     source_generated.append("// struct forward declarations\n");
     for (auto stmt : file->statements)
     {
         if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
-        {
-            source_generated.append(forward_declare_struct(static_cast<StructStatement *>(stmt)));
-        }
+        { source_generated.append(forward_declare_struct(static_cast<StructStatement *>(stmt))); }
     }
 
     source_generated.append("\n// function forward declarations\n");
@@ -21,17 +18,13 @@ std::string CppBackend::emit(File *file)
     for (auto stmt : file->statements)
     {
         if (stmt->statement_type == StatementType::STATEMENT_FN)
-        {
-            source_generated.append(forward_declare_function(static_cast<FnStatement *>(stmt)));
-        }
+        { source_generated.append(forward_declare_function(static_cast<FnStatement *>(stmt))); }
     }
 
     source_generated.append("\n// Source\n");
 
     for (auto stmt : file->statements)
-    {
-        source_generated.append(emit_statement(stmt));
-    }
+    { source_generated.append(emit_statement(stmt)); }
 
     source_generated.append(R"(
 int main(int argc, char** argv) {
@@ -42,8 +35,7 @@ int main(int argc, char** argv) {
     return source_generated;
 }
 
-std::string CppBackend::forward_declare_struct(StructStatement *statement)
-{
+std::string CppBackend::forward_declare_struct(StructStatement *statement) {
     if (statement->is_extern)
         return "";
 
@@ -56,9 +48,7 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement)
         {
             source.append("typename " + generic.string);
             if (index + 1 < statement->generics.size())
-            {
-                source.append(", ");
-            }
+            { source.append(", "); }
             index++;
         }
         source.append(">\n");
@@ -69,8 +59,7 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement)
     return source;
 }
 
-std::string CppBackend::forward_declare_function(FnStatement *statement)
-{
+std::string CppBackend::forward_declare_function(FnStatement *statement) {
     if (statement->is_extern)
         return "";
 
@@ -84,9 +73,7 @@ std::string CppBackend::forward_declare_function(FnStatement *statement)
         {
             source.append("typename " + generic.string);
             if (index + 1 < statement->generics.size())
-            {
-                source.append(", ");
-            }
+            { source.append(", "); }
             index++;
         }
         source.append(">\n");
@@ -95,13 +82,9 @@ std::string CppBackend::forward_declare_function(FnStatement *statement)
     source.append(emit_type_expression(statement->return_type) + " ");
 
     if (statement->identifier.string == "main")
-    {
-        source.append(" __liam__main__");
-    }
+    { source.append(" __liam__main__"); }
     else
-    {
-        source.append(statement->identifier.string);
-    }
+    { source.append(statement->identifier.string); }
 
     source.append("(");
     int index = 0;
@@ -109,17 +92,14 @@ std::string CppBackend::forward_declare_function(FnStatement *statement)
     {
         source.append(emit_type_expression(type) + " " + identifier.string);
         if (index + 1 < statement->params.size())
-        {
-            source.append(", ");
-        }
+        { source.append(", "); }
         index++;
     }
     source.append(");\n");
     return source;
 }
 
-std::string CppBackend::emit_statement(Statement *statement)
-{
+std::string CppBackend::emit_statement(Statement *statement) {
     switch (statement->statement_type)
     {
     case StatementType::STATEMENT_INSERT:
@@ -164,30 +144,24 @@ std::string CppBackend::emit_statement(Statement *statement)
     return "";
 }
 
-std::string CppBackend::emit_insert_statement(InsertStatement *statement)
-{
+std::string CppBackend::emit_insert_statement(InsertStatement *statement) {
     if (statement->byte_code->type != ExpressionType::EXPRESSION_STRING_LITERAL)
-    {
-        panic("Cannot emit non string literal in insert");
-    }
+    { panic("Cannot emit non string literal in insert"); }
 
     auto string_literal = dynamic_cast<StringLiteralExpression *>(statement->byte_code);
     return string_literal->token.string;
 }
 
-std::string CppBackend::emit_return_statement(ReturnStatement *statement)
-{
+std::string CppBackend::emit_return_statement(ReturnStatement *statement) {
     return "return " + emit_expression(statement->expression) + ";";
 }
 
-std::string CppBackend::emit_break_statement(BreakStatement *statement)
-{
+std::string CppBackend::emit_break_statement(BreakStatement *statement) {
     panic("Not implemented in C backend");
     return "";
 }
 
-std::string CppBackend::emit_let_statement(LetStatement *statement)
-{
+std::string CppBackend::emit_let_statement(LetStatement *statement) {
     auto source = std::string();
     source.append("auto ");
     source.append(statement->identifier.string);
@@ -196,20 +170,16 @@ std::string CppBackend::emit_let_statement(LetStatement *statement)
     return source;
 }
 
-std::string CppBackend::emit_scope_statement(ScopeStatement *statement)
-{
+std::string CppBackend::emit_scope_statement(ScopeStatement *statement) {
     auto source = std::string();
     source.append("{\n");
     for (auto stmt : statement->statements)
-    {
-        source.append(emit_statement(stmt));
-    }
+    { source.append(emit_statement(stmt)); }
     source.append("\n}\n\n");
     return source;
 }
 
-std::string CppBackend::emit_fn_statement(FnStatement *statement)
-{
+std::string CppBackend::emit_fn_statement(FnStatement *statement) {
     if (statement->is_extern)
         return "";
 
@@ -222,9 +192,7 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement)
         {
             source.append("typename " + generic.string);
             if (index + 1 < statement->generics.size())
-            {
-                source.append(", ");
-            }
+            { source.append(", "); }
             index++;
         }
         source.append(">\n");
@@ -233,13 +201,9 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement)
     source.append(emit_type_expression(statement->return_type) + " ");
 
     if (statement->identifier.string == "main")
-    {
-        source.append("__liam__main__");
-    }
+    { source.append("__liam__main__"); }
     else
-    {
-        source.append(statement->identifier.string);
-    }
+    { source.append(statement->identifier.string); }
 
     source.append("(");
     int index = 0;
@@ -247,9 +211,7 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement)
     {
         source.append(emit_type_expression(type) + " " + identifier.string);
         if (index + 1 < statement->params.size())
-        {
-            source.append(", ");
-        }
+        { source.append(", "); }
         index++;
     }
     source.append(")");
@@ -257,14 +219,12 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement)
     return source;
 }
 
-std::string CppBackend::emit_loop_statement(LoopStatement *statement)
-{
+std::string CppBackend::emit_loop_statement(LoopStatement *statement) {
     panic("Not implemented in C backend");
     return "";
 }
 
-std::string CppBackend::emit_struct_statement(StructStatement *statement)
-{
+std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     if (statement->is_extern)
         return "";
     auto source = std::string();
@@ -277,9 +237,7 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement)
         {
             source.append("typename " + generic.string);
             if (index + 1 < statement->generics.size())
-            {
-                source.append(", ");
-            }
+            { source.append(", "); }
             index++;
         }
         source.append(">\n");
@@ -316,8 +274,7 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement)
     return source;
 }
 
-std::string CppBackend::emit_assigment_statement(AssigmentStatement *statement)
-{
+std::string CppBackend::emit_assigment_statement(AssigmentStatement *statement) {
     auto source = std::string();
     source.append(emit_expression(statement->lhs));
     source.append(" = ");
@@ -326,13 +283,11 @@ std::string CppBackend::emit_assigment_statement(AssigmentStatement *statement)
     return source;
 }
 
-std::string CppBackend::emit_expression_statement(ExpressionStatement *statement)
-{
+std::string CppBackend::emit_expression_statement(ExpressionStatement *statement) {
     return emit_expression(statement->expression) + ";\n";
 }
 
-std::string CppBackend::emit_for_statement(ForStatement *statement)
-{
+std::string CppBackend::emit_for_statement(ForStatement *statement) {
     std::string source = "";
     source.append("for(" + emit_let_statement(statement->let_statement) + emit_expression(statement->condition) + ";" +
                   strip_semi_colon(emit_statement(statement->update)) + ")");
@@ -340,8 +295,7 @@ std::string CppBackend::emit_for_statement(ForStatement *statement)
     return source;
 }
 
-std::string CppBackend::emit_if_statement(IfStatement *statement)
-{
+std::string CppBackend::emit_if_statement(IfStatement *statement) {
     std::string source = "";
 
     source.append("if (");
@@ -351,8 +305,7 @@ std::string CppBackend::emit_if_statement(IfStatement *statement)
     return source;
 }
 
-std::string CppBackend::emit_expression(Expression *expression)
-{
+std::string CppBackend::emit_expression(Expression *expression) {
     switch (expression->type)
     {
     case ExpressionType::EXPRESSION_STRING_LITERAL:
@@ -390,8 +343,7 @@ std::string CppBackend::emit_expression(Expression *expression)
     }
 }
 
-std::string CppBackend::emit_binary_expression(BinaryExpression *expression)
-{
+std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
     auto source = std::string();
     source.append(emit_expression(expression->left));
     switch (expression->op.type)
@@ -429,46 +381,35 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression)
     return source;
 }
 
-std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression)
-{
-    return "make_str((char*)\"" + expression->token.string + "\", " +
-           std::to_string(expression->token.string.size()) + ")";
+std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
+    return "make_str((char*)\"" + expression->token.string + "\", " + std::to_string(expression->token.string.size()) +
+           ")";
 }
 
-std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression)
-{
+std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression) {
     return "make_boolean(" + expression->value.string + ")";
 }
 
-std::string CppBackend::emit_int_literal_expression(IntLiteralExpression *expression)
-{
+std::string CppBackend::emit_int_literal_expression(IntLiteralExpression *expression) {
     auto int_type = static_cast<IntTypeInfo *>(expression->type_info);
 
     if (int_type->size == 64)
-    {
-        return "make_u64(" + expression->token.string + ")";
-    }
+    { return "make_u64(" + expression->token.string + ")"; }
 
     panic("This int size cannot be emitted yet");
 }
 
-std::string CppBackend::emit_unary_expression(UnaryExpression *expression)
-{
+std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {
     if (expression->op.type == TOKEN_AT)
-    {
-        return "&(" + emit_expression(expression->expression) + ")";
-    }
+    { return "&(" + emit_expression(expression->expression) + ")"; }
     else if (expression->op.type == TOKEN_STAR)
-    {
-        return "*(" + emit_expression(expression->expression) + ")";
-    }
+    { return "*(" + emit_expression(expression->expression) + ")"; }
 
     panic("Got a unrecognized operand");
     return "";
 }
 
-std::string CppBackend::emit_call_expression(CallExpression *expression)
-{
+std::string CppBackend::emit_call_expression(CallExpression *expression) {
     auto source = std::string();
     source.append(emit_expression(expression->identifier));
 
@@ -481,9 +422,7 @@ std::string CppBackend::emit_call_expression(CallExpression *expression)
             source.append(emit_type_expression(type));
 
             if (index + 1 < expression->generics.size())
-            {
-                source.append(", ");
-            }
+            { source.append(", "); }
             index++;
         }
         source.append(">");
@@ -496,27 +435,22 @@ std::string CppBackend::emit_call_expression(CallExpression *expression)
         source.append(emit_expression(expr));
 
         if (index + 1 < expression->args.size())
-        {
-            source.append(", ");
-        }
+        { source.append(", "); }
         index++;
     }
     source.append(")");
     return source;
 }
 
-std::string CppBackend::emit_identifier_expression(IdentifierExpression *expression)
-{
+std::string CppBackend::emit_identifier_expression(IdentifierExpression *expression) {
     return expression->identifier.string;
 }
 
-std::string CppBackend::emit_get_expression(GetExpression *expression)
-{
+std::string CppBackend::emit_get_expression(GetExpression *expression) {
     return emit_expression(expression->lhs) + "." + expression->member.string;
 }
 
-std::string CppBackend::emit_new_expression(NewExpression *expression)
-{
+std::string CppBackend::emit_new_expression(NewExpression *expression) {
     auto source = std::string();
     source.append(expression->identifier.string);
 
@@ -529,9 +463,7 @@ std::string CppBackend::emit_new_expression(NewExpression *expression)
             source.append(emit_type_expression(type));
 
             if (index + 1 < expression->generics.size())
-            {
-                source.append(", ");
-            }
+            { source.append(", "); }
             index++;
         }
         source.append(">");
@@ -543,9 +475,7 @@ std::string CppBackend::emit_new_expression(NewExpression *expression)
     {
         source.append(emit_expression(expr));
         if (index + 1 < expression->expressions.size())
-        {
-            source.append(", ");
-        }
+        { source.append(", "); }
         index++;
     }
     source.append("}");
@@ -553,13 +483,11 @@ std::string CppBackend::emit_new_expression(NewExpression *expression)
     return source;
 }
 
-std::string CppBackend::emit_group_expression(GroupExpression *expression)
-{
+std::string CppBackend::emit_group_expression(GroupExpression *expression) {
     return "(" + emit_expression(expression->expression) + ")";
 }
 
-std::string CppBackend::emit_type_expression(TypeExpression *type_expression)
-{
+std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
     case TypeExpressionType::TYPE_IDENTIFIER:
@@ -578,19 +506,15 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression)
     }
 }
 
-std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression)
-{
+std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
     if (type_expression->op.type == TokenType::TOKEN_HAT)
-    {
-        return emit_type_expression(type_expression->type_expression) + "*";
-    }
+    { return emit_type_expression(type_expression->type_expression) + "*"; }
 
     panic("Cpp backend does not support this op yet...");
     return "";
 }
 
-std::string CppBackend::emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression)
-{
+std::string CppBackend::emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression) {
     auto source = emit_identifier_type_expression(type_expression->struct_type);
     if (type_expression->generics.size() > 0)
     {
@@ -601,9 +525,7 @@ std::string CppBackend::emit_specified_generics_type_expression(SpecifiedGeneric
             source.append(emit_type_expression(type));
 
             if (index + 1 < type_expression->generics.size())
-            {
-                source.append(", ");
-            }
+            { source.append(", "); }
             index++;
         }
         source.append(">");
@@ -612,25 +534,19 @@ std::string CppBackend::emit_specified_generics_type_expression(SpecifiedGeneric
     return source;
 }
 
-std::string CppBackend::emit_identifier_type_expression(IdentifierTypeExpression *type_expression)
-{
+std::string CppBackend::emit_identifier_type_expression(IdentifierTypeExpression *type_expression) {
     return type_expression->identifier.string;
 }
 
-std::string strip_semi_colon(std::string str)
-{
+std::string strip_semi_colon(std::string str) {
     if (str.size() == 0)
         return str;
 
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 
     if (str.back() == ';')
-    {
-        return str.substr(0, str.size() - 1);
-    }
+    { return str.substr(0, str.size() - 1); }
     else
-    {
-        return str;
-    }
+    { return str; }
     // return (str[str.size() - 1] == ';') ? str.substr(0, str.size()-1) : str;
 }
