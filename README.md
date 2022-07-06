@@ -1,5 +1,50 @@
-# Liam
+<p align="center">
+    <img src="extra/LiamLogo.png" alt="logo" style="width:70%; border-radius:2%">
+    <br/>
+   A Data-Oriented Programming Language for modern developers.
+    <br/>
+    <br/>
+    <a href="https://github.com/jackdelahunt/Liam">
+        <img src="https://img.shields.io/github/v/release/jackdelahunt/Liam?display_name=tag&include_prereleases">
+    </a>
+    <a href="https://github.com/jackdelahunt/Liam">
+        <img src="https://img.shields.io/github/last-commit/jackdelahunt/Liam/main">
+    </a>
+    <a href="https://github.com/jackdelahunt/Liam">
+        <img src="https://img.shields.io/github/repo-size/jackdelahunt/Liam">
+    </a>
+    <a href="https://github.com/jackdelahunt/Liam">
+        <img src="https://img.shields.io/badge/platforms-Windows%20|%20Linux%20|%20macOS-green.svg">
+    </a>
+    <br>
+</p>
+
+
+# The Liam Programming Language
 Liam is a strongly typed compiled language intended for performance comparable to C++ but less pain along the way. Liam generates and outputs `c++` which is then compiled to a final binary. 
+
+```rust
+import "stdlib/io"
+
+struct Person[T] {
+    name: ^char,
+    data: T
+}
+
+fn main(): u64 {
+    let p: Person[u64] = new Person[u64]{
+        "liam",
+        12
+    };
+
+    print[^char](p.name);
+    print[u64](p.data);
+
+    for let i := 0; i < p.data; i = i + 1; {
+        print[u64](i);
+    } 
+}
+```
 
 ## Building on Linux
 
@@ -34,26 +79,6 @@ cd liamc
 .\vendor\premake\premake5.exe vs2022
 ```
 Creates Visual Studio project to use as normal
-
-## Examples
-### Hello world
-```rust
-fn main(): u64 {
-    print[^char]("Hello world");
-}
-```
-
-### Structs
-```rust
-struct Person {
-    name: ^char
-}
-
-fn main(): u64 {
-    let s: Person = new Person{"liam"};
-    print[^char](s.name);
-}
-```
 
 ## Syntax
 ### Variables
