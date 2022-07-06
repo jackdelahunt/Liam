@@ -49,7 +49,7 @@ fn main(): u64 {
 ## Building on Linux
 
 ### Requirements
-- G++
+- Clang++
 - Make
 - Bash
 
