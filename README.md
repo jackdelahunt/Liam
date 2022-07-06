@@ -4,7 +4,7 @@ Liam is a strongly typed compiled language intended for performance comparable t
 ## Building on Linux
 
 ### Requirements
-- G++
+- Clang++
 - Make
 - Bash
 

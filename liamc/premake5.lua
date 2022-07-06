@@ -52,6 +52,7 @@ project "liamc"
 
 	-- windows specific stuffy
 	filter "system:linux"
+		toolset "clang"
 		defines {
 			"LINUX",
 		}
