@@ -1,8 +1,25 @@
 import "../../stdlib/io.liam";
 
 fn main(): u64 {
-    for let i: u64 = 0; i < 3; i = i + 1; {
+    for let i: u64 = 0; i < 2; i = i + 1; {
         println[u64](i);
     }
+ 
+    for let i: u64 = init(); compare(i); i = add(i); {
+        println[u64](i);
+    }
+ 
     return 0;
+}
+
+fn init(): u64 {
+    return 0;
+}
+
+fn compare(n: u64): boolean {
+    return n < 2;
+}
+
+fn add(n: u64): u64 {
+    return n + 1;
 }

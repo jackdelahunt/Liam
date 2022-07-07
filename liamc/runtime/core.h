@@ -11,6 +11,7 @@
 typedef uint8_t u8;
 typedef int8_t s8;
 
+typedef uint64_t u64;
 typedef int64_t s64;
 typedef double f64;
 
@@ -18,58 +19,22 @@ typedef int32_t s32;
 typedef uint32_t u32;
 typedef float f32;
 
-struct u64;
-u64 make_u64(uint64_t n);
-
-struct u64 {
-    uint64_t n;
-
-    std::string pretty_string(std::string indentation) {
-        return indentation + std::to_string(n);
-    }
-
-    friend bool operator<(const u64 &l, const u64 &r) {
-        return l.n < r.n;
-    }
-
-    friend bool operator>(const u64 &l, const u64 &r) {
-        return !(l.n < r.n);
-    }
-
-    friend bool operator<=(const u64 &l, const u64 &r) {
-        return !(l.n > r.n);
-    }
-
-    friend bool operator>=(const u64 &l, const u64 &r) {
-        return !(l.n < r.n);
-    }
-
-    friend u64 operator+(const u64 &l, const u64 &r) {
-        return make_u64(l.n + r.n);
-    }
-
-    friend u64 operator-(const u64 &l, const u64 &r) {
-        return make_u64(l.n - r.n);
-    }
-};
-
-u64 make_u64(uint64_t n) {
-    return u64{n};
+// used to make sure size of literal
+u64 _u64(int n) {
+    return n;
 }
 
-struct boolean {
-    bool v;
+// used to make sure size of literal
+s64 _s64(int n) {
+    return n;
+}
 
-    std::string pretty_string(std::string indentation) {
-        if (v)
-        { return indentation + "true"; }
+std::string pretty_string_builtin(std::string indentation, u64 n) {
+    return std::to_string(n);
+}
 
-        return indentation + "false";
-    }
-};
-
-boolean make_boolean(bool v) {
-    return boolean{v};
+std::string pretty_string_builtin(std::string indentation, bool b) {
+    return b ? "true" : "false";
 }
 
 struct str {
@@ -101,12 +66,19 @@ struct str {
     }
 };
 
+std::ostream& operator<<(std::ostream& os, const str &obj) {
+    for(int i = 0; i < obj.length; i++) {
+        os << obj.chars[i];
+    }
+    return os;
+}
+
 str make_str(char *chars, uint64_t length) {
     return str{chars, length};
 }
 
 u64 len(str s) {
-    return make_u64(s.length);
+    return s.length;
 }
 
 std::string pretty_string_pointer(std::string indentation, void *ptr) {
@@ -116,7 +88,7 @@ std::string pretty_string_pointer(std::string indentation, void *ptr) {
 }
 
 template <typename T> void print(T t) {
-    std::cout << t.pretty_string("");
+    std::cout << t;
 }
 
 template <typename T> void println(T t) {
@@ -144,9 +116,9 @@ template <typename T> struct Array {
 };
 
 template <typename T> Array<T> make_array() {
-    u64 start_capacity = make_u64(10);
+    u64 start_capacity = 10;
     return Array<T>{
-        .length = make_u64(0),
+        .length = 0,
         .capacity = start_capacity,
         .data = std::vector<T>(),
     };
@@ -157,11 +129,11 @@ template <typename T> void array_add(Array<T> *array, T t) {
 }
 
 template <typename T> T array_at(Array<T> *array, u64 index) {
-    return array->data.at(index.n);
+    return array->data.at(index);
 }
 
 template <typename T> u64 array_size(Array<T> *array) {
-    return make_u64(array->data.size());
+    return array->data.size();
 }
 
 struct String {
@@ -204,9 +176,9 @@ String read(str path) {
 }
 
 str string_substring(String *string, u64 start, u64 length) {
-    return make_str((char *)&string->string.c_str()[start.n], length.n);
+    return make_str((char *)&string->string.c_str()[start], length);
 }
 
 u64 string_length(String *string) {
-    return make_u64(string->string.size());
+    return string->string.size();
 }
