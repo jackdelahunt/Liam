@@ -17,3 +17,9 @@ liamc --in=main.liam --out=out.cpp
 ```bash
 clang++ out.cpp -I `liamc --runtime`
 ```
+
+## Help
+Get more flags and options and what they do that are not shown here
+```bash
+liamc --help
+```

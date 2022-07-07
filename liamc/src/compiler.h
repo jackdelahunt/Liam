@@ -56,7 +56,20 @@ std::vector<File> lex_parse(std::filesystem::path path, std::vector<std::string>
     return files;
 }
 
-inline File type_check(std::vector<File> *files) {
+File type_check(std::vector<File> *files) {
     auto tc = TypeChecker();
     return TypeChecker().type_check(files);
+}
+
+void print_runtime() {
+#ifdef WINDOWS
+    panic("This flag is not supported on windows yet...");
+#else
+    auto path = std::filesystem::canonical("/proc/self/exe").parent_path().string() + "/runtime";
+    std::cout << path;
+#endif
+}
+
+void print_help() {
+    std::cout << args->options->help();
 }
