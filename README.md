@@ -51,7 +51,7 @@ fn main(): u64 {
 #### [Learning the basics](docs/Learning-the-basics.md)
 Some helpful documentation for getting started learning Liam.
 
-#### [Installing and usage](docs/Install.md)
+#### [Installing and usage](docs/Installing.md)
 Learn how to get the compiler on your machine and how to use it.
 
 #### [Building](docs/Building.md)
