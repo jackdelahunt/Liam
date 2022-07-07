@@ -1,0 +1,17 @@
+import "../../stdlib/io.liam";
+
+struct Pointers {
+    s: str,
+    s_ptr: ^str
+}
+
+fn main(): void {
+    let x : u64 = 100;
+    let y : ^u64 = @x;
+    println[u64](x);
+    println[u64](*y);
+
+    let s := "this is a string";
+    let p := new Pointers{s, @s};
+    println[str](s);
+}
