@@ -53,7 +53,7 @@ project "liamc"
 		postbuildcommands {
 			"{MKDIR} %{distpath}",
 			"{COPYFILE} %{cfg.buildtarget.abspath} %{distpath}/",
-			"{COPYDIR} %{wks.location}/runtime %{distpath}/",
+			"{COPYDIR} %{wks.location}/runtime %{distpath}/runtime",
 	  	}
 
 	-- windows specific stuffy
