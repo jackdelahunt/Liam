@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="extra/LiamLogo.png" alt="logo" style="width:70%; border-radius:2%">
+    <img src="docs/LiamLogo.png" alt="logo" style="width:70%; border-radius:2%">
     <br/>
    A Data-Oriented Programming Language for modern developers.
     <br/>
@@ -24,7 +24,7 @@
 Liam is a strongly typed compiled language intended for performance comparable to C++ but less pain along the way. Liam generates and outputs `c++` which is then compiled to a final binary. 
 
 ```rust
-import "stdlib/io"
+import "stdlib/io";
 
 struct Person[T] {
     name: ^char,
@@ -46,92 +46,13 @@ fn main(): u64 {
 }
 ```
 
-## Building on Linux
+## Documentation
 
-### Requirements
-- Clang++
-- Make
-- Bash
+#### [Learning the basics](docs/Learning-the-basics.md)
+Some helpful documentation for getting started learning Liam.
 
-``` bash
-cd liamc
-```
+#### [Installing and usage](docs/Install.md)
+Learn how to get the compiler on your machine and how to use it.
 
-``` bash
-mkdir Code
-```
-``` bash
-touch main.liam
-```
-
-``` bash
-bash scripts/build_run.sh
-```
-
-## Building on Windows
-### Requirements
-- Visual Studio 2022
-
-```powershell
-cd liamc
-```
-```powershell
-.\vendor\premake\premake5.exe vs2022
-```
-Creates Visual Studio project to use as normal
-
-## Syntax
-### Variables
-```rust
-let var_name: type = ... ;
-```
-```rust
-let var_name := ... ; // type inferance
-```
-
-### Functions
-```rust
-fn func_name(param: type): return_type {}
-```
-
-### Generic Functions
-```rust
-fn func_name[T](param: T): ^T {}
-```
-
-### For Loops
-```rust
-for let i: u64 = 0; i < 10; i = i + 1; {
-    print[u64](i);   
-}
-```
-
-### Structs
-```rust
-struct struct_name {
-    member1: type,
-    member2: type
-}
-```
-
-### Generic Structs
-```rust
-struct struct_name[T] {
-    member1: T,
-    member2: type
-}
-```
-
-### Conditionals
-```rust
-if condition or another_condition {
-    ...
-}
-```
-
-### Pointers
-```rust
-let x_ptr: ^type = @x;
-let y: type = *x_ptr;
-```
-
+#### [Building](docs/Building.md)
+Learn how to get the compiler on your machine and how to use it.
