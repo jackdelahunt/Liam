@@ -40,20 +40,8 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement) {
         return "";
 
     std::string source = "";
-    if (statement->generics.size() > 0)
-    {
-        int index = 0;
-        source.append("template <");
-        for (auto &generic : statement->generics)
-        {
-            source.append("typename " + generic.string);
-            if (index + 1 < statement->generics.size())
-            { source.append(", "); }
-            index++;
-        }
-        source.append(">\n");
-    }
 
+    source.append(emit_cpp_template_declaration(&statement->generics));
     source.append("struct " + statement->identifier.string + ";\n");
 
     return source;
@@ -65,20 +53,7 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
 
     std::string source = "";
 
-    if (statement->generics.size() > 0)
-    {
-        int index = 0;
-        source.append("template <");
-        for (auto &generic : statement->generics)
-        {
-            source.append("typename " + generic.string);
-            if (index + 1 < statement->generics.size())
-            { source.append(", "); }
-            index++;
-        }
-        source.append(">\n");
-    }
-
+    source.append(emit_cpp_template_declaration(&statement->generics));
     source.append(emit_type_expression(statement->return_type) + " ");
 
     if (statement->identifier.string == "main")
@@ -229,19 +204,7 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
         return "";
     auto source = std::string();
 
-    if (statement->generics.size() > 0)
-    {
-        int index = 0;
-        source.append("template <");
-        for (auto &generic : statement->generics)
-        {
-            source.append("typename " + generic.string);
-            if (index + 1 < statement->generics.size())
-            { source.append(", "); }
-            index++;
-        }
-        source.append(">\n");
-    }
+    source.append(emit_cpp_template_declaration(&statement->generics));
 
     source.append("struct " + statement->identifier.string + " {");
     // members
@@ -250,27 +213,28 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
         source.append("\n" + emit_type_expression(type) + " ");
         source.append(identifier.string + ";");
     }
+    
+    source.append("};\n");
 
     // pretty print
-    source.append("\nstd::string pretty_string(std::string indentation) {\nauto text = std::string(indentation + \"" +
-                  statement->identifier.string + " {\\n\");\n");
+    source.append(emit_cpp_template_declaration(&statement->generics));
+    source.append("std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string + emit_cpp_template_usage(&statement->generics) + " &obj) {\n");
+    
+    // header
+    source.append("os << \"" + statement->identifier.string + "\" << \" {\" << std::endl;\n");
+    
+    //body
     for (auto [identifier, type] : statement->members)
     {
-        if (type->type_info->type == TypeInfoType::POINTER)
-        {
-            source.append("text.append(indentation + pretty_string_pointer(indentation + \"  \", (void*)" +
-                          identifier.string + ") + \",\\n\");\n");
-        }
-        else
-        {
-            source.append("text.append(indentation + " + identifier.string +
-                          ".pretty_string(indentation + \"  \") + \",\\n\");\n");
-        }
+        source.append("os << \"   \" << obj." + identifier.string + " << \",\" << std::endl;\n");
     }
-    source.append("text.append(indentation + \"}\");\n");
-    source.append("return text;\n}\n");
 
-    source.append("};\n\n");
+    // tail
+    source.append("os << \"}\" << std::endl;\n");
+    
+    source.append("return os;\n");
+
+    source.append("}\n\n");
     return source;
 }
 
@@ -387,14 +351,14 @@ std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *
 }
 
 std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression) {
-    return "make_boolean(" + expression->value.string + ")";
+    return expression->value.string;
 }
 
 std::string CppBackend::emit_int_literal_expression(IntLiteralExpression *expression) {
     auto int_type = static_cast<IntTypeInfo *>(expression->type_info);
 
     if (int_type->size == 64)
-    { return "make_u64(" + expression->token.string + ")"; }
+    { return "_u64(" + expression->token.string + ")"; }
 
     panic("This int size cannot be emitted yet");
 }
@@ -454,20 +418,7 @@ std::string CppBackend::emit_new_expression(NewExpression *expression) {
     auto source = std::string();
     source.append(expression->identifier.string);
 
-    if (expression->generics.size() > 0)
-    {
-        int index = 0;
-        source.append("<");
-        for (auto type : expression->generics)
-        {
-            source.append(emit_type_expression(type));
-
-            if (index + 1 < expression->generics.size())
-            { source.append(", "); }
-            index++;
-        }
-        source.append(">");
-    }
+    source.append(emit_cpp_template_params(&expression->generics));
 
     source.append("{");
     int index = 0;
@@ -549,4 +500,69 @@ std::string strip_semi_colon(std::string str) {
     else
     { return str; }
     // return (str[str.size() - 1] == ';') ? str.substr(0, str.size()-1) : str;
+}
+
+// template <typename T,  typename E, typename H>
+std::string CppBackend::emit_cpp_template_declaration(std::vector<Token> *generics) {
+    std::string source = "";
+
+    if (generics->size() > 0)
+    {
+        int index = 0;
+        source.append("template <");
+        for (auto &generic : *generics)
+        {
+            source.append("typename " + generic.string);
+            if (index + 1 < generics->size())
+            { source.append(", "); }
+            index++;
+        }
+        source.append(">\n");
+    }
+
+    return source;
+}
+
+// <T, E, H>
+std::string CppBackend::emit_cpp_template_usage(std::vector<Token> *generics) {
+        std::string source = "";
+
+    if (generics->size() > 0)
+    {
+        int index = 0;
+        source.append("<");
+        for (auto &generic : *generics)
+        {
+            source.append(generic.string);
+            if (index + 1 < generics->size())
+            { source.append(", "); }
+            index++;
+        }
+        source.append(">");
+    }
+
+    return source;
+
+}
+
+// <boolean, String, u64>
+std::string CppBackend::emit_cpp_template_params(std::vector<TypeExpression*> *generics) {
+    std::string source = "";
+
+    if (generics->size() > 0)
+    {
+        int index = 0;
+        source.append("<");
+        for (auto type : *generics)
+        {
+            source.append(emit_type_expression(type));
+
+            if (index + 1 < generics->size())
+            { source.append(", "); }
+            index++;
+        }
+        source.append(">");
+    }
+
+    return source;
 }
