@@ -6,9 +6,11 @@ workspace "Liam"
 	configurations {
 		"Debug",
 		"Release",
+		"Dist",
 	}
 
-outputdir = "%{cfg.system}-%{cfg.architecture}"
+outputpath = "%{cfg.system}-%{cfg.architecture}"
+distpath = "%{wks.location}/" .. outputpath .. "/%{prj.name}"
 		
 project "liamc"
 	location "src"
@@ -17,8 +19,8 @@ project "liamc"
 	language "C++"
 	cppdialect "C++20"
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("obj/" .. outputdir .. "/%{prj.name}")
+	targetdir ("bin/" .. outputpath .. "/%{prj.name}")
+	objdir ("obj/" .. outputpath .. "/%{prj.name}")
 
 	files {
 		"./src/**.h",
@@ -42,6 +44,18 @@ project "liamc"
 			optimize "on"
 		}
 
+	filter "configurations:Dist"
+		defines {
+			"DIST",
+			optimize "on"
+		}
+
+		postbuildcommands {
+			"{MKDIR} %{distpath}",
+			"{COPYFILE} %{cfg.buildtarget.abspath} %{distpath}/",
+			"{COPYDIR} %{wks.location}/runtime %{distpath}/",
+	  	}
+
 	-- windows specific stuffy
 	filter "system:windows"
 		systemversion "latest"
@@ -50,9 +64,10 @@ project "liamc"
 			"WINDOWS",
 		}
 
-	-- windows specific stuffy
+	-- linux specific stuffy
 	filter "system:linux"
 		toolset "clang"
 		defines {
 			"LINUX",
 		}
+
