@@ -213,25 +213,35 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
         source.append("\n" + emit_type_expression(type) + " ");
         source.append(identifier.string + ";");
     }
-    
+
     source.append("};\n");
 
     // pretty print
     source.append(emit_cpp_template_declaration(&statement->generics));
-    source.append("std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string + emit_cpp_template_usage(&statement->generics) + " &obj) {\n");
-    
+    source.append("std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string +
+                  emit_cpp_template_usage(&statement->generics) + " &obj) {\n");
+
     // header
     source.append("os << \"" + statement->identifier.string + "\" << \" {\" << std::endl;\n");
-    
-    //body
+
+    // body
     for (auto [identifier, type] : statement->members)
     {
-        source.append("os << \"   \" << obj." + identifier.string + " << \",\" << std::endl;\n");
+        if (type->type_info->type == TypeInfoType::POINTER)
+        {
+            source.append("os << \"   \" << \"*" + identifier.string + ": \" << *(obj." + identifier.string +
+                          ") << \",\" << std::endl;\n");
+        }
+        else
+        {
+            source.append("os << \"   \" << \"" + identifier.string + ": \" << obj." + identifier.string +
+                          " << \",\" << std::endl;\n");
+        }
     }
 
     // tail
     source.append("os << \"}\" << std::endl;\n");
-    
+
     source.append("return os;\n");
 
     source.append("}\n\n");
@@ -525,7 +535,7 @@ std::string CppBackend::emit_cpp_template_declaration(std::vector<Token> *generi
 
 // <T, E, H>
 std::string CppBackend::emit_cpp_template_usage(std::vector<Token> *generics) {
-        std::string source = "";
+    std::string source = "";
 
     if (generics->size() > 0)
     {
@@ -542,11 +552,10 @@ std::string CppBackend::emit_cpp_template_usage(std::vector<Token> *generics) {
     }
 
     return source;
-
 }
 
 // <boolean, String, u64>
-std::string CppBackend::emit_cpp_template_params(std::vector<TypeExpression*> *generics) {
+std::string CppBackend::emit_cpp_template_params(std::vector<TypeExpression *> *generics) {
     std::string source = "";
 
     if (generics->size() > 0)
