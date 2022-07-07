@@ -47,7 +47,7 @@ struct CppBackend {
 
     std::string emit_cpp_template_declaration(std::vector<Token> *generics);
     std::string emit_cpp_template_usage(std::vector<Token> *generics);
-    std::string emit_cpp_template_params(std::vector<TypeExpression*> *generics);
+    std::string emit_cpp_template_params(std::vector<TypeExpression *> *generics);
 };
 
 std::string strip_semi_colon(std::string str);

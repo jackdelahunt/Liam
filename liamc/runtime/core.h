@@ -66,10 +66,9 @@ struct str {
     }
 };
 
-std::ostream& operator<<(std::ostream& os, const str &obj) {
-    for(int i = 0; i < obj.length; i++) {
-        os << obj.chars[i];
-    }
+std::ostream &operator<<(std::ostream &os, const str &obj) {
+    for (int i = 0; i < obj.length; i++)
+    { os << obj.chars[i]; }
     return os;
 }
 
