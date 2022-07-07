@@ -13,7 +13,7 @@ SymbolTable::SymbolTable() {
     builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
     builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
     builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
-    builtin_type_table["boolean"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
+    builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
     builtin_type_table["str"] = new StrTypeInfo{TypeInfoType::STRING};
 }
 
@@ -292,8 +292,8 @@ void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable 
 
 void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table) {
     type_check_expression(statement->expression, symbol_table);
-    if (!type_match(statement->expression->type_info, symbol_table->get_type("boolean")))
-    { panic("If statement must be passed a boolean"); }
+    if (!type_match(statement->expression->type_info, symbol_table->get_type("bool")))
+    { panic("If statement must be passed a bool"); }
     type_check_scope_statement(statement->body, symbol_table);
 }
 
@@ -384,7 +384,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
         if (expression->left->type_info->type != TypeInfoType::BOOLEAN &&
             expression->right->type_info->type != TypeInfoType::BOOLEAN)
         { panic("Cannot use logical operators on non bool type"); }
-        info = symbol_table->get_type("boolean");
+        info = symbol_table->get_type("bool");
     }
 
     // math ops - numbers -> numbers
@@ -400,12 +400,12 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     {
         if (expression->left->type_info->type != TypeInfoType::INT)
         { panic("Cannot use arithmatic operator on non number"); }
-        info = symbol_table->get_type("boolean");
+        info = symbol_table->get_type("bool");
     }
 
     // compare - any -> bool
     if (expression->op.type == TOKEN_EQUAL || expression->op.type == TOKEN_NOT_EQUAL)
-    { info = symbol_table->get_type("boolean"); }
+    { info = symbol_table->get_type("bool"); }
 
     expression->type_info = info;
 }

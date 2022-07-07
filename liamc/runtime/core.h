@@ -91,7 +91,7 @@ template <typename T> void print(T t) {
 }
 
 template <typename T> void println(T t) {
-    std::cout << t.pretty_string("") << "\n";
+    std::cout << t << "\n";
 }
 
 template <typename T> T *alloc(T t) {
