@@ -10,8 +10,18 @@
 s32 main(s32 argc, char **argv) {
     Arguments::New(argc, argv);
 
+    if(args->runtime) {
+        print_runtime();
+        return 0;
+    }
+
+    if(args->help) {
+        print_help();
+        return 0;
+    }
+
     TIME_START(l_p_time);
-    auto files = lex_parse(std::filesystem::absolute(args->value<std::string>("in")));
+    auto files = lex_parse(std::filesystem::absolute(args->in_path));
     TIME_END(l_p_time, "Lex and parsing time");
 
     TIME_START(type_time);
@@ -24,7 +34,7 @@ s32 main(s32 argc, char **argv) {
     { std::cout << code; }
     else
     {
-        std::ofstream out_file(args->value<std::string>("out"));
+        std::ofstream out_file(args->out_path);
         out_file << code;
         out_file.close();
     }
