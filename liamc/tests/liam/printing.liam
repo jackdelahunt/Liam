@@ -3,6 +3,6 @@ import "../../stdlib/io.liam";
 fn main(): u64 {
     println[str]("Hello");
     println[u64](100);
-    println[boolean](false);
+    println[bool](false);
     return 0;
 }

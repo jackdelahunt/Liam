@@ -16,7 +16,7 @@ fn init(): u64 {
     return 0;
 }
 
-fn compare(n: u64): boolean {
+fn compare(n: u64): bool {
     return n < 2;
 }
 
