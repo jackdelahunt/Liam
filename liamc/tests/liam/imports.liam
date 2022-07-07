@@ -1,8 +1,10 @@
 import "other/import_me.liam";
+import "../../stdlib/io.liam";
 
 fn main(): u64 {
     hello("Hello");
     helloToYou[str]("Hello to you");
     let i: ImportMe = new ImportMe{100};
+    println[u64](i.number);
     return 0; 
 }
