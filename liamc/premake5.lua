@@ -54,6 +54,7 @@ project "liamc"
 			"{MKDIR} %{distpath}",
 			"{COPYFILE} %{cfg.buildtarget.abspath} %{distpath}/",
 			"{COPYDIR} %{wks.location}/runtime %{distpath}/runtime",
+			"{COPYDIR} %{wks.location}/stdlib %{distpath}/stdlib",
 	  	}
 
 	-- windows specific stuffy
