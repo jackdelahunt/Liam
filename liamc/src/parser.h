@@ -75,6 +75,7 @@ struct Parser {
 
     /* return_type expressions */
     std::tuple<TypeExpression *, bool> eval_type_expression();
+    std::tuple<TypeExpression *, bool> eval_type_union();
     std::tuple<TypeExpression *, bool> eval_type_unary();
     std::tuple<TypeExpression *, bool> eval_type_specified_generics();
     std::tuple<IdentifierTypeExpression *, bool> eval_type_identifier();

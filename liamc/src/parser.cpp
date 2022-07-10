@@ -482,7 +482,28 @@ std::tuple<Expression *, bool> Parser::eval_group_expression() {
 }
 
 std::tuple<TypeExpression *, bool> Parser::eval_type_expression() {
-    return eval_type_unary();
+    return eval_type_union();
+}
+
+std::tuple<TypeExpression *, bool> Parser::eval_type_union() {
+    TRY(TypeExpression *, type_expression, eval_type_unary());
+
+    // there is a bar then this is a union type else return normal type
+    if (match(TOKEN_BAR))
+    {
+        auto expressions = std::vector<TypeExpression *>();
+        expressions.push_back(type_expression);
+        while (match(TOKEN_BAR))
+        {
+            TRY_TOKEN(TOKEN_BAR);
+            TRY(TypeExpression *, next_expression, eval_type_unary());
+            expressions.push_back(next_expression);
+        }
+
+        return WIN(new UnionTypeExpression(expressions));
+    }
+
+    return WIN(type_expression);
 }
 
 std::tuple<TypeExpression *, bool> Parser::eval_type_unary() {

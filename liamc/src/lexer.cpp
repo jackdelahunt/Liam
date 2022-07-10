@@ -4,29 +4,27 @@
 
 #include "liam.h"
 
-const char *TokenTypeStrings[41] = {
-    "int Literal", "string Literal",
-    "identifier",  "let",
-    "insert",      "fn",
-    "loop",        "(",
-    ")",           "{",
-    "}",           "+",
-    "*",           "=",
-    ";",           ",",
-    ":",           "return",
-    "return_type", "^",
-    "@",           "struct",
-    ".",           "new",
-    "break",       ":=",
-    "[",           "]",
-    "for",         "in",
-    "false",       "true",
-    "if",          "or",
-    "and",         "==",
-    "!=",          "!",
-    "<",           ">",
-    "extern",
-};
+const char *TokenTypeStrings[42] = {"int Literal", "string Literal",
+                                    "identifier",  "let",
+                                    "insert",      "fn",
+                                    "loop",        "(",
+                                    ")",           "{",
+                                    "}",           "+",
+                                    "*",           "=",
+                                    ";",           ",",
+                                    ":",           "return",
+                                    "return_type", "^",
+                                    "@",           "struct",
+                                    ".",           "new",
+                                    "break",       ":=",
+                                    "[",           "]",
+                                    "for",         "in",
+                                    "false",       "true",
+                                    "if",          "or",
+                                    "and",         "==",
+                                    "!=",          "!",
+                                    "<",           ">",
+                                    "extern",      "|"};
 
 std::vector<char> extract_chars(const char *path) {
     auto vec = std::vector<char>();
@@ -58,7 +56,7 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
 bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' ||
            c == '=' || c == '+' || c == '^' || c == '@' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
-           c == '<' || c == '>';
+           c == '<' || c == '>' || c == '|';
 }
 
 Lexer::Lexer(std::filesystem::path path) {
@@ -146,6 +144,9 @@ void Lexer::lex() {
             break;
         case '>':
             tokens.emplace_back(Token(TokenType::TOKEN_GREATER, ">", current_line, current_character));
+            break;
+        case '|':
+            tokens.emplace_back(Token(TokenType::TOKEN_BAR, "|", current_line, current_character));
             break;
         case '!':
             if (peek() == '=')

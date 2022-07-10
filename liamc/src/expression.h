@@ -104,6 +104,7 @@ struct GroupExpression : Expression {
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_UNARY,
+    TYPE_UNION,
     TYPE_SPECIFIED_GENERICS,
 };
 
@@ -124,6 +125,12 @@ struct UnaryTypeExpression : TypeExpression {
     TypeExpression *type_expression;
 
     UnaryTypeExpression(Token op, TypeExpression *type_expression);
+};
+
+struct UnionTypeExpression : TypeExpression {
+    std::vector<TypeExpression *> type_expressions;
+
+    UnionTypeExpression(std::vector<TypeExpression *> type_expressions);
 };
 
 struct SpecifiedGenericsTypeExpression : TypeExpression {
