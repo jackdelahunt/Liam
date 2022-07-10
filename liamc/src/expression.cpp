@@ -85,6 +85,11 @@ UnaryTypeExpression::UnaryTypeExpression(Token op, TypeExpression *type_expressi
     this->type = TypeExpressionType::TYPE_UNARY;
 }
 
+UnionTypeExpression::UnionTypeExpression(std::vector<TypeExpression *> type_expressions) {
+    this->type_expressions = type_expressions;
+    this->type = TypeExpressionType::TYPE_UNION;
+}
+
 SpecifiedGenericsTypeExpression::SpecifiedGenericsTypeExpression(IdentifierTypeExpression *struct_type,
                                                                  std::vector<TypeExpression *> generics) {
     this->struct_type = struct_type;
