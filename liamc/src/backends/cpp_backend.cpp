@@ -138,7 +138,11 @@ std::string CppBackend::emit_break_statement(BreakStatement *statement) {
 
 std::string CppBackend::emit_let_statement(LetStatement *statement) {
     auto source = std::string();
-    source.append("auto ");
+    if(statement->type) {
+        source.append(emit_type_expression(statement->type) + " ");
+    } else {
+        source.append("auto ");
+    }
     source.append(statement->identifier.string);
     source.append(" = ");
     source.append(emit_expression(statement->rhs) + ";\n");
@@ -451,6 +455,9 @@ std::string CppBackend::emit_group_expression(GroupExpression *expression) {
 std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
+    case TypeExpressionType::TYPE_UNION:
+        return emit_union_type_expression(dynamic_cast<UnionTypeExpression *>(type_expression));
+        break;
     case TypeExpressionType::TYPE_IDENTIFIER:
         return emit_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression));
         break;
@@ -465,6 +472,12 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
         panic("Cpp back end does not support this return_type expression");
         return "";
     }
+}
+
+std::string CppBackend::emit_union_type_expression(UnionTypeExpression *type_expression) {
+    std::string source = "std::variant";
+    source.append(emit_cpp_template_params(&type_expression->type_expressions));
+    return source;
 }
 
 std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {

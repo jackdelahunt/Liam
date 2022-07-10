@@ -71,6 +71,7 @@ struct TypeChecker {
     void type_check_group_expression(GroupExpression *expression, SymbolTable *symbol_table);
 
     void type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table);
+    void type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression,
                                                        SymbolTable *symbol_table);

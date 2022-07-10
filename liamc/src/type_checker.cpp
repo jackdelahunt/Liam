@@ -198,15 +198,18 @@ void TypeChecker::type_check_break_statement(BreakStatement *statement, SymbolTa
 
 void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable *symbol_table) {
     type_check_expression(statement->rhs, symbol_table);
+
+    // if let type is there type match both and set var type
+    // to the let type... else just set it to the rhs
     if (statement->type)
     {
         type_check_type_expression(statement->type, symbol_table);
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
         { panic("Mismatched types in let statement"); }
+        symbol_table->add_identifier(statement->identifier, statement->type->type_info);
+        return;
     }
 
-    // let type could be null here that is why rhs is added. if there is ever
-    // lets with no rhs this will break... :[
     symbol_table->add_identifier(statement->identifier, statement->rhs->type_info);
 }
 
@@ -261,7 +264,7 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
             {
                 found_return = true;
                 auto return_statement = dynamic_cast<ReturnStatement *>(stmt);
-                if (!type_match(return_statement->expression->type_info, existing_type_info->return_type))
+                if (!type_match(existing_type_info->return_type, return_statement->expression->type_info))
                 { panic("Mismatch types in function, return types do not match"); }
             }
         }
@@ -614,6 +617,9 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
     case TypeExpressionType::TYPE_IDENTIFIER:
         type_check_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression), symbol_table);
         break;
+    case TypeExpressionType::TYPE_UNION:
+        type_check_union_type_expression(dynamic_cast<UnionTypeExpression *>(type_expression), symbol_table);
+        break;
     case TypeExpressionType::TYPE_UNARY:
         type_check_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression), symbol_table);
         break;
@@ -624,6 +630,17 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
     default:
         panic("Not implemented for type checker");
     }
+}
+
+void TypeChecker::type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table) {
+    
+    auto sub_types = std::vector<TypeInfo *>();
+    for(auto sub_type_expression : type_expression->type_expressions) {
+        type_check_type_expression(sub_type_expression, symbol_table);
+        sub_types.push_back(sub_type_expression->type_info);
+    }
+
+    type_expression->type_info = new UnionTypeInfo{TypeInfoType::UNION, sub_types};
 }
 
 void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table) {
@@ -704,9 +721,24 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         return true; // TODO: this might be a bug not checking b but not sure what
                      // to do here...
 
-    // TODO: any to any is actually ambigious so this is a bug
     if (a->type != b->type)
     {
+
+        if(a->type == TypeInfoType::UNION) {
+            bool contains = false;
+            auto union_a = static_cast<UnionTypeInfo *>(a);
+
+
+            for(auto type_info : union_a->types) {
+                if(type_match(type_info, b)) {
+                    contains = true;
+                    break;
+                }
+            }
+
+            return contains;
+        }
+
         if (a->type != TypeInfoType::ANY && b->type != TypeInfoType::ANY)
         { return false; }
     }
@@ -788,6 +820,20 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
             if (!type_match(ptr_a->generic_types.at(i), ptr_b->generic_types.at(i)))
             { return false; }
         }
+
+        return true;
+    } else if (a->type == TypeInfoType::UNION)
+    {
+        auto union_a = static_cast<UnionTypeInfo *>(a);
+        auto union_b = static_cast<UnionTypeInfo *>(b);
+
+        if(union_a->types.size() != union_b->types.size()) return false;
+
+        for(int i = 0; i < union_a->types.size(); i++) {
+            if(!type_match(union_a->types.at(i), union_b->types.at(i)))
+                return false;
+        }
+
 
         return true;
     }
