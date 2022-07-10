@@ -7,6 +7,7 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <variant>
 
 typedef uint8_t u8;
 typedef int8_t s8;
@@ -180,4 +181,10 @@ str string_substring(String *string, u64 start, u64 length) {
 
 u64 string_length(String *string) {
     return string->string.size();
+}
+
+template <typename T, typename... Ts>
+std::ostream& operator<<(std::ostream& os, const std::variant<T, Ts...> &obj) {
+    os << "<?>";
+    return os;
 }

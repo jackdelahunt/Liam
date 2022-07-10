@@ -22,5 +22,5 @@ os.makedirs(out_path, exist_ok=True)
 for i, source in enumerate(source_files):
     print("========= " + source + " =========")
     subprocess.run([compiler_path, "--in", source, "--out", out_path + "out.cpp"])
-    subprocess.run(["clang++", "-I", runtime_path, out_path + "out.cpp", "-o", out_path + "out.exe"])
+    subprocess.run(["clang++", "-I", runtime_path, out_path + "out.cpp", "-std=c++20", "-o", out_path + "out.exe"])
     subprocess.run(["./" + out_path + "out.exe"])

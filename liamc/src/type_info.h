@@ -12,6 +12,7 @@ enum class TypeInfoType {
     STRUCT_INSTANCE,
     POINTER,
     GENERIC,
+    UNION,
 };
 
 struct TypeInfo {
@@ -57,4 +58,8 @@ struct StructInstanceTypeInfo : TypeInfo {
 
 struct GenericTypeInfo : TypeInfo {
     u64 id;
+};
+
+struct UnionTypeInfo : TypeInfo {
+    std::vector<TypeInfo *> types;
 };
