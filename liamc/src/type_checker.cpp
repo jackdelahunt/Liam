@@ -380,17 +380,17 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         panic("Not implemented");
     }
 }
-    
+
 void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable *symbol_table) {
     type_check_expression(expression->expression, symbol_table);
     type_check_type_expression(expression->type_expression, symbol_table);
 
-    if(expression->expression->type_info->type != TypeInfoType::UNION) {
-        panic("Cannot use is expressio on non union type");
-    }
+    if (expression->expression->type_info->type != TypeInfoType::UNION)
+    { panic("Cannot use is expressio on non union type"); }
 
     expression->type_info = symbol_table->get_type("bool");
-    symbol_table->add_identifier(expression->identifier, new PointerTypeInfo{TypeInfoType::POINTER, expression->type_expression->type_info});
+    symbol_table->add_identifier(expression->identifier,
+                                 new PointerTypeInfo{TypeInfoType::POINTER, expression->type_expression->type_info});
 }
 
 void TypeChecker::type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table) {

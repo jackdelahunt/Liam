@@ -1,0 +1,51 @@
+import "../../stdlib/io.liam";
+
+struct Struct {
+    data: u64 | bool
+}
+
+fn main(): void {
+    let x: u64 | str = 100;
+
+    if x is u64 n {
+        println[u64](*n);
+    }
+
+    x = "this is a string";
+
+    if x is str s {
+        println[str](*s);
+    }
+
+    let s := new Struct{100};
+    if s.data is u64 n {
+        println[u64](*n);
+    }
+
+    let t: Struct | u64 = new Struct{false};
+    if t is Struct c {
+        if (*c).data is bool b {
+            println[bool](*b);
+        }
+    }
+
+    let n_o_s := num_or_string(false);
+    if n_o_s is str c {
+        println[str](*c);
+    }
+
+
+}
+
+fn num_or_string(x: u64 | bool): u64 | str {
+
+    if x is u64 n {
+        return *n;
+    }
+
+    if x is bool b {
+        return "oh no wrong input";
+    }
+
+    return "PANIC :: how did we get here";
+}
