@@ -60,6 +60,7 @@ struct TypeChecker {
 
     void type_check_expression(Expression *expression, SymbolTable *symbol_table);
     void type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table);
+    void type_check_is_expression(IsExpression *expression, SymbolTable *symbol_table);
     void type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table);
     void type_check_string_literal_expression(StringLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_int_literal_expression(IntLiteralExpression *expression, SymbolTable *symbol_table);

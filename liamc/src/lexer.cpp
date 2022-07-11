@@ -4,27 +4,49 @@
 
 #include "liam.h"
 
-const char *TokenTypeStrings[42] = {"int Literal", "string Literal",
-                                    "identifier",  "let",
-                                    "insert",      "fn",
-                                    "loop",        "(",
-                                    ")",           "{",
-                                    "}",           "+",
-                                    "*",           "=",
-                                    ";",           ",",
-                                    ":",           "return",
-                                    "return_type", "^",
-                                    "@",           "struct",
-                                    ".",           "new",
-                                    "break",       ":=",
-                                    "[",           "]",
-                                    "for",         "in",
-                                    "false",       "true",
-                                    "if",          "or",
-                                    "and",         "==",
-                                    "!=",          "!",
-                                    "<",           ">",
-                                    "extern",      "|"};
+const char *TokenTypeStrings[43] = {"int Literal",
+                                    "string Literal",
+                                    "identifier",
+                                    "let",
+                                    "insert",
+                                    "fn",
+                                    "loop",
+                                    "(",
+                                    ")",
+                                    "{",
+                                    "}",
+                                    "+",
+                                    "*",
+                                    "=",
+                                    ";",
+                                    ",",
+                                    ":",
+                                    "return",
+                                    "return_type",
+                                    "^",
+                                    "@",
+                                    "struct",
+                                    ".",
+                                    "new",
+                                    "break",
+                                    ":=",
+                                    "[",
+                                    "]",
+                                    "for",
+                                    "in",
+                                    "false",
+                                    "true",
+                                    "if",
+                                    "or",
+                                    "and",
+                                    "==",
+                                    "!=",
+                                    "!",
+                                    "<",
+                                    ">",
+                                    "extern",
+                                    "|"
+                                    "is"};
 
 std::vector<char> extract_chars(const char *path) {
     auto vec = std::vector<char>();
@@ -269,6 +291,18 @@ void Lexer::lex() {
                 continue;
             }
 
+            if (word == "extern")
+            {
+                tokens.emplace_back(Token(TokenType::TOKEN_EXTERN, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "is")
+            {
+                tokens.emplace_back(Token(TokenType::TOKEN_IS, word, current_line, word_start));
+                continue;
+            }
+
             // built in types
             if (word == "void")
             {
@@ -297,12 +331,6 @@ void Lexer::lex() {
             if (word == "false")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_FALSE, word, current_line, word_start));
-                continue;
-            }
-
-            if (word == "extern")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_EXTERN, word, current_line, word_start));
                 continue;
             }
 

@@ -294,10 +294,15 @@ void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable 
 }
 
 void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table) {
-    type_check_expression(statement->expression, symbol_table);
-    if (!type_match(statement->expression->type_info, symbol_table->get_type("bool")))
+
+    // if may declare new varaibles that we do not want to leak into outher
+    // scope like with the is expression
+    auto copy = symbol_table->copy();
+
+    type_check_expression(statement->expression, &copy);
+    if (!type_match(statement->expression->type_info, copy.get_type("bool")))
     { panic("If statement must be passed a bool"); }
-    type_check_scope_statement(statement->body, symbol_table);
+    type_check_scope_statement(statement->body, &copy);
 }
 
 void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool first_pass) {
@@ -354,6 +359,9 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_IDENTIFIER:
         return type_check_identifier_expression(dynamic_cast<IdentifierExpression *>(expression), symbol_table);
         break;
+    case ExpressionType::EXPRESSION_IS:
+        return type_check_is_expression(dynamic_cast<IsExpression *>(expression), symbol_table);
+        break;
     case ExpressionType::EXPRESSION_BINARY:
         return type_check_binary_expression(dynamic_cast<BinaryExpression *>(expression), symbol_table);
         break;
@@ -372,6 +380,19 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         panic("Not implemented");
     }
 }
+    
+void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable *symbol_table) {
+    type_check_expression(expression->expression, symbol_table);
+    type_check_type_expression(expression->type_expression, symbol_table);
+
+    if(expression->expression->type_info->type != TypeInfoType::UNION) {
+        panic("Cannot use is expressio on non union type");
+    }
+
+    expression->type_info = symbol_table->get_type("bool");
+    symbol_table->add_identifier(expression->identifier, new PointerTypeInfo{TypeInfoType::POINTER, expression->type_expression->type_info});
+}
+
 void TypeChecker::type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table) {
     type_check_expression(expression->left, symbol_table);
     type_check_expression(expression->right, symbol_table);
@@ -633,9 +654,10 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
 }
 
 void TypeChecker::type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table) {
-    
+
     auto sub_types = std::vector<TypeInfo *>();
-    for(auto sub_type_expression : type_expression->type_expressions) {
+    for (auto sub_type_expression : type_expression->type_expressions)
+    {
         type_check_type_expression(sub_type_expression, symbol_table);
         sub_types.push_back(sub_type_expression->type_info);
     }
@@ -724,13 +746,15 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     if (a->type != b->type)
     {
 
-        if(a->type == TypeInfoType::UNION) {
+        if (a->type == TypeInfoType::UNION)
+        {
             bool contains = false;
             auto union_a = static_cast<UnionTypeInfo *>(a);
 
-
-            for(auto type_info : union_a->types) {
-                if(type_match(type_info, b)) {
+            for (auto type_info : union_a->types)
+            {
+                if (type_match(type_info, b))
+                {
                     contains = true;
                     break;
                 }
@@ -822,18 +846,20 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         }
 
         return true;
-    } else if (a->type == TypeInfoType::UNION)
+    }
+    else if (a->type == TypeInfoType::UNION)
     {
         auto union_a = static_cast<UnionTypeInfo *>(a);
         auto union_b = static_cast<UnionTypeInfo *>(b);
 
-        if(union_a->types.size() != union_b->types.size()) return false;
+        if (union_a->types.size() != union_b->types.size())
+            return false;
 
-        for(int i = 0; i < union_a->types.size(); i++) {
-            if(!type_match(union_a->types.at(i), union_b->types.at(i)))
+        for (int i = 0; i < union_a->types.size(); i++)
+        {
+            if (!type_match(union_a->types.at(i), union_b->types.at(i)))
                 return false;
         }
-
 
         return true;
     }
