@@ -22,7 +22,7 @@ void panic(const std::string &msg);
 
 #define TIME_END(name, message)                                                                                        \
     {                                                                                                                  \
-        auto end = std::chrono::high_resolution_clock::now();                                                          \
+        auto end                                        = std::chrono::high_resolution_clock::now();                   \
         std::chrono::duration<double, std::milli> delta = end - name;                                                  \
         if (args->value<bool>("time"))                                                                                 \
         { std::cout << message << " :: " << delta.count() << "ms\n"; }                                                 \
@@ -40,8 +40,8 @@ void panic(const std::string &msg);
 #define NAMED_TOKEN(value, type)                                                                                       \
     Token *value = nullptr;                                                                                            \
     {                                                                                                                  \
-        auto tuple = consume_token_of_type(type);                                                                      \
-        value = std::get<0>(tuple);                                                                                    \
+        auto tuple     = consume_token_of_type(type);                                                                  \
+        value          = std::get<0>(tuple);                                                                           \
         auto try_error = std::get<1>(tuple);                                                                           \
         if (try_error)                                                                                                 \
         { return {nullptr, true}; }                                                                                    \

@@ -20,7 +20,7 @@ struct Arguments {
     cxxopts::ParseResult result;
 
     static void New(int argc, char **argv) {
-        args = new Arguments{};
+        args         = new Arguments{};
         auto options = new cxxopts::Options("liamc", "Liam programming language compiler");
 
         // required fields
@@ -33,15 +33,15 @@ struct Arguments {
         options->add_options()("r,runtime", "Get the runtime location", cxxopts::value<bool>()->default_value("false"));
         options->add_options()("h,help", "See this help screen", cxxopts::value<bool>()->default_value("false"));
 
-        args->result = options->parse(argc, argv);
+        args->result  = options->parse(argc, argv);
         args->options = options;
 
         // optional
         args->out_path = args->value<std::string>("out");
-        args->codegen = args->value<bool>("codegen");
-        args->time = args->value<bool>("time");
-        args->runtime = args->value<bool>("runtime");
-        args->help = args->value<bool>("help");
+        args->codegen  = args->value<bool>("codegen");
+        args->time     = args->value<bool>("time");
+        args->runtime  = args->value<bool>("runtime");
+        args->help     = args->value<bool>("help");
 
         // required args
         if (args->result.hasValue<std::string>("in"))

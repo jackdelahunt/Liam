@@ -48,8 +48,9 @@ struct TypeChecker {
     void type_check_return_statement(ReturnStatement *statement, SymbolTable *symbol_table);
     void type_check_break_statement(BreakStatement *statement, SymbolTable *symbol_table);
     void type_check_let_statement(LetStatement *statement, SymbolTable *symbol_table);
-    void type_check_scope_statement(ScopeStatement *statement, SymbolTable *symbol_table,
-                                    bool copy_symbol_table = true);
+    void type_check_scope_statement(
+        ScopeStatement *statement, SymbolTable *symbol_table, bool copy_symbol_table = true
+    );
     void type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table, bool first_pass = false);
     void type_check_loop_statement(LoopStatement *statement, SymbolTable *symbol_table);
     void type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table);
@@ -74,8 +75,9 @@ struct TypeChecker {
     void type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table);
-    void type_check_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression,
-                                                       SymbolTable *symbol_table);
+    void type_check_specified_generics_type_expression(
+        SpecifiedGenericsTypeExpression *type_expression, SymbolTable *symbol_table
+    );
     void type_check_identifier_type_expression(IdentifierTypeExpression *type_expression, SymbolTable *symbol_table);
 
     TypeInfo *resolve_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params);

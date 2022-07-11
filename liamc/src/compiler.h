@@ -15,7 +15,7 @@ std::vector<File> lex_parse(std::filesystem::path path, std::vector<std::string>
     auto lexer = Lexer(path);
     lexer.lex();
     auto parser = Parser(path, lexer.tokens);
-    auto file = parser.parse();
+    auto file   = parser.parse();
 
     files.emplace_back(file);
 

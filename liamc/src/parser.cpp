@@ -8,14 +8,14 @@
 
 File::File(std::filesystem::path path) {
     statements = std::vector<Statement *>();
-    imports = std::vector<std::string>();
+    imports    = std::vector<std::string>();
     this->path = std::move(path);
 }
 
 Parser::Parser(std::filesystem::path path, std::vector<Token> &tokens) {
-    this->tokens = tokens;
+    this->tokens  = tokens;
     this->current = 0;
-    this->path = absolute(std::filesystem::path(path));
+    this->path    = absolute(std::filesystem::path(path));
 }
 
 File Parser::parse() {
@@ -32,7 +32,7 @@ File Parser::parse() {
             if (import_stmt->file->type != ExpressionType::EXPRESSION_STRING_LITERAL)
             { panic("Import requires string literal"); }
             auto import_path = dynamic_cast<StringLiteralExpression *>(import_stmt->file);
-            auto parent = this->path.parent_path().string();
+            auto parent      = this->path.parent_path().string();
 
             std::string final_path;
             if (std::filesystem::path(import_path->token.string).is_absolute())
@@ -180,7 +180,7 @@ std::tuple<LoopStatement *, bool> Parser::eval_loop_statement() {
 
 s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {
     s32 current_index = from;
-    s32 balance = 0;
+    s32 balance       = 0;
 
     while (current_index < tokens.size())
     {
@@ -242,8 +242,8 @@ std::tuple<ReturnStatement *, bool> Parser::eval_return_statement() {
 }
 
 std::tuple<BreakStatement *, bool> Parser::eval_break_statement() {
-    // might just use an expression statement for this but for now it is a string
-    // lit
+    // might just use an expression statement for this but for now it is a
+    // string lit
     TRY_TOKEN(TOKEN_BREAK);
     NAMED_TOKEN(identifier, TOKEN_STRING_LITERAL);
     consume_token_of_type(TOKEN_SEMI_COLON);
@@ -576,16 +576,20 @@ std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type) {
     if (current >= tokens.size())
     {
         auto last_token = tokens.at(tokens.size() - 1);
-        FAIL(path.string(), last_token.line, last_token.character,
-             std::string("Expected \'") + TokenTypeStrings[type] + std::string("\' but got unexpected end of file"));
+        FAIL(
+            path.string(), last_token.line, last_token.character,
+            std::string("Expected \'") + TokenTypeStrings[type] + std::string("\' but got unexpected end of file")
+        );
     }
 
     auto t_ptr = &tokens.at(current++);
     if (t_ptr->type != type)
     {
-        FAIL(path.string(), t_ptr->line, t_ptr->character,
-             std::string("Expected \'") + TokenTypeStrings[type] + "\' got \'" + t_ptr->string + "\' at (" +
-                 std::to_string(t_ptr->line) + ":" + std::to_string(t_ptr->character) + ")");
+        FAIL(
+            path.string(), t_ptr->line, t_ptr->character,
+            std::string("Expected \'") + TokenTypeStrings[type] + "\' got \'" + t_ptr->string + "\' at (" +
+                std::to_string(t_ptr->line) + ":" + std::to_string(t_ptr->character) + ")"
+        );
     }
 
     return {t_ptr, false};
@@ -593,15 +597,15 @@ std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type) {
 
 // e.g. (0, "hello sailor", ...)
 std::tuple<std::vector<Expression *>, bool> Parser::consume_comma_seperated_arguments(TokenType closer) {
-    auto args = std::vector<Expression *>();
+    auto args     = std::vector<Expression *>();
     bool is_first = true;
     if (!match(closer))
     {
         do
         {
             if (!is_first)
-                current++; // only iterate current by one when it is not the first
-                           // time
+                current++; // only iterate current by one when it is not the
+                           // first time
 
             auto [expr, error] = eval_expression();
             if (error)
@@ -620,15 +624,15 @@ std::tuple<std::vector<Expression *>, bool> Parser::consume_comma_seperated_argu
 
 // e.g. (X, Y, Z, ...)
 std::tuple<std::vector<Token>, bool> Parser::consume_comma_seperated_token_arguments(TokenType closer) {
-    auto args = std::vector<Token>();
+    auto args     = std::vector<Token>();
     bool is_first = true;
     if (!match(closer))
     {
         do
         {
             if (!is_first)
-                current++; // only iterate current by one when it is not the first
-                           // time
+                current++; // only iterate current by one when it is not the
+                           // first time
 
             auto token = consume_token();
             args.push_back(*token);
@@ -644,15 +648,15 @@ std::tuple<std::vector<Token>, bool> Parser::consume_comma_seperated_token_argum
 
 // e.g. (int32, ^char, ...)
 std::tuple<std::vector<TypeExpression *>, bool> Parser::consume_comma_seperated_types(TokenType closer) {
-    auto types = std::vector<TypeExpression *>();
+    auto types    = std::vector<TypeExpression *>();
     bool is_first = true;
     if (!match(closer))
     {
         do
         {
             if (!is_first)
-                current++; // only iterate current by one when it is not the first
-                           // time
+                current++; // only iterate current by one when it is not the
+                           // first time
 
             auto [type, error] = eval_type_expression();
             if (error)
@@ -672,14 +676,14 @@ std::tuple<std::vector<TypeExpression *>, bool> Parser::consume_comma_seperated_
 // e.g. (int x, int y, ...)
 std::tuple<CSV, bool> Parser::consume_comma_seperated_params() {
     auto args_types = std::vector<std::tuple<Token, TypeExpression *>>();
-    bool is_first = true;
+    bool is_first   = true;
     if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE))
     {
         do
         {
             if (!is_first)
-                current++; // only iterate current by one when it is not the first
-                           // time
+                current++; // only iterate current by one when it is not the
+                           // first time
 
             auto [arg, identifier_error] = consume_token_of_type(TOKEN_IDENTIFIER);
             if (identifier_error)

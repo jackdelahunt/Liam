@@ -57,8 +57,10 @@ struct FnStatement : Statement {
     ScopeStatement *body;
     bool is_extern;
 
-    FnStatement(Token identifier, std::vector<Token> generics, CSV params, TypeExpression *type, ScopeStatement *body,
-                bool is_extern);
+    FnStatement(
+        Token identifier, std::vector<Token> generics, CSV params, TypeExpression *type, ScopeStatement *body,
+        bool is_extern
+    );
 };
 
 struct LoopStatement : Statement {
