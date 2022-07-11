@@ -310,7 +310,22 @@ std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
 }
 
 std::tuple<Expression *, bool> Parser::eval_expression() {
-    return eval_or();
+    return eval_is();
+}
+
+std::tuple<Expression *, bool> Parser::eval_is() {
+    TRY(Expression *, expr, eval_or());
+
+    if (match(TOKEN_IS))
+    {
+        consume_token();
+        TRY(TypeExpression *, type, eval_type_expression());
+        NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+
+        expr = new IsExpression(expr, type, *identifier);
+    }
+
+    return WIN(expr);
 }
 
 std::tuple<Expression *, bool> Parser::eval_or() {

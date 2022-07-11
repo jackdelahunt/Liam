@@ -138,11 +138,10 @@ std::string CppBackend::emit_break_statement(BreakStatement *statement) {
 
 std::string CppBackend::emit_let_statement(LetStatement *statement) {
     auto source = std::string();
-    if(statement->type) {
-        source.append(emit_type_expression(statement->type) + " ");
-    } else {
-        source.append("auto ");
-    }
+    if (statement->type)
+    { source.append(emit_type_expression(statement->type) + " "); }
+    else
+    { source.append("auto "); }
     source.append(statement->identifier.string);
     source.append(" = ");
     source.append(emit_expression(statement->rhs) + ";\n");
@@ -304,6 +303,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_BINARY:
         return emit_binary_expression(dynamic_cast<BinaryExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_IS:
+        return emit_is_expression(dynamic_cast<IsExpression *>(expression));
+        break;
     case ExpressionType::EXPRESSION_UNARY:
         return emit_unary_expression(dynamic_cast<UnaryExpression *>(expression));
         break;
@@ -319,6 +321,17 @@ std::string CppBackend::emit_expression(Expression *expression) {
     default:
         return "";
     }
+}
+
+std::string CppBackend::emit_is_expression(IsExpression *expression) {
+    auto source = std::string();
+
+    source.append("auto " + expression->identifier.string + " = ");
+    source.append("std::get_if<" + emit_type_expression(expression->type_expression) + ">(");
+    source.append("&" + emit_expression(expression->expression));
+    source.append(")");
+
+    return source;
 }
 
 std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {

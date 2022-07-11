@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
-#include <vector>
 #include <variant>
+#include <vector>
 
 typedef uint8_t u8;
 typedef int8_t s8;
@@ -183,8 +183,7 @@ u64 string_length(String *string) {
     return string->string.size();
 }
 
-template <typename T, typename... Ts>
-std::ostream& operator<<(std::ostream& os, const std::variant<T, Ts...> &obj) {
+template <typename T, typename... Ts> std::ostream &operator<<(std::ostream &os, const std::variant<T, Ts...> &obj) {
     os << "<?>";
     return os;
 }

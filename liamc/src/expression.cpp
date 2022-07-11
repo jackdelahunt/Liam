@@ -5,6 +5,13 @@ std::ostream &Expression::format(std::ostream &os) const {
     return os;
 }
 
+IsExpression::IsExpression(Expression *expression, TypeExpression *type_expression, Token identifier) {
+    this->expression = expression;
+    this->type_expression = type_expression;
+    this->identifier = identifier;
+    this->type = ExpressionType::EXPRESSION_IS;
+}
+
 BinaryExpression::BinaryExpression(Expression *left, Token op, Expression *right) {
     this->left = left;
     this->op = op;

@@ -5,6 +5,7 @@
 struct TypeExpression;
 
 enum class ExpressionType {
+    EXPRESSION_IS,
     EXPRESSION_BINARY,
     EXPRESSION_UNARY,
     EXPRESSION_INT_LITERAL,
@@ -24,6 +25,14 @@ struct Expression {
 };
 
 std::ostream &operator<<(std::ostream &os, const Expression &expression);
+
+struct IsExpression : Expression {
+    Expression *expression;
+    TypeExpression *type_expression;
+    Token identifier;
+
+    IsExpression(Expression *expression, TypeExpression *type_expression, Token identifier);
+};
 
 struct BinaryExpression : Expression {
     Expression *left;

@@ -29,6 +29,7 @@ struct CppBackend {
     std::string emit_if_statement(IfStatement *statement);
 
     std::string emit_expression(Expression *expression);
+    std::string emit_is_expression(IsExpression *expression);
     std::string emit_binary_expression(BinaryExpression *expression);
     std::string emit_string_literal_expression(StringLiteralExpression *expression);
     std::string emit_bool_literal_expression(BoolLiteralExpression *expression);
