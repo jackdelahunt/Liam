@@ -1,3 +1,4 @@
 #pragma once
-#include "core.h"
 #include <variant>
+
+#include "core.h"

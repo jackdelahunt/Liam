@@ -4,49 +4,50 @@
 
 #include "liam.h"
 
-const char *TokenTypeStrings[43] = {"int Literal",
-                                    "string Literal",
-                                    "identifier",
-                                    "let",
-                                    "insert",
-                                    "fn",
-                                    "loop",
-                                    "(",
-                                    ")",
-                                    "{",
-                                    "}",
-                                    "+",
-                                    "*",
-                                    "=",
-                                    ";",
-                                    ",",
-                                    ":",
-                                    "return",
-                                    "return_type",
-                                    "^",
-                                    "@",
-                                    "struct",
-                                    ".",
-                                    "new",
-                                    "break",
-                                    ":=",
-                                    "[",
-                                    "]",
-                                    "for",
-                                    "in",
-                                    "false",
-                                    "true",
-                                    "if",
-                                    "or",
-                                    "and",
-                                    "==",
-                                    "!=",
-                                    "!",
-                                    "<",
-                                    ">",
-                                    "extern",
-                                    "|"
-                                    "is"};
+const char *TokenTypeStrings[43] = {
+    "int Literal",
+    "string Literal",
+    "identifier",
+    "let",
+    "insert",
+    "fn",
+    "loop",
+    "(",
+    ")",
+    "{",
+    "}",
+    "+",
+    "*",
+    "=",
+    ";",
+    ",",
+    ":",
+    "return",
+    "return_type",
+    "^",
+    "@",
+    "struct",
+    ".",
+    "new",
+    "break",
+    ":=",
+    "[",
+    "]",
+    "for",
+    "in",
+    "false",
+    "true",
+    "if",
+    "or",
+    "and",
+    "==",
+    "!=",
+    "!",
+    "<",
+    ">",
+    "extern",
+    "|"
+    "is"};
 
 std::vector<char> extract_chars(const char *path) {
     auto vec = std::vector<char>();
@@ -64,9 +65,9 @@ std::vector<char> extract_chars(const char *path) {
 }
 
 Token::Token(TokenType type, std::string string, s32 line, s32 character) {
-    this->type = type;
-    this->string = string;
-    this->line = line;
+    this->type      = type;
+    this->string    = string;
+    this->line      = line;
     this->character = character;
 }
 
@@ -82,11 +83,11 @@ bool is_delim(char c) {
 }
 
 Lexer::Lexer(std::filesystem::path path) {
-    tokens = std::vector<Token>();
-    current = 0;
-    current_line = 1;
+    tokens            = std::vector<Token>();
+    current           = 0;
+    current_line      = 1;
     current_character = 0;
-    this->path = path;
+    this->path        = path;
 }
 
 void Lexer::lex() {
@@ -204,7 +205,7 @@ void Lexer::lex() {
         break;
         default:
             s32 word_start = current_character;
-            auto word = get_word();
+            auto word      = get_word();
 
             // check keywords
             if (word == "let")

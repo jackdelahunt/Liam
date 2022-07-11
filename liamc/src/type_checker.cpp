@@ -7,21 +7,23 @@
 
 SymbolTable::SymbolTable() {
     this->builtin_type_table = std::map<std::string, TypeInfo *>();
-    this->type_table = std::map<std::string, TypeInfo *>();
-    this->identifier_table = std::map<std::string, TypeInfo *>();
+    this->type_table         = std::map<std::string, TypeInfo *>();
+    this->identifier_table   = std::map<std::string, TypeInfo *>();
 
     builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
     builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
-    builtin_type_table["u64"] = new IntTypeInfo{TypeInfoType::INT, false, 64};
+    builtin_type_table["u64"]  = new IntTypeInfo{TypeInfoType::INT, false, 64};
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
-    builtin_type_table["str"] = new StrTypeInfo{TypeInfoType::STRING};
+    builtin_type_table["str"]  = new StrTypeInfo{TypeInfoType::STRING};
 }
 
 void SymbolTable::add_type(Token type, TypeInfo *type_info) {
     if (type_table.contains(type.string))
     {
-        panic("Duplcate creation of return_type: " + type.string + " at (" + std::to_string(type.line) + "," +
-              std::to_string(type.character) + ")");
+        panic(
+            "Duplcate creation of return_type: " + type.string + " at (" + std::to_string(type.line) + "," +
+            std::to_string(type.character) + ")"
+        );
     }
 
     type_table[type.string] = type_info;
@@ -30,8 +32,10 @@ void SymbolTable::add_type(Token type, TypeInfo *type_info) {
 void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     if (identifier_table.contains(identifier.string))
     {
-        panic("Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.line) +
-              "," + std::to_string(identifier.character) + ")");
+        panic(
+            "Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.line) + "," +
+            std::to_string(identifier.character) + ")"
+        );
     }
 
     identifier_table[identifier.string] = type_info;
@@ -67,8 +71,8 @@ File TypeChecker::type_check(std::vector<File> *files) {
     auto typed_file = File("deez nuts");
 
     auto structs = std::vector<StructStatement *>();
-    auto funcs = std::vector<FnStatement *>();
-    auto others = std::vector<Statement *>();
+    auto funcs   = std::vector<FnStatement *>();
+    auto others  = std::vector<Statement *>();
 
     for (auto &file : *files)
     {
@@ -115,11 +119,12 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     if (!statement->generics.empty())
     {
         SymbolTable *copy = new SymbolTable();
-        *copy = *symbol_table;
+        *copy             = *symbol_table;
         for (auto &generic : statement->generics)
         {
-            copy->add_type(generic,
-                           new GenericTypeInfo{TypeInfoType::GENERIC, 0}); // TODO: generic ids need to work here
+            copy->add_type(
+                generic, new GenericTypeInfo{TypeInfoType::GENERIC, 0}
+            ); // TODO: generic ids need to work here
         }
 
         symbol_table_in_use = copy;
@@ -135,9 +140,11 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     type_check_type_expression(statement->return_type, symbol_table_in_use);
 
     // add this fn decl to parent symbol table
-    symbol_table->add_identifier(statement->identifier,
-                                 new FnTypeInfo{TypeInfoType::FN, statement->return_type->type_info, param_type_infos,
-                                                statement->generics.size()});
+    symbol_table->add_identifier(
+        statement->identifier,
+        new FnTypeInfo{
+            TypeInfoType::FN, statement->return_type->type_info, param_type_infos, statement->generics.size()}
+    );
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
@@ -213,14 +220,15 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
     symbol_table->add_identifier(statement->identifier, statement->rhs->type_info);
 }
 
-void TypeChecker::type_check_scope_statement(ScopeStatement *statement, SymbolTable *symbol_table,
-                                             bool copy_symbol_table) {
+void TypeChecker::type_check_scope_statement(
+    ScopeStatement *statement, SymbolTable *symbol_table, bool copy_symbol_table
+) {
     // this is kind of a mess... oh jeez
     SymbolTable *scopes_symbol_table = symbol_table;
     SymbolTable possible_copy;
     if (copy_symbol_table)
     {
-        possible_copy = *symbol_table;
+        possible_copy       = *symbol_table;
         scopes_symbol_table = &possible_copy;
     }
 
@@ -262,10 +270,13 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
         {
             if (stmt->statement_type == StatementType::STATEMENT_RETURN)
             {
-                found_return = true;
+                found_return          = true;
                 auto return_statement = dynamic_cast<ReturnStatement *>(stmt);
                 if (!type_match(existing_type_info->return_type, return_statement->expression->type_info))
-                { panic("Mismatch types in function, return types do not match"); }
+                {
+                    panic("Mismatch types in function, return types do not "
+                          "match");
+                }
             }
         }
 
@@ -294,7 +305,6 @@ void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable 
 }
 
 void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table) {
-
     // if may declare new varaibles that we do not want to leak into outher
     // scope like with the is expression
     auto copy = symbol_table->copy();
@@ -325,8 +335,10 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
     }
     else
     {
-        symbol_table->add_identifier(statement->identifier, new StructTypeInfo{TypeInfoType::STRUCT, members_type_info,
-                                                                               statement->generics.size()});
+        symbol_table->add_identifier(
+            statement->identifier,
+            new StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()}
+        );
     }
 }
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table) {
@@ -334,7 +346,10 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
     type_check_expression(statement->assigned_to->expression, symbol_table);
 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info))
-    { panic("Type mismatch, trying to assign a identifier to an expression of different type"); }
+    {
+        panic("Type mismatch, trying to assign a identifier to an expression "
+              "of different type");
+    }
 }
 
 void TypeChecker::type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table) {
@@ -389,8 +404,9 @@ void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable
     { panic("Cannot use is expressio on non union type"); }
 
     expression->type_info = symbol_table->get_type("bool");
-    symbol_table->add_identifier(expression->identifier,
-                                 new PointerTypeInfo{TypeInfoType::POINTER, expression->type_expression->type_info});
+    symbol_table->add_identifier(
+        expression->identifier, new PointerTypeInfo{TypeInfoType::POINTER, expression->type_expression->type_info}
+    );
 }
 
 void TypeChecker::type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table) {
@@ -457,7 +473,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
         { panic("Cannot dereference non-pointer value"); }
 
         auto ptr_type = static_cast<PointerTypeInfo *>(expression->expression->type_info);
-        type_info = ptr_type->to;
+        type_info     = ptr_type->to;
     }
     else
     { panic("Unrecognised unary operator"); }
@@ -518,24 +534,29 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
 
 void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table) {
     type_check_expression(expression->lhs, symbol_table);
-    if (expression->lhs->type_info->type != TypeInfoType::STRUCT_INSTANCE &&
-        expression->lhs->type_info->type != TypeInfoType::STRUCT)
-    { panic("Cannot derive member from non struct type"); }
 
-    TypeInfo *member_type_info = NULL;
+    TypeInfo *member_type_info       = NULL;
     StructTypeInfo *struct_type_info = NULL;
 
-    if (expression->lhs->type_info->type == TypeInfoType::STRUCT)
+    if (expression->lhs->type_info->type == TypeInfoType::POINTER)
+    {
+        auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);
+        if (ptr_type_info->to->type != TypeInfoType::STRUCT_INSTANCE && ptr_type_info->to->type != TypeInfoType::STRUCT)
+        { panic("Cannot derive member from non struct type"); }
+        else
+        { struct_type_info = (StructTypeInfo *)ptr_type_info->to; }
+    }
+    else if (expression->lhs->type_info->type == TypeInfoType::STRUCT)
     { struct_type_info = static_cast<StructTypeInfo *>(expression->lhs->type_info); }
-    else
+    else if (expression->lhs->type_info->type == TypeInfoType::STRUCT_INSTANCE)
     {
         auto struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
         assert(struct_instance_type_info->struct_type->type == TypeInfoType::STRUCT);
         struct_type_info = static_cast<StructTypeInfo *>(struct_instance_type_info->struct_type);
     }
 
-    // find the type infp in the struct definition, here it could be a base type
-    // or it could be a generic type
+    // find the type infp in the struct definition, here it could be a base
+    // type or it could be a generic type
     for (auto [identifier, member_type] : struct_type_info->members)
     {
         if (identifier == expression->member.string)
@@ -552,9 +573,10 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
         { panic("No generic parameters set for struct type"); }
 
         auto struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
-        auto generic_member_info = static_cast<GenericTypeInfo *>(member_type_info);
-        assert(generic_member_info->id >= 0 &&
-               generic_member_info->id < struct_instance_type_info->generic_types.size());
+        auto generic_member_info       = static_cast<GenericTypeInfo *>(member_type_info);
+        assert(
+            generic_member_info->id >= 0 && generic_member_info->id < struct_instance_type_info->generic_types.size()
+        );
         member_type_info = struct_instance_type_info->generic_types[generic_member_info->id];
     }
 
@@ -604,7 +626,8 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
         // if (type->type == TypeInfoType::GENERIC)
         // {
         // auto generic_type = static_cast<GenericTypeInfo *>(type);
-        // if (!type_match(members_type_infos.at(i), generic_type_infos[generic_type->id]))
+        // if (!type_match(members_type_infos.at(i),
+        // generic_type_infos[generic_type->id]))
         // {
         // panic("Incorect arguments to new constructor");
         // }
@@ -645,8 +668,9 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
         type_check_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression), symbol_table);
         break;
     case TypeExpressionType::TYPE_SPECIFIED_GENERICS:
-        type_check_specified_generics_type_expression(dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression),
-                                                      symbol_table);
+        type_check_specified_generics_type_expression(
+            dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression), symbol_table
+        );
         break;
     default:
         panic("Not implemented for type checker");
@@ -654,7 +678,6 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
 }
 
 void TypeChecker::type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table) {
-
     auto sub_types = std::vector<TypeInfo *>();
     for (auto sub_type_expression : type_expression->type_expressions)
     {
@@ -677,8 +700,9 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
     panic("Cannot type check this operator yet...");
 }
 
-void TypeChecker::type_check_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression,
-                                                                SymbolTable *symbol_table) {
+void TypeChecker::type_check_specified_generics_type_expression(
+    SpecifiedGenericsTypeExpression *type_expression, SymbolTable *symbol_table
+) {
     // struct StructInstanceTypeInfo : TypeInfo {
     //      TypeInfo* struct_type;
     //      std::vector<TypeInfo*> generic_types;
@@ -692,12 +716,13 @@ void TypeChecker::type_check_specified_generics_type_expression(SpecifiedGeneric
         generic_types.push_back(type_expression->generics.at(i)->type_info);
     }
 
-    type_expression->type_info = new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE,
-                                                            type_expression->struct_type->type_info, generic_types};
+    type_expression->type_info = new StructInstanceTypeInfo{
+        TypeInfoType::STRUCT_INSTANCE, type_expression->struct_type->type_info, generic_types};
 }
 
-void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression *type_expression,
-                                                        SymbolTable *symbol_table) {
+void TypeChecker::type_check_identifier_type_expression(
+    IdentifierTypeExpression *type_expression, SymbolTable *symbol_table
+) {
     auto type = symbol_table->get_type(&type_expression->identifier);
     if (type)
     {
@@ -712,7 +737,7 @@ TypeInfo *TypeChecker::resolve_generics(TypeInfo *type_info, std::vector<TypeExp
     if (type_info->type == TypeInfoType::POINTER)
     {
         auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
-        pointer_type_info->to = resolve_generics(pointer_type_info->to, generic_params);
+        pointer_type_info->to  = resolve_generics(pointer_type_info->to, generic_params);
         return pointer_type_info;
     }
 
@@ -740,16 +765,15 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     { panic("cannot match types that are both any, will be fixed xx"); }
 
     if (a->type == TypeInfoType::GENERIC)
-        return true; // TODO: this might be a bug not checking b but not sure what
-                     // to do here...
+        return true; // TODO: this might be a bug not checking b but not sure
+                     // what to do here...
 
     if (a->type != b->type)
     {
-
         if (a->type == TypeInfoType::UNION)
         {
             bool contains = false;
-            auto union_a = static_cast<UnionTypeInfo *>(a);
+            auto union_a  = static_cast<UnionTypeInfo *>(a);
 
             for (auto type_info : union_a->types)
             {

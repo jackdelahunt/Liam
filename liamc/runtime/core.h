@@ -1,10 +1,11 @@
 #pragma once
-#include <fstream>
-#include <iostream>
-#include <sstream>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <variant>
 #include <vector>
@@ -46,7 +47,7 @@ struct str {
         char *cpy = (char *)malloc(sizeof(char) * length);
         memcpy(cpy, chars, length);
         cpy[length] = '\0';
-        auto print = indentation + std::string(cpy);
+        auto print  = indentation + std::string(cpy);
         free(cpy);
         return print;
     }
@@ -97,7 +98,7 @@ template <typename T> void println(T t) {
 
 template <typename T> T *alloc(T t) {
     auto ptr = (T *)malloc(sizeof(T));
-    *ptr = t;
+    *ptr     = t;
     return ptr;
 }
 
@@ -118,9 +119,9 @@ template <typename T> struct Array {
 template <typename T> Array<T> make_array() {
     u64 start_capacity = 10;
     return Array<T>{
-        .length = 0,
+        .length   = 0,
         .capacity = start_capacity,
-        .data = std::vector<T>(),
+        .data     = std::vector<T>(),
     };
 }
 

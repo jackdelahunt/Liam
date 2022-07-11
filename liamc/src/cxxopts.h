@@ -354,8 +354,10 @@ class option_requires_argument_exception : public OptionParseException {
 class option_not_has_argument_exception : public OptionParseException {
   public:
     option_not_has_argument_exception(const std::string &option, const std::string &arg)
-        : OptionParseException("Option " + LQUOTE + option + RQUOTE + " does not take an argument, but argument " +
-                               LQUOTE + arg + RQUOTE + " given") {
+        : OptionParseException(
+              "Option " + LQUOTE + option + RQUOTE + " does not take an argument, but argument " + LQUOTE + arg +
+              RQUOTE + " given"
+          ) {
     }
 };
 
@@ -369,8 +371,9 @@ class option_not_present_exception : public OptionParseException {
 class option_has_no_value_exception : public OptionException {
   public:
     explicit option_has_no_value_exception(const std::string &option)
-        : OptionException(!option.empty() ? ("Option " + LQUOTE + option + RQUOTE + " has no value")
-                                          : "Option has no value") {
+        : OptionException(
+              !option.empty() ? ("Option " + LQUOTE + option + RQUOTE + " has no value") : "Option has no value"
+          ) {
     }
 };
 
@@ -389,8 +392,10 @@ class option_required_exception : public OptionParseException {
 };
 
 template <typename T> void throw_or_mimic(const std::string &text) {
-    static_assert(std::is_base_of<std::exception, T>::value, "throw_or_mimic only works on std::exception and "
-                                                             "deriving classes");
+    static_assert(
+        std::is_base_of<std::exception, T>::value, "throw_or_mimic only works on std::exception and "
+                                                   "deriving classes"
+    );
 
 #ifndef CXXOPTS_NO_EXCEPTIONS
     // If CXXOPTS_NO_EXCEPTIONS is not defined, just throw
@@ -408,14 +413,14 @@ namespace values {
 namespace parser_tool {
 struct IntegerDesc {
     std::string negative = "";
-    std::string base = "";
-    std::string value = "";
+    std::string base     = "";
+    std::string value    = "";
 };
 struct ArguDesc {
     std::string arg_name = "";
-    bool grouping = false;
-    bool set_value = false;
-    std::string value = "";
+    bool grouping        = false;
+    bool set_value       = false;
+    std::string value    = "";
 };
 #ifdef CXXOPTS_NO_REGEX
 inline IntegerDesc SplitInteger(const std::string &text) {
@@ -493,7 +498,7 @@ inline std::pair<std::string, std::string> SplitSwitchDef(const std::string &tex
 inline ArguDesc ParseArgument(const char *arg, bool &matched) {
     ArguDesc argu_desc;
     const char *pdata = arg;
-    matched = false;
+    matched           = false;
     if (strncmp(pdata, "--", 2) == 0)
     {
         pdata += 2;
@@ -557,12 +562,12 @@ inline IntegerDesc SplitInteger(const std::string &text) {
 
     IntegerDesc desc;
     desc.negative = match[1];
-    desc.base = match[2];
-    desc.value = match[3];
+    desc.base     = match[2];
+    desc.value    = match[3];
 
     if (match.length(4) > 0)
     {
-        desc.base = match[5];
+        desc.base  = match[5];
         desc.value = "0";
         return desc;
     }
@@ -589,7 +594,7 @@ inline std::pair<std::string, std::string> SplitSwitchDef(const std::string &tex
     { throw_or_mimic<invalid_option_format_error>(text); }
 
     const std::string &short_sw = result[2];
-    const std::string &long_sw = result[3];
+    const std::string &long_sw  = result[3];
 
     return std::pair<std::string, std::string>(short_sw, long_sw);
 }
@@ -602,9 +607,9 @@ inline ArguDesc ParseArgument(const char *arg, bool &matched) {
     ArguDesc argu_desc;
     if (matched)
     {
-        argu_desc.arg_name = result[1].str();
+        argu_desc.arg_name  = result[1].str();
         argu_desc.set_value = result[2].length() > 0;
-        argu_desc.value = result[3].str();
+        argu_desc.value     = result[3].str();
         if (result[4].length() > 0)
         {
             argu_desc.grouping = true;
@@ -661,11 +666,11 @@ template <typename R, typename T> void checked_negate(R &, T &&, const std::stri
 template <typename T> void integer_parser(const std::string &text, T &value) {
     parser_tool::IntegerDesc int_desc = parser_tool::SplitInteger(text);
 
-    using US = typename std::make_unsigned<T>::type;
+    using US                 = typename std::make_unsigned<T>::type;
     constexpr bool is_signed = std::numeric_limits<T>::is_signed;
 
-    const bool negative = int_desc.negative.length() > 0;
-    const uint8_t base = int_desc.base.length() > 0 ? 16 : 10;
+    const bool negative            = int_desc.negative.length() > 0;
+    const uint8_t base             = int_desc.base.length() > 0 ? 16 : 10;
     const std::string &value_match = int_desc.value;
 
     US result = 0;
@@ -793,14 +798,14 @@ template <typename T> class abstract_value : public Value {
         if (rhs.m_result)
         {
             m_result = std::make_shared<T>();
-            m_store = m_result.get();
+            m_store  = m_result.get();
         }
         else
         { m_store = rhs.m_store; }
 
-        m_default = rhs.m_default;
-        m_implicit = rhs.m_implicit;
-        m_default_value = rhs.m_default_value;
+        m_default        = rhs.m_default;
+        m_implicit       = rhs.m_implicit;
+        m_default_value  = rhs.m_default_value;
         m_implicit_value = rhs.m_implicit_value;
     }
 
@@ -825,13 +830,13 @@ template <typename T> class abstract_value : public Value {
     }
 
     std::shared_ptr<Value> default_value(const std::string &value) override {
-        m_default = true;
+        m_default       = true;
         m_default_value = value;
         return shared_from_this();
     }
 
     std::shared_ptr<Value> implicit_value(const std::string &value) override {
-        m_implicit = true;
+        m_implicit       = true;
         m_implicit_value = value;
         return shared_from_this();
     }
@@ -863,7 +868,7 @@ template <typename T> class abstract_value : public Value {
     std::shared_ptr<T> m_result{};
     T *m_store{};
 
-    bool m_default = false;
+    bool m_default  = false;
     bool m_implicit = false;
 
     std::string m_default_value{};
@@ -898,9 +903,9 @@ template <> class standard_value<bool> : public abstract_value<bool> {
 
   private:
     void set_default_and_implicit() {
-        m_default = true;
-        m_default_value = "false";
-        m_implicit = true;
+        m_default        = true;
+        m_default_value  = "false";
+        m_implicit       = true;
         m_implicit_value = "true";
     }
 };
@@ -998,7 +1003,7 @@ class OptionValue {
 
     void parse_default(const std::shared_ptr<const OptionDetails> &details) {
         ensure_value(details);
-        m_default = true;
+        m_default   = true;
         m_long_name = &details->long_name();
         m_value->parse();
     }
@@ -1045,8 +1050,8 @@ class OptionValue {
     }
 
     const std::string *m_long_name = nullptr;
-    // Holding this pointer is safe, since OptionValue's only exist in key-value
-    // pairs, where the key has the string we point to.
+    // Holding this pointer is safe, since OptionValue's only exist in
+    // key-value pairs, where the key has the string we point to.
     std::shared_ptr<Value> m_value{};
     size_t m_count = 0;
     bool m_default = false;
@@ -1079,20 +1084,22 @@ class KeyValue {
 };
 
 using ParsedHashMap = std::unordered_map<size_t, OptionValue>;
-using NameHashMap = std::unordered_map<std::string, size_t>;
+using NameHashMap   = std::unordered_map<std::string, size_t>;
 
 class ParseResult {
   public:
-    ParseResult() = default;
+    ParseResult()                    = default;
     ParseResult(const ParseResult &) = default;
 
-    ParseResult(NameHashMap &&keys, ParsedHashMap &&values, std::vector<KeyValue> sequential,
-                std::vector<std::string> &&unmatched_args)
+    ParseResult(
+        NameHashMap &&keys, ParsedHashMap &&values, std::vector<KeyValue> sequential,
+        std::vector<std::string> &&unmatched_args
+    )
         : m_keys(std::move(keys)), m_values(std::move(values)), m_sequential(std::move(sequential)),
           m_unmatched(std::move(unmatched_args)) {
     }
 
-    ParseResult &operator=(ParseResult &&) = default;
+    ParseResult &operator=(ParseResult &&)      = default;
     ParseResult &operator=(const ParseResult &) = default;
 
     size_t count(const std::string &o) const {
@@ -1148,8 +1155,10 @@ class ParseResult {
 };
 
 struct Option {
-    Option(std::string opts, std::string desc, std::shared_ptr<const Value> value = ::cxxopts::value<bool>(),
-           std::string arg_help = "")
+    Option(
+        std::string opts, std::string desc, std::shared_ptr<const Value> value = ::cxxopts::value<bool>(),
+        std::string arg_help = ""
+    )
         : opts_(std::move(opts)), desc_(std::move(desc)), value_(std::move(value)), arg_help_(std::move(arg_help)) {
     }
 
@@ -1159,8 +1168,8 @@ struct Option {
     std::string arg_help_;
 };
 
-using OptionMap = std::unordered_map<std::string, std::shared_ptr<OptionDetails>>;
-using PositionalList = std::vector<std::string>;
+using OptionMap              = std::unordered_map<std::string, std::shared_ptr<OptionDetails>>;
+using PositionalList         = std::vector<std::string>;
 using PositionalListIterator = PositionalList::const_iterator;
 
 class OptionParser {
@@ -1173,13 +1182,16 @@ class OptionParser {
 
     bool consume_positional(const std::string &a, PositionalListIterator &next);
 
-    void checked_parse_arg(int argc, const char *const *argv, int &current, const std::shared_ptr<OptionDetails> &value,
-                           const std::string &name);
+    void checked_parse_arg(
+        int argc, const char *const *argv, int &current, const std::shared_ptr<OptionDetails> &value,
+        const std::string &name
+    );
 
     void add_to_option(OptionMap::const_iterator iter, const std::string &option, const std::string &arg);
 
-    void parse_option(const std::shared_ptr<OptionDetails> &value, const std::string &name,
-                      const std::string &arg = "");
+    void parse_option(
+        const std::shared_ptr<OptionDetails> &value, const std::string &name, const std::string &arg = ""
+    );
 
     void parse_default(const std::shared_ptr<OptionDetails> &details);
 
@@ -1244,8 +1256,10 @@ class Options {
 
     void add_option(const std::string &group, const Option &option);
 
-    void add_option(const std::string &group, const std::string &s, const std::string &l, std::string desc,
-                    const std::shared_ptr<const Value> &value, std::string arg_help);
+    void add_option(
+        const std::string &group, const std::string &s, const std::string &l, std::string desc,
+        const std::shared_ptr<const Value> &value, std::string arg_help
+    );
 
     // parse positional arguments into the given option
     void parse_positional(std::string option);
@@ -1298,9 +1312,10 @@ class OptionAdder {
     OptionAdder(Options &options, std::string group) : m_options(options), m_group(std::move(group)) {
     }
 
-    OptionAdder &operator()(const std::string &opts, const std::string &desc,
-                            const std::shared_ptr<const Value> &value = ::cxxopts::value<bool>(),
-                            std::string arg_help = "");
+    OptionAdder &operator()(
+        const std::string &opts, const std::string &desc,
+        const std::shared_ptr<const Value> &value = ::cxxopts::value<bool>(), std::string arg_help = ""
+    );
 
   private:
     Options &m_options;
@@ -1308,7 +1323,7 @@ class OptionAdder {
 };
 
 namespace {
-constexpr size_t OPTION_LONGEST = 30;
+constexpr size_t OPTION_LONGEST  = 30;
 constexpr size_t OPTION_DESC_GAP = 2;
 
 String format_option(const HelpOptionDetails &o) {
@@ -1383,8 +1398,8 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
 
     desc += " ";
 
-    auto current = std::begin(desc);
-    auto previous = current;
+    auto current   = std::begin(desc);
+    auto previous  = current;
     auto startLine = current;
     auto lastSpace = current;
 
@@ -1414,7 +1429,7 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
         {
             if (lastSpace != startLine)
             {
-                current = lastSpace;
+                current  = lastSpace;
                 previous = current;
             }
             appendNewLine = true;
@@ -1435,7 +1450,7 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
             { stringAppend(result, lastSpace, current); }
 
             onlyWhiteSpace = true;
-            size = 0;
+            size           = 0;
         }
 
         previous = current;
@@ -1461,8 +1476,9 @@ inline OptionAdder Options::add_options(std::string group) {
     return OptionAdder(*this, std::move(group));
 }
 
-inline OptionAdder &OptionAdder::operator()(const std::string &opts, const std::string &desc,
-                                            const std::shared_ptr<const Value> &value, std::string arg_help) {
+inline OptionAdder &OptionAdder::operator()(
+    const std::string &opts, const std::string &desc, const std::shared_ptr<const Value> &value, std::string arg_help
+) {
     std::string short_sw, long_sw;
     std::tie(short_sw, long_sw) = values::parser_tool::SplitSwitchDef(opts);
 
@@ -1477,8 +1493,9 @@ inline OptionAdder &OptionAdder::operator()(const std::string &opts, const std::
         return std::make_tuple(short_, long_);
     }(short_sw, long_sw);
 
-    m_options.add_option(m_group, std::get<0>(option_names), std::get<1>(option_names), desc, value,
-                         std::move(arg_help));
+    m_options.add_option(
+        m_group, std::get<0>(option_names), std::get<1>(option_names), desc, value, std::move(arg_help)
+    );
 
     return *this;
 }
@@ -1494,17 +1511,20 @@ inline void OptionParser::parse_no_value(const std::shared_ptr<OptionDetails> &d
     store.parse_no_value(details);
 }
 
-inline void OptionParser::parse_option(const std::shared_ptr<OptionDetails> &value, const std::string & /*name*/,
-                                       const std::string &arg) {
-    auto hash = value->hash();
+inline void OptionParser::parse_option(
+    const std::shared_ptr<OptionDetails> &value, const std::string & /*name*/, const std::string &arg
+) {
+    auto hash    = value->hash();
     auto &result = m_parsed[hash];
     result.parse(value, arg);
 
     m_sequential.emplace_back(value->long_name(), arg);
 }
 
-inline void OptionParser::checked_parse_arg(int argc, const char *const *argv, int &current,
-                                            const std::shared_ptr<OptionDetails> &value, const std::string &name) {
+inline void OptionParser::checked_parse_arg(
+    int argc, const char *const *argv, int &current, const std::shared_ptr<OptionDetails> &value,
+    const std::string &name
+) {
     if (current + 1 >= argc)
     {
         if (value->value().has_implicit())
@@ -1524,8 +1544,9 @@ inline void OptionParser::checked_parse_arg(int argc, const char *const *argv, i
     }
 }
 
-inline void OptionParser::add_to_option(OptionMap::const_iterator iter, const std::string &option,
-                                        const std::string &arg) {
+inline void OptionParser::add_to_option(
+    OptionMap::const_iterator iter, const std::string &option, const std::string &arg
+) {
     parse_option(iter->second, option, arg);
 }
 
@@ -1577,9 +1598,9 @@ inline ParseResult Options::parse(int argc, const char *const *argv) {
 }
 
 inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
-    int current = 1;
+    int current            = 1;
     bool consume_remaining = false;
-    auto next_positional = m_positional.begin();
+    auto next_positional   = m_positional.begin();
 
     std::vector<std::string> unmatched;
 
@@ -1591,7 +1612,7 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
             ++current;
             break;
         }
-        bool matched = false;
+        bool matched                            = false;
         values::parser_tool::ArguDesc argu_desc = values::parser_tool::ParseArgument(argv[current], matched);
 
         if (!matched)
@@ -1701,7 +1722,7 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
 
     for (auto &opt : m_options)
     {
-        auto &detail = opt.second;
+        auto &detail      = opt.second;
         const auto &value = detail->value();
 
         auto &store = m_parsed[detail->hash()];
@@ -1741,10 +1762,10 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
 inline void OptionParser::finalise_aliases() {
     for (auto &option : m_options)
     {
-        auto &detail = *option.second;
-        auto hash = detail.hash();
+        auto &detail                = *option.second;
+        auto hash                   = detail.hash();
         m_keys[detail.short_name()] = hash;
-        m_keys[detail.long_name()] = hash;
+        m_keys[detail.long_name()]  = hash;
 
         m_parsed.emplace(hash, OptionValue());
     }
@@ -1754,10 +1775,12 @@ inline void Options::add_option(const std::string &group, const Option &option) 
     add_options(group, {option});
 }
 
-inline void Options::add_option(const std::string &group, const std::string &s, const std::string &l, std::string desc,
-                                const std::shared_ptr<const Value> &value, std::string arg_help) {
+inline void Options::add_option(
+    const std::string &group, const std::string &s, const std::string &l, std::string desc,
+    const std::shared_ptr<const Value> &value, std::string arg_help
+) {
     auto stringDesc = toLocalString(std::move(desc));
-    auto option = std::make_shared<OptionDetails>(s, l, stringDesc, value);
+    auto option     = std::make_shared<OptionDetails>(s, l, stringDesc, value);
 
     if (!s.empty())
     { add_one_option(s, option); }
@@ -1766,16 +1789,16 @@ inline void Options::add_option(const std::string &group, const std::string &s, 
     { add_one_option(l, option); }
 
     m_option_list.push_front(*option.get());
-    auto iter = m_option_list.begin();
+    auto iter       = m_option_list.begin();
     m_option_map[s] = iter;
     m_option_map[l] = iter;
 
     // add the help details
     auto &options = m_help[group];
 
-    options.options.emplace_back(HelpOptionDetails{s, l, stringDesc, value->has_default(), value->get_default_value(),
-                                                   value->has_implicit(), value->get_implicit_value(),
-                                                   std::move(arg_help), value->is_container(), value->is_boolean()});
+    options.options.emplace_back(HelpOptionDetails{
+        s, l, stringDesc, value->has_default(), value->get_default_value(), value->has_implicit(),
+        value->get_implicit_value(), std::move(arg_help), value->is_container(), value->is_boolean()});
 }
 
 inline void Options::add_one_option(const std::string &option, const std::shared_ptr<OptionDetails> &details) {
@@ -1806,7 +1829,7 @@ inline String Options::help_one_group(const std::string &g) const {
         if (m_positional_set.find(o.l) != m_positional_set.end() && !m_show_positional)
         { continue; }
 
-        auto s = format_option(o);
+        auto s  = format_option(o);
         longest = (std::max)(longest, stringLength(s));
         format.push_back(std::make_pair(s, String()));
     }
@@ -1857,8 +1880,10 @@ inline void Options::generate_group_help(String &result, const std::vector<std::
 inline void Options::generate_all_groups_help(String &result) const {
     std::vector<std::string> all_groups;
 
-    std::transform(m_help.begin(), m_help.end(), std::back_inserter(all_groups),
-                   [](const std::map<std::string, HelpGroupDetails>::value_type &group) { return group.first; });
+    std::transform(
+        m_help.begin(), m_help.end(), std::back_inserter(all_groups),
+        [](const std::map<std::string, HelpGroupDetails>::value_type &group) { return group.first; }
+    );
 
     generate_group_help(result, all_groups);
 }
@@ -1882,8 +1907,10 @@ inline std::string Options::help(const std::vector<std::string> &help_groups) co
 inline std::vector<std::string> Options::groups() const {
     std::vector<std::string> g;
 
-    std::transform(m_help.begin(), m_help.end(), std::back_inserter(g),
-                   [](const std::map<std::string, HelpGroupDetails>::value_type &pair) { return pair.first; });
+    std::transform(
+        m_help.begin(), m_help.end(), std::back_inserter(g),
+        [](const std::map<std::string, HelpGroupDetails>::value_type &pair) { return pair.first; }
+    );
 
     return g;
 }

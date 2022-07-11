@@ -5,7 +5,13 @@ Language: Cpp
 # Force pointers to the type for C++.
 DerivePointerAlignment: false
 PointerAlignment: Right
-AllowShortBlocksOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+RemoveBracesLLVM: false
+SpaceBeforeCaseColon: false
+AlignAfterOpenBracket: BlockIndent
+AlignConsecutiveAssignments: Consecutive
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false

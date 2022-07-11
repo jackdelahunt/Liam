@@ -26,13 +26,10 @@ std::string CppBackend::emit(File *file) {
     for (auto stmt : file->statements)
     { source_generated.append(emit_statement(stmt)); }
 
-    source_generated.append(R"(
-int main(int argc, char** argv) {
-    __liam__main__();
-}
-    )");
+    source_generated.append(R "(
+                            int main(int argc, char **argv) { __liam__main__(); }) ");
 
-    return source_generated;
+        return source_generated;
 }
 
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
@@ -221,8 +218,10 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
 
     // pretty print
     source.append(emit_cpp_template_declaration(&statement->generics));
-    source.append("std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string +
-                  emit_cpp_template_usage(&statement->generics) + " &obj) {\n");
+    source.append(
+        "std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string +
+        emit_cpp_template_usage(&statement->generics) + " &obj) {\n"
+    );
 
     // header
     source.append("os << \"" + statement->identifier.string + "\" << \" {\" << std::endl;\n");
@@ -232,13 +231,17 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     {
         if (type->type_info->type == TypeInfoType::POINTER)
         {
-            source.append("os << \"   \" << \"*" + identifier.string + ": \" << *(obj." + identifier.string +
-                          ") << \",\" << std::endl;\n");
+            source.append(
+                "os << \"   \" << \"*" + identifier.string + ": \" << *(obj." + identifier.string +
+                ") << \",\" << std::endl;\n"
+            );
         }
         else
         {
-            source.append("os << \"   \" << \"" + identifier.string + ": \" << obj." + identifier.string +
-                          " << \",\" << std::endl;\n");
+            source.append(
+                "os << \"   \" << \"" + identifier.string + ": \" << obj." + identifier.string +
+                " << \",\" << std::endl;\n"
+            );
         }
     }
 
@@ -266,8 +269,10 @@ std::string CppBackend::emit_expression_statement(ExpressionStatement *statement
 
 std::string CppBackend::emit_for_statement(ForStatement *statement) {
     std::string source = "";
-    source.append("for(" + emit_let_statement(statement->let_statement) + emit_expression(statement->condition) + ";" +
-                  strip_semi_colon(emit_statement(statement->update)) + ")");
+    source.append(
+        "for(" + emit_let_statement(statement->let_statement) + emit_expression(statement->condition) + ";" +
+        strip_semi_colon(emit_statement(statement->update)) + ")"
+    );
     source.append(emit_scope_statement(statement->body));
     return source;
 }
@@ -438,6 +443,9 @@ std::string CppBackend::emit_identifier_expression(IdentifierExpression *express
 }
 
 std::string CppBackend::emit_get_expression(GetExpression *expression) {
+    if (expression->lhs->type_info->type == TypeInfoType::POINTER)
+    { return emit_expression(expression->lhs) + "->" + expression->member.string; }
+
     return emit_expression(expression->lhs) + "." + expression->member.string;
 }
 
@@ -478,8 +486,8 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
         return emit_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression));
         break;
     case TypeExpressionType::TYPE_SPECIFIED_GENERICS:
-        return emit_specified_generics_type_expression(
-            dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression));
+        return emit_specified_generics_type_expression(dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression)
+        );
         break;
     default:
         panic("Cpp back end does not support this return_type expression");
