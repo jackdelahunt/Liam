@@ -3,8 +3,18 @@
 #include <utility>
 
 #include "liam.h"
+#include "fmt/core.h"
 
 ErrorReporter *ErrorReporter::singleton = nullptr;
+
+std::string ErrorReport::build_error_message() {
+    std::string message = fmt::format(
+        "error {}\n"
+        "--> {}:{}:{}\n"
+    , error, file, line, character);
+
+    return message;
+}
 
 ErrorReporter::ErrorReporter() {
     reports = std::vector<ErrorReport>();
@@ -26,4 +36,8 @@ bool ErrorReporter::has_errors() {
         return false;
 
     return !ErrorReporter::singleton->reports.empty();
+}
+
+u64 ErrorReporter::error_count() {
+    return ErrorReporter::singleton->reports.size();
 }

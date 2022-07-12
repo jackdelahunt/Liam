@@ -26,8 +26,7 @@ std::string CppBackend::emit(File *file) {
     for (auto stmt : file->statements)
     { source_generated.append(emit_statement(stmt)); }
 
-    source_generated.append(R "(
-                            int main(int argc, char **argv) { __liam__main__(); }) ");
+    source_generated.append("int main(int argc, char **argv) { __liam__main__(); }");
 
         return source_generated;
 }

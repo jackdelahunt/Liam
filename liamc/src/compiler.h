@@ -48,7 +48,9 @@ std::vector<File> lex_parse(std::filesystem::path path, std::vector<std::string>
     if (ErrorReporter::has_errors())
     {
         for (auto error : *ErrorReporter::all_reports())
-        { std::cout << error.file << ":" << error.line << ":" << error.character << " :: " << error.error << "\n"; }
+        {
+            std::cout << error.build_error_message();
+        }
 
         panic("Cannot continue with errors :: count (" + std::to_string(ErrorReporter::all_reports()->size()) + ")");
     }

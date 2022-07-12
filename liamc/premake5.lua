@@ -1,7 +1,7 @@
--- all includes used in a table
 workspace "Liam"
 	architecture "x64"
 	startproject "liamc" -- this isnt working for some reason
+	cppdialect "C++20"
 
 	configurations {
 		"Debug",
@@ -11,7 +11,7 @@ workspace "Liam"
 
 outputpath = "%{cfg.system}-%{cfg.architecture}"
 distpath = "%{wks.location}/" .. outputpath .. "/%{prj.name}"
-		
+
 project "liamc"
 	location "src"
 	kind "ConsoleApp"
@@ -25,6 +25,7 @@ project "liamc"
 	files {
 		"./src/**.h",
 		"./src/**.cpp",
+		"./src/**.cc",
 	}
 
 	includedirs {
