@@ -62,11 +62,12 @@ std::string get_token_type_string(TokenType type);
 struct Token {
     TokenType type;
     s32 line;
-    s32 character;
+    s32 character_start;
+    s32 character_end;
     std::string string;
 
     Token() = default;
-    Token(TokenType type, std::string string, s32 line, s32 character);
+    Token(TokenType type, std::string string, s32 line, s32 character_start);
 };
 
 std::ostream &operator<<(std::ostream &os, const Token &token);

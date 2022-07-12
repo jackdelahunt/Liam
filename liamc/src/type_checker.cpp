@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "liam.h"
+#include "errors.h"
 #include "parser.h"
 
 SymbolTable::SymbolTable() {
@@ -21,8 +22,8 @@ void SymbolTable::add_type(Token type, TypeInfo *type_info) {
     if (type_table.contains(type.string))
     {
         panic(
-            "Duplcate creation of return_type: " + type.string + " at (" + std::to_string(type.line) + "," +
-            std::to_string(type.character) + ")"
+            "Duplcate creation of type: " + type.string + " at (" + std::to_string(type.line) + "," +
+            std::to_string(type.character_start) + ")"
         );
     }
 
@@ -34,7 +35,7 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     {
         panic(
             "Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.line) + "," +
-            std::to_string(identifier.character) + ")"
+            std::to_string(identifier.character_start) + ")"
         );
     }
 
@@ -204,7 +205,7 @@ void TypeChecker::type_check_break_statement(BreakStatement *statement, SymbolTa
 }
 
 void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable *symbol_table) {
-    type_check_expression(statement->rhs, symbol_table);
+    TRY_CALL(type_check_expression(statement->rhs, symbol_table));
 
     // if let type is there type match both and set var type
     // to the let type... else just set it to the rhs
