@@ -1,19 +1,51 @@
 #include "errors.h"
 
 #include <utility>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
 #include "liam.h"
 #include "fmt/core.h"
+#include "fmt/color.h"
 
 ErrorReporter *ErrorReporter::singleton = nullptr;
 
-std::string ErrorReport::build_error_message() {
-    std::string message = fmt::format(
-        "error {}\n"
-        "--> {}:{}:{}\n"
-    , error, file, line, character);
+void ErrorReport::print_error_message() {
+    
+    std::ifstream ifs(file);
+	std::vector<std::string> lines;
 
-    return message;
+    for (std::string line; std::getline(ifs, line); /**/) {
+        lines.push_back(line);
+    }
+
+    std::string top = "";
+    std::string middle = "";
+    std::string bottom = "";
+
+    if(line - 2 >= 0 && line - 2 < lines.size()) {
+        top = lines.at(line - 2);
+    }
+
+    if(line - 1 >= 0 && line - 1 < lines.size()) {
+        middle = lines.at(line - 1);
+    }
+
+
+    for(int i = 0; i < character - 1; i++) {
+        bottom.append(" ");
+    }
+    bottom.append("^");
+
+    fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
+    fmt::print(
+        "--> {}:{}:{}\n"
+        "   |   {}\n"
+        "   |   {}\n"
+        "   |   {}\n"
+    , file, line, character, top, middle, bottom
+    );
 }
 
 ErrorReporter::ErrorReporter() {
