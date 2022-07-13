@@ -11,7 +11,7 @@ struct ErrorReport {
     s32 character;
     std::string error;
 
-    std::string build_error_message();
+    void print_error_message();
 };
 
 struct ErrorReporter {
