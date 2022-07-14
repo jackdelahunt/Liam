@@ -1,3 +1,5 @@
+require "cmake"
+
 workspace "Liam"
 	architecture "x64"
 	startproject "liamc" -- this isnt working for some reason
@@ -5,6 +7,7 @@ workspace "Liam"
 
 	configurations {
 		"Debug",
+		"Test",
 		"Release",
 		"Dist",
 	}
@@ -31,6 +34,12 @@ project "liamc"
 	includedirs {
 		"./src",
 	}
+
+	filter "configurations:Test"
+        defines {
+            "TEST",
+            symbols "on"
+        }
 
 	filter "configurations:Debug"
 		-- buildoptions "/DEBUG:FULL" -- FULL is for VS to out all debug symbols in the pdb

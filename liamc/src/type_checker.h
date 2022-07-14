@@ -36,6 +36,7 @@ struct SymbolTable {
 
 struct TypeChecker {
     SymbolTable symbol_table;
+    File *current_file;
 
     TypeChecker();
 

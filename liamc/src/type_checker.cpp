@@ -66,6 +66,7 @@ SymbolTable SymbolTable::copy() {
 
 TypeChecker::TypeChecker() {
     symbol_table = SymbolTable();
+    current_file = NULL;
 }
 
 File TypeChecker::type_check(std::vector<File *> *files) {
@@ -98,16 +99,21 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     // struct type pass
     for (auto stmt : structs)
     {
+        current_file = stmt->file;
         type_check_struct_statement(stmt, &symbol_table, true);
         typed_file.statements.push_back(stmt);
     }
 
     // function decl pass
     for (auto stmt : funcs)
-    { type_check_fn_decl(stmt, &symbol_table); }
+    {
+        current_file = stmt->file;
+        type_check_fn_decl(stmt, &symbol_table);
+    }
 
     for (auto stmt : others)
     {
+        current_file = stmt->file;
         type_check_statement(stmt, &symbol_table);
         typed_file.statements.push_back(stmt);
     }
@@ -215,7 +221,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
         {
             ErrorReporter::report_type_checker_error(
-                "temp.liam", statement->type, statement->rhs, "Mismatched types in let statement"
+                current_file->path, statement->type, statement->rhs, "Mismatched types in let statement"
             );
             return;
         }
