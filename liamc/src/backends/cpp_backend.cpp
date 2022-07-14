@@ -392,6 +392,7 @@ std::string CppBackend::emit_int_literal_expression(IntLiteralExpression *expres
     { return "_u64(" + expression->token.string + ")"; }
 
     panic("This int size cannot be emitted yet");
+    return "";
 }
 
 std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {

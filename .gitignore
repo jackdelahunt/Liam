@@ -18,9 +18,12 @@ liamrs/Cargo.lock
 **/.vs
 **/out
 **.sln
+**.cmake
 **.vcxproj
 **.vcxproj.filters
 **.vcxproj.user
 liamc/Code
 liamc/Makefile
+**/CMakeLists.txt
 liamc/src/Makefile
+liamc/cmake

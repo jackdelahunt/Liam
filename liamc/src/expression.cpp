@@ -33,6 +33,11 @@ IntLiteralExpression::IntLiteralExpression(const Token token) {
 StringLiteralExpression::StringLiteralExpression(const Token token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_STRING_LITERAL;
+    this->span = Span {
+        .line = token.line,
+        .start = token.character_start,
+        .end = token.character_end
+    };
 }
 
 BoolLiteralExpression::BoolLiteralExpression(Token value) {
@@ -86,6 +91,11 @@ std::ostream &operator<<(std::ostream &os, const TypeExpression &expression) {
 IdentifierTypeExpression::IdentifierTypeExpression(Token identifier) {
     this->identifier = identifier;
     this->type       = TypeExpressionType::TYPE_IDENTIFIER;
+    this->span = Span {
+        .line = identifier.line,
+        .start = identifier.character_start,
+        .end = identifier.character_end
+    };
 }
 
 UnaryTypeExpression::UnaryTypeExpression(Token op, TypeExpression *type_expression) {

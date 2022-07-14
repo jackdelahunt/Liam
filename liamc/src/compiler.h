@@ -10,6 +10,7 @@
 #include "type_checker.h"
 
 std::vector<File *> lex_parse(std::filesystem::path path, std::vector<std::string> *imports = NULL) {
+
     auto files = std::vector<File *>();
 
     auto lexer = Lexer(path);

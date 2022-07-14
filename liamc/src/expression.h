@@ -18,7 +18,14 @@ enum class ExpressionType {
     EXPRESSION_GROUP,
 };
 
+struct Span {
+    u32 line;
+    u32 start;
+    u32 end;
+};
+
 struct Expression {
+    Span span = {};
     TypeInfo *type_info = nullptr;
     ExpressionType type;
     virtual std::ostream &format(std::ostream &os) const;
@@ -118,6 +125,7 @@ enum class TypeExpressionType {
 };
 
 struct TypeExpression {
+    Span span = {};
     TypeInfo *type_info = nullptr;
     TypeExpressionType type;
     virtual std::ostream &format(std::ostream &os) const;

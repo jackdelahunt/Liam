@@ -7,8 +7,6 @@
 
 #include "liam.h"
 
-std::vector<char> extract_chars(const char *path);
-
 enum TokenType {
     TOKEN_INT_LITERAL    = 0,
     TOKEN_STRING_LITERAL = 1,
@@ -61,9 +59,9 @@ std::string get_token_type_string(TokenType type);
 
 struct Token {
     TokenType type;
-    s32 line;
-    s32 character_start;
-    s32 character_end;
+    u32 line;
+    u32 character_start;
+    u32 character_end;
     std::string string;
 
     Token() = default;
@@ -76,7 +74,6 @@ bool is_delim(char c);
 
 struct Lexer {
     std::vector<Token> tokens;
-    std::vector<char> chars;
     s32 current;
     s32 current_line;
     s32 current_character;
@@ -86,6 +83,6 @@ struct Lexer {
 
     void lex();
     void next_char();
-    char peek();
-    std::string get_word();
+    char peek(std::vector<char> *chars);
+    std::string get_word(std::vector<char> *chars);
 };

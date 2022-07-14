@@ -7,6 +7,7 @@
 #include "compiler.h"
 #include "liam.h"
 
+#ifndef TEST
 s32 main(s32 argc, char **argv) {
     Arguments::New(argc, argv);
 
@@ -44,3 +45,4 @@ s32 main(s32 argc, char **argv) {
 
     return 0;
 }
+#endif

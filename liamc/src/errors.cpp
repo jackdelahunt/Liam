@@ -1,33 +1,29 @@
 #include "errors.h"
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
 #include <utility>
 
+#include "file.h"
 #include "fmt/color.h"
 #include "fmt/core.h"
 #include "liam.h"
+#include "strings.h"
 
-ErrorReporter *ErrorReporter::singleton = nullptr;
+ErrorReporter *ErrorReporter::singleton = NULL;
 
 void ParserError::print_error_message() {
 
-    std::ifstream ifs(file);
-    std::vector<std::string> lines;
-
-    for (std::string line; std::getline(ifs, line); /**/)
-    { lines.push_back(line); }
+    auto file_data = FileManager::load(&file);
 
     std::string top    = "";
-    std::string middle = "";
+    std::string middle = file_data->line(line);
     std::string bottom = "";
 
-    if (line - 2 >= 0 && line - 2 < lines.size())
-    { top = lines.at(line - 2); }
+    if(line > 0) {
+        top = file_data->line(line - 1);
+        rtrim(top);
+    }
 
-    if (line - 1 >= 0 && line - 1 < lines.size())
-    { middle = lines.at(line - 1); }
+    rtrim(middle);
 
     for (int i = 0; i < character - 1; i++)
     { bottom.append(" "); }
@@ -44,7 +40,37 @@ void ParserError::print_error_message() {
 }
 
 void TypeCheckerError::print_error_message() {
-    fmt::print("{}\n", error);
+    fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
+
+    if(this->expr_1) {
+        fmt::print(
+            "--> {}:{}:{}\n"
+            "   |   {}\n"
+            "   |   {}\n"
+            "   |   {}\n",
+            file, expr_1->span.line, expr_1->span.start, "", "", ""
+        );
+    }
+
+    if(this->expr_2) {
+        fmt::print(
+            "--> {}:{}:{}\n"
+            "   |   {}\n"
+            "   |   {}\n"
+            "   |   {}\n",
+            file, expr_2->span.line, expr_2->span.start, "", "", ""
+        );
+    }
+
+    if(this->type_expr_1) {
+        fmt::print(
+            "--> {}:{}:{}\n"
+            "   |   {}\n"
+            "   |   {}\n"
+            "   |   {}\n",
+            file, type_expr_1->span.line, type_expr_1->span.start, "", "", ""
+        );
+    }
 }
 
 ErrorReporter::ErrorReporter() {

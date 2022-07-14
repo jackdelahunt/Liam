@@ -297,6 +297,7 @@ std::tuple<Statement *, bool> Parser::eval_extern_statement() {
     { return eval_struct_statement(true); }
 
     panic("Cannot extern this statement");
+    return {NULL, true};
 }
 
 std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
