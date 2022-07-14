@@ -20,6 +20,9 @@ struct ReturnStatement;
 struct BreakStatement;
 struct ExpressionStatement;
 struct AssigmentStatement;
+struct ImportStatement;
+struct ForStatement;
+struct IfStatement;
 struct Expression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
@@ -36,10 +39,11 @@ struct Parser {
     std::vector<Token> tokens;
     s32 current;
     std::filesystem::path path;
+    File *file;
 
     Parser(std::filesystem::path path, std::vector<Token> &tokens);
 
-    File parse();
+    void parse();
 
     /* statements */
     std::tuple<Statement *, bool> eval_statement();
@@ -88,5 +92,7 @@ struct Parser {
     std::tuple<std::vector<Expression *>, bool> consume_comma_seperated_arguments(TokenType closer);
     std::tuple<std::vector<TypeExpression *>, bool> consume_comma_seperated_types(TokenType closer);
     std::tuple<std::vector<Token>, bool> consume_comma_seperated_token_arguments(TokenType closer);
-    std::tuple<CSV, bool> consume_comma_seperated_params();
+
+    // this is what CSV is
+    std::tuple<std::vector<std::tuple<Token, TypeExpression *>>, bool> consume_comma_seperated_params();
 };

@@ -1,41 +1,36 @@
 #include "errors.h"
 
-#include <utility>
 #include <fstream>
-#include <sstream>
 #include <iostream>
+#include <sstream>
+#include <utility>
 
-#include "liam.h"
-#include "fmt/core.h"
 #include "fmt/color.h"
+#include "fmt/core.h"
+#include "liam.h"
 
 ErrorReporter *ErrorReporter::singleton = nullptr;
 
-void ErrorReport::print_error_message() {
-    
+void ParserError::print_error_message() {
+
     std::ifstream ifs(file);
-	std::vector<std::string> lines;
+    std::vector<std::string> lines;
 
-    for (std::string line; std::getline(ifs, line); /**/) {
-        lines.push_back(line);
-    }
+    for (std::string line; std::getline(ifs, line); /**/)
+    { lines.push_back(line); }
 
-    std::string top = "";
+    std::string top    = "";
     std::string middle = "";
     std::string bottom = "";
 
-    if(line - 2 >= 0 && line - 2 < lines.size()) {
-        top = lines.at(line - 2);
-    }
+    if (line - 2 >= 0 && line - 2 < lines.size())
+    { top = lines.at(line - 2); }
 
-    if(line - 1 >= 0 && line - 1 < lines.size()) {
-        middle = lines.at(line - 1);
-    }
+    if (line - 1 >= 0 && line - 1 < lines.size())
+    { middle = lines.at(line - 1); }
 
-
-    for(int i = 0; i < character - 1; i++) {
-        bottom.append(" ");
-    }
+    for (int i = 0; i < character - 1; i++)
+    { bottom.append(" "); }
     bottom.append("^");
 
     fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
@@ -43,33 +38,64 @@ void ErrorReport::print_error_message() {
         "--> {}:{}:{}\n"
         "   |   {}\n"
         "   |   {}\n"
-        "   |   {}\n"
-    , file, line, character, top, middle, bottom
+        "   |   {}\n",
+        file, line, character, top, middle, bottom
     );
 }
 
-ErrorReporter::ErrorReporter() {
-    reports = std::vector<ErrorReport>();
+void TypeCheckerError::print_error_message() {
+    fmt::print("{}\n", error);
 }
 
-void ErrorReporter::report_error(std::string file, s32 line, s32 character, std::string message) {
+ErrorReporter::ErrorReporter() {
+    parse_errors      = std::vector<ParserError>();
+    type_check_errors = std::vector<TypeCheckerError>();
+}
+
+void ErrorReporter::report_parser_error(std::string file, s32 line, s32 character, std::string message) {
     if (ErrorReporter::singleton == nullptr)
     { ErrorReporter::singleton = new ErrorReporter(); }
 
-    ErrorReporter::singleton->reports.push_back(ErrorReport{std::move(file), line, character, std::move(message)});
+    ErrorReporter::singleton->parse_errors.push_back(ParserError{std::move(file), line, character, std::move(message)});
 }
 
-std::vector<ErrorReport> *ErrorReporter::all_reports() {
-    return &ErrorReporter::singleton->reports;
+void ErrorReporter::report_type_checker_error(
+    std::string file, Expression *expr_1, Expression *expr_2, std::string message
+) {
+    if (ErrorReporter::singleton == nullptr)
+    { ErrorReporter::singleton = new ErrorReporter(); }
+
+    ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
+        std::move(file), expr_1, expr_2, NULL, std::move(message)});
 }
 
-bool ErrorReporter::has_errors() {
+void ErrorReporter::report_type_checker_error(
+    std::string file, TypeExpression *type_expr_1, Expression *expr_1, std::string message
+) {
+    if (ErrorReporter::singleton == nullptr)
+    { ErrorReporter::singleton = new ErrorReporter(); }
+
+    ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
+        std::move(file), expr_1, NULL, type_expr_1, std::move(message)});
+}
+
+bool ErrorReporter::has_parse_errors() {
     if (ErrorReporter::singleton == nullptr)
         return false;
 
-    return !ErrorReporter::singleton->reports.empty();
+    return !(ErrorReporter::singleton->parse_errors.empty());
+}
+
+bool ErrorReporter::has_type_check_errors() {
+    if (ErrorReporter::singleton == nullptr)
+        return false;
+
+    return !(ErrorReporter::singleton->type_check_errors.empty());
 }
 
 u64 ErrorReporter::error_count() {
-    return ErrorReporter::singleton->reports.size();
+    if (ErrorReporter::singleton == nullptr)
+        return 0;
+
+    return ErrorReporter::singleton->parse_errors.size();
 }

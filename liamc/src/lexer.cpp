@@ -65,11 +65,11 @@ std::vector<char> extract_chars(const char *path) {
 }
 
 Token::Token(TokenType type, std::string string, s32 line, s32 character_start) {
-    this->type      = type;
-    this->string    = string;
-    this->line      = line;
+    this->type            = type;
+    this->string          = string;
+    this->line            = line;
     this->character_start = character_start;
-    this->character_end = character_start + string.size();
+    this->character_end   = character_start + string.size();
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {

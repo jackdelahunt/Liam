@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "errors.h"
+#include "fmt/core.h"
 #include "liam.h"
 
 File::File(std::filesystem::path path) {
@@ -16,10 +17,11 @@ Parser::Parser(std::filesystem::path path, std::vector<Token> &tokens) {
     this->tokens  = tokens;
     this->current = 0;
     this->path    = absolute(std::filesystem::path(path));
+    this->file    = NULL;
 }
 
-File Parser::parse() {
-    auto file = File(path);
+void Parser::parse() {
+    this->file = new File(path);
     while (current < tokens.size())
     {
         auto [stmt, error] = eval_statement();
@@ -29,9 +31,9 @@ File Parser::parse() {
         if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
         {
             auto import_stmt = dynamic_cast<ImportStatement *>(stmt);
-            if (import_stmt->file->type != ExpressionType::EXPRESSION_STRING_LITERAL)
+            if (import_stmt->path->type != ExpressionType::EXPRESSION_STRING_LITERAL)
             { panic("Import requires string literal"); }
-            auto import_path = dynamic_cast<StringLiteralExpression *>(import_stmt->file);
+            auto import_path = dynamic_cast<StringLiteralExpression *>(import_stmt->path);
             auto parent      = this->path.parent_path().string();
 
             std::string final_path;
@@ -40,13 +42,11 @@ File Parser::parse() {
             else
             { final_path = this->path.parent_path().string() + "/" + import_path->token.string; }
 
-            file.imports.emplace_back(final_path);
+            file->imports.emplace_back(final_path);
         }
         else
-        { file.statements.push_back(stmt); }
+        { file->statements.push_back(stmt); }
     }
-
-    return file;
 }
 
 std::tuple<Statement *, bool> Parser::eval_statement() {
@@ -102,14 +102,14 @@ std::tuple<LetStatement *, bool> Parser::eval_let_statement() {
         TRY(TypeExpression *, type, eval_type_expression());
         TRY_TOKEN(TOKEN_ASSIGN);
         TRY(ExpressionStatement *, expression, eval_expression_statement());
-        return WIN(new LetStatement(*identifier, expression->expression, type));
+        return WIN(new LetStatement(file, *identifier, expression->expression, type));
     }
     else
     {
         TRY_TOKEN(TOKEN_WALRUS);
         TRY(ExpressionStatement *, expression, eval_expression_statement());
 
-        return WIN(new LetStatement(*identifier, expression->expression, nullptr));
+        return WIN(new LetStatement(file, *identifier, expression->expression, nullptr));
     }
 }
 
@@ -122,7 +122,12 @@ std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement() {
         current++;
     }
     else if (closing_brace_index < 0)
-    { FAIL(path.string(), open_brace->line, open_brace->character_start, "No closing brace for scope found"); }
+    {
+        ErrorReporter::report_parser_error(
+            path.string(), open_brace->line, open_brace->character_start, "No closing brace for scope found"
+        );
+        return {nullptr, true};
+    }
 
     while (current < closing_brace_index)
     {
@@ -131,7 +136,7 @@ std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement() {
     }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
 
-    return WIN(new ScopeStatement(statements));
+    return WIN(new ScopeStatement(file, statements));
 }
 
 std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern) {
@@ -162,12 +167,12 @@ std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern) {
     if (is_extern)
     {
         TRY_TOKEN(TOKEN_SEMI_COLON);
-        return WIN(new FnStatement(*identifier, generics, params, type, NULL, true));
+        return WIN(new FnStatement(file, *identifier, generics, params, type, NULL, true));
     }
     else
     {
         TRY(ScopeStatement *, body, eval_scope_statement());
-        return WIN(new FnStatement(*identifier, generics, params, type, body, false));
+        return WIN(new FnStatement(file, *identifier, generics, params, type, body, false));
     }
 }
 
@@ -175,7 +180,7 @@ std::tuple<LoopStatement *, bool> Parser::eval_loop_statement() {
     TRY_TOKEN(TOKEN_LOOP);
     NAMED_TOKEN(identifier, TOKEN_STRING_LITERAL);
     TRY(ScopeStatement *, body, eval_scope_statement());
-    return WIN(new LoopStatement(*identifier, body));
+    return WIN(new LoopStatement(file, *identifier, body));
 }
 
 s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {
@@ -224,7 +229,7 @@ std::tuple<StructStatement *, bool> Parser::eval_struct_statement(bool is_extern
     if (error)
     { return {nullptr, true}; }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
-    return WIN(new StructStatement(*identifier, generics, member, is_extern));
+    return WIN(new StructStatement(file, *identifier, generics, member, is_extern));
 }
 
 std::tuple<InsertStatement *, bool> Parser::eval_insert_statement() {
@@ -232,13 +237,13 @@ std::tuple<InsertStatement *, bool> Parser::eval_insert_statement() {
     TRY(Expression *, byte_code, eval_expression());
     TRY_TOKEN(TOKEN_SEMI_COLON);
 
-    return WIN(new InsertStatement(byte_code));
+    return WIN(new InsertStatement(file, byte_code));
 }
 
 std::tuple<ReturnStatement *, bool> Parser::eval_return_statement() {
     TRY_TOKEN(TOKEN_RETURN);
     TRY(ExpressionStatement *, expression, eval_expression_statement());
-    return WIN(new ReturnStatement(expression->expression));
+    return WIN(new ReturnStatement(file, expression->expression));
 }
 
 std::tuple<BreakStatement *, bool> Parser::eval_break_statement() {
@@ -247,14 +252,14 @@ std::tuple<BreakStatement *, bool> Parser::eval_break_statement() {
     TRY_TOKEN(TOKEN_BREAK);
     NAMED_TOKEN(identifier, TOKEN_STRING_LITERAL);
     consume_token_of_type(TOKEN_SEMI_COLON);
-    return WIN(new BreakStatement(*identifier));
+    return WIN(new BreakStatement(file, *identifier));
 }
 
 std::tuple<ImportStatement *, bool> Parser::eval_import_statement() {
     TRY_TOKEN(TOKEN_IMPORT);
-    TRY(ExpressionStatement *, file, eval_expression_statement());
+    TRY(ExpressionStatement *, path, eval_expression_statement());
 
-    return WIN(new ImportStatement(file->expression));
+    return WIN(new ImportStatement(file, path->expression));
 }
 
 std::tuple<ForStatement *, bool> Parser::eval_for_statement() {
@@ -265,21 +270,21 @@ std::tuple<ForStatement *, bool> Parser::eval_for_statement() {
     TRY(Statement *, update, eval_statement())
     TRY(ScopeStatement *, body, eval_scope_statement())
 
-    return WIN(new ForStatement(let_statement, condition, update, body));
+    return WIN(new ForStatement(file, let_statement, condition, update, body));
 }
 
 std::tuple<IfStatement *, bool> Parser::eval_if_statement() {
     TRY_TOKEN(TOKEN_IF);
     TRY(Expression *, expression, eval_expression())
     TRY(ScopeStatement *, body, eval_scope_statement())
-    return WIN(new IfStatement(expression, body));
+    return WIN(new IfStatement(file, expression, body));
 }
 
 std::tuple<ExpressionStatement *, bool> Parser::eval_expression_statement() {
     TRY(Expression *, expression, eval_expression());
     TRY_TOKEN(TOKEN_SEMI_COLON)
 
-    return WIN(new ExpressionStatement(expression));
+    return WIN(new ExpressionStatement(file, expression));
 }
 
 std::tuple<Statement *, bool> Parser::eval_extern_statement() {
@@ -301,12 +306,12 @@ std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
         TRY_TOKEN(TOKEN_ASSIGN);
         TRY(ExpressionStatement *, rhs, eval_expression_statement());
 
-        return WIN(new AssigmentStatement(lhs, rhs));
+        return WIN(new AssigmentStatement(file, lhs, rhs));
     }
 
     // not assign, after eval expresion only semi colon is left
     TRY_TOKEN(TOKEN_SEMI_COLON);
-    return {new ExpressionStatement(lhs), false};
+    return {new ExpressionStatement(file, lhs), false};
 }
 
 std::tuple<Expression *, bool> Parser::eval_expression() {
@@ -576,20 +581,24 @@ std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type) {
     if (current >= tokens.size())
     {
         auto last_token = tokens.at(tokens.size() - 1);
-        FAIL(
+        ErrorReporter::report_parser_error(
             path.string(), last_token.line, last_token.character_start,
-            std::string("Expected \'") + TokenTypeStrings[type] + std::string("\' but got unexpected end of file")
+            fmt::format("Expected '{}' but got unexpected end of file", TokenTypeStrings[type])
         );
+        return {nullptr, true};
     }
 
     auto t_ptr = &tokens.at(current++);
     if (t_ptr->type != type)
     {
-        FAIL(
+        ErrorReporter::report_parser_error(
             path.string(), t_ptr->line, t_ptr->character_start,
-            std::string("Expected \'") + TokenTypeStrings[type] + "\' got \'" + t_ptr->string + "\' at (" +
-                std::to_string(t_ptr->line) + ":" + std::to_string(t_ptr->character_start) + ")"
+            fmt::format(
+                "Expected '{}' got '{}' at({}:{})", TokenTypeStrings[type], t_ptr->string, t_ptr->line,
+                t_ptr->character_start
+            )
         );
+        return {nullptr, true};
     }
 
     return {t_ptr, false};
