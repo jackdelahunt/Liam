@@ -9,12 +9,13 @@ std::ostream &Statement::format(std::ostream &os) const {
     return os;
 }
 
-ExpressionStatement::ExpressionStatement(Expression *expression) {
+ExpressionStatement::ExpressionStatement(File *file, Expression *expression) {
+    this->file           = file;
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_EXPRESSION;
 }
 
-LetStatement::LetStatement(Token identifier, Expression *expression, TypeExpression *type) {
+LetStatement::LetStatement(File *file, Token identifier, Expression *expression, TypeExpression *type) {
     this->identifier     = identifier;
     this->rhs            = expression;
     this->type           = type;
@@ -22,9 +23,10 @@ LetStatement::LetStatement(Token identifier, Expression *expression, TypeExpress
 }
 
 FnStatement::FnStatement(
-    Token identifier, std::vector<Token> generics, CSV params, TypeExpression *type, ScopeStatement *body,
+    File *file, Token identifier, std::vector<Token> generics, CSV params, TypeExpression *type, ScopeStatement *body,
     bool is_extern
 ) {
+    this->file           = file;
     this->identifier     = identifier;
     this->generics       = generics;
     this->return_type    = type;
@@ -34,13 +36,17 @@ FnStatement::FnStatement(
     this->statement_type = StatementType::STATEMENT_FN;
 }
 
-LoopStatement::LoopStatement(Token identifier, ScopeStatement *body) {
+LoopStatement::LoopStatement(File *file, Token identifier, ScopeStatement *body) {
+    this->file           = file;
     this->identifier     = identifier;
     this->body           = body;
     this->statement_type = StatementType::STATEMENT_LOOP;
 }
 
-StructStatement::StructStatement(Token identifier, std::vector<Token> generics, CSV members, bool is_extern) {
+StructStatement::StructStatement(
+    File *file, Token identifier, std::vector<Token> generics, CSV members, bool is_extern
+) {
+    this->file           = file;
     this->identifier     = identifier;
     this->generics       = generics;
     this->members        = members;
@@ -48,30 +54,35 @@ StructStatement::StructStatement(Token identifier, std::vector<Token> generics, 
     this->statement_type = StatementType::STATEMENT_STRUCT;
 }
 
-AssigmentStatement::AssigmentStatement(Expression *lhs, ExpressionStatement *assigned_to) {
+AssigmentStatement::AssigmentStatement(File *file, Expression *lhs, ExpressionStatement *assigned_to) {
+    this->file           = file;
     this->lhs            = lhs;
     this->assigned_to    = assigned_to;
     this->statement_type = StatementType::STATEMENT_ASSIGNMENT;
 }
 
-ScopeStatement::ScopeStatement(std::vector<Statement *> statements) {
+ScopeStatement::ScopeStatement(File *file, std::vector<Statement *> statements) {
+    this->file           = file;
     this->statements     = statements;
     this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 
-InsertStatement::InsertStatement(Expression *byte_code) {
+InsertStatement::InsertStatement(File *file, Expression *byte_code) {
+    this->file           = file;
     this->byte_code      = byte_code;
     this->statement_type = StatementType::STATEMENT_INSERT;
 }
 
-ImportStatement::ImportStatement(Expression *file) {
+ImportStatement::ImportStatement(File *file, Expression *path) {
     this->file           = file;
+    this->path           = path;
     this->statement_type = StatementType::STATEMENT_IMPORT;
 }
 
 ForStatement::ForStatement(
-    LetStatement *let_statement, Expression *condition, Statement *update, ScopeStatement *body
+    File *file, LetStatement *let_statement, Expression *condition, Statement *update, ScopeStatement *body
 ) {
+    this->file           = file;
     this->let_statement  = let_statement;
     this->condition      = condition;
     this->update         = update;
@@ -79,18 +90,21 @@ ForStatement::ForStatement(
     this->statement_type = StatementType::STATEMENT_FOR;
 }
 
-IfStatement::IfStatement(Expression *expression, ScopeStatement *body) {
+IfStatement::IfStatement(File *file, Expression *expression, ScopeStatement *body) {
+    this->file           = file;
     this->expression     = expression;
     this->body           = body;
     this->statement_type = StatementType::STATEMENT_IF;
 }
 
-ReturnStatement::ReturnStatement(Expression *expression) {
+ReturnStatement::ReturnStatement(File *file, Expression *expression) {
+    this->file           = file;
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_RETURN;
 }
 
-BreakStatement::BreakStatement(Token identifier) {
+BreakStatement::BreakStatement(File *file, Token identifier) {
+    this->file           = file;
     this->identifier     = identifier;
     this->statement_type = StatementType::STATEMENT_BREAK;
 }

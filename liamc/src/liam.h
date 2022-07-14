@@ -57,10 +57,6 @@ void panic(const std::string &msg);
 #define WIN(value)                                                                                                     \
     { value, false }
 
-#define FAIL(file, line, character, message)                                                                           \
-    ErrorReporter::report_error(file, line, character, message);                                                       \
-    return {nullptr, true};
-
 #define TRY_CALL(func)                                                                                                 \
     {                                                                                                                  \
         auto start = ErrorReporter::error_count();                                                                     \

@@ -28,7 +28,7 @@ std::string CppBackend::emit(File *file) {
 
     source_generated.append("int main(int argc, char **argv) { __liam__main__(); }");
 
-        return source_generated;
+    return source_generated;
 }
 
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
