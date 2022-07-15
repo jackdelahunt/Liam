@@ -6,6 +6,7 @@
 #include "errors.h"
 #include "fmt/core.h"
 #include "liam.h"
+#include "utils.h"
 
 File::File(std::filesystem::path path) {
     statements = std::vector<Statement *>();
@@ -40,7 +41,7 @@ void Parser::parse() {
             if (std::filesystem::path(import_path->token.string).is_absolute())
             { final_path = import_path->token.string; }
             else
-            { final_path = this->path.parent_path().string() + "/" + import_path->token.string; }
+            { final_path = this->path.parent_path().string() + "/" + copy_trim(import_path->token.string, "\""); }
 
             file->imports.emplace_back(final_path);
         }

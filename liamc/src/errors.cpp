@@ -6,9 +6,70 @@
 #include "fmt/color.h"
 #include "fmt/core.h"
 #include "liam.h"
-#include "strings.h"
+#include "utils.h"
 
 ErrorReporter *ErrorReporter::singleton = NULL;
+
+std::string build_highlighter(u64 start, u64 length) {
+    auto source = std::string();
+    for (int i = 0; i < start - 1; i++)
+    {
+        source.append(" ");
+    }
+
+    for (int i = 0; i < length; i++)
+    {
+        source.append("^");
+    }
+
+    return source;
+}
+
+void print_expression_type_error(std::string *file, Expression *expression) {
+    auto file_data = FileManager::load(file);
+
+    std::string top    = "";
+    std::string middle = file_data->line(expression->span.line);
+    std::string bottom = build_highlighter(expression->span.start, expression->span.end - expression->span.start);
+
+    if(expression->span.line > 0) {
+        top = file_data->line(expression->span.line - 1);
+        trim(top);
+    }
+
+    rtrim(middle);
+
+    fmt::print(
+        "--> {}:{}:{}\n"
+        "   |   {}\n"
+        "   |   {}\n"
+        "   |   {}\n",
+        *file, expression->span.line, expression->span.start, top, middle, bottom
+    );
+}
+
+void print_type_expression_type_error(std::string *file, TypeExpression *type_expression) {
+    auto file_data = FileManager::load(file);
+
+    std::string top    = "";
+    std::string middle = file_data->line(type_expression->span.line);
+    std::string bottom = build_highlighter(type_expression->span.start, type_expression->span.end - type_expression->span.start);
+
+    if(type_expression->span.line > 0) {
+        top = file_data->line(type_expression->span.line - 1);
+        trim(top);
+    }
+
+    rtrim(middle);
+
+    fmt::print(
+        "--> {}:{}:{}\n"
+        "   |   {}\n"
+        "   |   {}\n"
+        "   |   {}\n",
+        *file, type_expression->span.line, type_expression->span.start, top, middle, bottom
+    );
+}
 
 void ParserError::print_error_message() {
 
@@ -16,7 +77,7 @@ void ParserError::print_error_message() {
 
     std::string top    = "";
     std::string middle = file_data->line(line);
-    std::string bottom = "";
+    std::string bottom = build_highlighter(character, 1);
 
     if(line > 0) {
         top = file_data->line(line - 1);
@@ -24,10 +85,6 @@ void ParserError::print_error_message() {
     }
 
     rtrim(middle);
-
-    for (int i = 0; i < character - 1; i++)
-    { bottom.append(" "); }
-    bottom.append("^");
 
     fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
     fmt::print(
@@ -43,33 +100,15 @@ void TypeCheckerError::print_error_message() {
     fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
 
     if(this->expr_1) {
-        fmt::print(
-            "--> {}:{}:{}\n"
-            "   |   {}\n"
-            "   |   {}\n"
-            "   |   {}\n",
-            file, expr_1->span.line, expr_1->span.start, "", "", ""
-        );
+        print_expression_type_error(&file, expr_1);
     }
 
     if(this->expr_2) {
-        fmt::print(
-            "--> {}:{}:{}\n"
-            "   |   {}\n"
-            "   |   {}\n"
-            "   |   {}\n",
-            file, expr_2->span.line, expr_2->span.start, "", "", ""
-        );
+        print_expression_type_error(&file, expr_2);
     }
 
     if(this->type_expr_1) {
-        fmt::print(
-            "--> {}:{}:{}\n"
-            "   |   {}\n"
-            "   |   {}\n"
-            "   |   {}\n",
-            file, type_expr_1->span.line, type_expr_1->span.start, "", "", ""
-        );
+        print_type_expression_type_error(&file, type_expr_1);
     }
 }
 
