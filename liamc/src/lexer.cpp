@@ -174,8 +174,13 @@ void Lexer::lex() {
             { next_char(); }
             break;
         case '"': {
-            next_char();
+            u64 start = current_character;
             std::string str = std::string();
+
+            // add the " to the string literal
+            str.append(std::string(1, chars->at(current)));
+
+            next_char();
             while (current < chars->size() && chars->at(current) != '"')
             {
                 // skip back slash and accept next char
@@ -189,7 +194,10 @@ void Lexer::lex() {
                 str.append(std::string(1, chars->at(current)));
                 next_char();
             }
-            tokens.push_back(Token(TokenType::TOKEN_STRING_LITERAL, str, current_line, current_character));
+            // trailing "
+            str.append(std::string(1, chars->at(current)));
+
+            tokens.emplace_back(TokenType::TOKEN_STRING_LITERAL, str, current_line, start);
         }
         break;
         default:
@@ -357,6 +365,9 @@ std::string Lexer::get_word(std::vector<char> *chars) {
         word.append(1, chars->at(current));
         next_char();
     }
-    current--; // sets current as it will be iterated once after this
+
+    current--;              // it will be iterated once after this
+    current_character--;    // it will be iterated once after this
+
     return word;
 }
