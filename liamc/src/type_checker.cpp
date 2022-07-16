@@ -221,7 +221,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
         {
             ErrorReporter::report_type_checker_error(
-                current_file->path, statement->type, statement->rhs, "Mismatched types in let statement"
+                current_file->path, statement->rhs, NULL, statement->type, NULL, "Mismatched types in let statement"
             );
             return;
         }
@@ -540,7 +540,7 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     else if (symbol_table->identifier_table.contains(expression->identifier.string))
     { type_info = symbol_table->identifier_table[expression->identifier.string]; }
     else
-    { panic("Unrecognized identifier: " + expression->identifier.string); }
+    { ErrorReporter::report_type_checker_error(current_file->path, expression, NULL, NULL, NULL, "Unrecognized identifier"); }
 
     expression->type_info = type_info;
 }

@@ -2,8 +2,8 @@
 
 #include <filesystem>
 
-#include "liam.h"
 #include "file.h"
+#include "liam.h"
 
 const char *TokenTypeStrings[43] = {
     "int Literal",
@@ -79,7 +79,7 @@ Lexer::Lexer(std::filesystem::path path) {
 
 void Lexer::lex() {
     auto as_string = path.string();
-    auto chars = &FileManager::load(&as_string)->data;
+    auto chars     = &FileManager::load(&as_string)->data;
 
     for (; current < chars->size(); next_char())
     {
@@ -174,7 +174,7 @@ void Lexer::lex() {
             { next_char(); }
             break;
         case '"': {
-            u64 start = current_character;
+            u64 start       = current_character;
             std::string str = std::string();
 
             // add the " to the string literal
@@ -366,8 +366,8 @@ std::string Lexer::get_word(std::vector<char> *chars) {
         next_char();
     }
 
-    current--;              // it will be iterated once after this
-    current_character--;    // it will be iterated once after this
+    current--;           // it will be iterated once after this
+    current_character--; // it will be iterated once after this
 
     return word;
 }
