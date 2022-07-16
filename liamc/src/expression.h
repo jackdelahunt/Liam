@@ -25,7 +25,7 @@ struct Span {
 };
 
 struct Expression {
-    Span span = {};
+    Span span           = {};
     TypeInfo *type_info = nullptr;
     ExpressionType type;
     virtual std::ostream &format(std::ostream &os) const;
@@ -125,7 +125,7 @@ enum class TypeExpressionType {
 };
 
 struct TypeExpression {
-    Span span = {};
+    Span span           = {};
     TypeInfo *type_info = nullptr;
     TypeExpressionType type;
     virtual std::ostream &format(std::ostream &os) const;

@@ -23,6 +23,7 @@ UnaryExpression::UnaryExpression(Expression *expression, Token op) {
     this->expression = expression;
     this->op         = op;
     this->type       = ExpressionType::EXPRESSION_UNARY;
+    this->span  = Span{.line = expression->span.line, .start = op.character_start, .end = expression->span.end};
 }
 
 IntLiteralExpression::IntLiteralExpression(const Token token) {
@@ -33,21 +34,19 @@ IntLiteralExpression::IntLiteralExpression(const Token token) {
 StringLiteralExpression::StringLiteralExpression(const Token token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_STRING_LITERAL;
-    this->span = Span {
-        .line = token.line,
-        .start = token.character_start,
-        .end = token.character_end
-    };
+    this->span  = Span{.line = token.line, .start = token.character_start, .end = token.character_end};
 }
 
 BoolLiteralExpression::BoolLiteralExpression(Token value) {
     this->value = value;
     this->type  = ExpressionType::EXPRESSION_BOOL_LITERAL;
+    this->span  = Span{.line = value.line, .start = value.character_start, .end = value.character_end};
 }
 
 IdentifierExpression::IdentifierExpression(const Token identifier) {
     this->identifier = identifier;
     this->type       = ExpressionType::EXPRESSION_IDENTIFIER;
+    this->span  = Span{.line = identifier.line, .start = identifier.character_start, .end = identifier.character_end};
 }
 
 CallExpression::CallExpression(
@@ -91,17 +90,14 @@ std::ostream &operator<<(std::ostream &os, const TypeExpression &expression) {
 IdentifierTypeExpression::IdentifierTypeExpression(Token identifier) {
     this->identifier = identifier;
     this->type       = TypeExpressionType::TYPE_IDENTIFIER;
-    this->span = Span {
-        .line = identifier.line,
-        .start = identifier.character_start,
-        .end = identifier.character_end
-    };
+    this->span = Span{.line = identifier.line, .start = identifier.character_start, .end = identifier.character_end};
 }
 
 UnaryTypeExpression::UnaryTypeExpression(Token op, TypeExpression *type_expression) {
     this->op              = op;
     this->type_expression = type_expression;
     this->type            = TypeExpressionType::TYPE_UNARY;
+    this->span  = Span{.line = type_expression->span.line, .start = op.character_start, .end = type_expression->span.end};
 }
 
 UnionTypeExpression::UnionTypeExpression(std::vector<TypeExpression *> type_expressions) {

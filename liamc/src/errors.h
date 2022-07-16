@@ -20,6 +20,7 @@ struct TypeCheckerError {
     Expression *expr_1;
     Expression *expr_2;
     TypeExpression *type_expr_1;
+    TypeExpression *type_expr_2;
     std::string error;
 
     void print_error_message();
@@ -34,10 +35,8 @@ struct ErrorReporter {
 
     static void report_parser_error(std::string file, s32 line, s32 character, std::string message);
     static void report_type_checker_error(
-        std::string file, Expression *expr_1, Expression *expr_2, std::string message
-    );
-    static void report_type_checker_error(
-        std::string file, TypeExpression *type_expr_1, Expression *expr_1, std::string message
+        std::string file, Expression *expr_1, Expression *expr_2, TypeExpression *type_expr_1,
+        TypeExpression *type_expr_2, std::string message
     );
     static bool has_parse_errors();
     static bool has_type_check_errors();

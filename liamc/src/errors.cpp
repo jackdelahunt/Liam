@@ -13,14 +13,10 @@ ErrorReporter *ErrorReporter::singleton = NULL;
 std::string build_highlighter(u64 start, u64 length) {
     auto source = std::string();
     for (int i = 0; i < start - 1; i++)
-    {
-        source.append(" ");
-    }
+    { source.append(" "); }
 
     for (int i = 0; i < length; i++)
-    {
-        source.append("^");
-    }
+    { source.append("^"); }
 
     return source;
 }
@@ -32,7 +28,8 @@ void print_expression_type_error(std::string *file, Expression *expression) {
     std::string middle = file_data->line(expression->span.line);
     std::string bottom = build_highlighter(expression->span.start, expression->span.end - expression->span.start);
 
-    if(expression->span.line > 0) {
+    if (expression->span.line > 1)
+    {
         top = file_data->line(expression->span.line - 1);
         trim(top);
     }
@@ -53,9 +50,11 @@ void print_type_expression_type_error(std::string *file, TypeExpression *type_ex
 
     std::string top    = "";
     std::string middle = file_data->line(type_expression->span.line);
-    std::string bottom = build_highlighter(type_expression->span.start, type_expression->span.end - type_expression->span.start);
+    std::string bottom =
+        build_highlighter(type_expression->span.start, type_expression->span.end - type_expression->span.start);
 
-    if(type_expression->span.line > 0) {
+    if (type_expression->span.line > 1)
+    {
         top = file_data->line(type_expression->span.line - 1);
         trim(top);
     }
@@ -79,7 +78,8 @@ void ParserError::print_error_message() {
     std::string middle = file_data->line(line);
     std::string bottom = build_highlighter(character, 1);
 
-    if(line > 0) {
+    if (line > 0)
+    {
         top = file_data->line(line - 1);
         rtrim(top);
     }
@@ -99,17 +99,17 @@ void ParserError::print_error_message() {
 void TypeCheckerError::print_error_message() {
     fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
 
-    if(this->expr_1) {
-        print_expression_type_error(&file, expr_1);
-    }
+    if (this->expr_1)
+    { print_expression_type_error(&file, expr_1); }
 
-    if(this->expr_2) {
-        print_expression_type_error(&file, expr_2);
-    }
+    if (this->expr_2)
+    { print_expression_type_error(&file, expr_2); }
 
-    if(this->type_expr_1) {
-        print_type_expression_type_error(&file, type_expr_1);
-    }
+    if (this->type_expr_1)
+    { print_type_expression_type_error(&file, type_expr_1); }
+
+    if (this->type_expr_2)
+    { print_type_expression_type_error(&file, type_expr_2); }
 }
 
 ErrorReporter::ErrorReporter() {
@@ -125,23 +125,14 @@ void ErrorReporter::report_parser_error(std::string file, s32 line, s32 characte
 }
 
 void ErrorReporter::report_type_checker_error(
-    std::string file, Expression *expr_1, Expression *expr_2, std::string message
+    std::string file, Expression *expr_1, Expression *expr_2, TypeExpression *type_expr_1, TypeExpression *type_expr_2,
+    std::string message
 ) {
     if (ErrorReporter::singleton == nullptr)
     { ErrorReporter::singleton = new ErrorReporter(); }
 
     ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
-        std::move(file), expr_1, expr_2, NULL, std::move(message)});
-}
-
-void ErrorReporter::report_type_checker_error(
-    std::string file, TypeExpression *type_expr_1, Expression *expr_1, std::string message
-) {
-    if (ErrorReporter::singleton == nullptr)
-    { ErrorReporter::singleton = new ErrorReporter(); }
-
-    ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
-        std::move(file), expr_1, NULL, type_expr_1, std::move(message)});
+        std::move(file), expr_1, expr_2, type_expr_1, type_expr_2, std::move(message)});
 }
 
 bool ErrorReporter::has_parse_errors() {
