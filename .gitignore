@@ -26,4 +26,3 @@ liamc/Code
 liamc/Makefile
 **/CMakeLists.txt
 liamc/src/Makefile
-liamc/cmake
