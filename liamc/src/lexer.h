@@ -57,15 +57,19 @@ extern const char *TokenTypeStrings[43];
 
 std::string get_token_type_string(TokenType type);
 
+struct Span {
+    u32 line;
+    u32 start;
+    u32 end;
+};
+
 struct Token {
     TokenType type;
-    u32 line;
-    u32 character_start;
-    u32 character_end;
+    Span span;
     std::string string;
 
     Token() = default;
-    Token(TokenType type, std::string string, s32 line, s32 character_start);
+    Token(TokenType type, std::string string, u32 line, u32 start);
 };
 
 std::ostream &operator<<(std::ostream &os, const Token &token);

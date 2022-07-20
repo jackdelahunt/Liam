@@ -12,8 +12,7 @@ workspace "Liam"
 		"Dist",
 	}
 
-outputpath = "%{cfg.system}-%{cfg.architecture}"
-distpath = "%{wks.location}/" .. outputpath .. "/%{prj.name}"
+distpath = "%{wks.location}/" .. "/%{prj.name}"
 
 project "liamc"
 	location "src"
@@ -22,8 +21,8 @@ project "liamc"
 	language "C++"
 	cppdialect "C++20"
 
-	targetdir ("bin/" .. outputpath .. "/%{prj.name}")
-	objdir ("obj/" .. outputpath .. "/%{prj.name}")
+	targetdir ("bin/%{prj.name}")
+	objdir ("obj/%{prj.name}")
 
 	files {
 		"./src/**.h",

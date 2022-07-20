@@ -50,12 +50,10 @@ const char *TokenTypeStrings[43] = {
     "|"
     "is"};
 
-Token::Token(TokenType type, std::string string, s32 line, s32 character_start) {
+Token::Token(TokenType type, std::string string, u32 line, u32 start) {
     this->type            = type;
     this->string          = string;
-    this->line            = line;
-    this->character_start = character_start;
-    this->character_end   = character_start + string.size();
+    this->span = Span{.line = line, .start = start, .end = (u32)(start + string.length())};
 }
 
 std::ostream &operator<<(std::ostream &os, const Token &token) {

@@ -18,12 +18,6 @@ enum class ExpressionType {
     EXPRESSION_GROUP,
 };
 
-struct Span {
-    u32 line;
-    u32 start;
-    u32 end;
-};
-
 struct Expression {
     Span span           = {};
     TypeInfo *type_info = nullptr;
@@ -65,13 +59,13 @@ struct ArrayExpression : Expression {
 struct IntLiteralExpression : Expression {
     Token token;
 
-    IntLiteralExpression(const Token token);
+    IntLiteralExpression(Token token);
 };
 
 struct StringLiteralExpression : Expression {
     Token token;
 
-    StringLiteralExpression(const Token token);
+    StringLiteralExpression(Token token);
 };
 
 struct BoolLiteralExpression : Expression {
