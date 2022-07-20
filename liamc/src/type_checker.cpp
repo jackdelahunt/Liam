@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "errors.h"
+#include "fmt/core.h"
 #include "liam.h"
 #include "parser.h"
 
@@ -34,8 +35,8 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     if (identifier_table.contains(identifier.string))
     {
         panic(
-            "Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.span.line) + "," +
-            std::to_string(identifier.span.start) + ")"
+            "Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.span.line) +
+            "," + std::to_string(identifier.span.start) + ")"
         );
     }
 
@@ -414,7 +415,13 @@ void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable
     TRY_CALL(type_check_type_expression(expression->type_expression, symbol_table));
 
     if (expression->expression->type_info->type != TypeInfoType::UNION)
-    { panic("Cannot use is expressio on non union type"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression->expression, NULL, NULL, NULL,
+            "Cannot use non-type-union type in is expression"
+        );
+        return;
+    }
 
     expression->type_info = symbol_table->get_type("bool");
     symbol_table->add_identifier(
@@ -498,10 +505,20 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     auto type_of_callee = dynamic_cast<IdentifierExpression *>(expression->identifier);
 
     if (!type_of_callee)
-    { panic("Can only call on identifier expressions"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression->identifier, NULL, NULL, NULL, "Can only call identifier expressions"
+        );
+        return;
+    }
 
     if (type_of_callee->type_info->type != TypeInfoType::FN)
-    { panic("Can only call a function"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, type_of_callee, NULL, NULL, NULL, "Can only call function types"
+        );
+        return;
+    }
 
     auto arg_type_infos = std::vector<TypeInfo *>();
     for (auto arg : expression->args)
@@ -512,15 +529,37 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
 
     auto fn_type_info = static_cast<FnTypeInfo *>(type_of_callee->type_info);
     if (fn_type_info->args.size() != arg_type_infos.size())
-    { panic("Incorrect numbers of args passed to function call"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, type_of_callee, NULL, NULL, NULL,
+            fmt::format(
+                "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
+                arg_type_infos.size()
+            )
+        );
+    }
 
     if (fn_type_info->generic_count != expression->generics.size())
-    { panic("Incorrect numbers of type params passed to function call"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, type_of_callee, NULL, NULL, NULL,
+            fmt::format(
+                "Incorrect number of generic arguments in call expression, expected {} got {}",
+                fn_type_info->generic_count, expression->generics.size()
+            )
+        );
+        return;
+    }
 
     for (s32 i = 0; i < fn_type_info->args.size(); i++)
     {
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
-        { panic("Type mismatch at function call"); }
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, type_of_callee, expression->args.at(i), NULL, NULL, "Mismatched types function call"
+            );
+            return;
+        }
     }
 
     for (u64 i = 0; i < expression->generics.size(); i++)
@@ -540,7 +579,11 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     else if (symbol_table->identifier_table.contains(expression->identifier.string))
     { type_info = symbol_table->identifier_table[expression->identifier.string]; }
     else
-    { ErrorReporter::report_type_checker_error(current_file->path, expression, NULL, NULL, NULL, "Unrecognized identifier"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression, NULL, NULL, NULL, "Unrecognized identifier"
+        );
+    }
 
     expression->type_info = type_info;
 }
@@ -597,13 +640,23 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
 }
 
 void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTable *symbol_table) {
-    // check its a return_type
+    // check its type
     if (!symbol_table->type_table.contains(expression->identifier.string))
-    { panic("Unrecognised type in new statement"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression, NULL, NULL, NULL, "Unrecognised type in new expression"
+        );
+        return;
+    }
 
     // check it's a struct
     if (symbol_table->type_table[expression->identifier.string]->type != TypeInfoType::STRUCT)
-    { panic("Cannot use new on non struct identifier"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression, NULL, NULL, NULL, "Can only use struct types in new expression"
+        );
+        return;
+    }
 
     auto struct_type_info = static_cast<StructTypeInfo *>(symbol_table->type_table[expression->identifier.string]);
 
@@ -625,7 +678,16 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
 
     // check counts
     if (struct_type_info->members.size() != calling_args_type_infos.size())
-    { panic("Incorrect number of arguments in new constructor"); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression, NULL, NULL, NULL,
+            fmt::format(
+                "Incorrect number of arguments in new expression, expected {} got {}", struct_type_info->members.size(),
+                calling_args_type_infos.size()
+            )
+        );
+        return;
+    }
 
     // check types
     for (s32 i = 0; i < calling_args_type_infos.size(); i++)
@@ -634,24 +696,13 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
 
         auto resolved_member_type = resolve_generics(type, &expression->generics);
         if (!type_match(resolved_member_type, calling_args_type_infos.at(i)))
-        { panic("Incorect arguments to new constructor argument " + std::to_string(i)); }
-
-        // if (type->type == TypeInfoType::GENERIC)
-        // {
-        // auto generic_type = static_cast<GenericTypeInfo *>(type);
-        // if (!type_match(members_type_infos.at(i),
-        // generic_type_infos[generic_type->id]))
-        // {
-        // panic("Incorect arguments to new constructor");
-        // }
-        // }
-        // else
-        // {
-        // if (!type_match(members_type_infos.at(i), type))
-        // {
-        // panic("Incorect arguments to new constructor");
-        // }
-        // }
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression, expression->expressions.at(i), NULL, NULL,
+                "Mismatched types in new expression"
+            );
+            return;
+        }
     }
 
     if (struct_type_info->generic_count > 0)
