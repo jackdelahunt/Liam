@@ -117,7 +117,7 @@ ErrorReporter::ErrorReporter() {
     type_check_errors = std::vector<TypeCheckerError>();
 }
 
-void ErrorReporter::report_parser_error(std::string file, s32 line, s32 character, std::string message) {
+void ErrorReporter::report_parser_error(std::string file, u32 line, u32 character, std::string message) {
     if (ErrorReporter::singleton == nullptr)
     { ErrorReporter::singleton = new ErrorReporter(); }
 

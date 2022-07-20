@@ -22,8 +22,8 @@ void SymbolTable::add_type(Token type, TypeInfo *type_info) {
     if (type_table.contains(type.string))
     {
         panic(
-            "Duplcate creation of type: " + type.string + " at (" + std::to_string(type.line) + "," +
-            std::to_string(type.character_start) + ")"
+            "Duplcate creation of type: " + type.string + " at (" + std::to_string(type.span.line) + "," +
+            std::to_string(type.span.start) + ")"
         );
     }
 
@@ -34,8 +34,8 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     if (identifier_table.contains(identifier.string))
     {
         panic(
-            "Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.line) + "," +
-            std::to_string(identifier.character_start) + ")"
+            "Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.span.line) + "," +
+            std::to_string(identifier.span.start) + ")"
         );
     }
 

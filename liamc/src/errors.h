@@ -8,8 +8,8 @@
 
 struct ParserError {
     std::string file;
-    s32 line;
-    s32 character;
+    u32 line;
+    u32 character;
     std::string error;
 
     void print_error_message();
@@ -33,7 +33,7 @@ struct ErrorReporter {
 
     ErrorReporter();
 
-    static void report_parser_error(std::string file, s32 line, s32 character, std::string message);
+    static void report_parser_error(std::string file, u32 line, u32 character, std::string message);
     static void report_type_checker_error(
         std::string file, Expression *expr_1, Expression *expr_2, TypeExpression *type_expr_1,
         TypeExpression *type_expr_2, std::string message

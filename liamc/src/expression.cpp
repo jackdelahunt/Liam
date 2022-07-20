@@ -23,30 +23,31 @@ UnaryExpression::UnaryExpression(Expression *expression, Token op) {
     this->expression = expression;
     this->op         = op;
     this->type       = ExpressionType::EXPRESSION_UNARY;
-    this->span  = Span{.line = expression->span.line, .start = op.character_start, .end = expression->span.end};
+    this->span  = Span{.line = expression->span.line, .start = op.span.start, .end = expression->span.end};
 }
 
-IntLiteralExpression::IntLiteralExpression(const Token token) {
+IntLiteralExpression::IntLiteralExpression(Token token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_INT_LITERAL;
+    this->span = token.span;
 }
 
-StringLiteralExpression::StringLiteralExpression(const Token token) {
+StringLiteralExpression::StringLiteralExpression(Token token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_STRING_LITERAL;
-    this->span  = Span{.line = token.line, .start = token.character_start, .end = token.character_end};
+    this->span  = Span{.line = token.span.line, .start = token.span.start, .end = token.span.end};
 }
 
 BoolLiteralExpression::BoolLiteralExpression(Token value) {
     this->value = value;
     this->type  = ExpressionType::EXPRESSION_BOOL_LITERAL;
-    this->span  = Span{.line = value.line, .start = value.character_start, .end = value.character_end};
+    this->span  = Span{.line = value.span.line, .start = value.span.start, .end = value.span.end};
 }
 
 IdentifierExpression::IdentifierExpression(const Token identifier) {
     this->identifier = identifier;
     this->type       = ExpressionType::EXPRESSION_IDENTIFIER;
-    this->span  = Span{.line = identifier.line, .start = identifier.character_start, .end = identifier.character_end};
+    this->span  = Span{.line = identifier.span.line, .start = identifier.span.start, .end = identifier.span.end};
 }
 
 CallExpression::CallExpression(
@@ -56,12 +57,14 @@ CallExpression::CallExpression(
     this->args       = args;
     this->generics   = generics;
     this->type       = ExpressionType::EXPRESSION_CALL;
+    this->span  = identifier->span;
 }
 
 GetExpression::GetExpression(Expression *expression, Token member) {
     this->lhs    = expression;
     this->member = member;
     this->type   = ExpressionType::EXPRESSION_GET;
+    this->span = Span{expression->span.line, expression->span.start, member.span.end};
 }
 
 NewExpression::NewExpression(
@@ -70,12 +73,14 @@ NewExpression::NewExpression(
     this->identifier  = identifier;
     this->generics    = generics;
     this->expressions = expressions;
+    this->span        = identifier.span;
     this->type        = ExpressionType::EXPRESSION_NEW;
 }
 
 GroupExpression::GroupExpression(Expression *expression) {
     this->expression = expression;
     this->type       = ExpressionType::EXPRESSION_GROUP;
+    this->span       = expression->span;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {
@@ -90,19 +95,24 @@ std::ostream &operator<<(std::ostream &os, const TypeExpression &expression) {
 IdentifierTypeExpression::IdentifierTypeExpression(Token identifier) {
     this->identifier = identifier;
     this->type       = TypeExpressionType::TYPE_IDENTIFIER;
-    this->span = Span{.line = identifier.line, .start = identifier.character_start, .end = identifier.character_end};
+    this->span = identifier.span;
 }
 
 UnaryTypeExpression::UnaryTypeExpression(Token op, TypeExpression *type_expression) {
     this->op              = op;
     this->type_expression = type_expression;
     this->type            = TypeExpressionType::TYPE_UNARY;
-    this->span  = Span{.line = type_expression->span.line, .start = op.character_start, .end = type_expression->span.end};
+    this->span  = type_expression->span;
 }
 
 UnionTypeExpression::UnionTypeExpression(std::vector<TypeExpression *> type_expressions) {
     this->type_expressions = type_expressions;
     this->type             = TypeExpressionType::TYPE_UNION;
+    this->span = Span{
+        type_expressions.at(0)->span.line,
+        type_expressions.at(0)->span.start,
+        type_expressions.at(type_expressions.size() - 1)->span.end
+    };
 }
 
 SpecifiedGenericsTypeExpression::SpecifiedGenericsTypeExpression(
@@ -110,5 +120,6 @@ SpecifiedGenericsTypeExpression::SpecifiedGenericsTypeExpression(
 ) {
     this->struct_type = struct_type;
     this->generics    = generics;
+    this->span = Span{.line = struct_type->span.line, .start = struct_type->span.start, .end = struct_type->span.end};
     this->type        = TypeExpressionType::TYPE_SPECIFIED_GENERICS;
 }

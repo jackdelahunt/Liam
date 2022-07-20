@@ -125,7 +125,7 @@ std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement() {
     else if (closing_brace_index < 0)
     {
         ErrorReporter::report_parser_error(
-            path.string(), open_brace->line, open_brace->character_start, "No closing brace for scope found"
+            path.string(), open_brace->span.start, open_brace->span.start, "No closing brace for scope found"
         );
         return {nullptr, true};
     }
@@ -584,7 +584,7 @@ std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type) {
     {
         auto last_token = tokens.at(tokens.size() - 1);
         ErrorReporter::report_parser_error(
-            path.string(), last_token.line, last_token.character_start,
+            path.string(), last_token.span.line, last_token.span.start,
             fmt::format("Expected '{}' but got unexpected end of file", TokenTypeStrings[type])
         );
         return {nullptr, true};
@@ -594,10 +594,10 @@ std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type) {
     if (t_ptr->type != type)
     {
         ErrorReporter::report_parser_error(
-            path.string(), t_ptr->line, t_ptr->character_start,
+            path.string(), t_ptr->span.line, t_ptr->span.start,
             fmt::format(
-                "Expected '{}' got '{}' at({}:{})", TokenTypeStrings[type], t_ptr->string, t_ptr->line,
-                t_ptr->character_start
+                "Expected '{}' got '{}' at({}:{})", TokenTypeStrings[type], t_ptr->string, t_ptr->span.line,
+                t_ptr->span.start
             )
         );
         return {nullptr, true};
