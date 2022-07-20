@@ -5,7 +5,7 @@
 #include "file.h"
 #include "liam.h"
 
-const char *TokenTypeStrings[43] = {
+const char *TokenTypeStrings[42] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -31,7 +31,6 @@ const char *TokenTypeStrings[43] = {
     ".",
     "new",
     "break",
-    ":=",
     "[",
     "]",
     "for",
@@ -132,12 +131,6 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_BRACKET_CLOSE, "]", current_line, current_character));
             break;
         case ':':
-            if (peek(chars) == '=')
-            {
-                next_char();
-                tokens.emplace_back(TokenType::TOKEN_WALRUS, ":=", current_line, current_character);
-                break;
-            }
             tokens.emplace_back(Token(TokenType::TOKEN_COLON, ":", current_line, current_character));
             break;
         case '^':
