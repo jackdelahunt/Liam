@@ -33,7 +33,6 @@ enum TokenType {
     TOKEN_NEW            = 22,
     TOKEN_BREAK          = 23,
     TOKEN_IMPORT         = 24,
-    TOKEN_WALRUS         = 25,
     TOKEN_BRACKET_OPEN   = 26,
     TOKEN_BRACKET_CLOSE  = 27,
     TOKEN_FOR            = 28,
@@ -53,7 +52,7 @@ enum TokenType {
     TOKEN_IS             = 42,
 };
 
-extern const char *TokenTypeStrings[43];
+extern const char *TokenTypeStrings[42];
 
 std::string get_token_type_string(TokenType type);
 

@@ -96,22 +96,14 @@ std::tuple<LetStatement *, bool> Parser::eval_let_statement() {
     TRY_TOKEN(TOKEN_LET);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
-    // might be walrus or explicit return_type
-    if (peek(0)->type == TOKEN_COLON)
-    {
-        TRY_TOKEN(TOKEN_COLON);
-        TRY(TypeExpression *, type, eval_type_expression());
-        TRY_TOKEN(TOKEN_ASSIGN);
-        TRY(ExpressionStatement *, expression, eval_expression_statement());
-        return WIN(new LetStatement(file, *identifier, expression->expression, type));
-    }
-    else
-    {
-        TRY_TOKEN(TOKEN_WALRUS);
-        TRY(ExpressionStatement *, expression, eval_expression_statement());
+    TypeExpression *type = NULL;
 
-        return WIN(new LetStatement(file, *identifier, expression->expression, nullptr));
-    }
+    TRY_TOKEN(TOKEN_COLON);
+    if (peek()->type != TOKEN_ASSIGN)
+    { TRY(, type, eval_type_expression()); }
+    TRY_TOKEN(TOKEN_ASSIGN);
+    TRY(ExpressionStatement *, expression, eval_expression_statement());
+    return WIN(new LetStatement(file, *identifier, expression->expression, type));
 }
 
 std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement() {
