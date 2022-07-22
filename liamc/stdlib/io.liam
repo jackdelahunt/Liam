@@ -1,5 +1,0 @@
-import "string.liam";
-
-extern fn print[T](t: T): void;
-extern fn println[T](t: T): void;
-extern fn read(path: str): String;
