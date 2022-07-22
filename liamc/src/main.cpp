@@ -6,8 +6,12 @@
 #include "backends/cpp_backend.h"
 #include "compiler.h"
 #include "liam.h"
+#include "fmt/core.h"
 
 #ifndef TEST
+
+void build_step(std::string *code);
+
 s32 main(s32 argc, char **argv) {
     Arguments::New(argc, argv);
 
@@ -33,16 +37,32 @@ s32 main(s32 argc, char **argv) {
 
     TIME_START(code_gen);
     auto code = CppBackend().emit(&typed_file);
+    TIME_END(code_gen, "Code generation time");
+
     if (args->value<bool>("codegen"))
     { std::cout << code; }
     else
     {
-        std::ofstream out_file(args->out_path);
-        out_file << code;
-        out_file.close();
+        build_step(&code);
     }
-    TIME_END(code_gen, "Code generation time");
 
     return 0;
+}
+
+void build_step(std::string *code) {
+
+    // write cpp file
+    std::ofstream out_file("out.cpp");
+    out_file << *code;
+    out_file.close();
+
+    {
+        FILE *file = popen(fmt::format("clang++ -I {} out.cpp -std=c++20 -o {}", args->include, args->out_path).c_str(), "r");
+        pclose(file);
+    }
+    {
+        FILE *file = popen("rm out.cpp", "r");
+        pclose(file);
+    }
 }
 #endif

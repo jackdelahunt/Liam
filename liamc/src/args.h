@@ -15,6 +15,8 @@ struct Arguments {
     bool time;
     bool runtime;
     bool help;
+    std::string include;
+
 
     cxxopts::Options *options;
     cxxopts::ParseResult result;
@@ -32,6 +34,7 @@ struct Arguments {
         options->add_options()("t,time", "Print times", cxxopts::value<bool>()->default_value("false"));
         options->add_options()("r,runtime", "Get the runtime location", cxxopts::value<bool>()->default_value("false"));
         options->add_options()("h,help", "See this help screen", cxxopts::value<bool>()->default_value("false"));
+        options->add_options()("I,include", "Include path", cxxopts::value<std::string>()->default_value("runtime/"));
 
         args->result  = options->parse(argc, argv);
         args->options = options;
@@ -42,6 +45,7 @@ struct Arguments {
         args->time     = args->value<bool>("time");
         args->runtime  = args->value<bool>("runtime");
         args->help     = args->value<bool>("help");
+        args->include = args->value<std::string>("include");
 
         // required args
         if (args->result.hasValue<std::string>("in"))
