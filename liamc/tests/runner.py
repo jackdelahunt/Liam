@@ -19,8 +19,30 @@ source_files = [source_dir + f for f in listdir(source_dir) if isfile(join(sourc
 
 os.makedirs(out_path, exist_ok=True)
 
-for i, source in enumerate(source_files):
-    print("========= " + source + " =========")
-    subprocess.run([compiler_path, "--in", source, "--out", out_path + "out.cpp"])
-    subprocess.run(["clang++", "-I", runtime_path, out_path + "out.cpp", "-std=c++20", "-o", out_path + "out.exe"])
-    subprocess.run(["./" + out_path + "out.exe"])
+for i, file_path in enumerate(source_files):
+
+    lines = []
+    source = open(file_path).readlines()
+    for line in source:
+        if line.startswith("#"):
+            lines.append(line.strip("\n#"))
+        else:
+            break
+
+    compile_output = subprocess.run([compiler_path, "--in", file_path, "--out", out_path + "out.exe", "--include", "../runtime"], capture_output=True)
+
+    if compile_output.stderr != b'':
+        print("COMPILE ERROR :: ", file_path,  compile_output.stderr.decode("UTF-8"))
+        exit(1)
+
+    running_output = subprocess.run(["./" + out_path + "out.exe"], capture_output=True)
+    if running_output.stderr != b'':
+        print("RUNTIME ERROR :: ", file_path, compile_output.stderr.decode("UTF-8"))
+        exit(1)
+
+    output_lines = running_output.stdout.decode("UTF-8").splitlines()
+    if lines != output_lines:
+        print(f"MATCH ERROR :: non matching output {file_path} expected {lines} got {output_lines}")
+    else:
+        print(f"({i + 1},{len(source_files)}) TEST PASSED [:")
+

@@ -1,4 +1,13 @@
+#100
+
+# multiple imports should work [ :
 import "other/import_me.liam";
+import "other/import_me.liam";
+import "other/import_me.liam";
+import "other/import_me.liam";
+import "other/import_me.liam";
+import "other/import_me.liam";
+
 import "../../stdlib/io.liam";
 
 fn main(): u64 {

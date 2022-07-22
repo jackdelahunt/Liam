@@ -1,3 +1,7 @@
+#100
+#100
+#20
+
 import "../../stdlib/io.liam";
 
 struct Vector[T] {

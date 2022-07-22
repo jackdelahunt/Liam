@@ -1,3 +1,7 @@
+#Hello
+#100
+#0
+
 import "../../stdlib/io.liam";
 
 fn main(): u64 {
