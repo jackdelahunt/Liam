@@ -77,15 +77,6 @@ File type_check(std::vector<File *> *files) {
     return file;
 }
 
-void print_runtime() {
-#ifdef WINDOWS
-    panic("This flag is not supported on windows yet...");
-#else
-    auto path = std::filesystem::canonical("/proc/self/exe").parent_path().string() + "/runtime";
-    std::cout << path;
-#endif
-}
-
 void print_help() {
     std::cout << args->options->help();
 }

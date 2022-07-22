@@ -15,12 +15,6 @@ void build_step(std::string *code);
 s32 main(s32 argc, char **argv) {
     Arguments::New(argc, argv);
 
-    if (args->runtime)
-    {
-        print_runtime();
-        return 0;
-    }
-
     if (args->help)
     {
         print_help();

@@ -1,0 +1,33 @@
+# io
+extern fn print[T](t: T): void;
+extern fn println[T](t: T): void;
+extern fn read(path: str): String;
+
+# memory
+extern fn set_allocator(name: str, size: u64): void;
+extern fn alloc[T](t: T): ^T;
+extern fn destroy[T](t: ^T): void;
+extern fn hashcode[T](t: ^T): u64;
+
+# core
+extern fn len(string: str): u64;
+
+# String
+extern struct String {}
+extern fn make_string(): String;
+extern fn make_string_from(s: str): String;
+extern fn to_str(s: ^String): str;
+extern fn string_append(s: ^String, x: ^String): void;
+extern fn string_substring(s: ^String, start: u64, length: u64): str;
+extern fn string_length(s: ^String): u64;
+
+# collections
+extern struct Array[T] {
+    length: u64,
+    capacity: u64
+}
+
+extern fn make_array[T](): Array[T];
+extern fn array_add[T](array: ^Array[T], t: T): void;
+extern fn array_at[T](array: ^Array[T], index: u64): T;
+extern fn array_size[T](array: ^Array[T]): u64;

@@ -7,6 +7,7 @@
 #include "fmt/core.h"
 #include "liam.h"
 #include "utils.h"
+#include "args.h"
 
 File::File(std::filesystem::path path) {
     statements = std::vector<Statement *>();
@@ -32,16 +33,24 @@ void Parser::parse() {
         if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
         {
             auto import_stmt = dynamic_cast<ImportStatement *>(stmt);
+
             if (import_stmt->path->type != ExpressionType::EXPRESSION_STRING_LITERAL)
             { panic("Import requires string literal"); }
-            auto import_path = dynamic_cast<StringLiteralExpression *>(import_stmt->path);
-            auto parent      = this->path.parent_path().string();
+
+            auto import_path_expr = dynamic_cast<StringLiteralExpression *>(import_stmt->path);
 
             std::string final_path;
-            if (std::filesystem::path(import_path->token.string).is_absolute())
-            { final_path = import_path->token.string; }
+            auto import_path = std::filesystem::path(copy_trim(import_path_expr->token.string, "\""));
+
+            if (import_path.is_absolute())
+            {
+                final_path = import_path_expr->token.string;
+            }
+            else if(import_path.string().rfind("stdlib/", 0) == 0) {
+                final_path = absolute(std::filesystem::path(args->stdlib)).string() + "/" + import_path.filename().string();
+            }
             else
-            { final_path = this->path.parent_path().string() + "/" + copy_trim(import_path->token.string, "\""); }
+            { final_path = this->path.parent_path().string() + "/" + import_path.string(); }
 
             file->imports.emplace_back(final_path);
         }
