@@ -1,9 +1,0 @@
-extern struct Array[T] {
-    length: u64,
-    capacity: u64
-}
-
-extern fn make_array[T](): Array[T];
-extern fn array_add[T](array: ^Array[T], t: T): void;
-extern fn array_at[T](array: ^Array[T], index: u64): T;
-extern fn array_size[T](array: ^Array[T]): u64;
