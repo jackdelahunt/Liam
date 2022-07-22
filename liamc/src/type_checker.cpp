@@ -537,6 +537,7 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
                 arg_type_infos.size()
             )
         );
+        return;
     }
 
     if (fn_type_info->generic_count != expression->generics.size())
