@@ -5,8 +5,8 @@
 #include "args.h"
 #include "backends/cpp_backend.h"
 #include "compiler.h"
-#include "liam.h"
 #include "fmt/core.h"
+#include "liam.h"
 
 #ifndef TEST
 
@@ -42,9 +42,7 @@ s32 main(s32 argc, char **argv) {
     if (args->value<bool>("codegen"))
     { std::cout << code; }
     else
-    {
-        build_step(&code);
-    }
+    { build_step(&code); }
 
     return 0;
 }
@@ -57,7 +55,8 @@ void build_step(std::string *code) {
     out_file.close();
 
     {
-        FILE *file = popen(fmt::format("clang++ -I {} out.cpp -std=c++20 -o {}", args->include, args->out_path).c_str(), "r");
+        FILE *file =
+            popen(fmt::format("clang++ -I {} out.cpp -std=c++20 -o {}", args->include, args->out_path).c_str(), "r");
         pclose(file);
     }
     {

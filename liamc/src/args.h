@@ -17,7 +17,6 @@ struct Arguments {
     bool help;
     std::string include;
 
-
     cxxopts::Options *options;
     cxxopts::ParseResult result;
 
@@ -45,7 +44,7 @@ struct Arguments {
         args->time     = args->value<bool>("time");
         args->runtime  = args->value<bool>("runtime");
         args->help     = args->value<bool>("help");
-        args->include = args->value<std::string>("include");
+        args->include  = args->value<std::string>("include");
 
         // required args
         if (args->result.hasValue<std::string>("in"))
