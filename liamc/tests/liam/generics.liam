@@ -2,7 +2,7 @@
 #100
 #20
 
-import "../../stdlib/io.liam";
+import "stdlib/basic.liam";
 
 struct Vector[T] {
     x: T,

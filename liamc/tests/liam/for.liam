@@ -7,7 +7,7 @@
 #0
 #1
 
-import "../../stdlib/io.liam";
+import "stdlib/basic.liam";
 
 fn main(): u64 {
     for let i: u64 = 0; i < 2; i = i + 1; {

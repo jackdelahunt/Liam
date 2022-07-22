@@ -2,13 +2,11 @@
 
 # multiple imports should work [ :
 import "other/import_me.liam";
-import "other/import_me.liam";
-import "other/import_me.liam";
-import "other/import_me.liam";
-import "other/import_me.liam";
-import "other/import_me.liam";
-
-import "../../stdlib/io.liam";
+import "stdlib/basic.liam";
+import "stdlib/basic.liam";
+import "stdlib/basic.liam";
+import "stdlib/basic.liam";
+import "stdlib/basic.liam";
 
 fn main(): u64 {
     hello("Hello");

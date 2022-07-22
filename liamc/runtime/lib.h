@@ -1,152 +1,20 @@
 #pragma once
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <fstream>
-#include <iostream>
-#include <sstream>
 #include <string>
-#include <variant>
 #include <vector>
 
-typedef uint8_t u8;
-typedef int8_t s8;
+#include "core.cpp"
+#include "core.h"
 
-typedef uint64_t u64;
-typedef int64_t s64;
-typedef double f64;
+#include "memory.cpp"
+#include "memory.h"
 
-typedef int32_t s32;
-typedef uint32_t u32;
-typedef float f32;
+#include "builtin_string.h"
+#include "builtin_string.cpp"
 
-// used to make sure size of literal
-u64 _u64(uint64_t n) {
-    return n;
-}
-
-// used to make sure size of literal
-s64 _s64(int64_t n) {
-    return n;
-}
-
-std::string pretty_string_builtin(std::string indentation, u64 n) {
-    return std::to_string(n);
-}
-
-std::string pretty_string_builtin(std::string indentation, bool b) {
-    return b ? "true" : "false";
-}
-
-struct str {
-    char *chars;
-    uint64_t length;
-
-    std::string pretty_string(std::string indentation) {
-        char *cpy = (char *)malloc(sizeof(char) * length);
-        memcpy(cpy, chars, length);
-        cpy[length] = '\0';
-        auto print  = indentation + std::string(cpy);
-        free(cpy);
-        return print;
-    }
-
-    bool compare_c_str(const char *c_str) {
-        for (u64 i = 0; i < this->length; i++)
-        {
-            if (c_str[i] == '\0')
-                return false;
-
-            if (chars[i] == c_str[i])
-            {}
-            else
-                return false;
-        }
-
-        return true;
-    }
-
-    friend bool operator==(const str &l, const str &r) {
-        if (l.length != r.length)
-            return false;
-
-        for (uint64_t i = 0; i < l.length; i++)
-        {
-            if (l.chars[i] == r.chars[i])
-            {}
-            else
-                return false;
-        }
-
-        return true;
-    }
-};
-
-std::ostream &operator<<(std::ostream &os, const str &obj) {
-    for (int i = 0; i < obj.length; i++)
-    { os << obj.chars[i]; }
-    return os;
-}
-
-str make_str(char *chars, uint64_t length) {
-    return str{chars, length};
-}
-
-u64 len(const str &s) {
-    return s.length;
-}
-
-std::string pretty_string_pointer(std::string indentation, void *ptr) {
-    std::stringstream ss;
-    ss << ptr;
-    return indentation + ss.str();
-}
-
-template <typename T> void print(const T &t) {
-    std::cout << t;
-}
-
-template <typename T> void println(const T &t) {
-    std::cout << t << "\n";
-}
-
-template <typename T> u64 hashcode(T *t) {
-    return u64{(uint64_t)t};
-}
-
-struct Allocator {
-    virtual void *alloc(u64 size)   = 0;
-    virtual void destroy(void *ptr) = 0;
-};
-
-static Allocator *allocator = NULL;
-
-struct Malloc : public Allocator {
-
-    void *alloc(u64 size) override {
-        return malloc(size);
-    }
-
-    void destroy(void *ptr) override {
-        free(ptr);
-    }
-};
-
-template <typename T> T *alloc(T t) {
-    auto ptr = (T *)allocator->alloc(sizeof(T));
-    *ptr     = t;
-    return ptr;
-}
-
-template <typename T> void destroy(T *t) {
-    allocator->destroy((void *)t);
-}
-
-void set_allocator(str name, u64 size) {
-    if (name.compare_c_str("malloc"))
-    { allocator = new Malloc{}; }
-}
+#include "io.h"
 
 template <typename T> struct Array {
     u64 length;
@@ -173,56 +41,4 @@ template <typename T> T array_at(Array<T> *array, u64 index) {
 
 template <typename T> u64 array_size(Array<T> *array) {
     return array->data.size();
-}
-
-struct String {
-    std::string string;
-
-    std::string pretty_string(std::string indentation) {
-        return indentation + string;
-    }
-};
-
-String make_string() {
-    return String{.string = std::string()};
-}
-
-String make_string_from(str s) {
-    return String{.string = std::string(s.chars)};
-}
-
-str to_str(String *s) {
-    return make_str((char *)s->string.c_str(), s->string.size());
-}
-
-void string_append(String *s, String *x) {
-    s->string.append(x->string);
-}
-
-String read(str path) {
-    std::ifstream input{path.chars};
-
-    if (!input.is_open())
-    {
-        std::cerr << "Couldn't read file: " << path.chars << "\n";
-        exit(1);
-    }
-
-    std::string s;
-    input >> s;
-
-    return String{.string = s};
-}
-
-str string_substring(String *string, u64 start, u64 length) {
-    return make_str((char *)&string->string.c_str()[start], length);
-}
-
-u64 string_length(String *string) {
-    return string->string.size();
-}
-
-template <typename T, typename... Ts> std::ostream &operator<<(std::ostream &os, const std::variant<T, Ts...> &obj) {
-    os << "<?>";
-    return os;
 }

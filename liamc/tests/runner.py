@@ -29,7 +29,13 @@ for i, file_path in enumerate(source_files):
         else:
             break
 
-    compile_output = subprocess.run([compiler_path, "--in", file_path, "--out", out_path + "out.exe", "--include", "../runtime"], capture_output=True)
+    compile_output = subprocess.run([
+        compiler_path,
+        "--in", file_path,
+        "--out", out_path + "out.exe",
+        "--include", "../runtime",
+        "--stdlib", "../stdlib"
+    ], capture_output=True)
 
     if compile_output.stderr != b'':
         print("COMPILE ERROR :: ", file_path,  compile_output.stderr.decode("UTF-8"))

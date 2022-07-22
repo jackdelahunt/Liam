@@ -4,7 +4,7 @@
 #0
 #wrong input
 
-import "../../stdlib/io.liam";
+import "stdlib/basic.liam";
 
 struct Struct {
     data: u64 | bool
