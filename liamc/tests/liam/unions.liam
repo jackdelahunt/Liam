@@ -1,3 +1,9 @@
+#100
+#this is a string
+#100
+#0
+#wrong input
+
 import "../../stdlib/io.liam";
 
 struct Struct {
@@ -42,7 +48,7 @@ fn num_or_string(x: u64 | bool): u64 | str {
     }
 
     if x is bool b {
-        return "oh no wrong input";
+        return "wrong input";
     }
 
     return "PANIC :: how did we get here";

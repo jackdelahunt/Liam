@@ -1,3 +1,8 @@
+#jack
+#21
+#liam
+#28
+
 import "../../stdlib/io.liam";
 
 struct Person {
@@ -5,9 +10,22 @@ struct Person {
     age: u64
 }
 
+struct People {
+    one: Person,
+    two: Person
+}
+
 fn main(): u64 {
     let p: Person = new Person{"jack", 21};
     println[str](p.name);
     println[u64](p.age);
+
+    let people: People = new People {
+        new Person {"liam", 25},
+        new Person {"mace window", 28}
+    };
+
+    println[str](people.one.name);
+    println[u64](people.two.age);
     return 0;
 }

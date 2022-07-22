@@ -1,7 +1,20 @@
+#0
+#1
+#10
+#12
+#14
+#16
+#0
+#1
+
 import "../../stdlib/io.liam";
 
 fn main(): u64 {
     for let i: u64 = 0; i < 2; i = i + 1; {
+        println[u64](i);
+    }
+
+    for let i := 10; i < 17; i = i + 2; {
         println[u64](i);
     }
  
