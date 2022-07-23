@@ -11,10 +11,10 @@ struct Pointers {
 }
 
 fn main(): void {
-    let x : u64 = 100;
-    let y : ^u64 = @x;
-    println[u64](x);
-    println[u64](*y);
+    let x := 100;
+    let y := @x;
+    println[s64](x);
+    println[s64](*y);
 
     let s := "this is a string";
     let p := new Pointers{s, @s};

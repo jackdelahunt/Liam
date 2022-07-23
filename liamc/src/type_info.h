@@ -1,9 +1,11 @@
 #pragma once
 
+#include "lexer.h"
+
 enum class TypeInfoType {
     ANY,
     VOID,
-    INT,
+    NUMBER,
     CHAR,
     BOOLEAN,
     STRING,
@@ -23,9 +25,9 @@ struct AnyTypeInfo : TypeInfo {};
 
 struct VoidTypeInfo : TypeInfo {};
 
-struct IntTypeInfo : TypeInfo {
-    bool is_signed;
+struct NumberTypeInfo : TypeInfo {
     size_t size;
+    NumberType type;
 };
 
 struct BoolTypeInfo : TypeInfo {};
