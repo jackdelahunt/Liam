@@ -8,7 +8,7 @@ enum class ExpressionType {
     EXPRESSION_IS,
     EXPRESSION_BINARY,
     EXPRESSION_UNARY,
-    EXPRESSION_INT_LITERAL,
+    EXPRESSION_NUMBER_LITERAL,
     EXPRESSION_STRING_LITERAL,
     EXPRESSION_BOOL_LITERAL,
     EXPRESSION_IDENTIFIER,
@@ -50,16 +50,11 @@ struct UnaryExpression : Expression {
     UnaryExpression(Expression *expression, Token op);
 };
 
-struct ArrayExpression : Expression {
-    std::vector<Expression *> expressions;
-
-    ArrayExpression(std::vector<Expression *> expressions);
-};
-
-struct IntLiteralExpression : Expression {
+struct NumberLiteralExpression : Expression {
     Token token;
+    s64 number;
 
-    IntLiteralExpression(Token token);
+    NumberLiteralExpression(Token token);
 };
 
 struct StringLiteralExpression : Expression {

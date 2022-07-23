@@ -31,6 +31,10 @@ for i, file_path in enumerate(source_files):
         print("COMPILE ERROR :: ", file_path,  compile_output.stderr.decode("UTF-8"))
         exit(1)
 
+    if compile_output.returncode != 0:
+        print(f"COMPILE ERROR :: {file_path} :: return code was {compile_output.returncode}")
+        exit(1)
+
     running_output = subprocess.run(["./out.exe"], capture_output=True)
     if running_output.stderr != b'':
         print("RUNTIME ERROR :: ", file_path, compile_output.stderr.decode("UTF-8"))
@@ -41,8 +45,9 @@ for i, file_path in enumerate(source_files):
         print(f"MATCH ERROR :: non matching output {file_path} expected {lines} got {output_lines}")
     else:
         print(f"({i + 1},{len(source_files)}) TEST PASSED [:")
-    
-    os.remove("out.exe")
+
+    if os.path.exists("out.exe"):
+        os.remove("out.exe")
 
 
 

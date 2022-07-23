@@ -100,7 +100,7 @@ void ParserError::print_error_message() {
 }
 
 void TypeCheckerError::print_error_message() {
-    fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
+    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
 
     if (this->expr_1)
     { print_expression_type_error(&file, expr_1); }
@@ -156,5 +156,5 @@ u64 ErrorReporter::error_count() {
     if (ErrorReporter::singleton == nullptr)
         return 0;
 
-    return ErrorReporter::singleton->parse_errors.size();
+    return ErrorReporter::singleton->parse_errors.size() + ErrorReporter::singleton->type_check_errors.size();
 }

@@ -4,6 +4,7 @@
 
 #include "file.h"
 #include "liam.h"
+#include "utils.h"
 
 const char *TokenTypeStrings[43] = {
     "int Literal",
@@ -331,15 +332,19 @@ void Lexer::lex() {
             }
 
             // check numbers
-            try
-            {
-                s32 i = std::stoi(word);
-                tokens.emplace_back(Token(TokenType::TOKEN_INT_LITERAL, word, current_line, word_start));
+            if(is_digit(word.at(0)) || word.at(0) == '-') {
+
+                // TODO:
+                // if this word is a number then it might have got stuck on a .
+                // this means the word is actually shorter than the actual number
+                // to stop this we revert the current location and read until we
+                // find a delimiter but not including . or -
+
+                tokens.emplace_back(Token(TokenType::TOKEN_NUMBER_LITERAL, word, current_line, word_start));
                 continue;
             }
-            catch (const std::exception &e)
-            {}
 
+            // must be an identifier
             tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
 
             break;

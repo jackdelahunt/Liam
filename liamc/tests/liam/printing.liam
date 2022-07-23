@@ -4,9 +4,8 @@
 
 import "stdlib/basic.liam";
 
-fn main(): u64 {
+fn main(): void {
     println[str]("Hello");
-    println[u64](100);
+    println[s64](100);
     println[bool](false);
-    return 0;
 }

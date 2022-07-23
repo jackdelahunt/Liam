@@ -298,8 +298,8 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_STRING_LITERAL:
         return emit_string_literal_expression(dynamic_cast<StringLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_INT_LITERAL:
-        return emit_int_literal_expression(dynamic_cast<IntLiteralExpression *>(expression));
+    case ExpressionType::EXPRESSION_NUMBER_LITERAL:
+        return emit_int_literal_expression(dynamic_cast<NumberLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_BOOL_LITERAL:
         return emit_bool_literal_expression(dynamic_cast<BoolLiteralExpression *>(expression));
@@ -398,14 +398,37 @@ std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expr
     return expression->value.string;
 }
 
-std::string CppBackend::emit_int_literal_expression(IntLiteralExpression *expression) {
-    auto int_type = static_cast<IntTypeInfo *>(expression->type_info);
+std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
+    auto number_type = static_cast<NumberTypeInfo *>(expression->type_info);
 
-    if (int_type->size == 64)
-    { return "_u64(" + expression->token.string + ")"; }
+    std::string func_call = "_";
 
-    panic("This int size cannot be emitted yet");
-    return "";
+    if(number_type->type == UNSIGNED) {
+        func_call.append("u");
+    }
+    else if(number_type->type == SIGNED) {
+        func_call.append("s");
+    }
+    else if(number_type->type == FLOAT) {
+        func_call.append("f");
+    }
+
+    if(number_type->size == 8) {
+        func_call.append("8");
+    }
+    else if(number_type->size == 16) {
+        func_call.append("16");
+    }
+    else if(number_type->size == 32) {
+        func_call.append("32");
+    }
+    else if(number_type->size == 64) {
+        func_call.append("64");
+    }
+
+    func_call.append("(" + std::to_string(expression->number) + ")");
+
+    return func_call;
 }
 
 std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {

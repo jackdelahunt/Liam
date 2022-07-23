@@ -26,9 +26,9 @@ UnaryExpression::UnaryExpression(Expression *expression, Token op) {
     this->span       = Span{.line = expression->span.line, .start = op.span.start, .end = expression->span.end};
 }
 
-IntLiteralExpression::IntLiteralExpression(Token token) {
+NumberLiteralExpression::NumberLiteralExpression(Token token) {
     this->token = token;
-    this->type  = ExpressionType::EXPRESSION_INT_LITERAL;
+    this->type  = ExpressionType::EXPRESSION_NUMBER_LITERAL;
     this->span  = token.span;
 }
 

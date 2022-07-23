@@ -8,10 +8,9 @@ import "stdlib/basic.liam";
 import "stdlib/basic.liam";
 import "stdlib/basic.liam";
 
-fn main(): u64 {
+fn main(): void {
     hello("Hello");
     helloToYou[str]("Hello to you");
-    let i: ImportMe = new ImportMe{100};
+    let i: ImportMe = new ImportMe{100u64};
     println[u64](i.number);
-    return 0; 
 }

@@ -7,8 +7,14 @@
 
 #include "liam.h"
 
+enum NumberType {
+    UNSIGNED,
+    SIGNED,
+    FLOAT
+};
+
 enum TokenType {
-    TOKEN_INT_LITERAL = 0, // 0
+    TOKEN_NUMBER_LITERAL = 0, // 0
     TOKEN_STRING_LITERAL,  // "hello"
     TOKEN_IDENTIFIER,      // x
     TOKEN_LET,             // let

@@ -494,8 +494,8 @@ std::tuple<Expression *, bool> Parser::eval_call() {
 std::tuple<Expression *, bool> Parser::eval_primary() {
     auto type = peek()->type;
 
-    if (type == TokenType::TOKEN_INT_LITERAL)
-        return WIN(new IntLiteralExpression(*consume_token()));
+    if (type == TokenType::TOKEN_NUMBER_LITERAL)
+        return WIN(new NumberLiteralExpression(*consume_token()));
     else if (type == TokenType::TOKEN_STRING_LITERAL)
         return WIN(new StringLiteralExpression(*consume_token()));
     else if (type == TokenType::TOKEN_TRUE || type == TokenType::TOKEN_FALSE)

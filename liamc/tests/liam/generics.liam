@@ -18,21 +18,20 @@ fn generic_func[T, E](t: T, e: ^E): ^E {
 }
 
 fn get_u64_vector(): Vector[u64] {
-    let x := 20;
+    let x := 20u64;
     let v := new Vector[u64]{x, @x};
     return v;
 }
 
-fn main(): u64 {
-    let n: u64 = 100;
+fn main(): void {
+    let n := 100u64;
     let v: Vector[u64] = new Vector[u64]{n, @n};
     println[u64](v.x);
     println[u64](*(v.y));
 
     let s := "jack";
-    generic_func[u64, str](100, @s);
+    generic_func[u64, str](100u64, @s);
 
     let u64_vector := get_u64_vector();
     println[u64](u64_vector.x);
-    return 0; 
 }

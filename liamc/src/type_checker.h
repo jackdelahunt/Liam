@@ -14,7 +14,7 @@ struct ReturnStatement;
 struct BreakStatement;
 struct ExpressionStatement;
 struct AssigmentStatement;
-struct IntLiteralExpression;
+struct NumberLiteralExpression;
 struct StringLiteralExpression;
 struct Expression;
 struct File;
@@ -64,7 +64,7 @@ struct TypeChecker {
     void type_check_is_expression(IsExpression *expression, SymbolTable *symbol_table);
     void type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table);
     void type_check_string_literal_expression(StringLiteralExpression *expression, SymbolTable *symbol_table);
-    void type_check_int_literal_expression(IntLiteralExpression *expression, SymbolTable *symbol_table);
+    void type_check_number_literal_expression(NumberLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_bool_literal_expression(BoolLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table);
     void type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table);

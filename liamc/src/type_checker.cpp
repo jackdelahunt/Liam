@@ -6,6 +6,7 @@
 #include "fmt/core.h"
 #include "liam.h"
 #include "parser.h"
+#include "utils.h"
 
 SymbolTable::SymbolTable() {
     this->builtin_type_table = std::map<std::string, TypeInfo *>();
@@ -14,9 +15,22 @@ SymbolTable::SymbolTable() {
 
     builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
     builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
-    builtin_type_table["u64"]  = new IntTypeInfo{TypeInfoType::INT, false, 64};
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
     builtin_type_table["str"]  = new StrTypeInfo{TypeInfoType::STRING};
+
+    builtin_type_table["u8"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 8, UNSIGNED};
+    builtin_type_table["s8"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 8, SIGNED};
+
+    builtin_type_table["u16"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 16, UNSIGNED};
+    builtin_type_table["s16"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 16, SIGNED};
+
+    builtin_type_table["u32"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 32, UNSIGNED};
+    builtin_type_table["s32"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 32, SIGNED};
+    builtin_type_table["f32"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 32, FLOAT};
+
+    builtin_type_table["u64"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 64, UNSIGNED};
+    builtin_type_table["s64"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 64, SIGNED};
+    builtin_type_table["f64"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 64, FLOAT};
 }
 
 void SymbolTable::add_type(Token type, TypeInfo *type_info) {
@@ -385,8 +399,8 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_STRING_LITERAL:
         return type_check_string_literal_expression(dynamic_cast<StringLiteralExpression *>(expression), symbol_table);
         break;
-    case ExpressionType::EXPRESSION_INT_LITERAL:
-        return type_check_int_literal_expression(dynamic_cast<IntLiteralExpression *>(expression), symbol_table);
+    case ExpressionType::EXPRESSION_NUMBER_LITERAL:
+        return type_check_number_literal_expression(dynamic_cast<NumberLiteralExpression *>(expression), symbol_table);
         break;
     case ExpressionType::EXPRESSION_BOOL_LITERAL:
         return type_check_bool_literal_expression(dynamic_cast<BoolLiteralExpression *>(expression), symbol_table);
@@ -432,6 +446,24 @@ void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable
         return;
     }
 
+    // check if the type expression given is valid for this type union
+    auto union_type_info = (UnionTypeInfo *)expression->expression->type_info;
+    bool match = false;
+    for(auto t : union_type_info->types) {
+        if(type_match(t, expression->type_expression->type_info)) {
+            match = true;
+            break;
+        }
+    }
+
+    if(!match) {
+        ErrorReporter::report_type_checker_error(
+                current_file->path, expression->expression, NULL, expression->type_expression, NULL,
+                "Type must be a valid sub type of the type union"
+        );
+        return;
+    }
+
     expression->type_info = symbol_table->get_type("bool");
     symbol_table->add_identifier(
         expression->identifier, new PointerTypeInfo{TypeInfoType::POINTER, expression->type_expression->type_info}
@@ -459,7 +491,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     // math ops - numbers -> numbers
     if (expression->op.type == TOKEN_PLUS || expression->op.type == TOKEN_STAR)
     {
-        if (expression->left->type_info->type != TypeInfoType::INT)
+        if (expression->left->type_info->type != TypeInfoType::NUMBER)
         { panic("Cannot use arithmatic operator on non number"); }
         info = expression->left->type_info;
     }
@@ -468,7 +500,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     if (expression->op.type == TOKEN_LESS || expression->op.type == TOKEN_GREATER ||
         expression->op.type == TOKEN_GREATER_EQUAL || expression->op.type == TOKEN_LESS_EQUAL)
     {
-        if (expression->left->type_info->type != TypeInfoType::INT)
+        if (expression->left->type_info->type != TypeInfoType::NUMBER)
         { panic("Cannot use arithmatic operator on non number"); }
         info = symbol_table->get_type("bool");
     }
@@ -485,8 +517,84 @@ void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *
     expression->type_info = symbol_table->builtin_type_table["str"];
 }
 
-void TypeChecker::type_check_int_literal_expression(IntLiteralExpression *expression, SymbolTable *symbol_table) {
-    expression->type_info = new IntTypeInfo{TypeInfoType::INT, false, 64};
+void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *expression, SymbolTable *symbol_table) {
+
+    auto [number, type, size] = extract_number_literal_size(expression->token.string);
+
+    if(size == -1) {
+        panic("problem parsing number literal " + expression->token.string);
+    }
+
+    expression->number = number;
+
+    switch (type) {
+        case UNSIGNED: {
+
+            if(number < 0) {
+                panic("Unsigned number cannot be negative");
+            }
+
+            if(number != (s64)number) {
+                panic("Cannot use decimal point on non float types");
+            }
+
+            if(size == 8) {
+                expression->type_info = symbol_table->builtin_type_table["u8"];
+            }
+            else if(size == 16) {
+                expression->type_info = symbol_table->builtin_type_table["u16"];
+            }
+            else if(size == 32) {
+                expression->type_info = symbol_table->builtin_type_table["u32"];
+            }
+            else if(size == 64) {
+                expression->type_info = symbol_table->builtin_type_table["u64"];
+            } else {
+                panic("Unknown size when type checking uint");
+            }
+        }
+            break;
+        case SIGNED: {
+
+            if(number != (s64)number) {
+                panic("Cannot use decimal point on non float types");
+            }
+
+            if(size == 8) {
+                expression->type_info = symbol_table->builtin_type_table["s8"];
+            }
+            else if(size == 16) {
+                expression->type_info = symbol_table->builtin_type_table["s16"];
+            }
+            else if(size == 32) {
+                expression->type_info = symbol_table->builtin_type_table["s32"];
+            }
+            else if(size == 64) {
+                expression->type_info = symbol_table->builtin_type_table["s64"];
+            } else {
+                panic("Unknown size when type checking sint");
+            }
+        }
+            break;
+        case FLOAT: {
+            if(size == 8) {
+                panic("Cannot use f8 as a literal");
+            }
+            else if(size == 16) {
+                panic("Cannot use f16 as a literal");
+            }
+            else if(size == 32) {
+                expression->type_info = symbol_table->builtin_type_table["f32"];
+            }
+            else if(size == 64) {
+                expression->type_info = symbol_table->builtin_type_table["f64"];
+            } else {
+                panic("Unknown size when type checking float");
+            }
+        }
+            break;
+    }
+
 }
 
 void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expression, SymbolTable *symbol_table) {
@@ -603,9 +711,12 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     { type_info = symbol_table->identifier_table[expression->identifier.string]; }
     else
     {
+        auto before = ErrorReporter::error_count();
         ErrorReporter::report_type_checker_error(
             current_file->path, expression, NULL, NULL, NULL, "Unrecognized identifier"
         );
+        auto after = ErrorReporter::error_count();
+        after = ErrorReporter::error_count();
     }
 
     expression->type_info = type_info;
@@ -888,12 +999,12 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     { // values don't matter
         return true;
     }
-    else if (a->type == TypeInfoType::INT)
+    else if (a->type == TypeInfoType::NUMBER)
     {
-        auto int_a = static_cast<IntTypeInfo *>(a);
-        auto int_b = static_cast<IntTypeInfo *>(b);
+        auto int_a = static_cast<NumberTypeInfo *>(a);
+        auto int_b = static_cast<NumberTypeInfo *>(b);
 
-        if (int_a->is_signed == int_b->is_signed && int_a->size == int_b->size)
+        if (int_a->size == int_b->size && int_a->type == int_b->type)
             return true;
 
         return false;
