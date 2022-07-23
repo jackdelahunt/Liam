@@ -1,0 +1,28 @@
+#True
+#4 == 4
+#1 < 10
+#10 > 1
+
+import "stdlib/basic.liam";
+
+fn main(): void {
+    if true {
+        println[str]("True");
+    }
+
+    if 4 == 4 {
+        println[str]("4 == 4");
+    }
+
+    if 1 < 10 {
+        println[str]("1 < 10");
+    }
+
+    if 10 > 1 {
+        println[str]("10 > 1");
+    }
+
+    if 10 <= 10 {
+        println[str]("10 <= 10");
+    }
+}

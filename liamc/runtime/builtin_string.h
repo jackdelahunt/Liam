@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string>
 #include "core.h"
+#include <string>
 
 struct String {
     std::string string;

@@ -11,8 +11,8 @@
 #include "memory.cpp"
 #include "memory.h"
 
-#include "builtin_string.h"
 #include "builtin_string.cpp"
+#include "builtin_string.h"
 
 #include "io.h"
 

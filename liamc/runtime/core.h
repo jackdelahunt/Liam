@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 #include <string>
 #include <variant>
 

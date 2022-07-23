@@ -5,7 +5,6 @@ import subprocess
 import os
 
 source_dir = "liam/"
-out_path = "bin/"
 runtime_path = os.path.abspath("../runtime")
 
 args = sys.argv
@@ -16,8 +15,6 @@ if len(args) < 2:
 
 compiler_path = args[1]
 source_files = [source_dir + f for f in listdir(source_dir) if isfile(join(source_dir, f))]
-
-os.makedirs(out_path, exist_ok=True)
 
 for i, file_path in enumerate(source_files):
 
@@ -32,7 +29,7 @@ for i, file_path in enumerate(source_files):
     compile_output = subprocess.run([
         compiler_path,
         "--in", file_path,
-        "--out", out_path + "out.exe",
+        "--out", "out.exe",
         "--include", "../runtime",
         "--stdlib", "../stdlib"
     ], capture_output=True)
@@ -41,7 +38,7 @@ for i, file_path in enumerate(source_files):
         print("COMPILE ERROR :: ", file_path,  compile_output.stderr.decode("UTF-8"))
         exit(1)
 
-    running_output = subprocess.run(["./" + out_path + "out.exe"], capture_output=True)
+    running_output = subprocess.run(["./out.exe"], capture_output=True)
     if running_output.stderr != b'':
         print("RUNTIME ERROR :: ", file_path, compile_output.stderr.decode("UTF-8"))
         exit(1)
@@ -51,4 +48,8 @@ for i, file_path in enumerate(source_files):
         print(f"MATCH ERROR :: non matching output {file_path} expected {lines} got {output_lines}")
     else:
         print(f"({i + 1},{len(source_files)}) TEST PASSED [:")
+    
+    os.remove("out.exe")
+
+
 
