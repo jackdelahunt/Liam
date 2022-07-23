@@ -24,7 +24,7 @@ void Arguments::New(int argc, char **argv) {
     args->out_path = args->value<std::string>("out");
     args->codegen  = args->value<bool>("codegen");
     args->time     = args->value<bool>("time");
-    args->stdlib  = args->value<std::string>("stdlib");
+    args->stdlib   = args->value<std::string>("stdlib");
     args->help     = args->value<bool>("help");
     args->include  = args->value<std::string>("include");
 

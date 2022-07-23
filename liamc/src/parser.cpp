@@ -3,11 +3,11 @@
 #include <tuple>
 #include <utility>
 
+#include "args.h"
 #include "errors.h"
 #include "fmt/core.h"
 #include "liam.h"
 #include "utils.h"
-#include "args.h"
 
 File::File(std::filesystem::path path) {
     statements = std::vector<Statement *>();
@@ -43,11 +43,11 @@ void Parser::parse() {
             auto import_path = std::filesystem::path(copy_trim(import_path_expr->token.string, "\""));
 
             if (import_path.is_absolute())
+            { final_path = import_path_expr->token.string; }
+            else if (import_path.string().rfind("stdlib/", 0) == 0)
             {
-                final_path = import_path_expr->token.string;
-            }
-            else if(import_path.string().rfind("stdlib/", 0) == 0) {
-                final_path = absolute(std::filesystem::path(args->stdlib)).string() + "/" + import_path.filename().string();
+                final_path =
+                    absolute(std::filesystem::path(args->stdlib)).string() + "/" + import_path.filename().string();
             }
             else
             { final_path = this->path.parent_path().string() + "/" + import_path.string(); }

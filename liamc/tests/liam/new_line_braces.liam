@@ -1,0 +1,20 @@
+#jack
+#21
+
+import "stdlib/basic.liam";
+
+struct Person
+{
+	name: str,
+	age: u64
+}
+
+fn main(): void 
+{
+	if true 
+	{
+		let p := new Person{"jack", 21};
+		println[str](p.name);
+		println[u64](p.age);
+	}
+}

@@ -37,6 +37,7 @@ void print_expression_type_error(std::string *file, Expression *expression) {
     rtrim(middle);
 
     fmt::print(
+        stderr,
         "--> {}:{}:{}\n"
         "   |   {}\n"
         "   |   {}\n"
@@ -62,6 +63,7 @@ void print_type_expression_type_error(std::string *file, TypeExpression *type_ex
     rtrim(middle);
 
     fmt::print(
+        stderr,
         "--> {}:{}:{}\n"
         "   |   {}\n"
         "   |   {}\n"
@@ -86,8 +88,9 @@ void ParserError::print_error_message() {
 
     rtrim(middle);
 
-    fmt::print(fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
+    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
     fmt::print(
+        stderr,
         "--> {}:{}:{}\n"
         "   |   {}\n"
         "   |   {}\n"
