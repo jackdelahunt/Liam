@@ -429,7 +429,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     if (!type_match(expression->left->type_info, expression->right->type_info))
     { panic("Type mismatch in binary expression"); }
 
-    TypeInfo *info = nullptr;
+    TypeInfo *info = NULL;
 
     // logical ops - bools -> bool
     if (expression->op.type == TOKEN_AND || expression->op.type == TOKEN_OR)
@@ -449,7 +449,8 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     }
 
     // math ops - numbers -> bool
-    if (expression->op.type == TOKEN_LESS || expression->op.type == TOKEN_GREATER)
+    if (expression->op.type == TOKEN_LESS || expression->op.type == TOKEN_GREATER ||
+        expression->op.type == TOKEN_GREATER_EQUAL || expression->op.type == TOKEN_LESS_EQUAL)
     {
         if (expression->left->type_info->type != TypeInfoType::INT)
         { panic("Cannot use arithmatic operator on non number"); }
@@ -459,6 +460,8 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     // compare - any -> bool
     if (expression->op.type == TOKEN_EQUAL || expression->op.type == TOKEN_NOT_EQUAL)
     { info = symbol_table->get_type("bool"); }
+
+    assert(info != NULL);
 
     expression->type_info = info;
 }
@@ -477,21 +480,31 @@ void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expr
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(expression->expression, symbol_table));
 
-    TypeInfo *type_info;
     if (expression->op.type == TOKEN_AT)
-    { type_info = new PointerTypeInfo{TypeInfoType::POINTER, expression->expression->type_info}; }
-    else if (expression->op.type == TOKEN_STAR)
+    {
+        expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, expression->expression->type_info};
+        return;
+    }
+
+    if (expression->op.type == TOKEN_STAR)
     {
         if (expression->expression->type_info->type != TypeInfoType::POINTER)
         { panic("Cannot dereference non-pointer value"); }
 
-        auto ptr_type = static_cast<PointerTypeInfo *>(expression->expression->type_info);
-        type_info     = ptr_type->to;
+        expression->type_info = static_cast<PointerTypeInfo *>(expression->expression->type_info)->to;
+        return;
     }
-    else
-    { panic("Unrecognised unary operator"); }
 
-    expression->type_info = type_info;
+    if (expression->op.type == TOKEN_NOT)
+    {
+        if (expression->expression->type_info->type != TypeInfoType::BOOLEAN)
+        { panic("Cannot use unary operator ! on non boolean type"); }
+
+        expression->type_info = expression->expression->type_info;
+        return;
+    }
+
+    panic("Unrecognised unary operator");
 }
 void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(expression->identifier, symbol_table));

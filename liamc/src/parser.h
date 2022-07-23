@@ -68,7 +68,8 @@ struct Parser {
     std::tuple<Expression *, bool> eval_is();
     std::tuple<Expression *, bool> eval_or();
     std::tuple<Expression *, bool> eval_and();
-    std::tuple<Expression *, bool> eval_comparison();
+    std::tuple<Expression *, bool> eval_equality();
+    std::tuple<Expression *, bool> eval_relational();
     std::tuple<Expression *, bool> eval_term();
     std::tuple<Expression *, bool> eval_factor();
     std::tuple<Expression *, bool> eval_unary();

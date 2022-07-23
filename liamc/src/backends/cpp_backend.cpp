@@ -359,8 +359,14 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
     case TOKEN_GREATER:
         source.append(" > ");
         break;
+    case TOKEN_GREATER_EQUAL:
+        source.append(" >= ");
+        break;
+    case TOKEN_LESS_EQUAL:
+        source.append(" <= ");
+        break;
     default:
-        panic("Cannot use this operand");
+        panic("Cannot use this operand in the cpp backend");
         break;
     }
     source.append(emit_expression(expression->right));
@@ -393,8 +399,10 @@ std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {
     { return "&(" + emit_expression(expression->expression) + ")"; }
     else if (expression->op.type == TOKEN_STAR)
     { return "*(" + emit_expression(expression->expression) + ")"; }
+    else if (expression->op.type == TOKEN_NOT)
+    { return "!(" + emit_expression(expression->expression) + ")"; }
 
-    panic("Got a unrecognized operand");
+    panic("Got a unrecognized operand in cpp backend");
     return "";
 }
 

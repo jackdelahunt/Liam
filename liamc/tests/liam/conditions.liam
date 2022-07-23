@@ -1,13 +1,33 @@
-#True
+#true
+#!false
+#true and true
+#false or true
 #4 == 4
 #1 < 10
 #10 > 1
+#10 <= 10
+#8 <= 9
+#100 >= 100
+#90 >= 80
+
 
 import "stdlib/basic.liam";
 
 fn main(): void {
     if true {
-        println[str]("True");
+        println[str]("true");
+    }
+
+    if !false {
+        println[str]("!false");
+    }
+
+    if true and true {
+	println[str]("true and true");
+    }
+
+    if false or true {
+	println[str]("false or true");
     }
 
     if 4 == 4 {
@@ -23,6 +43,19 @@ fn main(): void {
     }
 
     if 10 <= 10 {
-        println[str]("10 <= 10");
+	println[str]("10 <= 10");
+    }
+
+    if 8 <= 9 {
+	println[str]("8 <= 9");
+    }
+
+    if 100 >= 100 {
+	println[str]("100 >= 100");
+    }
+
+    if 90 >= 80 {
+	println[str]("90 >= 80");
     }
 }
+

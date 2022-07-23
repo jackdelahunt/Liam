@@ -1,0 +1,32 @@
+#1
+#2
+#3
+#4
+#5
+
+import "stdlib/basic.liam";
+
+fn main(): void {
+	
+
+	if (false or true) and true {
+		println[str]("1");
+	}
+
+	if 1 > 0 and 0 < 100 {
+		println[str]("2");
+	}
+
+	if 12 >= 11 or 16 < 12 and 13 > 2 or false {
+	    println[str]("3");
+	}
+
+	if !false or !(true and false) and true {
+	    println[str]("4");
+	}
+
+	if true and true and !false and !false and !false and false or true {
+	    println[str]("5");
+	}
+
+}
