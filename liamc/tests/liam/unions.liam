@@ -18,7 +18,6 @@ fn main(): void {
     }
 
     x = "this is a string";
-
     if x is str s {
         println[str](*s);
     }
