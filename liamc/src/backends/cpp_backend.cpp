@@ -91,9 +91,6 @@ std::string CppBackend::emit_statement(Statement *statement) {
     case StatementType::STATEMENT_SCOPE:
         return emit_scope_statement(dynamic_cast<ScopeStatement *>(statement));
         break;
-    case StatementType::STATEMENT_LOOP:
-        return emit_loop_statement(dynamic_cast<LoopStatement *>(statement));
-        break;
     case StatementType::STATEMENT_STRUCT:
         return emit_struct_statement(dynamic_cast<StructStatement *>(statement));
         break;
@@ -191,11 +188,6 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
     source.append(")");
     source.append(emit_scope_statement(statement->body));
     return source;
-}
-
-std::string CppBackend::emit_loop_statement(LoopStatement *statement) {
-    panic("Not implemented in C backend");
-    return "";
 }
 
 std::string CppBackend::emit_struct_statement(StructStatement *statement) {

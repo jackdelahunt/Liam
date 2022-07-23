@@ -8,51 +8,49 @@
 #include "liam.h"
 
 enum TokenType {
-    TOKEN_INT_LITERAL    = 0,
-    TOKEN_STRING_LITERAL = 1,
-    TOKEN_IDENTIFIER     = 2,
-    TOKEN_LET            = 3,
-    TOKEN_INSERT         = 4,
-    TOKEN_FN             = 5,
-    TOKEN_LOOP           = 6,
-    TOKEN_PAREN_OPEN     = 7,
-    TOKEN_PAREN_CLOSE    = 8,
-    TOKEN_BRACE_OPEN     = 9,
-    TOKEN_BRACE_CLOSE    = 10,
-    TOKEN_PLUS           = 11,
-    TOKEN_STAR           = 12,
-    TOKEN_ASSIGN         = 13,
-    TOKEN_SEMI_COLON     = 14,
-    TOKEN_COMMA          = 15,
-    TOKEN_COLON          = 16,
-    TOKEN_RETURN         = 17,
-    TOKEN_HAT            = 18,
-    TOKEN_AT             = 19,
-    TOKEN_STRUCT         = 20,
-    TOKEN_DOT            = 21,
-    TOKEN_NEW            = 22,
-    TOKEN_BREAK          = 23,
-    TOKEN_IMPORT         = 24,
-    TOKEN_BRACKET_OPEN   = 26,
-    TOKEN_BRACKET_CLOSE  = 27,
-    TOKEN_FOR            = 28,
-    TOKEN_IN             = 29,
-    TOKEN_FALSE          = 30,
-    TOKEN_TRUE           = 31,
-    TOKEN_IF             = 32,
-    TOKEN_OR             = 33,
-    TOKEN_AND            = 34,
-    TOKEN_EQUAL          = 35,
-    TOKEN_NOT_EQUAL      = 36,
-    TOKEN_NOT            = 37,
-    TOKEN_LESS           = 38,
-    TOKEN_GREATER        = 39,
-    TOKEN_EXTERN         = 40,
-    TOKEN_BAR            = 41,
-    TOKEN_IS             = 42,
+    TOKEN_INT_LITERAL = 0, // 0
+    TOKEN_STRING_LITERAL,  // "hello"
+    TOKEN_IDENTIFIER,      // x
+    TOKEN_LET,             // let
+    TOKEN_INSERT,          // insert
+    TOKEN_FN,              // fn
+    TOKEN_PAREN_OPEN,      // (
+    TOKEN_PAREN_CLOSE,     // )
+    TOKEN_BRACE_OPEN,      // {
+    TOKEN_BRACE_CLOSE,     // }
+    TOKEN_PLUS,            // +
+    TOKEN_STAR,            // *
+    TOKEN_ASSIGN,          // =
+    TOKEN_SEMI_COLON,      // ;
+    TOKEN_COMMA,           // ,
+    TOKEN_COLON,           // :
+    TOKEN_RETURN,          // return
+    TOKEN_HAT,             // ^
+    TOKEN_AT,              // @
+    TOKEN_STRUCT,          // struct
+    TOKEN_DOT,             // .
+    TOKEN_NEW,             // new
+    TOKEN_BREAK,           // break
+    TOKEN_IMPORT,          // import
+    TOKEN_BRACKET_OPEN,    // [
+    TOKEN_BRACKET_CLOSE,   // ]
+    TOKEN_FOR,             // for
+    TOKEN_FALSE,           // false
+    TOKEN_TRUE,            // true
+    TOKEN_IF,              // if
+    TOKEN_OR,              // or
+    TOKEN_AND,             // and
+    TOKEN_EQUAL,           // ==
+    TOKEN_NOT_EQUAL,       // !=
+    TOKEN_NOT,             // !
+    TOKEN_LESS,            // <
+    TOKEN_GREATER,         // >
+    TOKEN_EXTERN,          // extern
+    TOKEN_BAR,             // |
+    TOKEN_IS,              // is
 };
 
-extern const char *TokenTypeStrings[42];
+extern const char *TokenTypeStrings[40];
 
 std::string get_token_type_string(TokenType type);
 

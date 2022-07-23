@@ -68,9 +68,6 @@ std::tuple<Statement *, bool> Parser::eval_statement() {
     case TOKEN_FN:
         return eval_fn_statement();
         break;
-    case TOKEN_LOOP:
-        return eval_loop_statement();
-        break;
     case TOKEN_STRUCT:
         return eval_struct_statement();
         break;
@@ -176,13 +173,6 @@ std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern) {
         TRY(ScopeStatement *, body, eval_scope_statement());
         return WIN(new FnStatement(file, *identifier, generics, params, type, body, false));
     }
-}
-
-std::tuple<LoopStatement *, bool> Parser::eval_loop_statement() {
-    TRY_TOKEN(TOKEN_LOOP);
-    NAMED_TOKEN(identifier, TOKEN_STRING_LITERAL);
-    TRY(ScopeStatement *, body, eval_scope_statement());
-    return WIN(new LoopStatement(file, *identifier, body));
 }
 
 s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {

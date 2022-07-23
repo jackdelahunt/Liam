@@ -21,7 +21,6 @@ struct CppBackend {
     std::string emit_let_statement(LetStatement *statement);
     std::string emit_scope_statement(ScopeStatement *statement);
     std::string emit_fn_statement(FnStatement *statement);
-    std::string emit_loop_statement(LoopStatement *statement);
     std::string emit_struct_statement(StructStatement *statement);
     std::string emit_assigment_statement(AssigmentStatement *statement);
     std::string emit_expression_statement(ExpressionStatement *statement);
