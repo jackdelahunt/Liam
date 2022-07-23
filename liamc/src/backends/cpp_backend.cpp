@@ -275,6 +275,20 @@ std::string CppBackend::emit_if_statement(IfStatement *statement) {
     source.append(emit_expression(statement->expression));
     source.append(") ");
     source.append(emit_scope_statement(statement->body));
+
+    if (statement->else_statement)
+    { source.append(emit_else_statement(statement->else_statement)); }
+
+    return source;
+}
+
+std::string CppBackend::emit_else_statement(ElseStatement *statement) {
+    std::string source = "else ";
+
+    if (statement->if_statement)
+    { source.append(emit_if_statement(statement->if_statement)); }
+    else if (statement->body)
+    { source.append(emit_scope_statement(statement->body)); }
     return source;
 }
 

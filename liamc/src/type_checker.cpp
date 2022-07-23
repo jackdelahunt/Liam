@@ -320,6 +320,22 @@ void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *s
     if (!type_match(statement->expression->type_info, copy.get_type("bool")))
     { panic("If statement must be passed a bool"); }
     TRY_CALL(type_check_scope_statement(statement->body, &copy));
+
+    if (statement->else_statement)
+    {
+        // might not have else statement
+        // not using symbol table copy either as symbols
+        // should not leak to sub statements
+        TRY_CALL(type_check_else_statement(statement->else_statement, symbol_table));
+    }
+}
+
+void TypeChecker::type_check_else_statement(ElseStatement *statement, SymbolTable *symbol_table) {
+    if (statement->if_statement)
+    { TRY_CALL(type_check_if_statement(statement->if_statement, symbol_table)); }
+
+    if (statement->body)
+    { TRY_CALL(type_check_scope_statement(statement->body, symbol_table)); }
 }
 
 void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool first_pass) {

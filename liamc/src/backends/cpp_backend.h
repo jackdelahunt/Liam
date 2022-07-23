@@ -26,6 +26,7 @@ struct CppBackend {
     std::string emit_expression_statement(ExpressionStatement *statement);
     std::string emit_for_statement(ForStatement *statement);
     std::string emit_if_statement(IfStatement *statement);
+    std::string emit_else_statement(ElseStatement *statement);
 
     std::string emit_expression(Expression *expression);
     std::string emit_is_expression(IsExpression *expression);

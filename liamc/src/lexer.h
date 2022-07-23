@@ -38,6 +38,7 @@ enum TokenType {
     TOKEN_FALSE,           // false
     TOKEN_TRUE,            // true
     TOKEN_IF,              // if
+    TOKEN_ELSE,            // else
     TOKEN_OR,              // or
     TOKEN_AND,             // and
     TOKEN_EQUAL,           // ==
@@ -52,7 +53,7 @@ enum TokenType {
     TOKEN_IS,              // is
 };
 
-extern const char *TokenTypeStrings[42];
+extern const char *TokenTypeStrings[43];
 
 std::string get_token_type_string(TokenType type);
 

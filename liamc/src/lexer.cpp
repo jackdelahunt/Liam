@@ -5,7 +5,7 @@
 #include "file.h"
 #include "liam.h"
 
-const char *TokenTypeStrings[42] = {
+const char *TokenTypeStrings[43] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -36,6 +36,7 @@ const char *TokenTypeStrings[42] = {
     "false",
     "true",
     "if",
+    "else",
     "or",
     "and",
     "==",
@@ -265,6 +266,12 @@ void Lexer::lex() {
             if (word == "if")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_IF, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "else")
+            {
+                tokens.emplace_back(Token(TokenType::TOKEN_ELSE, word, current_line, word_start));
                 continue;
             }
 

@@ -269,7 +269,28 @@ std::tuple<IfStatement *, bool> Parser::eval_if_statement() {
     TRY_TOKEN(TOKEN_IF);
     TRY(Expression *, expression, eval_expression())
     TRY(ScopeStatement *, body, eval_scope_statement())
-    return WIN(new IfStatement(file, expression, body));
+
+    // next statement might be else so check if the next token is an 'else'
+    // if so capture it and own it else just leave the else statement as NULL
+    ElseStatement *else_statement = NULL;
+    if (peek()->type == TOKEN_ELSE)
+    { TRY(, else_statement, eval_else_statement()) }
+
+    return WIN(new IfStatement(file, expression, body, else_statement));
+}
+
+std::tuple<ElseStatement *, bool> Parser::eval_else_statement() {
+    TRY_TOKEN(TOKEN_ELSE);
+
+    // check if it is an else if
+    if (peek()->type == TOKEN_IF)
+    {
+        TRY(IfStatement *, if_statement, eval_if_statement());
+        return WIN(new ElseStatement(if_statement, NULL));
+    }
+
+    TRY(ScopeStatement *, body, eval_scope_statement());
+    return WIN(new ElseStatement(NULL, body));
 }
 
 std::tuple<ExpressionStatement *, bool> Parser::eval_expression_statement() {
