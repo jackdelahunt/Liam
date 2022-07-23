@@ -307,6 +307,20 @@ std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
     return {new ExpressionStatement(file, lhs), false};
 }
 
+/*
+ *  === operator precedence === (lower is more precedence)
+ *  is
+ *  or
+ *  and
+ *  == !=
+ *  < > >= <=
+ *  +
+ *  *
+ *  @ * !
+ *  call()
+ *  literal () new ""
+ */
+
 std::tuple<Expression *, bool> Parser::eval_expression() {
     return eval_is();
 }
@@ -332,7 +346,7 @@ std::tuple<Expression *, bool> Parser::eval_or() {
     while (match(TokenType::TOKEN_OR))
     {
         Token *op = consume_token();
-        TRY(Expression *, right, eval_expression());
+        TRY(Expression *, right, eval_and());
         expr = new BinaryExpression(expr, *op, right);
     }
 
@@ -340,26 +354,39 @@ std::tuple<Expression *, bool> Parser::eval_or() {
 }
 
 std::tuple<Expression *, bool> Parser::eval_and() {
-    TRY(Expression *, expr, eval_comparison());
+    TRY(Expression *, expr, eval_equality());
 
     while (match(TokenType::TOKEN_AND))
     {
         Token *op = consume_token();
-        TRY(Expression *, right, eval_expression());
+        TRY(Expression *, right, eval_equality());
         expr = new BinaryExpression(expr, *op, right);
     }
 
     return WIN(expr);
 }
 
-std::tuple<Expression *, bool> Parser::eval_comparison() {
-    TRY(Expression *, expr, eval_term());
+std::tuple<Expression *, bool> Parser::eval_equality() {
+    TRY(Expression *, expr, eval_relational());
 
-    while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL) || match(TokenType::TOKEN_LESS) ||
-           match(TokenType::TOKEN_GREATER))
+    while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL))
     {
         Token *op = consume_token();
-        TRY(Expression *, right, eval_expression());
+        TRY(Expression *, right, eval_relational());
+        expr = new BinaryExpression(expr, *op, right);
+    }
+
+    return WIN(expr);
+}
+
+std::tuple<Expression *, bool> Parser::eval_relational() {
+    TRY(Expression *, expr, eval_term());
+
+    while (match(TokenType::TOKEN_LESS) || match(TokenType::TOKEN_GREATER) || match(TokenType::TOKEN_GREATER_EQUAL) ||
+           match(TokenType::TOKEN_LESS_EQUAL))
+    {
+        Token *op = consume_token();
+        TRY(Expression *, right, eval_term());
         expr = new BinaryExpression(expr, *op, right);
     }
 
@@ -372,7 +399,7 @@ std::tuple<Expression *, bool> Parser::eval_term() {
     while (match(TokenType::TOKEN_PLUS))
     {
         Token *op = consume_token();
-        TRY(Expression *, right, eval_expression());
+        TRY(Expression *, right, eval_factor());
         expr = new BinaryExpression(expr, *op, right);
     }
 
@@ -385,7 +412,7 @@ std::tuple<Expression *, bool> Parser::eval_factor() {
     while (match(TokenType::TOKEN_STAR))
     {
         Token *op = consume_token();
-        TRY(Expression *, right, eval_expression());
+        TRY(Expression *, right, eval_unary());
         expr = new BinaryExpression(expr, *op, right);
     }
 
@@ -393,10 +420,10 @@ std::tuple<Expression *, bool> Parser::eval_factor() {
 }
 
 std::tuple<Expression *, bool> Parser::eval_unary() {
-    if (match(TOKEN_AT) || match(TOKEN_STAR))
+    if (match(TOKEN_AT) || match(TOKEN_STAR) || match(TOKEN_NOT))
     {
         auto op = consume_token();
-        TRY(Expression *, expr, eval_expression());
+        TRY(Expression *, expr, eval_unary());
         return {new UnaryExpression(expr, *op), false};
     }
 
