@@ -83,11 +83,18 @@ ForStatement::ForStatement(
     this->statement_type = StatementType::STATEMENT_FOR;
 }
 
-IfStatement::IfStatement(File *file, Expression *expression, ScopeStatement *body) {
+IfStatement::IfStatement(File *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement) {
     this->file           = file;
     this->expression     = expression;
     this->body           = body;
+    this->else_statement = else_statement;
     this->statement_type = StatementType::STATEMENT_IF;
+}
+
+ElseStatement::ElseStatement(IfStatement *if_statement, ScopeStatement *body) {
+    this->if_statement   = if_statement;
+    this->body           = body;
+    this->statement_type = StatementType::STATEMENT_ELSE;
 }
 
 ReturnStatement::ReturnStatement(File *file, Expression *expression) {

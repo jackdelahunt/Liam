@@ -6,14 +6,7 @@ import os
 
 source_dir = "liam/"
 runtime_path = os.path.abspath("../runtime")
-
-args = sys.argv
-if len(args) < 2:
-    print("Usage: runner.py <compiler-path>")
-    exit(1)
-
-
-compiler_path = args[1]
+compiler_path = "../bin/liamc/liamc"
 source_files = [source_dir + f for f in listdir(source_dir) if isfile(join(source_dir, f))]
 
 for i, file_path in enumerate(source_files):

@@ -14,7 +14,6 @@ struct LetStatement;
 struct ScopeStatement;
 struct StructStatement;
 struct FnStatement;
-struct LoopStatement;
 struct InsertStatement;
 struct ReturnStatement;
 struct BreakStatement;
@@ -23,6 +22,7 @@ struct AssigmentStatement;
 struct ImportStatement;
 struct ForStatement;
 struct IfStatement;
+struct ElseStatement;
 struct Expression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
@@ -58,6 +58,7 @@ struct Parser {
     std::tuple<ImportStatement *, bool> eval_import_statement();
     std::tuple<ForStatement *, bool> eval_for_statement();
     std::tuple<IfStatement *, bool> eval_if_statement();
+    std::tuple<ElseStatement *, bool> eval_else_statement();
     std::tuple<ExpressionStatement *, bool> eval_expression_statement();
     std::tuple<Statement *, bool> eval_extern_statement();
 

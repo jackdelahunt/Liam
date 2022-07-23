@@ -24,6 +24,7 @@ enum class StatementType {
     STATEMENT_BREAK,
     STATEMENT_FOR,
     STATEMENT_IF,
+    STATEMENT_ELSE,
 };
 
 struct Statement {
@@ -104,11 +105,21 @@ struct ForStatement : Statement {
     );
 };
 
+struct ElseStatement;
+
 struct IfStatement : Statement {
     Expression *expression;
     ScopeStatement *body;
+    ElseStatement *else_statement;
 
-    IfStatement(File *file, Expression *expression, ScopeStatement *body);
+    IfStatement(File *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement);
+};
+
+struct ElseStatement : Statement {
+    IfStatement *if_statement;
+    ScopeStatement *body;
+
+    ElseStatement(IfStatement *if_statement, ScopeStatement *body);
 };
 
 struct ReturnStatement : Statement {

@@ -54,6 +54,7 @@ struct TypeChecker {
     void type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table, bool first_pass = false);
     void type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table);
     void type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table);
+    void type_check_else_statement(ElseStatement *statement, SymbolTable *symbol_table);
     void type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool first_pass = false);
     void type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table);
     void type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table);

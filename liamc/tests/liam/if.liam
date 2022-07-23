@@ -1,0 +1,38 @@
+#true
+#else
+#else if
+#else
+
+import "stdlib/basic.liam";
+
+fn main(): void {
+
+    if true {
+        println[str]("true");
+    }
+
+    if false {
+
+    } else {
+        println[str]("else");
+    }
+
+    if false {
+
+    } else if true {
+        println[str]("else if");
+    }
+
+    if false
+    {
+
+    }
+    else
+    if false {
+
+    }
+    else {
+        println[str]("else");
+    }
+
+}
