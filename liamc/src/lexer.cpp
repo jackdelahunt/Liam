@@ -5,14 +5,13 @@
 #include "file.h"
 #include "liam.h"
 
-const char *TokenTypeStrings[42] = {
+const char *TokenTypeStrings[40] = {
     "int Literal",
     "string Literal",
     "identifier",
     "let",
     "insert",
     "fn",
-    "loop",
     "(",
     ")",
     "{",
@@ -24,17 +23,16 @@ const char *TokenTypeStrings[42] = {
     ",",
     ":",
     "return",
-    "return_type",
     "^",
     "@",
     "struct",
     ".",
     "new",
     "break",
+    "import",
     "[",
     "]",
     "for",
-    "in",
     "false",
     "true",
     "if",
@@ -220,12 +218,6 @@ void Lexer::lex() {
                 continue;
             }
 
-            if (word == "loop")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_LOOP, word, current_line, word_start));
-                continue;
-            }
-
             if (word == "struct")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_STRUCT, word, current_line, word_start));
@@ -253,12 +245,6 @@ void Lexer::lex() {
             if (word == "for")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_FOR, word, current_line, word_start));
-                continue;
-            }
-
-            if (word == "in")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_IN, word, current_line, word_start));
                 continue;
             }
 

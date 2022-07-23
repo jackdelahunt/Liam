@@ -9,7 +9,6 @@ struct LetStatement;
 struct ScopeStatement;
 struct StructStatement;
 struct FnStatement;
-struct LoopStatement;
 struct InsertStatement;
 struct ReturnStatement;
 struct BreakStatement;
@@ -53,7 +52,6 @@ struct TypeChecker {
         ScopeStatement *statement, SymbolTable *symbol_table, bool copy_symbol_table = true
     );
     void type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table, bool first_pass = false);
-    void type_check_loop_statement(LoopStatement *statement, SymbolTable *symbol_table);
     void type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table);
     void type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table);
     void type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool first_pass = false);

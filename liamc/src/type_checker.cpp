@@ -170,9 +170,6 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
     case StatementType::STATEMENT_FN:
         return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table);
         break;
-    case StatementType::STATEMENT_LOOP:
-        return type_check_loop_statement(dynamic_cast<LoopStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_STRUCT:
         return type_check_struct_statement(dynamic_cast<StructStatement *>(statement), symbol_table);
         break;
@@ -300,10 +297,6 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
                   "return_type");
         }
     }
-}
-
-void TypeChecker::type_check_loop_statement(LoopStatement *statement, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_scope_statement(statement->body, symbol_table));
 }
 
 void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {

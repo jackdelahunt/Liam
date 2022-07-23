@@ -66,13 +66,6 @@ struct FnStatement : Statement {
     );
 };
 
-struct LoopStatement : Statement {
-    Token identifier;
-    ScopeStatement *body;
-
-    LoopStatement(File *file, Token identifier, ScopeStatement *body);
-};
-
 struct StructStatement : Statement {
     Token identifier;
     std::vector<Token> generics;

@@ -36,13 +36,6 @@ FnStatement::FnStatement(
     this->statement_type = StatementType::STATEMENT_FN;
 }
 
-LoopStatement::LoopStatement(File *file, Token identifier, ScopeStatement *body) {
-    this->file           = file;
-    this->identifier     = identifier;
-    this->body           = body;
-    this->statement_type = StatementType::STATEMENT_LOOP;
-}
-
 StructStatement::StructStatement(
     File *file, Token identifier, std::vector<Token> generics, CSV members, bool is_extern
 ) {
