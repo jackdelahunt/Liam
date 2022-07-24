@@ -92,6 +92,9 @@ std::tuple<Statement *, bool> Parser::eval_statement() {
     case TOKEN_EXTERN:
         return eval_extern_statement();
         break;
+    case TOKEN_ENUM:
+        return eval_enum_statement();
+        break;
     default:
         return eval_line_starting_expression();
         break;
@@ -311,6 +314,19 @@ std::tuple<Statement *, bool> Parser::eval_extern_statement() {
 
     panic("Cannot extern this statement");
     return {NULL, true};
+}
+
+std::tuple<EnumStatement *, bool> Parser::eval_enum_statement() {
+    TRY_TOKEN(TOKEN_ENUM);
+
+    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+    TRY_TOKEN(TOKEN_BRACE_OPEN);
+    auto [instances, error] = consume_comma_seperated_token_arguments(TOKEN_BRACE_CLOSE);
+    if (error)
+    { return {nullptr, true}; }
+    TRY_TOKEN(TOKEN_BRACE_CLOSE);
+
+    return WIN(new EnumStatement(*identifier, instances));
 }
 
 std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
@@ -677,7 +693,7 @@ std::tuple<std::vector<Expression *>, bool> Parser::consume_comma_seperated_argu
     return WIN(args);
 }
 
-// e.g. (X, Y, Z, ...)
+// e.g. [X, Y, Z, ...]
 std::tuple<std::vector<Token>, bool> Parser::consume_comma_seperated_token_arguments(TokenType closer) {
     auto args     = std::vector<Token>();
     bool is_first = true;

@@ -108,3 +108,9 @@ BreakStatement::BreakStatement(File *file, Token identifier) {
     this->identifier     = identifier;
     this->statement_type = StatementType::STATEMENT_BREAK;
 }
+
+EnumStatement::EnumStatement(Token identifier, std::vector<Token> instances) {
+    this->identifier     = identifier;
+    this->instances      = instances;
+    this->statement_type = StatementType::STATEMENT_ENUM;
+}

@@ -25,6 +25,7 @@ enum class StatementType {
     STATEMENT_FOR,
     STATEMENT_IF,
     STATEMENT_ELSE,
+    STATEMENT_ENUM,
 };
 
 struct Statement {
@@ -132,4 +133,11 @@ struct BreakStatement : Statement {
     Token identifier;
 
     BreakStatement(File *file, Token identifier);
+};
+
+struct EnumStatement : Statement {
+    Token identifier;
+    std::vector<Token> instances;
+
+    EnumStatement(Token identifier, std::vector<Token> instances);
 };

@@ -89,6 +89,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
 
     auto structs = std::vector<StructStatement *>();
     auto funcs   = std::vector<FnStatement *>();
+    auto enums   = std::vector<EnumStatement *>();
     auto others  = std::vector<Statement *>();
 
     for (auto file : *files)
@@ -97,6 +98,8 @@ File TypeChecker::type_check(std::vector<File *> *files) {
         {
             if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
             { structs.push_back(dynamic_cast<StructStatement *>(stmt)); }
+            if (stmt->statement_type == StatementType::STATEMENT_ENUM)
+            { enums.push_back(dynamic_cast<EnumStatement *>(stmt)); }
             else if (stmt->statement_type == StatementType::STATEMENT_FN)
             {
                 funcs.push_back(dynamic_cast<FnStatement *>(stmt));
@@ -105,6 +108,14 @@ File TypeChecker::type_check(std::vector<File *> *files) {
             else
             { others.push_back(stmt); }
         }
+    }
+
+    // enum type pass
+    for (auto stmt : enums)
+    {
+        current_file = stmt->file;
+        type_check_enum_statement(stmt, &symbol_table);
+        typed_file.statements.push_back(stmt);
     }
 
     // struct identifier pass
@@ -391,6 +402,15 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
 
 void TypeChecker::type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(statement->expression, symbol_table));
+}
+
+void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table) {
+    auto instances = std::vector<std::string>(statement->instances.size());
+
+    for (auto &t : statement->instances)
+    { instances.push_back(t.string); }
+
+    symbol_table->add_type(statement->identifier, new EnumTypeInfo{TypeInfoType::ENUM, instances});
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {

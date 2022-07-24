@@ -58,6 +58,7 @@ struct TypeChecker {
     void type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool first_pass = false);
     void type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table);
     void type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table);
+    void type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table);
 
     void type_check_expression(Expression *expression, SymbolTable *symbol_table);
     void type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table);
