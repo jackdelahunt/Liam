@@ -6,6 +6,13 @@
 std::string CppBackend::emit(File *file) {
     auto source_generated = std::string("#include \"lib.h\"\n\n");
 
+    source_generated.append("// enum forward declarations\n");
+    for (auto stmt : file->statements)
+    {
+        if (stmt->statement_type == StatementType::STATEMENT_ENUM)
+        { source_generated.append(forward_declare_enum(static_cast<EnumStatement *>(stmt))); }
+    }
+
     source_generated.append("// struct forward declarations\n");
     for (auto stmt : file->statements)
     {
@@ -29,6 +36,10 @@ std::string CppBackend::emit(File *file) {
     source_generated.append("int main(int argc, char **argv) { __liam__main__(); }");
 
     return source_generated;
+}
+
+std::string CppBackend::forward_declare_enum(EnumStatement *statement) {
+    return "enum class " + statement->identifier.string + ";\n";
 }
 
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
@@ -105,6 +116,9 @@ std::string CppBackend::emit_statement(Statement *statement) {
         break;
     case StatementType::STATEMENT_IF:
         return emit_if_statement(dynamic_cast<IfStatement *>(statement));
+        break;
+    case StatementType::STATEMENT_ENUM:
+        return emit_enum_statement(dynamic_cast<EnumStatement *>(statement));
         break;
     }
 
@@ -289,6 +303,20 @@ std::string CppBackend::emit_else_statement(ElseStatement *statement) {
     { source.append(emit_if_statement(statement->if_statement)); }
     else if (statement->body)
     { source.append(emit_scope_statement(statement->body)); }
+    return source;
+}
+
+std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
+    std::string source = "enum class ";
+
+    source.append(statement->identifier.string);
+    source.append(" {\n");
+
+    for (auto &instance : statement->instances)
+    { source.append(instance.string + ",\n"); }
+
+    source.append(" };\n");
+
     return source;
 }
 
