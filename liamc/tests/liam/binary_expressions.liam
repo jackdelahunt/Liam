@@ -1,0 +1,27 @@
+#300
+#20000
+#-100
+#0
+#100
+#0
+#0.5
+
+import "stdlib/basic.liam";
+
+fn main(): void {
+    let x := 100;
+    let y := 200;
+
+    let z := 100f64;
+    let w := 200f64;
+
+
+    println[s64](x + y);
+    println[s64](x * y);
+    println[s64](x - y);
+    println[s64](x / y);
+    println[s64](x % y);
+    println[s64](x == y);
+
+    println[f64](z / w);
+}

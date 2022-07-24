@@ -25,7 +25,10 @@ enum TokenType {
     TOKEN_BRACE_OPEN,         // {
     TOKEN_BRACE_CLOSE,        // }
     TOKEN_PLUS,               // +
+    TOKEN_MINUS,              // -
     TOKEN_STAR,               // *
+    TOKEN_SLASH,              // /
+    TOKEN_MOD,                // %
     TOKEN_ASSIGN,             // =
     TOKEN_SEMI_COLON,         // ;
     TOKEN_COMMA,              // ,
@@ -60,7 +63,7 @@ enum TokenType {
     TOKEN_NULL,               // null
 };
 
-extern const char *TokenTypeStrings[44];
+extern const char *TokenTypeStrings[47];
 
 std::string get_token_type_string(TokenType type);
 
