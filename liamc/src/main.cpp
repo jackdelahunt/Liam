@@ -43,14 +43,19 @@ s32 main(s32 argc, char **argv) {
 
 void build_step(std::string *code) {
 
+    auto unwanted_warnings = "-Wno-tautological-compare";
+
     // write cpp file
     std::ofstream out_file("out.cpp");
     out_file << *code;
     out_file.close();
 
     {
-        FILE *file =
-            popen(fmt::format("clang++ -I {} out.cpp -std=c++20 -o {}", args->include, args->out_path).c_str(), "r");
+        FILE *file = popen(
+            fmt::format("clang++ {} -I {} out.cpp -std=c++20 -o {}", unwanted_warnings, args->include, args->out_path)
+                .c_str(),
+            "r"
+        );
         pclose(file);
     }
     {

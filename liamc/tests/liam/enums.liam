@@ -1,0 +1,30 @@
+#A
+#B
+#A != B
+#A == A
+
+import "stdlib/basic.liam";
+
+enum Foo {
+    A,
+    B
+}
+
+fn main(): void {
+    if Foo.A == Foo.A {
+        println[str]("A");
+    }
+
+    if Foo.B == Foo.B {
+        println[str]("B");
+    }
+
+    if Foo.A != Foo.B {
+        println[str]("A != B");
+    }
+
+    let x := Foo.A;
+    if x == Foo.A {
+        println[str]("A == A");
+    }
+}
