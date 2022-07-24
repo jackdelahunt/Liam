@@ -496,7 +496,8 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     }
 
     // math ops - numbers -> numbers
-    if (expression->op.type == TOKEN_PLUS || expression->op.type == TOKEN_STAR)
+    if (expression->op.type == TOKEN_PLUS || expression->op.type == TOKEN_STAR || expression->op.type == TOKEN_SLASH ||
+        expression->op.type == TOKEN_MOD || expression->op.type == TOKEN_MINUS)
     {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
         { panic("Cannot use arithmatic operator on non number"); }

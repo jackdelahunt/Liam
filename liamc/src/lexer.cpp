@@ -6,7 +6,7 @@
 #include "liam.h"
 #include "utils.h"
 
-const char *TokenTypeStrings[44] = {
+const char *TokenTypeStrings[47] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -18,7 +18,10 @@ const char *TokenTypeStrings[44] = {
     "{",
     "}",
     "+",
+    "-",
     "*",
+    "/",
+    "%",
     "=",
     ";",
     ",",
@@ -66,7 +69,7 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
 bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' ||
            c == '=' || c == '+' || c == '^' || c == '@' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
-           c == '<' || c == '>' || c == '|';
+           c == '<' || c == '>' || c == '|' || c == '-' || c == '/' || c == '%';
 }
 
 Lexer::Lexer(std::filesystem::path path) {
@@ -97,8 +100,17 @@ void Lexer::lex() {
         case '+':
             tokens.emplace_back(TokenType::TOKEN_PLUS, "+", current_line, current_character);
             break;
+        case '-':
+            tokens.emplace_back(TokenType::TOKEN_MINUS, "-", current_line, current_character);
+            break;
         case '*':
             tokens.emplace_back(TokenType::TOKEN_STAR, "*", current_line, current_character);
+            break;
+        case '/':
+            tokens.emplace_back(TokenType::TOKEN_SLASH, "/", current_line, current_character);
+            break;
+        case '%':
+            tokens.emplace_back(TokenType::TOKEN_MOD, "%", current_line, current_character);
             break;
         case '=':
             if (peek(chars) == '=')

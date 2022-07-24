@@ -335,11 +335,11 @@ std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
  *  and
  *  == !=
  *  < > >= <=
- *  +
- *  *
+ *  + -
+ *  * / %
  *  @ * !
  *  call()
- *  literal () new ""
+ *  literal () new "" null true false
  */
 
 std::tuple<Expression *, bool> Parser::eval_expression() {
@@ -417,7 +417,7 @@ std::tuple<Expression *, bool> Parser::eval_relational() {
 std::tuple<Expression *, bool> Parser::eval_term() {
     TRY(Expression *, expr, eval_factor());
 
-    while (match(TokenType::TOKEN_PLUS))
+    while (match(TokenType::TOKEN_PLUS) || match(TokenType::TOKEN_MINUS))
     {
         Token *op = consume_token();
         TRY(Expression *, right, eval_factor());
@@ -430,7 +430,7 @@ std::tuple<Expression *, bool> Parser::eval_term() {
 std::tuple<Expression *, bool> Parser::eval_factor() {
     TRY(Expression *, expr, eval_unary());
 
-    while (match(TokenType::TOKEN_STAR))
+    while (match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_SLASH) || match(TokenType::TOKEN_MOD))
     {
         Token *op = consume_token();
         TRY(Expression *, right, eval_unary());

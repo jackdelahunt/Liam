@@ -357,8 +357,17 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
     case TOKEN_PLUS:
         source.append(" + ");
         break;
+    case TOKEN_MINUS:
+        source.append(" - ");
+        break;
     case TOKEN_STAR:
         source.append(" * ");
+        break;
+    case TOKEN_SLASH:
+        source.append(" / ");
+        break;
+    case TOKEN_MOD:
+        source.append(" % ");
         break;
     case TOKEN_OR:
         source.append(" || ");
