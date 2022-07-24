@@ -1,4 +1,5 @@
 #include "core.h"
+#include <string.h>
 
 u8 _u8(u8 n) {
     return n;
