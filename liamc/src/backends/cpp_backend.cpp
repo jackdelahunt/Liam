@@ -328,8 +328,13 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_GROUP:
         return emit_group_expression(dynamic_cast<GroupExpression *>(expression));
         break;
-    default:
+    case ExpressionType::EXPRESSION_NULL_LITERAL:
+        return emit_null_literal_expression(dynamic_cast<NullLiteralExpression *>(expression));
+        break;
+    default: {
+        panic("Cannot emit this expression in cpp backend");
         return "";
+    }
     }
 }
 
@@ -403,28 +408,21 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
 
     std::string func_call = "_";
 
-    if(number_type->type == UNSIGNED) {
-        func_call.append("u");
-    }
-    else if(number_type->type == SIGNED) {
-        func_call.append("s");
-    }
-    else if(number_type->type == FLOAT) {
-        func_call.append("f");
-    }
+    if (number_type->type == UNSIGNED)
+    { func_call.append("u"); }
+    else if (number_type->type == SIGNED)
+    { func_call.append("s"); }
+    else if (number_type->type == FLOAT)
+    { func_call.append("f"); }
 
-    if(number_type->size == 8) {
-        func_call.append("8");
-    }
-    else if(number_type->size == 16) {
-        func_call.append("16");
-    }
-    else if(number_type->size == 32) {
-        func_call.append("32");
-    }
-    else if(number_type->size == 64) {
-        func_call.append("64");
-    }
+    if (number_type->size == 8)
+    { func_call.append("8"); }
+    else if (number_type->size == 16)
+    { func_call.append("16"); }
+    else if (number_type->size == 32)
+    { func_call.append("32"); }
+    else if (number_type->size == 64)
+    { func_call.append("64"); }
 
     func_call.append("(" + std::to_string(expression->number) + ")");
 
@@ -509,6 +507,10 @@ std::string CppBackend::emit_new_expression(NewExpression *expression) {
 
 std::string CppBackend::emit_group_expression(GroupExpression *expression) {
     return "(" + emit_expression(expression->expression) + ")";
+}
+
+std::string CppBackend::emit_null_literal_expression(NullLiteralExpression *expression) {
+    return "nullptr";
 }
 
 std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {

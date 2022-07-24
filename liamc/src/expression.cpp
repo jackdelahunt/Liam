@@ -83,6 +83,10 @@ GroupExpression::GroupExpression(Expression *expression) {
     this->span       = expression->span;
 }
 
+NullLiteralExpression::NullLiteralExpression() {
+    this->type = ExpressionType::EXPRESSION_NULL_LITERAL;
+}
+
 std::ostream &TypeExpression::format(std::ostream &os) const {
     os << "()";
     return os;

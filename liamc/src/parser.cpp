@@ -506,6 +506,11 @@ std::tuple<Expression *, bool> Parser::eval_primary() {
         return eval_new_expression();
     else if (type == TokenType::TOKEN_PAREN_OPEN)
     { return eval_group_expression(); }
+    else if (type == TokenType::TOKEN_NULL)
+    {
+        consume_token();
+        return WIN(new NullLiteralExpression());
+    }
 
     return WIN(new Expression()); // empty expression found -- like when a
                                   // return has no expression

@@ -54,7 +54,8 @@ void build_step(std::string *code) {
         pclose(file);
     }
     {
-        if(!args->emit) {
+        if (!args->emit)
+        {
             FILE *file = popen("rm out.cpp", "r");
             pclose(file);
         }

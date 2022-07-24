@@ -28,7 +28,7 @@ void Arguments::New(int argc, char **argv) {
     args->stdlib   = args->value<std::string>("stdlib");
     args->help     = args->value<bool>("help");
     args->include  = args->value<std::string>("include");
-    args->emit  = args->value<bool>("emit");
+    args->emit     = args->value<bool>("emit");
 
     // required args
     if (args->result.hasValue<std::string>("in"))

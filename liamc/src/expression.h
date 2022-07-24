@@ -16,6 +16,7 @@ enum class ExpressionType {
     EXPRESSION_GET,
     EXPRESSION_NEW,
     EXPRESSION_GROUP,
+    EXPRESSION_NULL_LITERAL,
 };
 
 struct Expression {
@@ -104,6 +105,10 @@ struct GroupExpression : Expression {
     Expression *expression;
 
     GroupExpression(Expression *expression);
+};
+
+struct NullLiteralExpression : Expression {
+    NullLiteralExpression();
 };
 
 enum class TypeExpressionType {

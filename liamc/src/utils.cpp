@@ -8,12 +8,13 @@ bool is_digit(char c) {
 
 std::tuple<s64, NumberType, s32> extract_number_literal_size(std::string literal) {
 
-    #define BAD_PARSE {0, UNSIGNED, -1}
+#define BAD_PARSE                                                                                                      \
+    { 0, UNSIGNED, -1 }
 
     int literal_end = 0;
-    while(literal_end < literal.size() && (is_digit(literal.at(literal_end)) || literal.at(literal_end) == '-' || literal.at(literal_end) == '.')) {
-        literal_end++;
-    }
+    while (literal_end < literal.size() &&
+           (is_digit(literal.at(literal_end)) || literal.at(literal_end) == '-' || literal.at(literal_end) == '.'))
+    { literal_end++; }
 
     // literal == 0..literal_end
     // type == literal_end..literal_end +1
@@ -21,47 +22,49 @@ std::tuple<s64, NumberType, s32> extract_number_literal_size(std::string literal
 
     auto literal_string = literal.substr(0, literal_end);
 
-    std::string type_string = "";
+    std::string type_string    = "";
     std::string postfix_string = "";
 
     // if there is a postfix notation
     // else just infer a s64
-    if(literal_end != literal.size()) {
-        type_string = literal.substr(literal_end, 1);
+    if (literal_end != literal.size())
+    {
+        type_string    = literal.substr(literal_end, 1);
         postfix_string = literal.substr(literal_end + 1, literal.size() - literal_end);
-    } else {
+    }
+    else
+    {
         auto n = std::stod(literal_string);
         return {n, SIGNED, 64};
     }
 
     int size;
 
-    try {
-        size = std::stoi(postfix_string);
-    } catch (std::exception &e) {
-        return BAD_PARSE;
-    }
+    try
+    { size = std::stoi(postfix_string); }
+    catch (std::exception &e)
+    { return BAD_PARSE; }
 
     NumberType type;
 
-    if(type_string == "u") {
-        type = UNSIGNED;
-    }
-    else if(type_string == "f") {
-        type = FLOAT;
-    }
-    else if(type_string == "s") {
-        type = SIGNED;
-    }
-    else {
-        return BAD_PARSE;
-    }
+    if (type_string == "u")
+    { type = UNSIGNED; }
+    else if (type_string == "f")
+    { type = FLOAT; }
+    else if (type_string == "s")
+    { type = SIGNED; }
+    else
+    { return BAD_PARSE; }
 
-    if(size == 8 || size == 16 || size == 32 || size == 64) {
-        try {
+    if (size == 8 || size == 16 || size == 32 || size == 64)
+    {
+        try
+        {
             auto n = std::stod(literal_string);
             return {n, type, size};
-        } catch (std::exception &e) {}
+        }
+        catch (std::exception &e)
+        {}
     }
 
     return BAD_PARSE;

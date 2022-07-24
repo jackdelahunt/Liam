@@ -1,0 +1,22 @@
+#100
+#x is null
+#null is x
+
+import "stdlib/basic.liam";
+
+fn main(): void {
+    let y := 100;
+    let x : ^s64 = null;
+
+    x = @y;
+    println[s64](*x);
+
+    x = null;
+    if x == null {
+        println[str]("x is null");
+    }
+
+    if null == x {
+        println[str]("null is x");
+    }
+}
