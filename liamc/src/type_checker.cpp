@@ -410,7 +410,9 @@ void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTabl
     for (auto &t : statement->instances)
     { instances.push_back(t.string); }
 
-    symbol_table->add_type(statement->identifier, new EnumTypeInfo{TypeInfoType::ENUM, instances});
+    symbol_table->add_type(
+        statement->identifier, new EnumTypeInfo{TypeInfoType::ENUM, statement->identifier.string, instances}
+    );
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {
@@ -736,6 +738,12 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
 
 void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(expression->lhs, symbol_table));
+
+    if (expression->lhs->type_info->type == TypeInfoType::ENUM)
+    {
+        expression->type_info = expression->lhs->type_info;
+        return;
+    }
 
     TypeInfo *member_type_info       = NULL;
     StructTypeInfo *struct_type_info = NULL;
@@ -1098,6 +1106,13 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         }
 
         return true;
+    }
+    else if (a->type == TypeInfoType::ENUM)
+    {
+        auto enum_a = static_cast<EnumTypeInfo *>(a);
+        auto enum_b = static_cast<EnumTypeInfo *>(b);
+
+        return enum_a->identifier == enum_b->identifier;
     }
 
     panic("Cannot type check this type info");
