@@ -98,7 +98,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
         {
             if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
             { structs.push_back(dynamic_cast<StructStatement *>(stmt)); }
-            if (stmt->statement_type == StatementType::STATEMENT_ENUM)
+            else if (stmt->statement_type == StatementType::STATEMENT_ENUM)
             { enums.push_back(dynamic_cast<EnumStatement *>(stmt)); }
             else if (stmt->statement_type == StatementType::STATEMENT_FN)
             {
