@@ -68,5 +68,6 @@ struct UnionTypeInfo : TypeInfo {
 };
 
 struct EnumTypeInfo : TypeInfo {
+    std::string identifier;
     std::vector<std::string> instances;
 };

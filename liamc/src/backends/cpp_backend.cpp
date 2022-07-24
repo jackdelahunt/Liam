@@ -1,5 +1,6 @@
 #include "cpp_backend.h"
 
+#include "fmt/core.h"
 #include <algorithm>
 #include <string>
 
@@ -317,6 +318,23 @@ std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
 
     source.append(" };\n");
 
+    // pretty print
+    source.append("std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string + " &obj) {\n");
+
+    source.append("switch(obj) {\n");
+    for (auto &t : statement->instances)
+    {
+        source.append(fmt::format(
+            "case {}::{}: os << \"{}.{}\"; break;\n", statement->identifier.string, t.string,
+            statement->identifier.string, t.string
+        ));
+    }
+    source.append("}\n");
+
+    source.append("return os;\n");
+
+    source.append("}\n\n");
+
     return source;
 }
 
@@ -518,6 +536,9 @@ std::string CppBackend::emit_identifier_expression(IdentifierExpression *express
 std::string CppBackend::emit_get_expression(GetExpression *expression) {
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     { return emit_expression(expression->lhs) + "->" + expression->member.string; }
+
+    if (expression->lhs->type_info->type == TypeInfoType::ENUM)
+    { return emit_expression(expression->lhs) + "::" + expression->member.string; }
 
     return emit_expression(expression->lhs) + "." + expression->member.string;
 }
