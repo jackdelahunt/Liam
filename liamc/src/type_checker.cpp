@@ -18,19 +18,19 @@ SymbolTable::SymbolTable() {
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
     builtin_type_table["str"]  = new StrTypeInfo{TypeInfoType::STRING};
 
-    builtin_type_table["u8"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 8, UNSIGNED};
-    builtin_type_table["s8"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 8, SIGNED};
+    builtin_type_table["u8"] = new NumberTypeInfo{TypeInfoType::NUMBER, 8, UNSIGNED};
+    builtin_type_table["s8"] = new NumberTypeInfo{TypeInfoType::NUMBER, 8, SIGNED};
 
-    builtin_type_table["u16"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 16, UNSIGNED};
-    builtin_type_table["s16"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 16, SIGNED};
+    builtin_type_table["u16"] = new NumberTypeInfo{TypeInfoType::NUMBER, 16, UNSIGNED};
+    builtin_type_table["s16"] = new NumberTypeInfo{TypeInfoType::NUMBER, 16, SIGNED};
 
-    builtin_type_table["u32"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 32, UNSIGNED};
-    builtin_type_table["s32"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 32, SIGNED};
-    builtin_type_table["f32"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 32, FLOAT};
+    builtin_type_table["u32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, UNSIGNED};
+    builtin_type_table["s32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, SIGNED};
+    builtin_type_table["f32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, FLOAT};
 
-    builtin_type_table["u64"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 64, UNSIGNED};
-    builtin_type_table["s64"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 64, SIGNED};
-    builtin_type_table["f64"]  = new NumberTypeInfo{TypeInfoType::NUMBER, 64, FLOAT};
+    builtin_type_table["u64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, UNSIGNED};
+    builtin_type_table["s64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, SIGNED};
+    builtin_type_table["f64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, FLOAT};
 }
 
 void SymbolTable::add_type(Token type, TypeInfo *type_info) {
@@ -428,6 +428,10 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         break;
     case ExpressionType::EXPRESSION_GROUP:
         return type_check_group_expression(dynamic_cast<GroupExpression *>(expression), symbol_table);
+        break;
+    case ExpressionType::EXPRESSION_NULL_LITERAL:
+        return type_check_null_literal_expression(dynamic_cast<NullLiteralExpression *>(expression), symbol_table);
+        break;
     default:
         panic("Not implemented");
     }
@@ -448,18 +452,21 @@ void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable
 
     // check if the type expression given is valid for this type union
     auto union_type_info = (UnionTypeInfo *)expression->expression->type_info;
-    bool match = false;
-    for(auto t : union_type_info->types) {
-        if(type_match(t, expression->type_expression->type_info)) {
+    bool match           = false;
+    for (auto t : union_type_info->types)
+    {
+        if (type_match(t, expression->type_expression->type_info))
+        {
             match = true;
             break;
         }
     }
 
-    if(!match) {
+    if (!match)
+    {
         ErrorReporter::report_type_checker_error(
-                current_file->path, expression->expression, NULL, expression->type_expression, NULL,
-                "Type must be a valid sub type of the type union"
+            current_file->path, expression->expression, NULL, expression->type_expression, NULL,
+            "Type must be a valid sub type of the type union"
         );
         return;
     }
@@ -521,80 +528,64 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
 
     auto [number, type, size] = extract_number_literal_size(expression->token.string);
 
-    if(size == -1) {
-        panic("problem parsing number literal " + expression->token.string);
-    }
+    if (size == -1)
+    { panic("problem parsing number literal " + expression->token.string); }
 
     expression->number = number;
 
-    switch (type) {
-        case UNSIGNED: {
+    switch (type)
+    {
+    case UNSIGNED: {
 
-            if(number < 0) {
-                panic("Unsigned number cannot be negative");
-            }
+        if (number < 0)
+        { panic("Unsigned number cannot be negative"); }
 
-            if(number != (s64)number) {
-                panic("Cannot use decimal point on non float types");
-            }
+        if (number != (s64)number)
+        { panic("Cannot use decimal point on non float types"); }
 
-            if(size == 8) {
-                expression->type_info = symbol_table->builtin_type_table["u8"];
-            }
-            else if(size == 16) {
-                expression->type_info = symbol_table->builtin_type_table["u16"];
-            }
-            else if(size == 32) {
-                expression->type_info = symbol_table->builtin_type_table["u32"];
-            }
-            else if(size == 64) {
-                expression->type_info = symbol_table->builtin_type_table["u64"];
-            } else {
-                panic("Unknown size when type checking uint");
-            }
-        }
-            break;
-        case SIGNED: {
-
-            if(number != (s64)number) {
-                panic("Cannot use decimal point on non float types");
-            }
-
-            if(size == 8) {
-                expression->type_info = symbol_table->builtin_type_table["s8"];
-            }
-            else if(size == 16) {
-                expression->type_info = symbol_table->builtin_type_table["s16"];
-            }
-            else if(size == 32) {
-                expression->type_info = symbol_table->builtin_type_table["s32"];
-            }
-            else if(size == 64) {
-                expression->type_info = symbol_table->builtin_type_table["s64"];
-            } else {
-                panic("Unknown size when type checking sint");
-            }
-        }
-            break;
-        case FLOAT: {
-            if(size == 8) {
-                panic("Cannot use f8 as a literal");
-            }
-            else if(size == 16) {
-                panic("Cannot use f16 as a literal");
-            }
-            else if(size == 32) {
-                expression->type_info = symbol_table->builtin_type_table["f32"];
-            }
-            else if(size == 64) {
-                expression->type_info = symbol_table->builtin_type_table["f64"];
-            } else {
-                panic("Unknown size when type checking float");
-            }
-        }
-            break;
+        if (size == 8)
+        { expression->type_info = symbol_table->builtin_type_table["u8"]; }
+        else if (size == 16)
+        { expression->type_info = symbol_table->builtin_type_table["u16"]; }
+        else if (size == 32)
+        { expression->type_info = symbol_table->builtin_type_table["u32"]; }
+        else if (size == 64)
+        { expression->type_info = symbol_table->builtin_type_table["u64"]; }
+        else
+        { panic("Unknown size when type checking uint"); }
     }
+    break;
+    case SIGNED: {
 
+        if (number != (s64)number)
+        { panic("Cannot use decimal point on non float types"); }
+
+        if (size == 8)
+        { expression->type_info = symbol_table->builtin_type_table["s8"]; }
+        else if (size == 16)
+        { expression->type_info = symbol_table->builtin_type_table["s16"]; }
+        else if (size == 32)
+        { expression->type_info = symbol_table->builtin_type_table["s32"]; }
+        else if (size == 64)
+        { expression->type_info = symbol_table->builtin_type_table["s64"]; }
+        else
+        { panic("Unknown size when type checking sint"); }
+    }
+    break;
+    case FLOAT: {
+        if (size == 8)
+        { panic("Cannot use f8 as a literal"); }
+        else if (size == 16)
+        { panic("Cannot use f16 as a literal"); }
+        else if (size == 32)
+        { expression->type_info = symbol_table->builtin_type_table["f32"]; }
+        else if (size == 64)
+        { expression->type_info = symbol_table->builtin_type_table["f64"]; }
+        else
+        { panic("Unknown size when type checking float"); }
+    }
+    break;
+    }
 }
 
 void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expression, SymbolTable *symbol_table) {
@@ -716,7 +707,7 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
             current_file->path, expression, NULL, NULL, NULL, "Unrecognized identifier"
         );
         auto after = ErrorReporter::error_count();
-        after = ErrorReporter::error_count();
+        after      = ErrorReporter::error_count();
     }
 
     expression->type_info = type_info;
@@ -851,6 +842,10 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
 void TypeChecker::type_check_group_expression(GroupExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(expression->expression, symbol_table));
     expression->type_info = expression->expression->type_info;
+}
+
+void TypeChecker::type_check_null_literal_expression(NullLiteralExpression *expression, SymbolTable *symbol_table) {
+    expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, new AnyTypeInfo{TypeInfoType::ANY}};
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {
@@ -991,6 +986,7 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
 
     if (a->type == TypeInfoType::ANY)
         return true;
+
     if (b->type == TypeInfoType::ANY)
         return true;
 
@@ -1048,9 +1044,6 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     {
         auto ptr_a = static_cast<PointerTypeInfo *>(a);
         auto ptr_b = static_cast<PointerTypeInfo *>(b);
-
-        if (ptr_a->to->type == TypeInfoType::VOID)
-            return true; // void^ can be equal to T^, not other way around
 
         return type_match(ptr_a->to, ptr_b->to);
     }

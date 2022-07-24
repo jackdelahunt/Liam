@@ -15,51 +15,52 @@ enum NumberType {
 
 enum TokenType {
     TOKEN_NUMBER_LITERAL = 0, // 0
-    TOKEN_STRING_LITERAL,  // "hello"
-    TOKEN_IDENTIFIER,      // x
-    TOKEN_LET,             // let
-    TOKEN_INSERT,          // insert
-    TOKEN_FN,              // fn
-    TOKEN_PAREN_OPEN,      // (
-    TOKEN_PAREN_CLOSE,     // )
-    TOKEN_BRACE_OPEN,      // {
-    TOKEN_BRACE_CLOSE,     // }
-    TOKEN_PLUS,            // +
-    TOKEN_STAR,            // *
-    TOKEN_ASSIGN,          // =
-    TOKEN_SEMI_COLON,      // ;
-    TOKEN_COMMA,           // ,
-    TOKEN_COLON,           // :
-    TOKEN_RETURN,          // return
-    TOKEN_HAT,             // ^
-    TOKEN_AT,              // @
-    TOKEN_STRUCT,          // struct
-    TOKEN_DOT,             // .
-    TOKEN_NEW,             // new
-    TOKEN_BREAK,           // break
-    TOKEN_IMPORT,          // import
-    TOKEN_BRACKET_OPEN,    // [
-    TOKEN_BRACKET_CLOSE,   // ]
-    TOKEN_FOR,             // for
-    TOKEN_FALSE,           // false
-    TOKEN_TRUE,            // true
-    TOKEN_IF,              // if
-    TOKEN_ELSE,            // else
-    TOKEN_OR,              // or
-    TOKEN_AND,             // and
-    TOKEN_EQUAL,           // ==
-    TOKEN_NOT_EQUAL,       // !=
-    TOKEN_NOT,             // !
-    TOKEN_LESS,            // <
-    TOKEN_GREATER,         // >
-    TOKEN_GREATER_EQUAL,   // >=
-    TOKEN_LESS_EQUAL,      // <=
-    TOKEN_EXTERN,          // extern
-    TOKEN_BAR,             // |
-    TOKEN_IS,              // is
+    TOKEN_STRING_LITERAL,     // "hello"
+    TOKEN_IDENTIFIER,         // x
+    TOKEN_LET,                // let
+    TOKEN_INSERT,             // insert
+    TOKEN_FN,                 // fn
+    TOKEN_PAREN_OPEN,         // (
+    TOKEN_PAREN_CLOSE,        // )
+    TOKEN_BRACE_OPEN,         // {
+    TOKEN_BRACE_CLOSE,        // }
+    TOKEN_PLUS,               // +
+    TOKEN_STAR,               // *
+    TOKEN_ASSIGN,             // =
+    TOKEN_SEMI_COLON,         // ;
+    TOKEN_COMMA,              // ,
+    TOKEN_COLON,              // :
+    TOKEN_RETURN,             // return
+    TOKEN_HAT,                // ^
+    TOKEN_AT,                 // @
+    TOKEN_STRUCT,             // struct
+    TOKEN_DOT,                // .
+    TOKEN_NEW,                // new
+    TOKEN_BREAK,              // break
+    TOKEN_IMPORT,             // import
+    TOKEN_BRACKET_OPEN,       // [
+    TOKEN_BRACKET_CLOSE,      // ]
+    TOKEN_FOR,                // for
+    TOKEN_FALSE,              // false
+    TOKEN_TRUE,               // true
+    TOKEN_IF,                 // if
+    TOKEN_ELSE,               // else
+    TOKEN_OR,                 // or
+    TOKEN_AND,                // and
+    TOKEN_EQUAL,              // ==
+    TOKEN_NOT_EQUAL,          // !=
+    TOKEN_NOT,                // !
+    TOKEN_LESS,               // <
+    TOKEN_GREATER,            // >
+    TOKEN_GREATER_EQUAL,      // >=
+    TOKEN_LESS_EQUAL,         // <=
+    TOKEN_EXTERN,             // extern
+    TOKEN_BAR,                // |
+    TOKEN_IS,                 // is
+    TOKEN_NULL,               // null
 };
 
-extern const char *TokenTypeStrings[43];
+extern const char *TokenTypeStrings[44];
 
 std::string get_token_type_string(TokenType type);
 

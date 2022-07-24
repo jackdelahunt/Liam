@@ -6,7 +6,7 @@
 #include "liam.h"
 #include "utils.h"
 
-const char *TokenTypeStrings[43] = {
+const char *TokenTypeStrings[44] = {
     "int Literal",
     "string Literal",
     "identifier",
@@ -49,7 +49,8 @@ const char *TokenTypeStrings[43] = {
     "<=",
     "extern",
     "|"
-    "is"};
+    "is",
+    "null"};
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
     this->type   = type;
@@ -331,8 +332,15 @@ void Lexer::lex() {
                 continue;
             }
 
+            if (word == "null")
+            {
+                tokens.emplace_back(Token(TokenType::TOKEN_NULL, word, current_line, word_start));
+                continue;
+            }
+
             // check numbers
-            if(is_digit(word.at(0)) || word.at(0) == '-') {
+            if (is_digit(word.at(0)) || word.at(0) == '-')
+            {
 
                 // TODO:
                 // if this word is a number then it might have got stuck on a .
