@@ -68,13 +68,14 @@ GetExpression::GetExpression(Expression *expression, Token member) {
 }
 
 NewExpression::NewExpression(
-    Token identifier, std::vector<TypeExpression *> generics, std::vector<Expression *> expressions
+    Token identifier, std::vector<TypeExpression *> generics,
+    std::vector<std::tuple<Token, Expression *>> named_expressions
 ) {
-    this->identifier  = identifier;
-    this->generics    = generics;
-    this->expressions = expressions;
-    this->span        = identifier.span;
-    this->type        = ExpressionType::EXPRESSION_NEW;
+    this->identifier        = identifier;
+    this->generics          = generics;
+    this->named_expressions = named_expressions;
+    this->span              = identifier.span;
+    this->type              = ExpressionType::EXPRESSION_NEW;
 }
 
 GroupExpression::GroupExpression(Expression *expression) {

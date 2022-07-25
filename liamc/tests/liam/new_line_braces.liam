@@ -13,7 +13,7 @@ fn main(): void
 {
 	if true 
 	{
-		let p := new Person{"jack", 21};
+		let p := new Person{name: "jack", age: 21};
 		println[str](p.name);
 		println[s64](p.age);
 	}

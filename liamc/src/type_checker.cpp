@@ -815,11 +815,11 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     auto struct_type_info = static_cast<StructTypeInfo *>(symbol_table->type_table[expression->identifier.string]);
 
     // collect members from new constructor
-    auto calling_args_type_infos = std::vector<TypeInfo *>();
-    for (auto expr : expression->expressions)
+    auto calling_args_type_infos = std::vector<std::tuple<std::string, TypeInfo *>>();
+    for (auto [name, expr] : expression->named_expressions)
     {
         TRY_CALL(type_check_expression(expr, symbol_table));
-        calling_args_type_infos.push_back(expr->type_info);
+        calling_args_type_infos.emplace_back(name.string, expr->type_info);
     }
 
     // collect generic types from new constructor
@@ -846,14 +846,27 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     // check types
     for (s32 i = 0; i < calling_args_type_infos.size(); i++)
     {
+        // new expression member and type info
+        auto [expression_member, expression_type] = calling_args_type_infos.at(i);
+
+        // struct member and type info
         auto [member, type] = struct_type_info->members.at(i);
 
         auto resolved_member_type = resolve_generics(type, &expression->generics);
-        if (!type_match(resolved_member_type, calling_args_type_infos.at(i)))
+        if (expression_member != member)
         {
+            auto [name, expr] = expression->named_expressions.at(i);
             ErrorReporter::report_type_checker_error(
-                current_file->path, expression, expression->expressions.at(i), NULL, NULL,
-                "Mismatched types in new expression"
+                current_file->path, expr, NULL, NULL, NULL, "Incorrect name specifier in new expression"
+            );
+            return;
+        }
+
+        if (!type_match(resolved_member_type, expression_type))
+        {
+            auto [name, expr] = expression->named_expressions.at(i);
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression, expr, NULL, NULL, "Mismatched types in new expression"
             );
             return;
         }
