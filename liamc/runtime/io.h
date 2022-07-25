@@ -6,21 +6,6 @@
 #include <sstream>
 #include <string>
 
-String read(str path) {
-    std::ifstream input{path.chars};
-
-    if (!input.is_open())
-    {
-        std::cerr << "Couldn't read file: " << path.chars << "\n";
-        exit(1);
-    }
-
-    std::string s;
-    input >> s;
-
-    return String{.string = s};
-}
-
 std::string pretty_string_builtin(std::string indentation, u64 n) {
     return std::to_string(n);
 }

@@ -1,29 +1,45 @@
 #include "builtin_string.h"
+#include "memory.h"
+#include <iostream>
 
 std::string String::pretty_string(std::string indentation) {
-    return indentation + string;
+    return indentation;
 }
 
-String make_string() {
-    return String{.string = std::string()};
-}
+String make_string(str s) {
+    panic_if(Internal::allocator == NULL, Internal::make_str("Allocator not set"));
 
-String make_string_from(str s) {
-    return String{.string = std::string(s.chars)};
-}
+    if (s.length == 0)
+    { return String{.string = str{.chars = NULL, .length = 0}, .size = 0}; }
 
-str to_str(String *s) {
-    return make_str((char *)s->string.c_str(), s->string.size());
+    u64 size   = s.length + 50;
+    char *data = (char *)Internal::allocator->alloc(sizeof(char) * size);
+
+    memcpy(data, s.chars, s.length);
+
+    return String{.string = str{.chars = data, .length = s.length}, .size = size};
 }
 
 void string_append(String *s, String *x) {
-    s->string.append(x->string);
+    if (s->string.length + x->string.length > s->size)
+    {
+        u64 new_size = s->size + x->string.length + 50;
+        Internal::allocator->re_alloc(s->string.chars, new_size);
+        s->size = new_size;
+    }
+
+    memcpy(s->string.chars + s->string.length, x->string.chars, x->string.length);
+    s->string.length += x->string.length;
 }
 
-str string_substring(String *string, u64 start, u64 length) {
-    return make_str((char *)&string->string.c_str()[start], length);
-}
+void string_append_str(String *string, str s) {
+    if (string->string.length + s.length > string->size)
+    {
+        u64 new_size = string->size + s.length + 50;
+        Internal::allocator->re_alloc(string->string.chars, new_size);
+        string->size = new_size;
+    }
 
-u64 string_length(String *string) {
-    return string->string.size();
+    memcpy(string->string.chars + string->string.length, s.chars, s.length);
+    string->string.length += s.length;
 }

@@ -50,12 +50,14 @@ void build_step(std::string *code) {
     out_file << *code;
     out_file.close();
 
+    auto command =
+        fmt::format("clang++ {} -I {} out.cpp -std=c++20 -o {} ", unwanted_warnings, args->include, args->out_path);
+
+    if (args->debug)
+    { command += "-g "; }
+
     {
-        FILE *file = popen(
-            fmt::format("clang++ {} -I {} out.cpp -std=c++20 -o {}", unwanted_warnings, args->include, args->out_path)
-                .c_str(),
-            "r"
-        );
+        FILE *file = popen(command.c_str(), "r");
         pclose(file);
     }
     {

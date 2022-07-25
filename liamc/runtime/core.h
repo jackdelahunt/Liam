@@ -40,9 +40,16 @@ struct str {
 
 str make_str(char *chars, uint64_t length);
 std::ostream &operator<<(std::ostream &os, const str &obj);
+
+void panic_if(bool condition, str message);
 u64 len(const str &s);
+str substr(str s, u64 start, u64 length);
 
 template <typename T, typename... Ts> std::ostream &operator<<(std::ostream &os, const std::variant<T, Ts...> &obj) {
     os << "<?>";
     return os;
+}
+
+namespace Internal {
+str make_str(const char *c_str);
 }
