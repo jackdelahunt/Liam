@@ -551,10 +551,10 @@ std::string CppBackend::emit_new_expression(NewExpression *expression) {
 
     source.append("{");
     int index = 0;
-    for (auto expr : expression->expressions)
+    for (auto [name, expr] : expression->named_expressions)
     {
         source.append(emit_expression(expr));
-        if (index + 1 < expression->expressions.size())
+        if (index + 1 < expression->named_expressions.size())
         { source.append(", "); }
         index++;
     }

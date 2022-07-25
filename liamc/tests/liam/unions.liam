@@ -22,12 +22,12 @@ fn main(): void {
         println[str](*s);
     }
 
-    let s := new Struct{100u64};
+    let s := new Struct{data: 100u64};
     if s.data is u64 n {
         println[u64](*n);
     }
 
-    let t: Struct | u64 = new Struct{false};
+    let t: Struct | u64 = new Struct{data: false};
     if t is Struct c {
         if c.data is bool b {
             println[bool](*b);

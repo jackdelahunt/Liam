@@ -96,9 +96,12 @@ struct GetExpression : Expression {
 struct NewExpression : Expression {
     Token identifier;
     std::vector<TypeExpression *> generics;
-    std::vector<Expression *> expressions;
+    std::vector<std::tuple<Token, Expression *>> named_expressions;
 
-    NewExpression(Token identifier, std::vector<TypeExpression *> generics, std::vector<Expression *> expressions);
+    NewExpression(
+        Token identifier, std::vector<TypeExpression *> generics,
+        std::vector<std::tuple<Token, Expression *>> named_expressions
+    );
 };
 
 struct GroupExpression : Expression {

@@ -533,7 +533,7 @@ std::tuple<Expression *, bool> Parser::eval_primary() {
 }
 
 std::tuple<Expression *, bool> Parser::eval_new_expression() {
-    consume_token();
+    TRY_TOKEN(TOKEN_NEW);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
     auto generics = std::vector<TypeExpression *>();
@@ -549,11 +549,12 @@ std::tuple<Expression *, bool> Parser::eval_new_expression() {
     }
 
     TRY_TOKEN(TOKEN_BRACE_OPEN);
-    auto [expressions, error] = consume_comma_seperated_arguments(TOKEN_BRACE_CLOSE);
+    auto [named_expressions, error] = consume_comma_seperated_named_arguments(TOKEN_BRACE_CLOSE);
     if (error)
     { return {nullptr, true}; }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
-    return WIN(new NewExpression(*identifier, generics, expressions));
+
+    return WIN(new NewExpression(*identifier, generics, named_expressions));
 }
 
 std::tuple<Expression *, bool> Parser::eval_group_expression() {
@@ -777,4 +778,40 @@ std::tuple<CSV, bool> Parser::consume_comma_seperated_params() {
     }
 
     return WIN(args_types);
+}
+
+std::tuple<std::vector<std::tuple<Token, Expression *>>, bool> Parser::consume_comma_seperated_named_arguments(
+    TokenType closer
+) {
+    auto named_args = std::vector<std::tuple<Token, Expression *>>();
+    bool is_first   = true;
+    if (!match(closer))
+    {
+        do
+        {
+            if (!is_first)
+                current++; // only iterate current by one when it is not the
+            // first time
+
+            auto [name, identifier_error] = consume_token_of_type(TOKEN_IDENTIFIER);
+            if (identifier_error)
+            { return {std::vector<std::tuple<Token, Expression *>>(), true}; }
+
+            auto [_, colon_error] = consume_token_of_type(TOKEN_COLON);
+            if (colon_error)
+            { return {{std::vector<std::tuple<Token, Expression *>>()}, true}; }
+
+            auto [expression, type_error] = eval_expression();
+            if (type_error)
+            { return {std::vector<std::tuple<Token, Expression *>>(), true}; }
+
+            named_args.emplace_back(*name, expression);
+
+            if (is_first)
+                is_first = false;
+        }
+        while (match(TOKEN_COMMA));
+    }
+
+    return WIN(named_args);
 }

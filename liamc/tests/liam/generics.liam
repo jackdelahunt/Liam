@@ -19,13 +19,13 @@ fn generic_func[T, E](t: T, e: ^E): ^E {
 
 fn get_u64_vector(): Vector[u64] {
     let x := 20u64;
-    let v := new Vector[u64]{x, @x};
+    let v := new Vector[u64]{x: x, y: @x};
     return v;
 }
 
 fn main(): void {
     let n := 100u64;
-    let v: Vector[u64] = new Vector[u64]{n, @n};
+    let v: Vector[u64] = new Vector[u64]{x: n, y: @n};
     println[u64](v.x);
     println[u64](*(v.y));
 

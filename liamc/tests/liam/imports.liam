@@ -11,6 +11,6 @@ import "stdlib/basic.liam";
 fn main(): void {
     hello("Hello");
     helloToYou[str]("Hello to you");
-    let i: ImportMe = new ImportMe{100u64};
+    let i: ImportMe = new ImportMe{number: 100u64};
     println[u64](i.number);
 }
