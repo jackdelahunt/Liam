@@ -46,8 +46,14 @@ fn main(): u64 {
 }
 ```
 
-## Documentation
+## Self host pre-flight checklist
+- [x] String implementation in stdlib
+- [ ] Array implementation in stdlib
+- [ ] Character literals
+- [ ] File read from disk
+- [ ] 25 test files
 
+## Documentation
 #### [Learning the basics](docs/Learning-the-basics.md)
 Some helpful documentation for getting started learning Liam.
 
