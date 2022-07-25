@@ -85,3 +85,25 @@ std::ostream &operator<<(std::ostream &os, const str &obj) {
 u64 len(const str &s) {
     return s.length;
 }
+
+str substr(str s, u64 start, u64 length) {
+
+    panic_if(start + length > s.length, Internal::make_str("Panic :: out of range substr"));
+
+    return str{.chars = &s.chars[start], .length = length};
+}
+
+void panic_if(bool condition, str message) {
+    if (condition)
+    {
+        std::cout << message << "\n";
+        exit(1);
+    }
+}
+
+namespace Internal {
+str make_str(const char *c_str) {
+    u64 length = strlen(c_str);
+    return str{.chars = (char *)c_str, .length = length};
+}
+} // namespace Internal

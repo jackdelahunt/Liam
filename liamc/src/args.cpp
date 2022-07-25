@@ -17,6 +17,7 @@ void Arguments::New(int argc, char **argv) {
     options->add_options()("h,help", "See this help screen", cxxopts::value<bool>()->default_value("false"));
     options->add_options()("I,include", "Include path", cxxopts::value<std::string>()->default_value("runtime/"));
     options->add_options()("E,emit", "Emit the cpp file", cxxopts::value<bool>()->default_value("false"));
+    options->add_options()("D,debug", "Build cpp in debug", cxxopts::value<bool>()->default_value("false"));
 
     args->result  = options->parse(argc, argv);
     args->options = options;
@@ -29,6 +30,7 @@ void Arguments::New(int argc, char **argv) {
     args->help     = args->value<bool>("help");
     args->include  = args->value<std::string>("include");
     args->emit     = args->value<bool>("emit");
+    args->debug    = args->value<bool>("debug");
 
     // required args
     if (args->result.hasValue<std::string>("in"))

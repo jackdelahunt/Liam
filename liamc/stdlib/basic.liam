@@ -1,7 +1,6 @@
 # io
 extern fn print[T](t: T): void;
 extern fn println[T](t: T): void;
-extern fn read(path: str): String;
 
 # memory
 extern fn set_allocator(name: str, size: u64): void;
@@ -11,15 +10,15 @@ extern fn hashcode[T](t: ^T): u64;
 
 # core
 extern fn len(string: str): u64;
+extern fn substr(s: str, start: u64, length: u64): str;
 
 # String
-extern struct String {}
-extern fn make_string(): String;
-extern fn make_string_from(s: str): String;
-extern fn to_str(s: ^String): str;
+extern struct String {
+    string: str
+}
+extern fn make_string(from: str): String;
 extern fn string_append(s: ^String, x: ^String): void;
-extern fn string_substring(s: ^String, start: u64, length: u64): str;
-extern fn string_length(s: ^String): u64;
+extern fn string_append_str(s: ^String, s: str): void;
 
 # collections
 extern struct Array[T] {

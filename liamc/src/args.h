@@ -17,6 +17,7 @@ struct Arguments {
     bool help;
     std::string include;
     bool emit;
+    bool debug;
 
     cxxopts::Options *options;
     cxxopts::ParseResult result;
