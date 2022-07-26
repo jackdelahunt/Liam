@@ -23,10 +23,13 @@ extern fn string_append_str(s: ^String, s: str): void;
 # collections
 extern struct Array[T] {
     length: u64,
-    capacity: u64
+    capacity: u64,
+    data: ^T
 }
 
 extern fn make_array[T](): Array[T];
-extern fn array_add[T](array: ^Array[T], t: T): void;
-extern fn array_at[T](array: ^Array[T], index: u64): T;
-extern fn array_size[T](array: ^Array[T]): u64;
+extern fn array_append[T](array: ^Array[T], t: T): void;
+extern fn array_index[T](array: ^Array[T], index: u64): T;
+extern fn array_insert[T](array: ^Array[T], index: u64, t: T): void;
+extern fn array_remove[T](array: ^Array[T], index: u64): void;
+extern fn array_free[T](array: ^Array[T]): void;
