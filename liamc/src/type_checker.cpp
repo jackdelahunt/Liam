@@ -14,7 +14,6 @@ SymbolTable::SymbolTable() {
     this->identifier_table   = std::map<std::string, TypeInfo *>();
 
     builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
-    builtin_type_table["char"] = new CharTypeInfo{TypeInfoType::CHAR};
     builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
     builtin_type_table["str"]  = new StrTypeInfo{TypeInfoType::STRING};
 
@@ -1032,7 +1031,7 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     if (b->type == TypeInfoType::ANY)
         return true;
 
-    if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOLEAN || a->type == TypeInfoType::CHAR ||
+    if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOLEAN ||
         a->type == TypeInfoType::STRING)
     { // values don't matter
         return true;

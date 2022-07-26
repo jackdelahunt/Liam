@@ -6,7 +6,6 @@ enum class TypeInfoType {
     ANY,
     VOID,
     NUMBER,
-    CHAR,
     BOOLEAN,
     STRING,
     FN,
@@ -32,8 +31,6 @@ struct NumberTypeInfo : TypeInfo {
 };
 
 struct BoolTypeInfo : TypeInfo {};
-
-struct CharTypeInfo : TypeInfo {};
 
 struct PointerTypeInfo : TypeInfo {
     TypeInfo *to;

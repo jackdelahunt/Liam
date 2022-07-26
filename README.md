@@ -48,8 +48,7 @@ fn main(): u64 {
 
 ## Self host pre-flight checklist
 - [x] String implementation in stdlib
-- [ ] Array implementation in stdlib
-- [ ] Character literals
+- [x] Array implementation in stdlib
 - [ ] File read from disk
 - [ ] 25 test files
 
