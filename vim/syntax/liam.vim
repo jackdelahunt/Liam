@@ -63,9 +63,6 @@ endfunction
 call s:syntax_keyword(s:liam_syntax_keywords)
 
 syntax match liamDecNumber display   "\v<\d%(_?\d)*"
-syntax match liamHexNumber display "\v<0x\x%(_?\x)*"
-syntax match liamOctNumber display "\v<0o\o%(_?\o)*"
-syntax match liamBinNumber display "\v<0b[01]%(_?[01])*"
 
 syntax match liamOperator display "\V\[-+*=^!><:;,@/%]"
 
