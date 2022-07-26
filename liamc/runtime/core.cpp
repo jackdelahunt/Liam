@@ -93,6 +93,11 @@ str substr(str s, u64 start, u64 length) {
     return str{.chars = &s.chars[start], .length = length};
 }
 
+str char_at(str s, u64 index) {
+    panic_if(index >= s.length, Internal::make_str("Panic :: out of range char_at"));
+    return str{.chars = &s.chars[index], .length = 1};
+}
+
 void panic_if(bool condition, str message) {
     if (condition)
     {
