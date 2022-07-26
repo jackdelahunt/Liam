@@ -67,9 +67,10 @@ syntax match liamHexNumber display "\v<0x\x%(_?\x)*"
 syntax match liamOctNumber display "\v<0o\o%(_?\o)*"
 syntax match liamBinNumber display "\v<0b[01]%(_?[01])*"
 
-syntax match liamOperator display "\V\[-+*=^!><:;,@]"
+syntax match liamOperator display "\V\[-+*=^!><:;,@/%]"
 
 syntax match liamFunction /\w\+\s*(/me=e-1,he=e-1
+syntax match liamFunction /\w\+\s*\[/me=e-1,he=e-1
 
 syntax match liamStructDecl /struct\s\+\w\+/lc=6
 
