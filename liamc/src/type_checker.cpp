@@ -212,6 +212,8 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
     case StatementType::STATEMENT_IF:
         return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table);
         break;
+    case StatementType::STATEMENT_CONTINUE:
+        break;
     default:
         panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
     }

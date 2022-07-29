@@ -26,6 +26,7 @@ enum class StatementType {
     STATEMENT_IF,
     STATEMENT_ELSE,
     STATEMENT_ENUM,
+    STATEMENT_CONTINUE
 };
 
 struct Statement {
@@ -140,4 +141,8 @@ struct EnumStatement : Statement {
     std::vector<Token> instances;
 
     EnumStatement(Token identifier, std::vector<Token> instances);
+};
+
+struct ContinueStatement : Statement {
+    ContinueStatement();
 };

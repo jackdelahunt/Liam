@@ -95,6 +95,8 @@ std::tuple<Statement *, bool> Parser::eval_statement() {
     case TOKEN_ENUM:
         return eval_enum_statement();
         break;
+    case TOKEN_CONTINUE: return eval_continue_statement();
+        break;
     default:
         return eval_line_starting_expression();
         break;
@@ -302,6 +304,12 @@ std::tuple<EnumStatement *, bool> Parser::eval_enum_statement() {
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
 
     return WIN(new EnumStatement(*identifier, instances));
+}
+
+std::tuple<ContinueStatement *, bool> Parser::eval_continue_statement() {
+    TRY_TOKEN(TOKEN_CONTINUE);
+    TRY_TOKEN(TOKEN_SEMI_COLON);
+    return WIN(new ContinueStatement());
 }
 
 std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {

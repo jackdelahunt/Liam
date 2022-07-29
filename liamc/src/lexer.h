@@ -62,9 +62,10 @@ enum TokenType {
     TOKEN_IS,                 // is
     TOKEN_NULL,               // null
     TOKEN_ENUM,               // enum
+    TOKEN_CONTINUE,           // continue
 };
 
-extern const char *TokenTypeStrings[48];
+extern const char *TokenTypeStrings[49];
 
 std::string get_token_type_string(TokenType type);
 

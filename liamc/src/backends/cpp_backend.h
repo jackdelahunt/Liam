@@ -29,6 +29,7 @@ struct CppBackend {
     std::string emit_if_statement(IfStatement *statement);
     std::string emit_else_statement(ElseStatement *statement);
     std::string emit_enum_statement(EnumStatement *statement);
+    std::string emit_continue_statement(ContinueStatement *statement);
 
     std::string emit_expression(Expression *expression);
     std::string emit_is_expression(IsExpression *expression);
