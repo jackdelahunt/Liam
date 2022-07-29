@@ -114,3 +114,7 @@ EnumStatement::EnumStatement(Token identifier, std::vector<Token> instances) {
     this->instances      = instances;
     this->statement_type = StatementType::STATEMENT_ENUM;
 }
+
+ContinueStatement::ContinueStatement() {
+    this->statement_type = StatementType::STATEMENT_CONTINUE;
+}

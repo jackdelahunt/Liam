@@ -121,6 +121,9 @@ std::string CppBackend::emit_statement(Statement *statement) {
     case StatementType::STATEMENT_ENUM:
         return emit_enum_statement(dynamic_cast<EnumStatement *>(statement));
         break;
+    case StatementType::STATEMENT_CONTINUE:
+        return emit_continue_statement(dynamic_cast<ContinueStatement *>(statement));
+        break;
     }
 
     panic("Statement not implemented in c back end :[");
@@ -336,6 +339,10 @@ std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
     source.append("}\n\n");
 
     return source;
+}
+
+std::string CppBackend::emit_continue_statement(ContinueStatement *statement) {
+    return "continue;";
 }
 
 std::string CppBackend::emit_expression(Expression *expression) {
