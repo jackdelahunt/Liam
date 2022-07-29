@@ -96,13 +96,13 @@ struct ImportStatement : Statement {
     ImportStatement(File *file, Expression *path);
 };
 struct ForStatement : Statement {
-    LetStatement *let_statement;
+    Statement *assign;
     Expression *condition;
     Statement *update;
     ScopeStatement *body;
 
     ForStatement(
-        File *file, LetStatement *let_statement, Expression *condition, Statement *update, ScopeStatement *body
+        File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
     );
 };
 

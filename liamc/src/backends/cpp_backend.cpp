@@ -276,7 +276,7 @@ std::string CppBackend::emit_expression_statement(ExpressionStatement *statement
 std::string CppBackend::emit_for_statement(ForStatement *statement) {
     std::string source = "";
     source.append(
-        "for(" + emit_let_statement(statement->let_statement) + emit_expression(statement->condition) + ";" +
+        "for(" + emit_statement(statement->assign) + emit_expression(statement->condition) + ";" +
         strip_semi_colon(emit_statement(statement->update)) + ")"
     );
     source.append(emit_scope_statement(statement->body));

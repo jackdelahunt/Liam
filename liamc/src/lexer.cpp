@@ -205,11 +205,10 @@ void Lexer::lex() {
                 // skip back slash and accept next char
                 if (chars->at(current) == '\\')
                 {
-                    next_char();
                     str.append(std::string(1, chars->at(current)));
                     next_char();
-                    continue;
                 }
+
                 str.append(std::string(1, chars->at(current)));
                 next_char();
             }

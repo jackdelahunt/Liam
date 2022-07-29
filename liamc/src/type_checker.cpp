@@ -325,7 +325,7 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
 
 void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     auto table_copy = *symbol_table;
-    TRY_CALL(type_check_let_statement(statement->let_statement, &table_copy));
+    TRY_CALL(type_check_statement(statement->assign, &table_copy));
     TRY_CALL(type_check_expression(statement->condition, &table_copy));
     TRY_CALL(type_check_statement(statement->update, &table_copy));
 
@@ -365,10 +365,6 @@ void TypeChecker::type_check_else_statement(ElseStatement *statement, SymbolTabl
 }
 
 void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool first_pass) {
-
-    if(statement->identifier.string == "String") {
-        std::cout << "jack";
-    }
 
     SymbolTable sub_symbol_table_copy = symbol_table->copy();
 
@@ -511,7 +507,13 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     TRY_CALL(type_check_expression(expression->right, symbol_table));
 
     if (!type_match(expression->left->type_info, expression->right->type_info))
-    { panic("Type mismatch in binary expression"); }
+    {
+        ErrorReporter::report_type_checker_error(
+                current_file->path, expression->left, expression->right, NULL, NULL,
+                "Type mismatch in binary expression"
+        );
+        return;
+    }
 
     TypeInfo *info = NULL;
 

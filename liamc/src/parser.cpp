@@ -234,13 +234,13 @@ std::tuple<ImportStatement *, bool> Parser::eval_import_statement() {
 
 std::tuple<ForStatement *, bool> Parser::eval_for_statement() {
     TRY_TOKEN(TOKEN_FOR);
-    TRY(LetStatement *, let_statement, eval_let_statement())
+    TRY(Statement *, assign, eval_statement())
     TRY(Expression *, condition, eval_expression())
     TRY_TOKEN(TOKEN_SEMI_COLON);
     TRY(Statement *, update, eval_statement())
     TRY(ScopeStatement *, body, eval_scope_statement())
 
-    return WIN(new ForStatement(file, let_statement, condition, update, body));
+    return WIN(new ForStatement(file, assign, condition, update, body));
 }
 
 std::tuple<IfStatement *, bool> Parser::eval_if_statement() {

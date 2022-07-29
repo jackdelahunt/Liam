@@ -10,6 +10,7 @@ namespace Internal {
         long lSize = ftell( fp );
         rewind( fp );
 
+        panic_if(Internal::allocator == NULL, make_str("Need to set allocator before reading file"));
         char *buffer = (char *)Internal::allocator->alloc(lSize);
 
         if(1 != fread( buffer , lSize, 1 , fp)) {
