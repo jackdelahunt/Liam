@@ -51,6 +51,7 @@ let s:liam_syntax_keywords = {
     \ , 'liamConstant' :["this"
     \ ,                 ]
     \ , 'liamStructure' :["struct"
+    \ ,                   "enum"
     \ ,                  ]
     \ , }
 
@@ -70,7 +71,7 @@ syntax match liamFunction /\w\+\s*(/me=e-1,he=e-1
 syntax match liamFunction /\w\+\s*\[/me=e-1,he=e-1
 
 syntax match liamStructDecl /struct\s\+\w\+/lc=6
-
+syntax match liamEnumDecl /enum\s\+\w\+/lc=4
 syntax region liamBlock start="{" end="}" transparent fold
 
 syntax region liamCommentLine start="#" end="$"
@@ -91,7 +92,6 @@ highlight default link liamFatArrowOperator liamOperator
 highlight default link liamRangeOperator liamOperator
 
 highlight default link liamStructDecl liamType
-highlight default link liamClassDecl liamType
 highlight default link liamEnumDecl liamType
 
 highlight default link liamKeyword Keyword

@@ -73,10 +73,10 @@ ImportStatement::ImportStatement(File *file, Expression *path) {
 }
 
 ForStatement::ForStatement(
-    File *file, LetStatement *let_statement, Expression *condition, Statement *update, ScopeStatement *body
+    File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
 ) {
     this->file           = file;
-    this->let_statement  = let_statement;
+    this->assign  = assign;
     this->condition      = condition;
     this->update         = update;
     this->body           = body;
