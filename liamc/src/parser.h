@@ -52,7 +52,6 @@ struct Parser {
     std::tuple<ScopeStatement *, bool> eval_scope_statement();
     std::tuple<StructStatement *, bool> eval_struct_statement(bool is_extern = false);
     std::tuple<FnStatement *, bool> eval_fn_statement(bool is_extern = false);
-    s32 find_balance_point(TokenType push, TokenType pull, s32 from);
     std::tuple<InsertStatement *, bool> eval_insert_statement();
     std::tuple<ReturnStatement *, bool> eval_return_statement();
     std::tuple<BreakStatement *, bool> eval_break_statement();
@@ -91,6 +90,7 @@ struct Parser {
     bool match(TokenType type);
     inline Token *peek(s32 offset = 0);
     Token *consume_token();
+    s32 find_balance_point(TokenType push, TokenType pull, s32 from);
     std::tuple<Token *, bool> consume_token_of_type(TokenType type);
     std::tuple<std::vector<Expression *>, bool> consume_comma_seperated_arguments(TokenType closer);
     std::tuple<std::vector<TypeExpression *>, bool> consume_comma_seperated_types(TokenType closer);

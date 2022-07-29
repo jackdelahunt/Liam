@@ -6,9 +6,9 @@
 struct String {
     str string;
     u64 size;
-
-    std::string pretty_string(std::string indentation);
 };
+
+std::ostream &operator<<(std::ostream &os, const String &obj);
 
 String make_string(str s);
 void string_append(String *s, String *x);

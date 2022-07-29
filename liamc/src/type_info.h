@@ -2,6 +2,8 @@
 
 #include "lexer.h"
 
+#define UNDEFINED_TYPE_BUFFER 75
+
 enum class TypeInfoType {
     ANY,
     VOID,
@@ -15,10 +17,15 @@ enum class TypeInfoType {
     GENERIC,
     UNION,
     ENUM,
+    UNDEFINED
 };
 
 struct TypeInfo {
     TypeInfoType type;
+};
+
+struct UndefinedTypeInfo : TypeInfo {
+    char buffer[UNDEFINED_TYPE_BUFFER];
 };
 
 struct AnyTypeInfo : TypeInfo {};

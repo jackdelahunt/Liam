@@ -27,3 +27,5 @@ template <typename T> void print(const T &t) {
 template <typename T> void println(const T &t) {
     std::cout << t << "\n";
 }
+
+String read(str path);

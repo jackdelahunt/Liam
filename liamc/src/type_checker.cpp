@@ -56,21 +56,21 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     identifier_table[identifier.string] = type_info;
 }
 
-TypeInfo *SymbolTable::get_type(Token *identifier) {
+std::tuple<TypeInfo *, bool> SymbolTable::get_type(Token *identifier) {
     return get_type(identifier->string);
 }
 
-TypeInfo *SymbolTable::get_type(std::string identifier) {
+std::tuple<TypeInfo *, bool> SymbolTable::get_type(std::string identifier) {
     if (builtin_type_table.contains(identifier))
-    { return builtin_type_table[identifier]; }
+    { return {builtin_type_table[identifier], false}; }
 
     if (identifier_table.contains(identifier))
-    { return identifier_table[identifier]; }
+    { return {identifier_table[identifier], false}; }
 
     if (type_table.contains(identifier))
-    { return type_table[identifier]; }
+    { return {type_table[identifier], false}; }
 
-    return nullptr;
+    return {nullptr, true};
 }
 
 SymbolTable SymbolTable::copy() {
@@ -119,7 +119,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
 
     // struct identifier pass
     for (auto stmt : structs)
-    { symbol_table.add_type(stmt->identifier, nullptr); }
+    { symbol_table.add_type(stmt->identifier, new UndefinedTypeInfo{TypeInfoType::UNDEFINED}); }
 
     // struct type pass
     for (auto stmt : structs)
@@ -341,8 +341,10 @@ void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *s
     auto copy = symbol_table->copy();
 
     TRY_CALL(type_check_expression(statement->expression, &copy));
-    if (!type_match(statement->expression->type_info, copy.get_type("bool")))
+
+    if (!type_match(statement->expression->type_info, symbol_table->builtin_type_table["bool"]))
     { panic("If statement must be passed a bool"); }
+
     TRY_CALL(type_check_scope_statement(statement->body, &copy));
 
     if (statement->else_statement)
@@ -363,6 +365,11 @@ void TypeChecker::type_check_else_statement(ElseStatement *statement, SymbolTabl
 }
 
 void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool first_pass) {
+
+    if(statement->identifier.string == "String") {
+        std::cout << "jack";
+    }
+
     SymbolTable sub_symbol_table_copy = symbol_table->copy();
 
     for (u64 i = 0; i < statement->generics.size(); i++)
@@ -377,8 +384,9 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
 
     if (first_pass)
     {
-        symbol_table->type_table[statement->identifier.string] =
-            new StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()};
+        // struct type in undefined need to cast it to a struct into * and copy data in [ :
+        StructTypeInfo * sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
+        *sti = StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()};
     }
     else
     {
@@ -492,7 +500,7 @@ void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable
         return;
     }
 
-    expression->type_info = symbol_table->get_type("bool");
+    expression->type_info = symbol_table->builtin_type_table["bool"];
     symbol_table->add_identifier(
         expression->identifier, new PointerTypeInfo{TypeInfoType::POINTER, expression->type_expression->type_info}
     );
@@ -513,7 +521,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
         if (expression->left->type_info->type != TypeInfoType::BOOLEAN &&
             expression->right->type_info->type != TypeInfoType::BOOLEAN)
         { panic("Cannot use logical operators on non bool type"); }
-        info = symbol_table->get_type("bool");
+        info = symbol_table->builtin_type_table["bool"];
     }
 
     // math ops - numbers -> numbers
@@ -531,12 +539,12 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
         { panic("Cannot use arithmatic operator on non number"); }
-        info = symbol_table->get_type("bool");
+        info = symbol_table->builtin_type_table["bool"];
     }
 
     // compare - any -> bool
     if (expression->op.type == TOKEN_EQUAL || expression->op.type == TOKEN_NOT_EQUAL)
-    { info = symbol_table->get_type("bool"); }
+    { info = symbol_table->builtin_type_table["bool"]; }
 
     assert(info != NULL);
 
@@ -769,7 +777,10 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     for (auto [identifier, member_type] : struct_type_info->members)
     {
         if (identifier == expression->member.string)
-        { member_type_info = member_type; }
+        {
+            member_type_info = member_type;
+            break;
+        }
     }
 
     if (member_type_info == NULL)
@@ -957,14 +968,12 @@ void TypeChecker::type_check_specified_generics_type_expression(
 void TypeChecker::type_check_identifier_type_expression(
     IdentifierTypeExpression *type_expression, SymbolTable *symbol_table
 ) {
-    auto type = symbol_table->get_type(&type_expression->identifier);
-    if (type)
-    {
-        type_expression->type_info = type;
-        return;
+    auto [type, error] = symbol_table->get_type(&type_expression->identifier);
+    if(error) {
+        panic("Unrecognised type in type expression: " + type_expression->identifier.string);
     }
 
-    panic("Unrecognised type in type expression: " + type_expression->identifier.string);
+    type_expression->type_info = type;
 }
 
 TypeInfo *TypeChecker::resolve_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params) {

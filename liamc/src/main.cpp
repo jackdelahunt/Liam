@@ -8,6 +8,7 @@
 #include "fmt/core.h"
 #include "liam.h"
 
+
 #ifndef TEST
 
 void build_step(std::string *code);
@@ -45,13 +46,19 @@ void build_step(std::string *code) {
 
     auto unwanted_warnings = "-Wno-tautological-compare";
 
-    // write cpp file
-    std::ofstream out_file("out.cpp");
+    std::ofstream out_file;
+
+    if(args->emit.empty()) {
+        args->emit = "out.cpp";
+    }
+
+    out_file = std::ofstream(args->emit);
+
     out_file << *code;
     out_file.close();
 
     auto command =
-        fmt::format("clang++ {} -I {} out.cpp -std=c++20 -o {} ", unwanted_warnings, args->include, args->out_path);
+        fmt::format("clang++ {} -I {} {} -std=c++20 -o {} ", unwanted_warnings, args->include, args->emit, args->out_path);
 
     if (args->debug)
     { command += "-g "; }
@@ -61,7 +68,7 @@ void build_step(std::string *code) {
         pclose(file);
     }
     {
-        if (!args->emit)
+        if (args->emit.empty())
         {
             FILE *file = popen("rm out.cpp", "r");
             pclose(file);
