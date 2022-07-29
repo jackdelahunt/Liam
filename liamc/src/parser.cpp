@@ -178,31 +178,6 @@ std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern) {
     }
 }
 
-s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {
-    s32 current_index = from;
-    s32 balance       = 0;
-
-    while (current_index < tokens.size())
-    {
-        if (tokens.at(current_index).type == push)
-        {
-            balance++;
-            if (balance == 0)
-                return current_index;
-        }
-        if (tokens.at(current_index).type == pull)
-        {
-            balance--;
-            if (balance == 0)
-                return current_index;
-        }
-
-        current_index++;
-    }
-
-    return -1;
-}
-
 std::tuple<StructStatement *, bool> Parser::eval_struct_statement(bool is_extern) {
     TRY_TOKEN(TOKEN_STRUCT);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
@@ -620,6 +595,31 @@ std::tuple<TypeExpression *, bool> Parser::eval_type_specified_generics() {
 std::tuple<IdentifierTypeExpression *, bool> Parser::eval_type_identifier() {
     NAMED_TOKEN(struct_identifier, TOKEN_IDENTIFIER);
     return WIN(new IdentifierTypeExpression(*struct_identifier));
+}
+
+s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {
+    s32 current_index = from;
+    s32 balance       = 0;
+
+    while (current_index < tokens.size())
+    {
+        if (tokens.at(current_index).type == push)
+        {
+            balance++;
+            if (balance == 0)
+                return current_index;
+        }
+        if (tokens.at(current_index).type == pull)
+        {
+            balance--;
+            if (balance == 0)
+                return current_index;
+        }
+
+        current_index++;
+    }
+
+    return -1;
 }
 
 bool Parser::match(TokenType type) {

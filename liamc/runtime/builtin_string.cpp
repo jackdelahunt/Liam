@@ -2,8 +2,9 @@
 #include "memory.h"
 #include <iostream>
 
-std::string String::pretty_string(std::string indentation) {
-    return indentation;
+std::ostream &operator<<(std::ostream &os, const String &obj) {
+    os << obj.string;
+    return os;
 }
 
 String make_string(str s) {

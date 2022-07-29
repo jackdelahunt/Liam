@@ -15,5 +15,6 @@
 #include "builtin_string.h"
 
 #include "io.h"
+#include "io.cpp"
 
 #include "collections.h"
