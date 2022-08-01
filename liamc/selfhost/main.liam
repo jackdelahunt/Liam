@@ -316,7 +316,220 @@ fn lex(lexer: ^Lexer): void {
             {}
             continue;
         }
+
+        if current_char == "\"" {
+            next_char(lexer); # starting quite
+            let start := lexer.current;
+            
+            for 
+                let c := 0; 
+                lexer.current < len(lexer.source.string) and substr(lexer.source.string, lexer.current, 1u64) != "\""; 
+                next_char(lexer); 
+            {}
+
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.STRING_LITERAL,
+                string: substr(lexer.source.string, start, lexer.current - start)
+            });
+
+            next_char(lexer); # trailing quote
+
+            continue;
+        }
+
+        let word := get_word(lexer);
+
+        if word == "let" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.LET,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "insert" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.INSERT,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "fn" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.FN,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "return" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.RETURN,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "struct" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.STRUCT,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "new" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.NEW,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "continue" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.CONTINUE,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "import" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.IMPORT,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "for" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.FOR,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "if" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.IF,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "else" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.ELSE,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "and" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.AND,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "or" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.OR,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "extern" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.EXTERN,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "is" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.IS,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "enum" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.ENUM,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "true" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.TRUE,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "false" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.FALSE,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "null" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.NULL_POINTER,
+                string: word
+            });
+
+            continue;
+        }
    }  
+}
+
+fn get_word(lexer: ^Lexer): str {
+    let start := lexer.current;
+
+    for 
+        let c := 0;
+        lexer.current < len(lexer.source.string) and !is_delim(substr(lexer.source.string, lexer.current, 1u64));
+        next_char(lexer); 
+    {}
+
+    let word := substr(lexer.source.string, start, lexer.current - start);
+    lexer.current = lexer.current - 1u64; # go back to delimeter
+    return word;
+}
+
+fn is_delim(c: str): bool {
+    return c == " " or c == "\n" or c == ";" or c == "(" or c == ")" or c == "{" or c == "}" or c == "," or c == ":" or
+           c == "=" or c == "+" or c == "^" or c == "@" or c == "*" or c == "." or c == "[" or c == "]" or c == "!" or
+           c == "<" or c == ">" or c == "|" or c == "-" or c == "/" or c == "%";
 }
 
 fn main(): void {

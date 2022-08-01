@@ -98,6 +98,12 @@ str char_at(str s, u64 index) {
     return str{.chars = &s.chars[index], .length = 1};
 }
 
+bool is_digit(str s) {
+    if(s.length > 0) return false;
+
+    return s.chars[0] >= '0' && s.chars[0] <= '9';
+}
+
 void panic_if(bool condition, str message) {
     if (condition)
     {
