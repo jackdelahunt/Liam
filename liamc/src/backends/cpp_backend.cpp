@@ -456,8 +456,7 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
 }
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
-    // -2 is for the quotes size
-    return "make_str((char*)" + expression->token.string + ", " + std::to_string(string_literal_length(&expression->token.string)) +
+    return "make_str((char*)\"" + expression->token.string + "\", " + std::to_string(string_literal_length(&expression->token.string)) +
            ")";
 }
 
@@ -663,7 +662,7 @@ u64 string_literal_length(std::string *string) {
        length++;
     }
 
-    return length - 2;
+    return length;
 }
 
 // template <typename T,  typename E, typename H>

@@ -40,7 +40,7 @@ void Parser::parse() {
             auto import_path_expr = dynamic_cast<StringLiteralExpression *>(import_stmt->path);
 
             std::string final_path;
-            auto import_path = std::filesystem::path(copy_trim(import_path_expr->token.string, "\""));
+            auto import_path = std::filesystem::path(import_path_expr->token.string);
 
             if (import_path.is_absolute())
             { final_path = import_path_expr->token.string; }

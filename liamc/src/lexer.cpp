@@ -197,9 +197,6 @@ void Lexer::lex() {
             u64 start       = current_character;
             std::string str = std::string();
 
-            // add the " to the string literal
-            str.append(std::string(1, chars->at(current)));
-
             next_char();
             while (current < chars->size() && chars->at(current) != '"')
             {
@@ -213,9 +210,6 @@ void Lexer::lex() {
                 str.append(std::string(1, chars->at(current)));
                 next_char();
             }
-            // trailing "
-            str.append(std::string(1, chars->at(current)));
-
             tokens.emplace_back(TokenType::TOKEN_STRING_LITERAL, str, current_line, start);
         }
         break;
