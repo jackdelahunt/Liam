@@ -163,149 +163,147 @@ void lex(Lexer* lexer){
 for(lexer->current = _u64(0);
 lexer->current < len(lexer->source.string);next_char(lexer)){
 auto current_char = substr(lexer->source.string, lexer->current, _u64(1));
-if (current_char == make_str((char*)"\n", 3) || current_char == make_str((char*)" ", 3) || current_char == make_str((char*)"\r", 3) || current_char == make_str((char*)"\t", 3)) {
+if (current_char == make_str((char*)"\n", 2) || current_char == make_str((char*)" ", 1) || current_char == make_str((char*)"\r", 2) || current_char == make_str((char*)"\t", 2)) {
 continue;
 }
 
-if (current_char == make_str((char*)"+", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::PLUS, make_str((char*)"+", 3)});
+if (current_char == make_str((char*)"+", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::PLUS, make_str((char*)"+", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"-", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::MINUS, make_str((char*)"-", 3)});
+if (current_char == make_str((char*)"-", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::MINUS, make_str((char*)"-", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"*", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::STAR, make_str((char*)"*", 3)});
+if (current_char == make_str((char*)"*", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::STAR, make_str((char*)"*", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"/", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::SLASH, make_str((char*)"/", 3)});
+if (current_char == make_str((char*)"/", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::SLASH, make_str((char*)"/", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"%", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::MOD, make_str((char*)"%", 3)});
+if (current_char == make_str((char*)"%", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::MOD, make_str((char*)"%", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"=", 3)) {
-if (peek(lexer) == make_str((char*)"=", 3)) {
+if (current_char == make_str((char*)"=", 1)) {
+if (peek(lexer) == make_str((char*)"=", 1)) {
 next_char(lexer);
-array_append<Token>(&(lexer->tokens), Token{TokenType::EQUAL, make_str((char*)"==", 4)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::EQUAL, make_str((char*)"==", 2)});
 continue;
 }
 
-array_append<Token>(&(lexer->tokens), Token{TokenType::ASSIGN, make_str((char*)";", 3)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::ASSIGN, make_str((char*)";", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)";", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::SEMI_COLON, make_str((char*)";", 3)});
+if (current_char == make_str((char*)";", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::SEMI_COLON, make_str((char*)";", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"(", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::PAREN_OPEN, make_str((char*)"(", 3)});
+if (current_char == make_str((char*)"(", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::PAREN_OPEN, make_str((char*)"(", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)")", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::PAREN_CLOSE, make_str((char*)")", 3)});
+if (current_char == make_str((char*)")", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::PAREN_CLOSE, make_str((char*)")", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"{", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::BRACE_OPEN, make_str((char*)"{", 3)});
+if (current_char == make_str((char*)"{", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::BRACE_OPEN, make_str((char*)"{", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"}", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::BRACE_CLOSE, make_str((char*)"}", 3)});
+if (current_char == make_str((char*)"}", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::BRACE_CLOSE, make_str((char*)"}", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)",", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::COMMA, make_str((char*)",", 3)});
+if (current_char == make_str((char*)",", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::COMMA, make_str((char*)",", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"[", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::BRACKET_OPEN, make_str((char*)"[", 3)});
+if (current_char == make_str((char*)"[", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::BRACKET_OPEN, make_str((char*)"[", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"]", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::BRACKET_CLOSE, make_str((char*)"]", 3)});
+if (current_char == make_str((char*)"]", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::BRACKET_CLOSE, make_str((char*)"]", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)":", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::COLON, make_str((char*)":", 3)});
+if (current_char == make_str((char*)":", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::COLON, make_str((char*)":", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"^", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::HAT, make_str((char*)"^", 3)});
+if (current_char == make_str((char*)"^", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::HAT, make_str((char*)"^", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"@", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::AT, make_str((char*)"@", 3)});
+if (current_char == make_str((char*)"@", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::AT, make_str((char*)"@", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)".", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::DOT, make_str((char*)".", 3)});
+if (current_char == make_str((char*)".", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::DOT, make_str((char*)".", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"<", 3)) {
-if (peek(lexer) == make_str((char*)"=", 3)) {
+if (current_char == make_str((char*)"<", 1)) {
+if (peek(lexer) == make_str((char*)"=", 1)) {
 next_char(lexer);
-array_append<Token>(&(lexer->tokens), Token{TokenType::LESS_EQUAL, make_str((char*)"<=", 4)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::LESS_EQUAL, make_str((char*)"<=", 2)});
 continue;
 }
 
-array_append<Token>(&(lexer->tokens), Token{TokenType::LESS, make_str((char*)"<", 3)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::LESS, make_str((char*)"<", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)">", 3)) {
-if (peek(lexer) == make_str((char*)"=", 3)) {
+if (current_char == make_str((char*)">", 1)) {
+if (peek(lexer) == make_str((char*)"=", 1)) {
 next_char(lexer);
-array_append<Token>(&(lexer->tokens), Token{TokenType::GREATER_EQUAL, make_str((char*)">=", 4)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::GREATER_EQUAL, make_str((char*)">=", 2)});
 continue;
 }
 
-array_append<Token>(&(lexer->tokens), Token{TokenType::GREATER, make_str((char*)">", 3)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::GREATER, make_str((char*)">", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"|", 3)) {
-array_append<Token>(&(lexer->tokens), Token{TokenType::BAR, make_str((char*)"|", 3)});
+if (current_char == make_str((char*)"|", 1)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::BAR, make_str((char*)"|", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"!", 3)) {
-if (peek(lexer) == make_str((char*)"=", 3)) {
+if (current_char == make_str((char*)"!", 1)) {
+if (peek(lexer) == make_str((char*)"=", 1)) {
 next_char(lexer);
-array_append<Token>(&(lexer->tokens), Token{TokenType::NOT_EQUAL, make_str((char*)"!=", 4)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::NOT_EQUAL, make_str((char*)"!=", 2)});
 continue;
 }
 
-array_append<Token>(&(lexer->tokens), Token{TokenType::NOT, make_str((char*)"!", 3)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::NOT, make_str((char*)"!", 1)});
 continue;
 }
 
-if (current_char == make_str((char*)"#", 3)) {
+if (current_char == make_str((char*)"#", 1)) {
 for(auto c = current_char;
-lexer->current < len(lexer->source.string) && substr(lexer->source.string, lexer->current, _u64(1)) != make_str((char*)"\n", 3);next_char(lexer)){
-print<str>(make_str((char*)"Current char is :: ", 21));
-println<str>(substr(lexer->source.string, lexer->current, _u64(1)));
+lexer->current < len(lexer->source.string) && substr(lexer->source.string, lexer->current, _u64(1)) != make_str((char*)"\n", 2);next_char(lexer)){
 
 }
 
@@ -319,8 +317,8 @@ continue;
 }
 
 void __liam__main__(){
-set_allocator(make_str((char*)"malloc", 8), _u64(0));
-auto lexer = make_lexer(make_str((char*)"/Users/jackdelahunt/Projects/Liam/liamc/selfhost/test.liam", 60));
+set_allocator(make_str((char*)"malloc", 6), _u64(0));
+auto lexer = make_lexer(make_str((char*)"/Users/jackdelahunt/Projects/Liam/liamc/selfhost/test.liam", 58));
 lexer.current = _u64(100);
 lex(&(lexer));
 println<Array<Token>>(lexer.tokens);
