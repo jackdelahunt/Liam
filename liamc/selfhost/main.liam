@@ -1,5 +1,6 @@
 import "stdlib/basic.liam";
 
+
 enum TokenType {
     NUMBER_LITERAL,
     STRING_LITERAL,
@@ -48,8 +49,11 @@ enum TokenType {
     BAR, 
     IS, 
     NULL_POINTER, 
-    ENUM
+    ENUM,
+    CONTINUE
 }
+
+
 
 
 struct Token {
@@ -73,12 +77,77 @@ fn make_lexer(path: str): Lexer {
    }; 
 }
 
+fn next_char(lexer: ^Lexer): void {
+    lexer.current = lexer.current + 1u64;
+}
+
+fn peek(lexer: ^Lexer): str {
+    return substr(lexer.source.string, lexer.current + 1u64, 1u64);
+}
+
 fn lex(lexer: ^Lexer): void {
-   for lexer.current = 0u64; lexer.current < len(lexer.source.string); lexer.current = lexer.current + 1u64; {
+   for lexer.current = 0u64; lexer.current < len(lexer.source.string); next_char(lexer); {
         let current_char := substr(lexer.source.string, lexer.current, 1u64);
         
         if current_char == "\n" or current_char == " " or current_char == "\r" or current_char == "\t" {
-            
+           continue; 
+        }
+
+        if current_char == "+" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.PLUS,
+                string: "+"
+            });
+            continue;
+        }
+
+        if current_char == "-" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.MINUS,
+                string: "-"
+            });
+            continue;
+        }
+
+        if current_char == "*" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.STAR,
+                string: "*"
+            });
+            continue;
+        }
+
+        if current_char == "/" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.SLASH,
+                string: "/"
+            });
+            continue;
+        }
+
+        if current_char == "%" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.MOD,
+                string: "%"
+            });
+            continue;
+        }
+
+        if current_char == "=" {
+            if peek(lexer) == "=" {
+                next_char(lexer);
+                array_append[Token](@lexer.tokens, new Token{
+                    type: TokenType.EQUAL,
+                    string: "=="
+                });
+                continue;
+            }
+
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.ASSIGN,
+                string: ";"
+            });
+            continue;
         }
 
         if current_char == ";" {
@@ -86,6 +155,23 @@ fn lex(lexer: ^Lexer): void {
                 type: TokenType.SEMI_COLON,
                 string: ";"
             });
+            continue;
+        }
+
+        if current_char == "(" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.PAREN_OPEN,
+                string: "("
+            });
+            continue;
+        }
+
+        if current_char == ")" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.PAREN_CLOSE,
+                string: ")"
+            });
+            continue;
         }
 
         if current_char == "{" {
@@ -93,24 +179,143 @@ fn lex(lexer: ^Lexer): void {
                 type: TokenType.BRACE_OPEN,
                 string: "{"
             });
+            continue;
         }
 
         if current_char == "}" {
             array_append[Token](@lexer.tokens, new Token{
                 type: TokenType.BRACE_CLOSE,
-                string: "{"
+                string: "}"
             });
+            continue;
+        }
+
+        if current_char == "," {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.COMMA,
+                string: ","
+            });
+            continue;
         }
 
         if current_char == "[" {
-
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.BRACKET_OPEN,
+                string: "["
+            });
+            continue;
         }
 
         if current_char == "]" {
-
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.BRACKET_CLOSE,
+                string: "]"
+            });
+            continue;
         }
 
+        if current_char == ":" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.COLON,
+                string: ":"
+            });
+            continue;
+        }
 
+        if current_char == "^" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.HAT,
+                string: "^"
+            });
+            continue;
+        }
+
+        if current_char == "@" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.AT,
+                string: "@"
+            });
+            continue;
+        }
+
+        if current_char == "." {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.DOT,
+                string: "."
+            });
+            continue;
+        }
+
+        if current_char == "<" {
+
+            if peek(lexer) == "=" {
+                next_char(lexer);
+                array_append[Token](@lexer.tokens, new Token{
+                    type: TokenType.LESS_EQUAL,
+                    string: "<="
+                });
+                continue;
+            }
+
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.LESS,
+                string: "<"
+            });
+            continue;
+        }
+
+        if current_char == ">" {
+
+            if peek(lexer) == "=" {
+                next_char(lexer);
+                array_append[Token](@lexer.tokens, new Token{
+                    type: TokenType.GREATER_EQUAL,
+                    string: ">="
+                });
+                continue;
+            }
+
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.GREATER,
+                string: ">"
+            });
+            continue;
+        }
+
+        if current_char == "|" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.BAR,
+                string: "|"
+            });
+            continue;
+        }
+
+        if current_char == "!" {
+
+            if peek(lexer) == "=" {
+                next_char(lexer);
+                array_append[Token](@lexer.tokens, new Token{
+                    type: TokenType.NOT_EQUAL,
+                    string: "!="
+                });
+                continue;
+            }
+
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.NOT,
+                string: "!"
+            });
+            continue;
+        }
+
+        if current_char == "#" {
+            for 
+                let c := current_char; 
+                lexer.current < len(lexer.source.string) and substr(lexer.source.string, lexer.current, 1u64) != "\n"; 
+                next_char(lexer); 
+            {}
+            continue;
+        }
    }  
 }
 
@@ -120,4 +325,5 @@ fn main(): void {
     let lexer := make_lexer("/Users/jackdelahunt/Projects/Liam/liamc/selfhost/test.liam");
     lexer.current = 100u64;
     lex(@lexer);
+    println[Array[Token]](lexer.tokens);
 }
