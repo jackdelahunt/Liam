@@ -45,6 +45,7 @@ void panic_if(bool condition, str message);
 u64 len(const str &s);
 str substr(str s, u64 start, u64 length);
 str char_at(str s, u64 index);
+bool is_digit(str s);
 
 template <typename T, typename... Ts> std::ostream &operator<<(std::ostream &os, const std::variant<T, Ts...> &obj) {
     os << "<?>";

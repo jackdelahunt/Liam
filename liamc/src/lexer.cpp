@@ -254,12 +254,6 @@ void Lexer::lex() {
                 continue;
             }
 
-            if (word == "break")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_BREAK, word, current_line, word_start));
-                continue;
-            }
-
             if (word == "continue")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_CONTINUE, word, current_line, word_start));
@@ -317,25 +311,6 @@ void Lexer::lex() {
             if (word == "enum")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_ENUM, word, current_line, word_start));
-                continue;
-            }
-
-            // built in types
-            if (word == "void")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
-                continue;
-            }
-
-            if (word == "u64")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
-                continue;
-            }
-
-            if (word == "char")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
                 continue;
             }
 

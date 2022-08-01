@@ -13,6 +13,7 @@ extern fn hashcode[T](t: ^T): u64;
 extern fn len(string: str): u64;
 extern fn substr(s: str, start: u64, length: u64): str;
 extern fn char_at(s: str, index: u64): str;
+extern fn is_digit(s: str): bool;
 
 # String
 extern struct String {

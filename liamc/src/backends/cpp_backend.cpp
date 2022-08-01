@@ -656,7 +656,6 @@ u64 string_literal_length(std::string *string) {
     for(int i = 0; i < string->size(); i++) {
        if(string->at(i) == '\\' && i + 1 < string->size()) {
            i += 2;
-           length++;
        }
 
        length++;
