@@ -57,3 +57,4 @@ struct CppBackend {
 };
 
 std::string strip_semi_colon(std::string str);
+u64 string_literal_length(std::string *string);

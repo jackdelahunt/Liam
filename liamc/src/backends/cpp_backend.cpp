@@ -255,7 +255,7 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     }
 
     // tail
-    source.append("os << \"}\" << std::endl;\n");
+    source.append("os << \"}\";\n");
 
     source.append("return os;\n");
 
@@ -457,7 +457,7 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
     // -2 is for the quotes size
-    return "make_str((char*)" + expression->token.string + ", " + std::to_string(expression->token.string.size() - 2) +
+    return "make_str((char*)" + expression->token.string + ", " + std::to_string(string_literal_length(&expression->token.string)) +
            ")";
 }
 
@@ -649,6 +649,21 @@ std::string strip_semi_colon(std::string str) {
     else
     { return str; }
     // return (str[str.size() - 1] == ';') ? str.substr(0, str.size()-1) : str;
+}
+
+u64 string_literal_length(std::string *string) {
+    u64 length = 0;
+
+    for(int i = 0; i < string->size(); i++) {
+       if(string->at(i) == '\\' && i + 1 < string->size()) {
+           i += 2;
+           length++;
+       }
+
+       length++;
+    }
+
+    return length - 2;
 }
 
 // template <typename T,  typename E, typename H>

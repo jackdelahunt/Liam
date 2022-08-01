@@ -25,6 +25,7 @@ let s:liam_syntax_keywords = {
     \ ,                 "extern"
     \ ,                 "import"
     \ ,                 "insert"
+    \ ,                 "continue"
     \ ,                ]
     \ , 'liamMacro' :["is"
     \ ,               "new"
