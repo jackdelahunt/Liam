@@ -736,12 +736,14 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     { type_info = symbol_table->identifier_table[expression->identifier.string]; }
     else
     {
-        auto before = ErrorReporter::error_count();
         ErrorReporter::report_type_checker_error(
-            current_file->path, expression, NULL, NULL, NULL, "Unrecognized identifier"
+            current_file->path,
+            expression,
+            NULL,
+            NULL,
+            NULL,
+            fmt::format("Unrecognized identifier \"{}\"", expression->identifier.string)
         );
-        auto after = ErrorReporter::error_count();
-        after      = ErrorReporter::error_count();
     }
 
     expression->type_info = type_info;

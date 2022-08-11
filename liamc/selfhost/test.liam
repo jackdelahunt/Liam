@@ -1,7 +1,2 @@
-{
-  >=
-  >
-  # this is a comment
-  "This is a string"
-  let
-}
+let x := "string";
+let y := "this";
