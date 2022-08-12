@@ -15,7 +15,6 @@ enum class StatementType {
     STATEMENT_LET,
     STATEMENT_SCOPE,
     STATEMENT_FN,
-    STATEMENT_LOOP,
     STATEMENT_STRUCT,
     STATEMENT_ASSIGNMENT,
     STATEMENT_INSERT,
@@ -26,7 +25,8 @@ enum class StatementType {
     STATEMENT_IF,
     STATEMENT_ELSE,
     STATEMENT_ENUM,
-    STATEMENT_CONTINUE
+    STATEMENT_CONTINUE,
+    STATEMENT_ALIAS
 };
 
 struct Statement {
@@ -102,9 +102,7 @@ struct ForStatement : Statement {
     Statement *update;
     ScopeStatement *body;
 
-    ForStatement(
-        File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
-    );
+    ForStatement(File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body);
 };
 
 struct ElseStatement;
@@ -145,4 +143,11 @@ struct EnumStatement : Statement {
 
 struct ContinueStatement : Statement {
     ContinueStatement();
+};
+
+struct AliasStatement : Statement {
+    Token identifier;
+    TypeExpression *type_expression;
+
+    AliasStatement(Token identifier, TypeExpression *type_expression);
 };

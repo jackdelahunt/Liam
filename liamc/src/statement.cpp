@@ -76,7 +76,7 @@ ForStatement::ForStatement(
     File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
 ) {
     this->file           = file;
-    this->assign  = assign;
+    this->assign         = assign;
     this->condition      = condition;
     this->update         = update;
     this->body           = body;
@@ -117,4 +117,10 @@ EnumStatement::EnumStatement(Token identifier, std::vector<Token> instances) {
 
 ContinueStatement::ContinueStatement() {
     this->statement_type = StatementType::STATEMENT_CONTINUE;
+}
+
+AliasStatement::AliasStatement(Token identifier, TypeExpression *type_expression) {
+    this->type_expression = type_expression;
+    this->identifier      = identifier;
+    this->statement_type  = StatementType::STATEMENT_ALIAS;
 }

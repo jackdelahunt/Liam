@@ -2,6 +2,7 @@
 
 // enum forward declarations
 // struct forward declarations
+// typedefs
 
 // function forward declarations
 void  __liam__main__();

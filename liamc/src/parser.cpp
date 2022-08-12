@@ -95,7 +95,11 @@ std::tuple<Statement *, bool> Parser::eval_statement() {
     case TOKEN_ENUM:
         return eval_enum_statement();
         break;
-    case TOKEN_CONTINUE: return eval_continue_statement();
+    case TOKEN_CONTINUE:
+        return eval_continue_statement();
+        break;
+    case TOKEN_ALIAS:
+        return eval_alias_statement();
         break;
     default:
         return eval_line_starting_expression();
@@ -312,6 +316,16 @@ std::tuple<ContinueStatement *, bool> Parser::eval_continue_statement() {
     return WIN(new ContinueStatement());
 }
 
+std::tuple<AliasStatement *, bool> Parser::eval_alias_statement() {
+    TRY_TOKEN(TOKEN_ALIAS);
+    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+    TRY_TOKEN(TOKEN_AS);
+    TRY(TypeExpression *, type_expression, eval_type_expression());
+    TRY_TOKEN(TOKEN_SEMI_COLON);
+
+    return WIN(new AliasStatement(*identifier, type_expression));
+}
+
 std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
     TRY(Expression *, lhs, eval_expression());
     if (peek()->type == TOKEN_ASSIGN)
@@ -352,6 +366,7 @@ std::tuple<Expression *, bool> Parser::eval_is() {
     {
         consume_token();
         TRY(TypeExpression *, type, eval_type_expression());
+        TRY_TOKEN(TOKEN_AS);
         NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
         expr = new IsExpression(expr, type, *identifier);

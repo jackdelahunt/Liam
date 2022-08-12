@@ -7,11 +7,13 @@ struct Token;
 struct Lexer;
 
 // function forward declarations
+void  __liam__main__();
 Lexer make_lexer(str path);
 void next_char(Lexer* lexer);
 str peek(Lexer* lexer);
 void lex(Lexer* lexer);
-void  __liam__main__();
+str get_word(Lexer* lexer);
+bool is_delim(str c);
 
 // Source
 enum class TokenType {
@@ -146,6 +148,14 @@ os << "}";
 return os;
 }
 
+void __liam__main__(){
+set_allocator(make_str((char*)"malloc", 6), _u64(0));
+auto lexer = make_lexer(make_str((char*)"/Users/jackdelahunt/Projects/Liam/liamc/selfhost/test.liam", 58));
+lex(&(lexer));
+println<Array<Token>>(lexer.tokens);
+
+}
+
 Lexer make_lexer(str path){
 return Lexer{path, read(path), _u64(0), make_array<Token>()};
 }
@@ -163,7 +173,7 @@ void lex(Lexer* lexer){
 for(lexer->current = _u64(0);
 lexer->current < len(lexer->source.string);next_char(lexer)){
 auto current_char = substr(lexer->source.string, lexer->current, _u64(1));
-if (current_char == make_str((char*)"\n", 2) || current_char == make_str((char*)" ", 1) || current_char == make_str((char*)"\r", 2) || current_char == make_str((char*)"\t", 2)) {
+if (current_char == make_str((char*)"\n", 1) || current_char == make_str((char*)" ", 1) || current_char == make_str((char*)"\r", 1) || current_char == make_str((char*)"\t", 1)) {
 continue;
 }
 
@@ -199,7 +209,7 @@ array_append<Token>(&(lexer->tokens), Token{TokenType::EQUAL, make_str((char*)"=
 continue;
 }
 
-array_append<Token>(&(lexer->tokens), Token{TokenType::ASSIGN, make_str((char*)";", 1)});
+array_append<Token>(&(lexer->tokens), Token{TokenType::ASSIGN, make_str((char*)"=", 1)});
 continue;
 }
 
@@ -303,26 +313,142 @@ continue;
 
 if (current_char == make_str((char*)"#", 1)) {
 for(auto c = current_char;
-lexer->current < len(lexer->source.string) && substr(lexer->source.string, lexer->current, _u64(1)) != make_str((char*)"\n", 2);next_char(lexer)){
+lexer->current < len(lexer->source.string) && substr(lexer->source.string, lexer->current, _u64(1)) != make_str((char*)"\n", 1);next_char(lexer)){
 
 }
 
 continue;
 }
 
+if (current_char == make_str((char*)"\"", 1)) {
+next_char(lexer);
+auto start = lexer->current;
+for(auto c = _s64(0);
+lexer->current < len(lexer->source.string) && substr(lexer->source.string, lexer->current, _u64(1)) != make_str((char*)"\"", 1);next_char(lexer)){
+
+}
+
+array_append<Token>(&(lexer->tokens), Token{TokenType::STRING_LITERAL, substr(lexer->source.string, start, lexer->current - start)});
+continue;
+}
+
+auto word = get_word(lexer);
+if (word == make_str((char*)"let", 3)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::LET, word});
+continue;
+}
+
+if (word == make_str((char*)"insert", 6)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::INSERT, word});
+continue;
+}
+
+if (word == make_str((char*)"fn", 2)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::FN, word});
+continue;
+}
+
+if (word == make_str((char*)"return", 6)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::RETURN, word});
+continue;
+}
+
+if (word == make_str((char*)"struct", 6)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::STRUCT, word});
+continue;
+}
+
+if (word == make_str((char*)"new", 3)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::NEW, word});
+continue;
+}
+
+if (word == make_str((char*)"continue", 8)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::CONTINUE, word});
+continue;
+}
+
+if (word == make_str((char*)"import", 6)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::IMPORT, word});
+continue;
+}
+
+if (word == make_str((char*)"for", 3)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::FOR, word});
+continue;
+}
+
+if (word == make_str((char*)"if", 2)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::IF, word});
+continue;
+}
+
+if (word == make_str((char*)"else", 4)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::ELSE, word});
+continue;
+}
+
+if (word == make_str((char*)"and", 3)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::AND, word});
+continue;
+}
+
+if (word == make_str((char*)"or", 2)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::OR, word});
+continue;
+}
+
+if (word == make_str((char*)"extern", 6)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::EXTERN, word});
+continue;
+}
+
+if (word == make_str((char*)"is", 2)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::IS, word});
+continue;
+}
+
+if (word == make_str((char*)"enum", 4)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::ENUM, word});
+continue;
+}
+
+if (word == make_str((char*)"true", 4)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::TRUE, word});
+continue;
+}
+
+if (word == make_str((char*)"false", 5)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::FALSE, word});
+continue;
+}
+
+if (word == make_str((char*)"null", 4)) {
+array_append<Token>(&(lexer->tokens), Token{TokenType::NULL_POINTER, word});
+continue;
+}
+
+array_append<Token>(&(lexer->tokens), Token{TokenType::IDENTIFIER, word});
 
 }
 
 
 }
 
-void __liam__main__(){
-set_allocator(make_str((char*)"malloc", 6), _u64(0));
-auto lexer = make_lexer(make_str((char*)"/Users/jackdelahunt/Projects/Liam/liamc/selfhost/test.liam", 58));
-lexer.current = _u64(100);
-lex(&(lexer));
-println<Array<Token>>(lexer.tokens);
+str get_word(Lexer* lexer){
+auto start = lexer->current;
+for(auto c = _s64(0);
+lexer->current < len(lexer->source.string) && !(is_delim(substr(lexer->source.string, lexer->current, _u64(1))));next_char(lexer)){
 
+}
+
+auto word = substr(lexer->source.string, start, lexer->current - start);
+lexer->current = lexer->current - _u64(1);
+return word;
+}
+
+bool is_delim(str c){
+return c == make_str((char*)" ", 1) || c == make_str((char*)"\n", 1) || c == make_str((char*)";", 1) || c == make_str((char*)"(", 1) || c == make_str((char*)")", 1) || c == make_str((char*)"{", 1) || c == make_str((char*)"}", 1) || c == make_str((char*)",", 1) || c == make_str((char*)":", 1) || c == make_str((char*)"=", 1) || c == make_str((char*)"+", 1) || c == make_str((char*)"^", 1) || c == make_str((char*)"@", 1) || c == make_str((char*)"*", 1) || c == make_str((char*)".", 1) || c == make_str((char*)"[", 1) || c == make_str((char*)"]", 1) || c == make_str((char*)"!", 1) || c == make_str((char*)"<", 1) || c == make_str((char*)">", 1) || c == make_str((char*)"|", 1) || c == make_str((char*)"-", 1) || c == make_str((char*)"/", 1) || c == make_str((char*)"%", 1);
 }
 
 int main(int argc, char **argv) { __liam__main__(); }

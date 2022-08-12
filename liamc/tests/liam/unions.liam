@@ -13,40 +13,40 @@ struct Struct {
 fn main(): void {
     let x: s64 | str = 100;
 
-    if x is s64 n {
+    if x is s64 as n {
         println[s64](*n);
     }
 
     x = "this is a string";
-    if x is str s {
+    if x is str as s {
         println[str](*s);
     }
 
     let s := new Struct{data: 100u64};
-    if s.data is u64 n {
+    if s.data is u64 as n {
         println[u64](*n);
     }
 
     let t: Struct | u64 = new Struct{data: false};
-    if t is Struct c {
-        if c.data is bool b {
+    if t is Struct as c {
+        if c.data is bool as b {
             println[bool](*b);
         }
     }
 
     let n_o_s := num_or_string(false);
-    if n_o_s is str c {
+    if n_o_s is str as c {
         println[str](*c);
     }
 }
 
 fn num_or_string(x: u64 | bool): u64 | str {
 
-    if x is u64 n {
+    if x is u64 as n {
         return *n;
     }
 
-    if x is bool b {
+    if x is bool as b {
         return "wrong input";
     }
 

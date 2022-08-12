@@ -25,6 +25,7 @@ struct IfStatement;
 struct ElseStatement;
 struct EnumStatement;
 struct ContinueStatement;
+struct AliasStatement;
 struct Expression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
@@ -64,6 +65,7 @@ struct Parser {
     std::tuple<Statement *, bool> eval_extern_statement();
     std::tuple<EnumStatement *, bool> eval_enum_statement();
     std::tuple<ContinueStatement *, bool> eval_continue_statement();
+    std::tuple<AliasStatement *, bool> eval_alias_statement();
 
     std::tuple<Statement *, bool> eval_line_starting_expression();
 
