@@ -87,6 +87,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     auto typed_file = File("<?>");
 
     auto structs = std::vector<StructStatement *>();
+    auto aliases = std::vector<AliasStatement *>();
     auto funcs   = std::vector<FnStatement *>();
     auto enums   = std::vector<EnumStatement *>();
     auto others  = std::vector<Statement *>();
@@ -97,6 +98,12 @@ File TypeChecker::type_check(std::vector<File *> *files) {
         {
             if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
             { structs.push_back(dynamic_cast<StructStatement *>(stmt)); }
+            else if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
+            {
+                // adds the type to the symbol table but keeps
+                // it around to code gen it
+                aliases.push_back(dynamic_cast<AliasStatement *>(stmt));
+            }
             else if (stmt->statement_type == StatementType::STATEMENT_ENUM)
             { enums.push_back(dynamic_cast<EnumStatement *>(stmt)); }
             else if (stmt->statement_type == StatementType::STATEMENT_FN)
@@ -120,6 +127,12 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     // struct identifier pass
     for (auto stmt : structs)
     { symbol_table.add_type(stmt->identifier, new UndefinedTypeInfo{TypeInfoType::UNDEFINED}); }
+
+    // typedefs
+    for(auto stmt: aliases) {
+        type_check_alias_statement(stmt, &symbol_table);
+        typed_file.statements.push_back(stmt);
+    }
 
     // struct type pass
     for (auto stmt : structs)
@@ -213,6 +226,9 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
         return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table);
         break;
     case StatementType::STATEMENT_CONTINUE:
+        break;
+    case StatementType::STATEMENT_ALIAS:
+        return type_check_alias_statement(dynamic_cast<AliasStatement *>(statement), symbol_table);
         break;
     default:
         panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
@@ -383,8 +399,8 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
     if (first_pass)
     {
         // struct type in undefined need to cast it to a struct into * and copy data in [ :
-        StructTypeInfo * sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
-        *sti = StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()};
+        StructTypeInfo *sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
+        *sti                = StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()};
     }
     else
     {
@@ -418,6 +434,11 @@ void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTabl
     symbol_table->add_type(
         statement->identifier, new EnumTypeInfo{TypeInfoType::ENUM, statement->identifier.string, instances}
     );
+}
+
+void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_type_expression(statement->type_expression, symbol_table));
+    symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {
@@ -511,8 +532,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     if (!type_match(expression->left->type_info, expression->right->type_info))
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, expression->left, expression->right, NULL, NULL,
-                "Type mismatch in binary expression"
+            current_file->path, expression->left, expression->right, NULL, NULL, "Type mismatch in binary expression"
         );
         return;
     }
@@ -737,11 +757,7 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     else
     {
         ErrorReporter::report_type_checker_error(
-            current_file->path,
-            expression,
-            NULL,
-            NULL,
-            NULL,
+            current_file->path, expression, NULL, NULL, NULL,
             fmt::format("Unrecognized identifier \"{}\"", expression->identifier.string)
         );
     }
@@ -975,9 +991,8 @@ void TypeChecker::type_check_identifier_type_expression(
     IdentifierTypeExpression *type_expression, SymbolTable *symbol_table
 ) {
     auto [type, error] = symbol_table->get_type(&type_expression->identifier);
-    if(error) {
-        panic("Unrecognised type in type expression: " + type_expression->identifier.string);
-    }
+    if (error)
+    { panic("Unrecognised type in type expression: " + type_expression->identifier.string); }
 
     type_expression->type_info = type;
 }
@@ -1046,8 +1061,7 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     if (b->type == TypeInfoType::ANY)
         return true;
 
-    if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOLEAN ||
-        a->type == TypeInfoType::STRING)
+    if (a->type == TypeInfoType::VOID || a->type == TypeInfoType::BOOLEAN || a->type == TypeInfoType::STRING)
     { // values don't matter
         return true;
     }

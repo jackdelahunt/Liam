@@ -8,7 +8,6 @@
 #include "fmt/core.h"
 #include "liam.h"
 
-
 #ifndef TEST
 
 void build_step(std::string *code);
@@ -34,11 +33,12 @@ s32 main(s32 argc, char **argv) {
     auto code = CppBackend().emit(&typed_file);
     TIME_END(code_gen, "Code generation time");
 
-    if (args->value<bool>("codegen"))
-    { std::cout << code; }
-    else
-    { build_step(&code); }
+    if (args->codegen)
+    {
+        std::cout << code;
+    }
 
+    build_step(&code);
     return 0;
 }
 
@@ -48,17 +48,17 @@ void build_step(std::string *code) {
 
     std::ofstream out_file;
 
-    if(args->emit.empty()) {
-        args->emit = "out.cpp";
-    }
+    if (args->emit.empty())
+    { args->emit = "out.cpp"; }
 
     out_file = std::ofstream(args->emit);
 
     out_file << *code;
     out_file.close();
 
-    auto command =
-        fmt::format("clang++ {} -I {} {} -std=c++20 -o {} ", unwanted_warnings, args->include, args->emit, args->out_path);
+    auto command = fmt::format(
+        "clang++ {} -I {} {} -std=c++20 -o {} ", unwanted_warnings, args->include, args->emit, args->out_path
+    );
 
     if (args->debug)
     { command += "-g "; }

@@ -1,6 +1,9 @@
 #pragma once
 
 #include "lexer.h"
+#include "expression.h"
+
+struct TypeExpression;
 
 #define UNDEFINED_TYPE_BUFFER 75
 

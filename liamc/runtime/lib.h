@@ -14,7 +14,7 @@
 #include "builtin_string.cpp"
 #include "builtin_string.h"
 
-#include "io.h"
 #include "io.cpp"
+#include "io.h"
 
 #include "collections.h"

@@ -99,7 +99,8 @@ str char_at(str s, u64 index) {
 }
 
 bool is_digit(str s) {
-    if(s.length > 0) return false;
+    if (s.length > 0)
+        return false;
 
     return s.chars[0] >= '0' && s.chars[0] <= '9';
 }

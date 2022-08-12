@@ -21,6 +21,15 @@ std::string CppBackend::emit(File *file) {
         { source_generated.append(forward_declare_struct(static_cast<StructStatement *>(stmt))); }
     }
 
+    source_generated.append("// typedefs\n");
+    for (u64 i = 0; i < file->statements.size(); i++)
+    {
+        auto stmt = file->statements[i];
+        if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
+        { source_generated.append(emit_alias_statement(static_cast<AliasStatement *>(stmt)));
+        }
+    }
+
     source_generated.append("\n// function forward declarations\n");
 
     for (auto stmt : file->statements)
@@ -32,7 +41,10 @@ std::string CppBackend::emit(File *file) {
     source_generated.append("\n// Source\n");
 
     for (auto stmt : file->statements)
-    { source_generated.append(emit_statement(stmt)); }
+    {
+        if(stmt->statement_type != StatementType::STATEMENT_ALIAS)
+            source_generated.append(emit_statement(stmt));
+    }
 
     source_generated.append("int main(int argc, char **argv) { __liam__main__(); }");
 
@@ -124,6 +136,10 @@ std::string CppBackend::emit_statement(Statement *statement) {
     case StatementType::STATEMENT_CONTINUE:
         return emit_continue_statement(dynamic_cast<ContinueStatement *>(statement));
         break;
+    case StatementType::STATEMENT_ALIAS:
+        return emit_alias_statement(dynamic_cast<AliasStatement *>(statement));
+        break;
+
     }
 
     panic("Statement not implemented in c back end :[");
@@ -345,6 +361,10 @@ std::string CppBackend::emit_continue_statement(ContinueStatement *statement) {
     return "continue;";
 }
 
+std::string CppBackend::emit_alias_statement(AliasStatement *statement) {
+    return "typedef " + emit_type_expression(statement->type_expression) + " " + statement->identifier.string + ";\n";
+}
+
 std::string CppBackend::emit_expression(Expression *expression) {
     switch (expression->type)
     {
@@ -456,8 +476,8 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
 }
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
-    return "make_str((char*)\"" + expression->token.string + "\", " + std::to_string(string_literal_length(&expression->token.string)) +
-           ")";
+    return "make_str((char*)\"" + expression->token.string + "\", " +
+           std::to_string(string_literal_length(&expression->token.string)) + ")";
 }
 
 std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression) {
@@ -653,12 +673,12 @@ std::string strip_semi_colon(std::string str) {
 u64 string_literal_length(std::string *string) {
     u64 length = 0;
 
-    for(int i = 0; i < string->size(); i++) {
-       if(string->at(i) == '\\' && i + 1 < string->size()) {
-           i += 2;
-       }
+    for (int i = 0; i < string->size(); i++)
+    {
+        if (string->at(i) == '\\' && i + 1 < string->size())
+        { i += 2; }
 
-       length++;
+        length++;
     }
 
     return length;
