@@ -342,7 +342,7 @@ std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
 }
 
 /*
- *  === operator precedence === (lower is more precedence)
+ *  === expression precedence === (lower is more precedence)
  *  is
  *  or
  *  and
@@ -562,6 +562,13 @@ std::tuple<Expression *, bool> Parser::eval_group_expression() {
     return WIN(new GroupExpression(expr));
 }
 
+/*
+ *  === type expression precedence === (lower is more precedence)
+ * |
+ * ^
+ * []
+ * identifier
+ */
 std::tuple<TypeExpression *, bool> Parser::eval_type_expression() {
     return eval_type_union();
 }
@@ -591,7 +598,7 @@ std::tuple<TypeExpression *, bool> Parser::eval_type_unary() {
     if (match(TokenType::TOKEN_HAT))
     {
         Token *op = consume_token();
-        TRY(TypeExpression *, type_expression, eval_type_expression());
+        TRY(TypeExpression *, type_expression, eval_type_unary());
         return WIN(new UnaryTypeExpression(*op, type_expression));
     }
 

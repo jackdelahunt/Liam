@@ -1,30 +1,29 @@
 import "lexer.liam";
 
 alias Expression as
-    IsExpression |
-    BinaryExpression |
-    UnaryExpression |
-    NumberLiteralExpression |
-    StringLiteralExpression |
-    BoolLiteralExpression |
-    IdentifierExpression |
-    CallExpression |
-    GetExpression | 
-    NewExpression |
-    GroupExpression |
-    NullLiteralExpression
+    ^IsExpression |
+    ^BinaryExpression |
+    ^UnaryExpression |
+    ^NumberLiteralExpression |
+    ^StringLiteralExpression |
+    ^BoolLiteralExpression |
+    ^IdentifierExpression |
+    ^CallExpression |
+    ^GetExpression | 
+    ^NewExpression |
+    ^GroupExpression |
+    ^NullLiteralExpression
 ;
 
 alias TypeExpression as
-    IdentifierTypeExpression |
-    UnaryTypeExpression |
-    UnionTypeExpression |
-    SpecifiedGenericsTypeExpression
+    ^IdentifierTypeExpression |
+    ^UnaryTypeExpression |
+    ^UnionTypeExpression |
+    ^SpecifiedGenericsTypeExpression
 ;
 
 struct IsExpression {
-    expression: ^Expression,
-    type_expression: ^TypeExpression,
+    expression: Expression,
     identifier: Token
 }
 
