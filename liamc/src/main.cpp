@@ -34,9 +34,7 @@ s32 main(s32 argc, char **argv) {
     TIME_END(code_gen, "Code generation time");
 
     if (args->codegen)
-    {
-        std::cout << code;
-    }
+    { std::cout << code << "\n"; }
 
     build_step(&code);
     return 0;

@@ -129,7 +129,8 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     { symbol_table.add_type(stmt->identifier, new UndefinedTypeInfo{TypeInfoType::UNDEFINED}); }
 
     // typedefs
-    for(auto stmt: aliases) {
+    for (auto stmt : aliases)
+    {
         type_check_alias_statement(stmt, &symbol_table);
         typed_file.statements.push_back(stmt);
     }

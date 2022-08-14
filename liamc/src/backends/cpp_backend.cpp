@@ -26,8 +26,7 @@ std::string CppBackend::emit(File *file) {
     {
         auto stmt = file->statements[i];
         if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
-        { source_generated.append(emit_alias_statement(static_cast<AliasStatement *>(stmt)));
-        }
+        { source_generated.append(emit_alias_statement(static_cast<AliasStatement *>(stmt))); }
     }
 
     source_generated.append("\n// function forward declarations\n");
@@ -42,7 +41,7 @@ std::string CppBackend::emit(File *file) {
 
     for (auto stmt : file->statements)
     {
-        if(stmt->statement_type != StatementType::STATEMENT_ALIAS)
+        if (stmt->statement_type != StatementType::STATEMENT_ALIAS)
             source_generated.append(emit_statement(stmt));
     }
 
@@ -139,7 +138,6 @@ std::string CppBackend::emit_statement(Statement *statement) {
     case StatementType::STATEMENT_ALIAS:
         return emit_alias_statement(dynamic_cast<AliasStatement *>(statement));
         break;
-
     }
 
     panic("Statement not implemented in c back end :[");
