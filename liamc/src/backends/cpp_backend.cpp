@@ -255,8 +255,8 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
         if (type->type_info->type == TypeInfoType::POINTER)
         {
             source.append(
-                "os << \"   \" << \"*" + identifier.string + ": \" << *(obj." + identifier.string +
-                ") << \",\" << std::endl;\n"
+                "os << \"   \" << \"^" + identifier.string + ": \" << (void *)obj." + identifier.string +
+                " << \",\" << std::endl;\n"
             );
         }
         else
