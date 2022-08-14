@@ -314,7 +314,8 @@ void Lexer::lex() {
                 continue;
             }
 
-            if (word == "as") {
+            if (word == "as")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_AS, word, current_line, word_start));
                 continue;
             }

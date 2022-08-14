@@ -1,0 +1,92 @@
+import "lexer.liam";
+
+alias Expression as
+    IsExpression |
+    BinaryExpression |
+    UnaryExpression |
+    NumberLiteralExpression |
+    StringLiteralExpression |
+    BoolLiteralExpression |
+    IdentifierExpression |
+    CallExpression |
+    GetExpression | 
+    NewExpression |
+    GroupExpression |
+    NullLiteralExpression
+;
+
+alias TypeExpression as
+    IdentifierTypeExpression |
+    UnaryTypeExpression |
+    UnionTypeExpression |
+    SpecifiedGenericsTypeExpression
+;
+
+struct IsExpression {
+    expression: ^Expression,
+    type_expression: ^TypeExpression,
+    identifier: Token
+}
+
+struct BinaryExpression {
+
+}
+
+struct UnaryExpression {
+
+}
+
+struct NumberLiteralExpression {
+
+}
+
+struct StringLiteralExpression {
+
+}
+
+struct BoolLiteralExpression {
+
+}
+
+struct IdentifierExpression {
+
+}
+
+struct CallExpression {
+
+}
+
+struct GetExpression {
+
+}
+
+struct NewExpression {
+
+}
+
+struct GroupExpression {
+
+}
+
+struct NullLiteralExpression {
+
+}
+
+struct IdentifierTypeExpression {
+
+}
+
+struct UnaryTypeExpression {
+
+}
+
+struct UnionTypeExpression {
+
+}
+
+struct SpecifiedGenericsTypeExpression {
+
+}
+
+
+

@@ -47,11 +47,10 @@ enum TokenType {
     IS, 
     NULL_POINTER, 
     ENUM,
-    CONTINUE
+    CONTINUE,
+    ALIAS,
+    AS
 }
-
-
-
 
 struct Token {
     type: TokenType,
@@ -499,6 +498,24 @@ fn lex(lexer: ^Lexer): void {
         if word == "null" {
             array_append[Token](@lexer.tokens, new Token{
                 type: TokenType.NULL_POINTER,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "alias" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.ALIAS,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "as" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.AS,
                 string: word
             });
 

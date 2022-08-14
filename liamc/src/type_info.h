@@ -1,7 +1,7 @@
 #pragma once
 
-#include "lexer.h"
 #include "expression.h"
+#include "lexer.h"
 
 struct TypeExpression;
 
