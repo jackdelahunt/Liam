@@ -7,7 +7,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
+            "name": "Code",
             "program": "${workspaceFolder}/bin/liamc/liamc",
             "args": [
                 "--in=Code/main.liam",
@@ -15,6 +15,22 @@
                 "--include=runtime",
                 "--stdlib=stdlib",
                 "--out=Code/out.exe",
+                "--time", 
+                "--debug"
+            ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Selfhost",
+            "program": "${workspaceFolder}/bin/liamc/liamc",
+            "args": [
+                "--in=selfhost/main.liam",
+                "--emit=bin/liamc/out.cpp", 
+                "--include=runtime",
+                "--stdlib=stdlib",
+                "--out=bin/liamc/out.exe",
                 "--time", 
                 "--debug"
             ],
