@@ -80,7 +80,7 @@ SymbolTable SymbolTable::copy() {
 }
 
 TypeChecker::TypeChecker() {
-    symbol_table = SymbolTable();
+    top_level_symbol_table = SymbolTable();
     current_file = NULL;
 }
 
@@ -121,18 +121,18 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : enums)
     {
         current_file = stmt->file;
-        type_check_enum_statement(stmt, &symbol_table);
+        type_check_enum_statement(stmt, &top_level_symbol_table);
         typed_file.statements.push_back(stmt);
     }
 
     // struct identifier pass
     for (auto stmt : structs)
-    { type_check_struct_decl(stmt, &symbol_table); }
+    { type_check_struct_decl(stmt, &top_level_symbol_table); }
 
     // typedefs
     for (auto stmt : aliases)
     {
-        type_check_alias_statement(stmt, &symbol_table);
+        type_check_alias_statement(stmt, &top_level_symbol_table);
         typed_file.statements.push_back(stmt);
     }
 
@@ -140,7 +140,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : structs)
     {
         current_file = stmt->file;
-        type_check_struct_statement(stmt, &symbol_table, true);
+        type_check_struct_statement(stmt, &top_level_symbol_table, true);
         typed_file.statements.push_back(stmt);
     }
 
@@ -148,13 +148,13 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : funcs)
     {
         current_file = stmt->file;
-        type_check_fn_decl(stmt, &symbol_table);
+        type_check_fn_decl(stmt, &top_level_symbol_table);
     }
 
     for (auto stmt : others)
     {
         current_file = stmt->file;
-        type_check_statement(stmt, &symbol_table, true);
+        type_check_statement(stmt, &top_level_symbol_table, true);
         typed_file.statements.push_back(stmt);
     }
 
@@ -180,7 +180,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     auto param_type_infos = std::vector<TypeInfo *>();
     for (auto &[identifier, expr] : statement->params)
     {
-        TRY_CALL(type_check_type_expression(expr, symbol_table_in_use));
+        TRY_CALL(type_check_type_expression(expr, symbol_table_in_use))
         param_type_infos.push_back(expr->type_info);
     }
 
@@ -203,16 +203,12 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
     {
     case StatementType::STATEMENT_INSERT:
         return type_check_insert_statement(dynamic_cast<InsertStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_RETURN:
         return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_BREAK:
         return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_FN:
         return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table, top_level);
-        break;
     case StatementType::STATEMENT_STRUCT:
         // if it is a top level struct it means it is already defined in the symbol table
         // by the first and second pass, this stage is the thrid pass which means we would
@@ -222,27 +218,20 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
         break;
     case StatementType::STATEMENT_ASSIGNMENT:
         return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_EXPRESSION:
         return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_LET:
         return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_FOR:
         return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_IF:
         return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_CONTINUE:
         break;
     case StatementType::STATEMENT_ALIAS:
         return type_check_alias_statement(dynamic_cast<AliasStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_TEST:
         return type_check_test_statement(dynamic_cast<TestStatement *>(statement), symbol_table);
-        break;
     default:
         panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
     }
