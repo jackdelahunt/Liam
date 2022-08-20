@@ -41,11 +41,25 @@ struct str {
 str make_str(char *chars, uint64_t length);
 std::ostream &operator<<(std::ostream &os, const str &obj);
 
-void panic_if(bool condition, str message);
+void panic(str message);
 u64 len(const str &s);
 str substr(str s, u64 start, u64 length);
 str char_at(str s, u64 index);
 bool is_digit(str s);
+
+#define assert_true(condition)                                                                                         \
+    if (!(condition))                                                                                                  \
+    {                                                                                                                  \
+        std::cout << "Assertion Faild :: ";                                                                            \
+        panic(Internal::make_str(#condition));                                                                         \
+    }
+
+#define assert_false(condition)                                                                                        \
+    if (condition)                                                                                                     \
+    {                                                                                                                  \
+        std::cout << "Assertion Faild :: ";                                                                            \
+        panic(Internal::make_str(#condition));                                                                         \
+    }
 
 template <typename T, typename... Ts> std::ostream &operator<<(std::ostream &os, const std::variant<T, Ts...> &obj) {
     os << "<?>";

@@ -88,13 +88,14 @@ u64 len(const str &s) {
 
 str substr(str s, u64 start, u64 length) {
 
-    panic_if(start + length > s.length, Internal::make_str("Panic :: out of range substr"));
-
+    if (start + length > s.length)
+    { panic(Internal::make_str("Panic :: out of range substr")); }
     return str{.chars = &s.chars[start], .length = length};
 }
 
 str char_at(str s, u64 index) {
-    panic_if(index >= s.length, Internal::make_str("Panic :: out of range char_at"));
+    if (index >= s.length)
+    { panic(Internal::make_str("Panic :: out of range char_at")); }
     return str{.chars = &s.chars[index], .length = 1};
 }
 
@@ -105,12 +106,9 @@ bool is_digit(str s) {
     return s.chars[0] >= '0' && s.chars[0] <= '9';
 }
 
-void panic_if(bool condition, str message) {
-    if (condition)
-    {
-        std::cout << message << "\n";
-        exit(1);
-    }
+void panic(str message) {
+    std::cout << message << "\n";
+    exit(1);
 }
 
 namespace Internal {
