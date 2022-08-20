@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include "args.h"
 #include "errors.h"
 #include "fmt/core.h"
 #include "liam.h"
@@ -269,7 +270,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
     // to the let type... else just set it to the rhs
     if (statement->type)
     {
-        type_check_type_expression(statement->type, symbol_table);
+        TRY_CALL(type_check_type_expression(statement->type, symbol_table));
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
         {
             ErrorReporter::report_type_checker_error(
@@ -438,8 +439,11 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info))
     {
-        panic("Type mismatch, trying to assign a identifier to an expression "
-              "of different type");
+        ErrorReporter::report_type_checker_error(
+            current_file->path, statement->lhs, statement->assigned_to->expression, NULL, NULL,
+            "Type mismatch, trying to assign a identifier to an expression of different type"
+        );
+        return;
     }
 }
 
@@ -464,6 +468,10 @@ void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTa
 }
 
 void TypeChecker::type_check_test_statement(TestStatement *statement, SymbolTable *symbol_table) {
+
+    if (!args->test)
+        return; // not a test build no need to type check
+
     TRY_CALL(type_check_scope_statement(statement->tests, symbol_table));
 
     for (auto sub_stmt : statement->tests->statements)
@@ -580,7 +588,14 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     {
         if (expression->left->type_info->type != TypeInfoType::BOOLEAN &&
             expression->right->type_info->type != TypeInfoType::BOOLEAN)
-        { panic("Cannot use logical operators on non bool type"); }
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression->left, expression->right, NULL, NULL,
+                "Cannot use logical operators on non bool type"
+            );
+            return;
+        }
+
         info = symbol_table->builtin_type_table["bool"];
     }
 
@@ -589,7 +604,13 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
         expression->op.type == TOKEN_MOD || expression->op.type == TOKEN_MINUS)
     {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
-        { panic("Cannot use arithmatic operator on non number"); }
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression->left, expression->right, NULL, NULL,
+                "Cannot use arithmatic operator on non number"
+            );
+            return;
+        }
         info = expression->left->type_info;
     }
 
@@ -598,7 +619,13 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
         expression->op.type == TOKEN_GREATER_EQUAL || expression->op.type == TOKEN_LESS_EQUAL)
     {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
-        { panic("Cannot use arithmatic operator on non number"); }
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression->left, expression->right, NULL, NULL,
+                "Cannot use comparison operator on non number"
+            );
+            return;
+        }
         info = symbol_table->builtin_type_table["bool"];
     }
 
@@ -619,7 +646,20 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     auto [number, type, size] = extract_number_literal_size(expression->token.string);
 
     if (size == -1)
-    { panic("problem parsing number literal " + expression->token.string); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression, NULL, NULL, NULL, "Problem parsing number literal"
+        );
+        return;
+    }
+
+    if (type != FLOAT && number != (s64)number)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression, NULL, NULL, NULL, "Cannot use decimal point on non float types"
+        );
+        return;
+    }
 
     expression->number = number;
 
@@ -628,10 +668,12 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     case UNSIGNED: {
 
         if (number < 0)
-        { panic("Unsigned number cannot be negative"); }
-
-        if (number != (s64)number)
-        { panic("Cannot use decimal point on non float types"); }
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression, NULL, NULL, NULL, "Unsigned number cannot be negative"
+            );
+            return;
+        }
 
         if (size == 8)
         { expression->type_info = symbol_table->builtin_type_table["u8"]; }
@@ -641,14 +683,9 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         { expression->type_info = symbol_table->builtin_type_table["u32"]; }
         else if (size == 64)
         { expression->type_info = symbol_table->builtin_type_table["u64"]; }
-        else
-        { panic("Unknown size when type checking uint"); }
     }
     break;
     case SIGNED: {
-
-        if (number != (s64)number)
-        { panic("Cannot use decimal point on non float types"); }
 
         if (size == 8)
         { expression->type_info = symbol_table->builtin_type_table["s8"]; }
@@ -658,21 +695,21 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         { expression->type_info = symbol_table->builtin_type_table["s32"]; }
         else if (size == 64)
         { expression->type_info = symbol_table->builtin_type_table["s64"]; }
-        else
-        { panic("Unknown size when type checking sint"); }
     }
     break;
     case FLOAT: {
-        if (size == 8)
-        { panic("Cannot use f8 as a literal"); }
-        else if (size == 16)
-        { panic("Cannot use f16 as a literal"); }
+        if (size == 8 || size == 16)
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression, NULL, NULL, NULL,
+                "Cannot create float of this size can only use 32 and 64 sizes"
+            );
+            return;
+        }
         else if (size == 32)
         { expression->type_info = symbol_table->builtin_type_table["f32"]; }
         else if (size == 64)
         { expression->type_info = symbol_table->builtin_type_table["f64"]; }
-        else
-        { panic("Unknown size when type checking float"); }
     }
     break;
     }
@@ -694,7 +731,12 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
     if (expression->op.type == TOKEN_STAR)
     {
         if (expression->expression->type_info->type != TypeInfoType::POINTER)
-        { panic("Cannot dereference non-pointer value"); }
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression, NULL, NULL, NULL, "Cannot dereference non-pointer value"
+            );
+            return;
+        }
 
         expression->type_info = static_cast<PointerTypeInfo *>(expression->expression->type_info)->to;
         return;
@@ -703,13 +745,18 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
     if (expression->op.type == TOKEN_NOT)
     {
         if (expression->expression->type_info->type != TypeInfoType::BOOLEAN)
-        { panic("Cannot use unary operator ! on non boolean type"); }
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression, NULL, NULL, NULL, "Cannot use unary operator ! on non-boolean type"
+            );
+            return;
+        }
 
         expression->type_info = expression->expression->type_info;
         return;
     }
 
-    panic("Unrecognised unary operator");
+    panic("Internal :: Unrecognised unary operator");
 }
 void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(expression->identifier, symbol_table));
@@ -844,7 +891,8 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     if (member_type_info == NULL)
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, expression, NULL, NULL, NULL, fmt::format("Cannot find member \"{}\" in struct", expression->member.string)
+            current_file->path, expression, NULL, NULL, NULL,
+            fmt::format("Cannot find member \"{}\" in struct", expression->member.string)
         );
 
         return;
@@ -1006,7 +1054,7 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
         return;
     }
 
-    panic("Cannot type check this operator yet...");
+    panic("Internal :: Cannot type check this operator yet...");
 }
 
 void TypeChecker::type_check_specified_generics_type_expression(
@@ -1034,7 +1082,12 @@ void TypeChecker::type_check_identifier_type_expression(
 ) {
     auto [type, error] = symbol_table->get_type(&type_expression->identifier);
     if (error)
-    { panic("Unrecognised type in type expression: " + type_expression->identifier.string); }
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, NULL, NULL, type_expression, NULL, "Unrecognised type in type expression"
+        );
+        return;
+    }
 
     type_expression->type_info = type;
 }

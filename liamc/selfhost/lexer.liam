@@ -550,6 +550,7 @@ fn is_delim(c: str): bool {
 }
 
 test {
+
     fn lex_test(): void {
         set_allocator("malloc", 0u64);
         

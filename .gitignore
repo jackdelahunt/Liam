@@ -31,3 +31,4 @@ liamc/src/Makefile
 **/target/
 liampm/liam.json
 liamc/tests/out.cpp
+liamc/out.cpp
