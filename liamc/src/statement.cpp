@@ -109,18 +109,27 @@ BreakStatement::BreakStatement(File *file, Token identifier) {
     this->statement_type = StatementType::STATEMENT_BREAK;
 }
 
-EnumStatement::EnumStatement(Token identifier, std::vector<Token> instances) {
+EnumStatement::EnumStatement(File *file, Token identifier, std::vector<Token> instances) {
+    this->file           = file;
     this->identifier     = identifier;
     this->instances      = instances;
     this->statement_type = StatementType::STATEMENT_ENUM;
 }
 
-ContinueStatement::ContinueStatement() {
+ContinueStatement::ContinueStatement(File *file) {
+    this->file           = file;
     this->statement_type = StatementType::STATEMENT_CONTINUE;
 }
 
-AliasStatement::AliasStatement(Token identifier, TypeExpression *type_expression) {
+AliasStatement::AliasStatement(File *file, Token identifier, TypeExpression *type_expression) {
+    this->file            = file;
     this->type_expression = type_expression;
     this->identifier      = identifier;
     this->statement_type  = StatementType::STATEMENT_ALIAS;
+}
+
+TestStatement::TestStatement(File *file, ScopeStatement *tests) {
+    this->file           = file;
+    this->tests          = tests;
+    this->statement_type = StatementType::STATEMENT_TEST;
 }
