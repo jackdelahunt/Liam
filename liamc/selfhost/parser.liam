@@ -213,8 +213,8 @@ struct Parser {
 
 fn match(parser: ^Parser, type: TokenType): bool {
     if parser.tokens.length > 0u64 {
-        let t := parser_peek(parser, 0u64);
-        return t.type == type;
+        #let t := parser_peek(parser, 0u64);
+        #return t.type == type;
     }
 
     return false;
