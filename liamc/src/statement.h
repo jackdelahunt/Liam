@@ -26,7 +26,8 @@ enum class StatementType {
     STATEMENT_ELSE,
     STATEMENT_ENUM,
     STATEMENT_CONTINUE,
-    STATEMENT_ALIAS
+    STATEMENT_ALIAS,
+    STATEMENT_TEST
 };
 
 struct Statement {
@@ -138,16 +139,22 @@ struct EnumStatement : Statement {
     Token identifier;
     std::vector<Token> instances;
 
-    EnumStatement(Token identifier, std::vector<Token> instances);
+    EnumStatement(File *file, Token identifier, std::vector<Token> instances);
 };
 
 struct ContinueStatement : Statement {
-    ContinueStatement();
+    ContinueStatement(File *file);
 };
 
 struct AliasStatement : Statement {
     Token identifier;
     TypeExpression *type_expression;
 
-    AliasStatement(Token identifier, TypeExpression *type_expression);
+    AliasStatement(File *file, Token identifier, TypeExpression *type_expression);
+};
+
+struct TestStatement : Statement {
+    ScopeStatement *tests;
+
+    TestStatement(File *file, ScopeStatement *tests);
 };

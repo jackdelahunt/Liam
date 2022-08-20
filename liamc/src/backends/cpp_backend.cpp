@@ -1,5 +1,6 @@
 #include "cpp_backend.h"
 
+#include "args.h"
 #include "fmt/core.h"
 #include <algorithm>
 #include <string>
@@ -37,6 +38,25 @@ std::string CppBackend::emit(File *file) {
         { source_generated.append(forward_declare_function(static_cast<FnStatement *>(stmt))); }
     }
 
+    if (args->test)
+    {
+        source_generated.append("\n// test function forward declarations\n");
+
+        for (auto stmt : file->statements)
+        {
+            if (stmt->statement_type == StatementType::STATEMENT_TEST)
+            {
+                auto test_statement = static_cast<TestStatement *>(stmt);
+                for (auto sub_stmt : test_statement->tests->statements)
+                {
+                    // all statements in a scope statement that is in a test statement are gaurneteed to be
+                    // function statements
+                    source_generated.append(forward_declare_function(static_cast<FnStatement *>(sub_stmt)));
+                }
+            }
+        }
+    }
+
     source_generated.append("\n// Source\n");
 
     for (auto stmt : file->statements)
@@ -45,7 +65,29 @@ std::string CppBackend::emit(File *file) {
             source_generated.append(emit_statement(stmt));
     }
 
-    source_generated.append("int main(int argc, char **argv) { __liam__main__(); }");
+    if (args->test)
+    {
+        source_generated.append("\nvoid __liam__test__() {\n");
+
+        for (auto stmt : file->statements)
+        {
+            if (stmt->statement_type == StatementType::STATEMENT_TEST)
+            {
+                for (auto fn : ((TestStatement *)stmt)->tests->statements)
+                {
+                    auto fn_statement = static_cast<FnStatement *>(fn);
+                    source_generated.append(fn_statement->identifier.string + "();\n");
+                }
+            }
+        }
+
+        source_generated.append("\n}\n");
+    }
+
+    if (args->test)
+    { source_generated.append("int main(int argc, char **argv) { __liam__test__(); }"); }
+    else
+    { source_generated.append("int main(int argc, char **argv) { __liam__main__(); }"); }
 
     return source_generated;
 }
@@ -138,9 +180,15 @@ std::string CppBackend::emit_statement(Statement *statement) {
     case StatementType::STATEMENT_ALIAS:
         return emit_alias_statement(dynamic_cast<AliasStatement *>(statement));
         break;
+    case StatementType::STATEMENT_TEST:
+        if (args->test)
+            return emit_test_statement(dynamic_cast<TestStatement *>(statement));
+
+        return "";
+        break;
     }
 
-    panic("Statement not implemented in c back end :[");
+    panic("Statement not implemented in cpp back end :[");
     return "";
 }
 
@@ -238,44 +286,6 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     }
 
     source.append("};\n");
-
-    // pretty print
-    /*
-    source.append(emit_cpp_template_declaration(&statement->generics));
-    source.append(
-        "std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string +
-        emit_cpp_template_usage(&statement->generics) + " &obj) {\n"
-    );
-
-    // header
-    source.append("os << \"" + statement->identifier.string + "\" << \" {\" << std::endl;\n");
-
-    // body
-    for (auto [identifier, type] : statement->members)
-    {
-        if (type->type_info->type == TypeInfoType::POINTER)
-        {
-            source.append(
-                "os << \"   \" << \"^" + identifier.string + ": \" << (void *)obj." + identifier.string +
-                " << \",\" << std::endl;\n"
-            );
-        }
-        else
-        {
-            source.append(
-                "os << \"   \" << \"" + identifier.string + ": \" << obj." + identifier.string +
-                " << \",\" << std::endl;\n"
-            );
-        }
-    }
-
-    // tail
-    source.append("os << \"}\";\n");
-
-    source.append("return os;\n");
-
-    source.append("}\n\n");
-     */
     return source;
 }
 
@@ -363,6 +373,15 @@ std::string CppBackend::emit_continue_statement(ContinueStatement *statement) {
 
 std::string CppBackend::emit_alias_statement(AliasStatement *statement) {
     return "typedef " + emit_type_expression(statement->type_expression) + " " + statement->identifier.string + ";\n";
+}
+
+std::string CppBackend::emit_test_statement(TestStatement *statement) {
+    std::string source;
+
+    for (auto stmt : statement->tests->statements)
+    { source.append(emit_statement(stmt)); }
+
+    return source;
 }
 
 std::string CppBackend::emit_expression(Expression *expression) {

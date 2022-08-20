@@ -101,6 +101,9 @@ std::tuple<Statement *, bool> Parser::eval_statement() {
     case TOKEN_ALIAS:
         return eval_alias_statement();
         break;
+    case TOKEN_TEST:
+        return eval_test_statement();
+        break;
     default:
         return eval_line_starting_expression();
         break;
@@ -307,13 +310,13 @@ std::tuple<EnumStatement *, bool> Parser::eval_enum_statement() {
     { return {nullptr, true}; }
     TRY_TOKEN(TOKEN_BRACE_CLOSE);
 
-    return WIN(new EnumStatement(*identifier, instances));
+    return WIN(new EnumStatement(file, *identifier, instances));
 }
 
 std::tuple<ContinueStatement *, bool> Parser::eval_continue_statement() {
     TRY_TOKEN(TOKEN_CONTINUE);
     TRY_TOKEN(TOKEN_SEMI_COLON);
-    return WIN(new ContinueStatement());
+    return WIN(new ContinueStatement(file));
 }
 
 std::tuple<AliasStatement *, bool> Parser::eval_alias_statement() {
@@ -323,7 +326,13 @@ std::tuple<AliasStatement *, bool> Parser::eval_alias_statement() {
     TRY(TypeExpression *, type_expression, eval_type_expression());
     TRY_TOKEN(TOKEN_SEMI_COLON);
 
-    return WIN(new AliasStatement(*identifier, type_expression));
+    return WIN(new AliasStatement(file, *identifier, type_expression));
+}
+
+std::tuple<TestStatement *, bool> Parser::eval_test_statement() {
+    TRY_TOKEN(TOKEN_TEST);
+    TRY(ScopeStatement *, tests, eval_scope_statement());
+    return WIN(new TestStatement(file, tests));
 }
 
 std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {

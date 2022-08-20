@@ -126,7 +126,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
 
     // struct identifier pass
     for (auto stmt : structs)
-    { symbol_table.add_type(stmt->identifier, new UndefinedTypeInfo{TypeInfoType::UNDEFINED}); }
+    { type_check_struct_decl(stmt, &symbol_table); }
 
     // typedefs
     for (auto stmt : aliases)
@@ -153,7 +153,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : others)
     {
         current_file = stmt->file;
-        type_check_statement(stmt, &symbol_table);
+        type_check_statement(stmt, &symbol_table, true);
         typed_file.statements.push_back(stmt);
     }
 
@@ -193,7 +193,11 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     );
 }
 
-void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
+void TypeChecker::type_check_struct_decl(StructStatement *statement, SymbolTable *symbol_table) {
+    symbol_table->add_type(statement->identifier, new UndefinedTypeInfo{TypeInfoType::UNDEFINED});
+}
+
+void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table, bool top_level) {
     switch (statement->statement_type)
     {
     case StatementType::STATEMENT_INSERT:
@@ -206,10 +210,14 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
         return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table);
         break;
     case StatementType::STATEMENT_FN:
-        return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table);
+        return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table, top_level);
         break;
     case StatementType::STATEMENT_STRUCT:
-        return type_check_struct_statement(dynamic_cast<StructStatement *>(statement), symbol_table);
+        // if it is a top level struct it means it is already defined in the symbol table
+        // by the first and second pass, this stage is the thrid pass which means we would
+        // be re-declaring the struct
+        if (!top_level)
+            return type_check_struct_statement(dynamic_cast<StructStatement *>(statement), symbol_table);
         break;
     case StatementType::STATEMENT_ASSIGNMENT:
         return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement), symbol_table);
@@ -230,6 +238,9 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
         break;
     case StatementType::STATEMENT_ALIAS:
         return type_check_alias_statement(dynamic_cast<AliasStatement *>(statement), symbol_table);
+        break;
+    case StatementType::STATEMENT_TEST:
+        return type_check_test_statement(dynamic_cast<TestStatement *>(statement), symbol_table);
         break;
     default:
         panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
@@ -289,12 +300,19 @@ void TypeChecker::type_check_scope_statement(
     for (auto stmt : statement->statements)
     { TRY_CALL(type_check_statement(stmt, scopes_symbol_table)); }
 }
-void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table, bool first_pass) {
+void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table, bool top_level) {
     if (statement->is_extern)
         return;
+
+    // fn decl is called at all top level function statements, this means if
+    // this statement is a top level statement there is no need to repeat
+    // but if it is not then do the function decl
+    if (!top_level)
+    { type_check_fn_decl(statement, symbol_table); }
+
     auto existing_type_info = static_cast<FnTypeInfo *>(symbol_table->identifier_table[statement->identifier.string]);
 
-    // params and get return_type expressions
+    // params and get type expressions
     auto args = std::vector<std::tuple<Token, TypeInfo *>>();
     for (int i = 0; i < existing_type_info->args.size(); i++)
     {
@@ -383,7 +401,7 @@ void TypeChecker::type_check_else_statement(ElseStatement *statement, SymbolTabl
     { TRY_CALL(type_check_scope_statement(statement->body, symbol_table)); }
 }
 
-void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool first_pass) {
+void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool top_level) {
 
     SymbolTable sub_symbol_table_copy = symbol_table->copy();
 
@@ -397,7 +415,10 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
         members_type_info.emplace_back(member.string, expr->type_info);
     }
 
-    if (first_pass)
+    // if this is a top level struct it means its identifier is already in the symbol table from the first pass
+    // and we are currently in the second pass, if so then just added the type info to the structs already
+    // existing identifier in the table instead of added a new one
+    if (top_level)
     {
         // struct type in undefined need to cast it to a struct into * and copy data in [ :
         StructTypeInfo *sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
@@ -440,6 +461,20 @@ void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTabl
 void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL(type_check_type_expression(statement->type_expression, symbol_table));
     symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
+}
+
+void TypeChecker::type_check_test_statement(TestStatement *statement, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_scope_statement(statement->tests, symbol_table));
+
+    for (auto sub_stmt : statement->tests->statements)
+    {
+        if (sub_stmt->statement_type != StatementType::STATEMENT_FN)
+        { panic("Can only declare functions within test statement bodies"); }
+
+        auto fn = (FnStatement *)sub_stmt;
+        if (!fn->params.empty())
+        { panic("Functions cannot have parameters in test bodies"); }
+    }
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {
