@@ -27,3 +27,6 @@ liamc/Makefile
 **/CMakeLists.txt
 liamc/src/Makefile
 **.DS_Store
+**/dependencies/
+**/target/
+liampm/liam.json
