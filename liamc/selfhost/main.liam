@@ -7,5 +7,9 @@ fn main(): void {
     
     let lexer := make_lexer("/Users/jackdelahunt/Projects/Liam/liamc/selfhost/test.liam");
     lex(@lexer);
-    println[Array[Token]](lexer.tokens);
+
+    for let i := 0u64; i < lexer.tokens.length; i = i + 1u64; {
+        let t := array_index[Token](@lexer.tokens, i); 
+        println[str](t.string);        
+    }
 }

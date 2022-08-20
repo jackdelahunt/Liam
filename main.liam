@@ -1,5 +1,0 @@
-import "stdlib/basic.liam";
-
-fn main(): void {
-    println[str]("Hello sailor!");
-}

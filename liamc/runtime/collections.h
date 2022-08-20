@@ -7,22 +7,6 @@ template <typename T> struct Array {
     int capacity;
 };
 
-template <typename T> std::ostream &operator<<(std::ostream &os, const Array<T> &obj) {
-
-    os << "[";
-
-    for (u64 i = 0; i < obj.length; i++)
-    {
-        os << obj.data[i];
-
-        if (i + 1 < obj.length)
-        { os << ", "; }
-    }
-
-    os << "]";
-    return os;
-}
-
 template <typename T> Array<T> make_array() {
     return Array<T>{.data = NULL, .length = 0, .capacity = 0};
 }

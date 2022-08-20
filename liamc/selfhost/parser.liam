@@ -22,49 +22,79 @@ alias TypeExpression as
     ^SpecifiedGenericsTypeExpression
 ;
 
+alias Statement as 
+    ExpressionStatement |
+    LetStatement |
+    ScopeStatement |
+    FnStatement |
+    StructStatement |
+    AssignmentStatement |
+    InsertStatement |
+    ImportStatement |
+    ForStatement |
+    IfStatement |
+    ElseStatement |
+    ReturnStatement |
+    BreakStatement |
+    EnumStatement |
+    ContinueStatement |
+    AliasStatement
+;
+
 struct IsExpression {
     expression: Expression,
     identifier: Token
 }
 
 struct BinaryExpression {
-
+    left: ^Expression,
+    op: Token,
+    right: ^Expression
 }
 
 struct UnaryExpression {
-
+    op: Token,
+    expression: ^Expression
 }
 
 struct NumberLiteralExpression {
-
+    token: Token,
+    number: s64
 }
 
 struct StringLiteralExpression {
-
+    token: Token
 }
 
 struct BoolLiteralExpression {
-
+    value: Token
 }
 
 struct IdentifierExpression {
-
+    identifier: Token
 }
 
 struct CallExpression {
-
+    # this is an expression but must be an identifier
+    identifier: ^Expression,
+    args: Array[^Expression],
+    generics: Array[^Expression]
 }
 
 struct GetExpression {
-
+   # this is an expression but must be an identifier
+   lhs: ^Expression,
+   member: Token 
 }
 
 struct NewExpression {
-
+    identifier: Token,
+    generics: Array[^TypeExpression],
+    named_expressions: Array[Tuple[Token, ^Expression]]
 }
 
 struct GroupExpression {
-
+    expression: ^Expression
 }
 
 struct NullLiteralExpression {
@@ -72,20 +102,126 @@ struct NullLiteralExpression {
 }
 
 struct IdentifierTypeExpression {
-
+    identifier: Token
 }
 
 struct UnaryTypeExpression {
-
+    op: Token,
+    type_expression: ^TypeExpression
 }
 
 struct UnionTypeExpression {
-
+    type_expressions: Array[^TypeExpression]
 }
 
 struct SpecifiedGenericsTypeExpression {
+    struct_type: ^IdentifierTypeExpression,
+    generics: Array[^TypeExpression]
+}
+
+struct ExpressionStatement {
+    expression: ^Expression
+}
+
+struct LetStatement {
+    identifier: Token,
+    rhs: ^Expression,
+    type: ^TypeExpression
+}
+
+struct ScopeStatement {
+    statements: Array[^Statement]
+}
+
+struct FnStatement {
+    identifier: Token,
+    generics: Array[Token],
+    params: Array[Tuple[Token, ^TypeExpression]]
+}
+
+struct StructStatement {
+    identifier: Token,
+    generics: Array[Token],
+    members: Array[Tuple[Token, ^TypeExpression]],
+    is_extern: bool
+}
+
+struct AssignmentStatement {
+    lhs: ^Expression
+}
+
+struct InsertStatement {
+    byte_code: ^Expression
+}
+
+struct ImportStatement {
+    path: ^Expression
+}
+
+struct ForStatement {
+    assign: ^Statement,
+    condition: ^Expression,
+    update: ^Statement,
+    body: ^ScopeStatement
+}
+
+struct IfStatement {
+    expression: ^Expression,
+    body: ^ScopeStatement,
+    else_statement: ^ElseStatement
+}
+
+struct ElseStatement {
+    if_statement: ^IfStatement,
+    body: ^ScopeStatement
+}
+
+struct ReturnStatement {
+    expression: ^Expression
+}
+
+struct BreakStatement {
+    identifier: Token
+}
+
+struct EnumStatement {
+    identifier: Token,
+    instnaces: Array[Token]
+}
+
+struct ContinueStatement {
 
 }
 
+struct AliasStatement {
+    identifier: Token,
+    type_expression: ^TypeExpression
+}
+
+struct File {
+    statements: Array[^Statement],
+    imports: Array[str],
+    path: String
+}
+
+struct Parser {
+    tokens: Array[Token],
+    current: u64,
+    path: String,
+    file: ^File
+}
+
+fn match(parser: ^Parser, type: TokenType): bool {
+    if parser.tokens.length > 0u64 {
+        let t := parser_peek(parser, 0u64);
+        return t.type == type;
+    }
+
+    return false;
+}
+
+fn parser_peek(parser: ^Parser, offset: u64): Token {
+    return array_index[Token](@parser.tokens, parser.current + offset);
+}
 
 

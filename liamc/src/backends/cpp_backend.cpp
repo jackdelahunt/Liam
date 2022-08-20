@@ -240,6 +240,7 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     source.append("};\n");
 
     // pretty print
+    /*
     source.append(emit_cpp_template_declaration(&statement->generics));
     source.append(
         "std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string +
@@ -255,8 +256,8 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
         if (type->type_info->type == TypeInfoType::POINTER)
         {
             source.append(
-                "os << \"   \" << \"*" + identifier.string + ": \" << *(obj." + identifier.string +
-                ") << \",\" << std::endl;\n"
+                "os << \"   \" << \"^" + identifier.string + ": \" << (void *)obj." + identifier.string +
+                " << \",\" << std::endl;\n"
             );
         }
         else
@@ -274,6 +275,7 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     source.append("return os;\n");
 
     source.append("}\n\n");
+     */
     return source;
 }
 
