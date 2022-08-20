@@ -30,16 +30,21 @@ std::string FileData::line(u64 line) {
     auto end   = start;
     std::string s;
 
-    do
-    {
-        s.push_back(data.at(end));
-        end++;
-    }
-    while (end < data.size() && data.at(end) != '\n');
+    s.push_back(data.at(end));
+    end++;
 
-    // add new line
-    if (end < data.size())
-        s.push_back(data.at(end));
+    if(s != "\n") {
+        while (true) {
+            if (end >= data.size()) break;
+            if (data.at(end) == '\n') break;
+
+            s.push_back(data.at(end));
+            end++;
+        }
+        // add new line
+        if (end < data.size())
+            s.push_back(data.at(end));
+    }
 
     return s;
 }
