@@ -842,7 +842,13 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     }
 
     if (member_type_info == NULL)
-    { panic("Cannot find member in struct"); }
+    {
+        ErrorReporter::report_type_checker_error(
+                current_file->path, expression, NULL, NULL, NULL, fmt::format("Cannot find member \"{}\" in struct", expression->member.string)
+        );
+
+        return;
+    }
 
     // if it is generic then resolve the id of it in the struct instance
     if (member_type_info->type == TypeInfoType::GENERIC)

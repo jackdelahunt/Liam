@@ -548,3 +548,18 @@ fn is_delim(c: str): bool {
            c == "=" or c == "+" or c == "^" or c == "@" or c == "*" or c == "." or c == "[" or c == "]" or c == "!" or
            c == "<" or c == ">" or c == "|" or c == "-" or c == "/" or c == "%";
 }
+
+test {
+    fn lex_test(): void {
+        set_allocator("malloc", 0u64);
+        
+        let lexer := make_lexer("/Users/jackdelahunt/Projects/Liam/liamc/selfhost/tests/lex_test1.liam");
+        lex(@lexer);
+        
+        assert_true(lexer.tokens.length == 7u64);
+        
+        let fn_token := array_index[Token](@lexer.tokens, 0u64);
+        assert_true(fn_token.type == TokenType.FN);
+        let x := fn_token.hello;
+    }
+}
