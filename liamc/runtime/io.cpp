@@ -4,13 +4,15 @@
 namespace Internal {
 std::tuple<u64, char *> read_file(char *path) {
     FILE *fp = fopen(path, "rb");
-    panic_if(fp == NULL, make_str("Cannot open file"));
+    if (fp == NULL)
+    { panic(make_str("Cannot open file")); }
 
     fseek(fp, 0L, SEEK_END);
     long lSize = ftell(fp);
     rewind(fp);
 
-    panic_if(Internal::allocator == NULL, make_str("Need to set allocator before reading file"));
+    if (Internal::allocator == NULL)
+    { panic(make_str("Need to set allocator before reading file")); }
     char *buffer = (char *)Internal::allocator->alloc(lSize);
 
     if (1 != fread(buffer, lSize, 1, fp))

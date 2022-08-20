@@ -8,7 +8,8 @@ std::ostream &operator<<(std::ostream &os, const String &obj) {
 }
 
 String make_string(str s) {
-    panic_if(Internal::allocator == NULL, Internal::make_str("Allocator not set"));
+    if (Internal::allocator == NULL)
+    { panic(Internal::make_str("Allocator not set")); }
 
     if (s.length == 0)
     { return String{.string = str{.chars = NULL, .length = 0}, .size = 0}; }
