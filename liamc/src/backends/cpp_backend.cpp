@@ -201,7 +201,10 @@ std::string CppBackend::emit_insert_statement(InsertStatement *statement) {
 }
 
 std::string CppBackend::emit_return_statement(ReturnStatement *statement) {
-    return "return " + emit_expression(statement->expression) + ";";
+    std::string source = "return ";
+    if (statement->expression)
+    { source.append(emit_expression(statement->expression)); }
+    return source + ";";
 }
 
 std::string CppBackend::emit_break_statement(BreakStatement *statement) {

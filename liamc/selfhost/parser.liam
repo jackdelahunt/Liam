@@ -23,22 +23,23 @@ alias TypeExpression as
 ;
 
 alias Statement as 
-    ExpressionStatement |
-    LetStatement |
-    ScopeStatement |
-    FnStatement |
-    StructStatement |
-    AssignmentStatement |
-    InsertStatement |
-    ImportStatement |
-    ForStatement |
-    IfStatement |
-    ElseStatement |
-    ReturnStatement |
-    BreakStatement |
-    EnumStatement |
-    ContinueStatement |
-    AliasStatement
+    ^ExpressionStatement |
+    ^LetStatement |
+    ^ScopeStatement |
+    ^FnStatement |
+    ^StructStatement |
+    ^AssignmentStatement |
+    ^InsertStatement |
+    ^ImportStatement |
+    ^ForStatement |
+    ^IfStatement |
+    ^ElseStatement |
+    ^ReturnStatement |
+    ^BreakStatement |
+    ^EnumStatement |
+    ^ContinueStatement |
+    ^AliasStatement |
+    ^TestStatement
 ;
 
 struct IsExpression {
@@ -47,14 +48,14 @@ struct IsExpression {
 }
 
 struct BinaryExpression {
-    left: ^Expression,
+    left: Expression,
     op: Token,
-    right: ^Expression
+    right: Expression
 }
 
 struct UnaryExpression {
     op: Token,
-    expression: ^Expression
+    expression: Expression
 }
 
 struct NumberLiteralExpression {
@@ -76,25 +77,25 @@ struct IdentifierExpression {
 
 struct CallExpression {
     # this is an expression but must be an identifier
-    identifier: ^Expression,
-    args: Array[^Expression],
-    generics: Array[^Expression]
+    identifier: Expression,
+    args: Array[Expression],
+    generics: Array[Expression]
 }
 
 struct GetExpression {
    # this is an expression but must be an identifier
-   lhs: ^Expression,
+   lhs: Expression,
    member: Token 
 }
 
 struct NewExpression {
     identifier: Token,
-    generics: Array[^TypeExpression],
-    named_expressions: Array[Tuple[Token, ^Expression]]
+    generics: Array[TypeExpression],
+    named_expressions: Array[Tuple[Token, Expression]]
 }
 
 struct GroupExpression {
-    expression: ^Expression
+    expression: Expression
 }
 
 struct NullLiteralExpression {
@@ -107,66 +108,66 @@ struct IdentifierTypeExpression {
 
 struct UnaryTypeExpression {
     op: Token,
-    type_expression: ^TypeExpression
+    type_expression: TypeExpression
 }
 
 struct UnionTypeExpression {
-    type_expressions: Array[^TypeExpression]
+    type_expressions: Array[TypeExpression]
 }
 
 struct SpecifiedGenericsTypeExpression {
     struct_type: ^IdentifierTypeExpression,
-    generics: Array[^TypeExpression]
+    generics: Array[TypeExpression]
 }
 
 struct ExpressionStatement {
-    expression: ^Expression
+    expression: Expression
 }
 
 struct LetStatement {
     identifier: Token,
-    rhs: ^Expression,
-    type: ^TypeExpression
+    rhs: Expression,
+    type: TypeExpression
 }
 
 struct ScopeStatement {
-    statements: Array[^Statement]
+    statements: Array[Statement]
 }
 
 struct FnStatement {
     identifier: Token,
     generics: Array[Token],
-    params: Array[Tuple[Token, ^TypeExpression]]
+    params: Array[Tuple[Token, TypeExpression]]
 }
 
 struct StructStatement {
     identifier: Token,
     generics: Array[Token],
-    members: Array[Tuple[Token, ^TypeExpression]],
+    members: Array[Tuple[Token, TypeExpression]],
     is_extern: bool
 }
 
 struct AssignmentStatement {
-    lhs: ^Expression
+    lhs: Expression
 }
 
 struct InsertStatement {
-    byte_code: ^Expression
+    byte_code: Expression
 }
 
 struct ImportStatement {
-    path: ^Expression
+    path: Expression
 }
 
 struct ForStatement {
-    assign: ^Statement,
-    condition: ^Expression,
-    update: ^Statement,
+    assign: Statement,
+    condition: Expression,
+    update: Statement,
     body: ^ScopeStatement
 }
 
 struct IfStatement {
-    expression: ^Expression,
+    expression: Expression,
     body: ^ScopeStatement,
     else_statement: ^ElseStatement
 }
@@ -177,7 +178,7 @@ struct ElseStatement {
 }
 
 struct ReturnStatement {
-    expression: ^Expression
+    expression: Expression
 }
 
 struct BreakStatement {
@@ -195,11 +196,15 @@ struct ContinueStatement {
 
 struct AliasStatement {
     identifier: Token,
-    type_expression: ^TypeExpression
+    type_expression: TypeExpression
+}
+
+struct TestStatement {
+    tests: ScopeStatement
 }
 
 struct File {
-    statements: Array[^Statement],
+    statements: Array[Statement],
     imports: Array[str],
     path: String
 }
@@ -211,10 +216,243 @@ struct Parser {
     file: ^File
 }
 
+fn eval_statement(parser: ^Parser): Statement {
+    let next_type := parser_peek(parser, 0u64);
+
+    if next_type.type == TokenType.LET {
+        return eval_let_statement(parser);
+    }
+
+    if next_type.type == TokenType.FN {
+        return eval_fn_statement(parser);
+    }
+
+    if next_type.type == TokenType.STRUCT {
+        return eval_struct_statement(parser);
+    }
+
+    if next_type.type == TokenType.INSERT {
+        return eval_insert_statement(parser);
+    }
+
+    if next_type.type == TokenType.RETURN {
+        return eval_return_statement(parser);
+    }
+
+    if next_type.type == TokenType.BREAK {
+        return eval_break_statement(parser);
+    }
+
+    if next_type.type == TokenType.IMPORT {
+        return eval_import_statement(parser);
+    }
+
+    if next_type.type == TokenType.FOR {
+        return eval_for_statement(parser);
+    }
+
+    if next_type.type == TokenType.IF {
+        return eval_if_statement(parser);
+    }
+
+    if next_type.type == TokenType.EXTERN {
+        return eval_extern_statement(parser);
+    }
+
+    if next_type.type == TokenType.ENUM {
+        return eval_enum_statement(parser);
+    }
+
+    if next_type.type == TokenType.CONTINUE {
+        return eval_continue_statement(parser);
+    }
+
+    if next_type.type == TokenType.ALIAS {
+        return eval_alias_statement(parser);
+    }
+
+    if next_type.type == TokenType.TEST {
+        return eval_test_statement(parser);
+    }
+
+    return eval_line_starting_expression(parser);
+}
+
+fn eval_let_statement(parser: ^Parser): ^LetStatement {
+    
+}
+
+fn eval_scope_statement(parser: ^Parser): ^ScopeStatement {
+    
+}
+
+fn eval_fn_statement(parser: ^Parser): ^FnStatement {
+    
+}
+
+fn eval_struct_statement(parser: ^Parser): ^StructStatement {
+    
+}
+
+fn eval_insert_statement(parser: ^Parser): ^InsertStatement {
+    
+}
+
+fn eval_return_statement(parser: ^Parser): ^ReturnStatement {
+    
+}
+
+fn eval_break_statement(parser: ^Parser): ^BreakStatement {
+    
+}
+
+fn eval_import_statement(parser: ^Parser): ^ImportStatement {
+    
+}
+
+fn eval_for_statement(parser: ^Parser): ^ForStatement {
+    
+}
+
+fn eval_if_statement(parser: ^Parser): ^IfStatement {
+    
+}
+
+fn eval_else_statement(parser: ^Parser): ^ElseStatement {
+    
+}
+
+fn eval_expression_statement(parser: ^Parser): ^ExpressionStatement {
+    
+}
+
+fn eval_extern_statement(parser: ^Parser): Statement {
+    
+}
+
+fn eval_enum_statement(parser: ^Parser): ^EnumStatement {
+    
+}
+
+fn eval_continue_statement(parser: ^Parser): ^ContinueStatement {
+    
+}
+
+fn eval_alias_statement(parser: ^Parser): ^AliasStatement {
+    
+}
+
+fn eval_test_statement(parser: ^Parser): ^TestStatement {
+    
+}
+
+fn eval_line_starting_expression(parser: ^Parser): Statement {
+    
+}
+
+
+#  === expression precedence === (lower is more precedence)
+#  is
+#  or
+#  and
+#  == !=
+# < > >= <=
+#  + -
+#  * / %
+#  @ * !
+#  call()
+#  literal () new "" null true false
+fn eval_expression(parser: ^Parser): Expression {
+    return eval_is_expression(parser);
+}
+
+fn eval_is_expression(parser: ^Parser): Expression {
+    let expr := eval_or_expression(parser);
+
+    if (match(parser, TokenType.IS))
+    {
+        consume_token(parser);
+        let type := eval_type_expression(parser);
+        try_token(parser, TokenType.AS);
+        let identifier := try_token(parser, TokenType.IDENTIFIER);
+
+        expr = alloc[IsExpression](new IsExpression{
+            expression: expr,
+            identifier: identifier
+        });    
+    }
+
+    return expr;
+}
+
+fn eval_or_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_and_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_equality_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_relational_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_term_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_factor_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_unary_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_call_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_primary_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_new_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_group_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_type_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_union_type_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_unary_type_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_specified_generics_type_expression(parser: ^Parser): Expression {
+    
+}
+
+fn eval_identifier_type_expression(parser: ^Parser): Expression {
+    
+}
+
 fn match(parser: ^Parser, type: TokenType): bool {
     if parser.tokens.length > 0u64 {
-        #let t := parser_peek(parser, 0u64);
-        #return t.type == type;
+        let t := parser_peek(parser, 0u64);
+        return t.type == type;
     }
 
     return false;
@@ -224,4 +462,15 @@ fn parser_peek(parser: ^Parser, offset: u64): Token {
     return array_index[Token](@parser.tokens, parser.current + offset);
 }
 
+fn consume_token(parser: ^Parser): Token {
+    assert_true(parser.current >= parser.tokens.length);
+    let token := array_index[Token](@parser.tokens, parser.current);
+    parser.current = parser.current + 1u64;
+    return token;
+}
 
+fn try_token(parser: ^Parser, type: TokenType): Token {
+    let token := consume_token(parser);
+    assert_true(token.type == type);
+    return token;
+}

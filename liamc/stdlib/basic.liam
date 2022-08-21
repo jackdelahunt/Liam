@@ -37,9 +37,17 @@ extern struct Array[T] {
     data: ^T
 }
 
+extern struct Map[K, V] {
+
+}
+
 extern fn make_array[T](): Array[T];
 extern fn array_append[T](array: ^Array[T], t: T): void;
 extern fn array_index[T](array: ^Array[T], index: u64): T;
 extern fn array_insert[T](array: ^Array[T], index: u64, t: T): void;
 extern fn array_remove[T](array: ^Array[T], index: u64): void;
 extern fn array_free[T](array: ^Array[T]): void;
+
+extern fn make_map[K, V](): Map[K, V];
+extern fn map_insert[K, V](map: ^Map[K, V], k: K, v: V): void;
+extern fn map_get[K, V](map: ^Map[K, V], k: K): V;

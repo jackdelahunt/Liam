@@ -221,8 +221,18 @@ std::tuple<InsertStatement *, bool> Parser::eval_insert_statement() {
 
 std::tuple<ReturnStatement *, bool> Parser::eval_return_statement() {
     TRY_TOKEN(TOKEN_RETURN);
-    TRY(ExpressionStatement *, expression, eval_expression_statement());
-    return WIN(new ReturnStatement(file, expression->expression));
+
+    Expression *expression = NULL;
+
+    if (peek()->type != TOKEN_SEMI_COLON)
+    {
+        TRY(ExpressionStatement *, expression_statement, eval_expression_statement());
+        expression = expression_statement->expression;
+    }
+    else
+    { TRY_TOKEN(TOKEN_SEMI_COLON); }
+
+    return WIN(new ReturnStatement(file, expression));
 }
 
 std::tuple<BreakStatement *, bool> Parser::eval_break_statement() {

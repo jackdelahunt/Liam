@@ -49,7 +49,8 @@ enum TokenType {
     ENUM,
     CONTINUE,
     ALIAS,
-    AS
+    AS,
+    TEST
 }
 
 struct Token {
