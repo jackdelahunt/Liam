@@ -33,10 +33,14 @@ std::string FileData::line(u64 line) {
     s.push_back(data.at(end));
     end++;
 
-    if(s != "\n") {
-        while (true) {
-            if (end >= data.size()) break;
-            if (data.at(end) == '\n') break;
+    if (s != "\n")
+    {
+        while (true)
+        {
+            if (end >= data.size())
+                break;
+            if (data.at(end) == '\n')
+                break;
 
             s.push_back(data.at(end));
             end++;

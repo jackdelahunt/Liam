@@ -81,7 +81,7 @@ SymbolTable SymbolTable::copy() {
 
 TypeChecker::TypeChecker() {
     top_level_symbol_table = SymbolTable();
-    current_file = NULL;
+    current_file           = NULL;
 }
 
 File TypeChecker::type_check(std::vector<File *> *files) {
@@ -245,7 +245,8 @@ void TypeChecker::type_check_insert_statement(InsertStatement *statement, Symbol
 }
 
 void TypeChecker::type_check_return_statement(ReturnStatement *statement, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(statement->expression, symbol_table));
+    if (statement->expression)
+        TRY_CALL(type_check_expression(statement->expression, symbol_table));
 }
 
 void TypeChecker::type_check_break_statement(BreakStatement *statement, SymbolTable *symbol_table) {
@@ -317,35 +318,34 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
 
     // type statements and check return exists if needed
     TRY_CALL(type_check_scope_statement(statement->body, &copied_symbol_table, false));
-    if (existing_type_info->return_type->type == TypeInfoType::VOID)
+    for (auto stmt : statement->body->statements)
     {
-        for (auto stmt : statement->body->statements)
+        if (stmt->statement_type == StatementType::STATEMENT_RETURN)
         {
-            if (stmt->statement_type == StatementType::STATEMENT_RETURN)
-            { panic("found return statement when return return_type is void"); }
-        }
-    }
-    else
-    {
-        bool found_return = false;
-        for (auto stmt : statement->body->statements)
-        {
-            if (stmt->statement_type == StatementType::STATEMENT_RETURN)
+            auto rt = (ReturnStatement *)stmt;
+
+            if (existing_type_info->return_type->type == TypeInfoType::VOID)
             {
-                found_return          = true;
-                auto return_statement = dynamic_cast<ReturnStatement *>(stmt);
-                if (!type_match(existing_type_info->return_type, return_statement->expression->type_info))
+                if (rt->expression != NULL)
                 {
-                    panic("Mismatch types in function, return types do not "
-                          "match");
+                    ErrorReporter::report_type_checker_error(
+                        current_file->path, rt->expression, NULL, NULL, NULL,
+                        "found expression in return when return type is void"
+                    );
+                    return;
                 }
             }
-        }
-
-        if (!found_return)
-        {
-            panic("No return statement in function that has non void return "
-                  "return_type");
+            else
+            {
+                if (!type_match(existing_type_info->return_type, rt->expression->type_info))
+                {
+                    ErrorReporter::report_type_checker_error(
+                        current_file->path, rt->expression, NULL, NULL, NULL,
+                        "Mismatch types in function, return types do not match"
+                    );
+                    return;
+                }
+            }
         }
     }
 }
@@ -1113,7 +1113,7 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     { panic("cannot match types that are both any, will be fixed xx"); }
 
     if (a->type == TypeInfoType::GENERIC)
-        return true; // TODO: this might be a bug not checking b but not sure
+        return true; // TODO: this might be a bug n ot checking b but not sure
                      // what to do here...
 
     if (a->type != b->type)
@@ -1184,15 +1184,10 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         auto struct_a = static_cast<StructTypeInfo *>(a);
         auto struct_b = static_cast<StructTypeInfo *>(b);
 
-        for (s32 i = 0; i < struct_a->members.size(); i++)
-        {
-            auto [a_member, a_type] = struct_a->members.at(i);
-            auto [b_member, b_type] = struct_b->members.at(i);
-            if (!type_match(a_type, b_type))
-            { return false; }
-        }
-
-        return true;
+        // symbol table does not copy struct type infos
+        // so pointer to one struct instance of a type
+        // is ALWAYS the same as another
+        return struct_a == struct_b;
     }
     else if (a->type == TypeInfoType::POINTER)
     {

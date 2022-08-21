@@ -12,7 +12,9 @@ run-test:
 selfhost:
 	./liamc/bin/liamc/liamc --codegen --include=liamc/runtime --stdlib=liamc/stdlib --out="liamc/bin/liamc/stage2.exe" --in="liamc/selfhost/main.liam" --time --emit="liamc/bin/liamc/out.cpp" --debug
 	@clang-format -i liamc/bin/liamc/out.cpp
+	./liamc/bin/liamc/stage2.exe
 
 selfhost-test:
 	./liamc/bin/liamc/liamc --test --codegen --include=liamc/runtime --stdlib=liamc/stdlib --out="liamc/bin/liamc/stage2.exe" --in="liamc/selfhost/main.liam" --time --emit="liamc/bin/liamc/out.cpp" --debug
 	@clang-format -i liamc/bin/liamc/out.cpp
+	./liamc/bin/liamc/stage2.exe

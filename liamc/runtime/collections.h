@@ -1,11 +1,33 @@
 #include "core.h"
 #include "memory.h"
+#include <map>
 
 template <typename T> struct Array {
     T *data;
     int length;
     int capacity;
 };
+
+template <typename K, typename V> struct Map { std::map<K, V> map; };
+
+/*
+ * extern fn make_map[K. V](): Map[K, V];
+extern fn map_insert[K, V](k: K, v: V): void;
+extern fn map_get[K, V](k: K): V;
+
+ */
+
+template <typename K, typename V> Map<K, V> make_map() {
+    return Map<K, V>{.map = std::map<K, V>()};
+}
+
+template <typename K, typename V> Map<K, V> map_insert(Map<K, V> *map, K k, V v) {
+    (*map)[k] = v;
+}
+
+template <typename K, typename V> Map<K, V> map_get(Map<K, V> *map, K k) {
+    return (*map)[k];
+}
 
 template <typename T> Array<T> make_array() {
     return Array<T>{.data = NULL, .length = 0, .capacity = 0};
