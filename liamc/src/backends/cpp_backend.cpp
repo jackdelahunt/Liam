@@ -426,6 +426,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_NULL_LITERAL:
         return emit_null_literal_expression(dynamic_cast<NullLiteralExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_PROPAGATE:
+        return emit_propagate_expression(dynamic_cast<PropagateExpression *>(expression));
+        break;
     default: {
         panic("Cannot emit this expression in cpp backend");
         return "";
@@ -617,6 +620,72 @@ std::string CppBackend::emit_group_expression(GroupExpression *expression) {
 
 std::string CppBackend::emit_null_literal_expression(NullLiteralExpression *expression) {
     return "nullptr";
+}
+
+std::string CppBackend::emit_propagate_expression(PropagateExpression *expression) {
+
+    std::string source = R"(
+({{
+        //                  vv expression given
+        auto __evaluated = ({});
+        //                            vv type expression given
+        if (auto __temp = std::get_if<{}>(&__evaluated))
+            return *__temp;
+
+        //                              vv type list from else type
+        auto v = Internal::cast_variant<{}>(__evaluated);
+
+        {}
+}})
+)";
+
+    std::string single_type_source = R"(
+    //          vv if type list is single then extract type
+    std::get<{}>(v);
+)";
+
+    std::string multi_type_source = R"(
+    v;
+)";
+
+    // expr is the emitted expresison for the expression duh...
+    // type is the return type we are checking for
+    // type_list is the else type
+    // single_type is the type if type_list is a single type
+
+    std::string type_list;
+    if (expression->otherwise->type == TypeExpressionType::TYPE_UNION)
+    {
+        auto union_expression = static_cast<UnionTypeExpression *>(expression->otherwise);
+
+        // if the type expression is a union type expression then the type
+        // needed in the
+        for (u64 i = 0; i < union_expression->type_expressions.size(); i++)
+        {
+            type_list.append(emit_type_expression(union_expression->type_expressions[i]));
+            if (i + 1 < union_expression->type_expressions.size())
+            { type_list.append(", "); }
+        }
+    }
+    else
+    { type_list = emit_type_expression(expression->otherwise); }
+
+    if (expression->otherwise->type == TypeExpressionType::TYPE_UNION)
+    {
+        source = fmt::format(
+            source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
+            type_list, multi_type_source
+        );
+    }
+    else
+    {
+        source = fmt::format(
+            source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
+            type_list, fmt::format(single_type_source, emit_type_expression(expression->otherwise))
+        );
+    }
+
+    return source;
 }
 
 std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {

@@ -6,7 +6,7 @@
 #include "liam.h"
 #include "utils.h"
 
-const char *TokenTypeStrings[52] = {"int Literal", "string Literal",
+const char *TokenTypeStrings[53] = {"int Literal", "string Literal",
                                     "identifier",  "let",
                                     "insert",      "fn",
                                     "(",           ")",
@@ -47,7 +47,7 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
 bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' ||
            c == '=' || c == '+' || c == '^' || c == '@' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
-           c == '<' || c == '>' || c == '|' || c == '-' || c == '/' || c == '%';
+           c == '<' || c == '>' || c == '|' || c == '-' || c == '/' || c == '%' || c == '?';
 }
 
 Lexer::Lexer(std::filesystem::path path) {

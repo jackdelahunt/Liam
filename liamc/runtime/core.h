@@ -66,6 +66,27 @@ template <typename T, typename... Ts> std::ostream &operator<<(std::ostream &os,
     return os;
 }
 
+#define __PROPAGATE(type, expr, __VA_ARGS__)                                                                           \
+    ({                                                                                                                 \
+        auto __evaluated = (expr);                                                                                     \
+        if (auto __temp = std::get_if<type>(&__evaluated))                                                             \
+        { return *__temp; }                                                                                            \
+        std::variant<__VA_ARGS__> v = Internal::cast_variant<__VA_ARGS__>(__evaluated);                                \
+        v;                                                                                                             \
+    })
+
 namespace Internal {
 str make_str(const char *c_str);
+
+template <typename... newTypes, typename... oldTypes> auto cast_variant(const std::variant<oldTypes...> &var) {
+    return std::visit(
+        []<typename T>(T &&arg) -> std::variant<newTypes...> {
+            if constexpr (std::disjunction_v<std::is_same<std::decay_t<T>, newTypes>...>)
+            { return arg; }
+            else
+            { throw std::bad_variant_access(); }
+        },
+        var
+    );
 }
+} // namespace Internal
