@@ -513,8 +513,11 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_NULL_LITERAL:
         return type_check_null_literal_expression(dynamic_cast<NullLiteralExpression *>(expression), symbol_table);
         break;
+    case ExpressionType::EXPRESSION_PROPAGATE:
+        return type_check_propagation_expression(dynamic_cast<PropagateExpression *>(expression), symbol_table);
+        break;
     default:
-        panic("Not implemented");
+        panic("Expression not implemented in type checker");
     }
 }
 
@@ -999,6 +1002,67 @@ void TypeChecker::type_check_group_expression(GroupExpression *expression, Symbo
 
 void TypeChecker::type_check_null_literal_expression(NullLiteralExpression *expression, SymbolTable *symbol_table) {
     expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, new AnyTypeInfo{TypeInfoType::ANY}};
+}
+
+void TypeChecker::type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+    TRY_CALL(type_check_type_expression(expression->type_expression, symbol_table));
+    TRY_CALL(type_check_type_expression(expression->otherwise, symbol_table));
+
+    if (expression->expression->type_info->type != TypeInfoType::UNION)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression->expression, NULL, NULL, NULL, "Can only use propagation on union types"
+        );
+        return;
+    }
+
+    // find the index of the type expression in the union type if
+    // not there then report an error
+    auto expression_union_type = static_cast<UnionTypeInfo *>(expression->expression->type_info);
+    s64 index                  = -1;
+    for (s64 i = 0; i < expression_union_type->types.size(); i++)
+    {
+        auto t = expression_union_type->types[i];
+        if (type_match(t, expression->type_expression->type_info))
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression->expression, NULL, expression->type_expression, NULL,
+            "Union type does not contain this type"
+        );
+        return;
+    }
+
+    // we konw index in union types of our type, if we remove this type the resulting
+    // type is the return type, if the union with the type removed is a single type
+    // then it is converted to a single type without the union
+    auto remaining_types = std::vector<TypeInfo *>();
+    for (s64 i = 0; i < expression_union_type->types.size(); i++)
+    {
+        if (i != index)
+        { remaining_types.push_back(expression_union_type->types[i]); }
+    }
+
+    if (remaining_types.size() == 1)
+    { expression->type_info = remaining_types[0]; }
+    else
+    { expression->type_info = new UnionTypeInfo{TypeInfoType::UNION, remaining_types}; }
+
+    if (!type_match(expression->type_info, expression->otherwise->type_info))
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression->expression, NULL, expression->type_expression, expression->otherwise,
+            "Indicated type does not match final type with the given type removed"
+        );
+        return;
+    }
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {

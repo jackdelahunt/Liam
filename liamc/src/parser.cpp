@@ -363,6 +363,7 @@ std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
 /*
  *  === expression precedence === (lower is more precedence)
  *  is
+ *  ?
  *  or
  *  and
  *  == !=
@@ -379,7 +380,7 @@ std::tuple<Expression *, bool> Parser::eval_expression() {
 }
 
 std::tuple<Expression *, bool> Parser::eval_is() {
-    TRY(Expression *, expr, eval_or());
+    TRY(Expression *, expr, eval_propagation());
 
     if (match(TOKEN_IS))
     {
@@ -389,6 +390,21 @@ std::tuple<Expression *, bool> Parser::eval_is() {
         NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
         expr = new IsExpression(expr, type, *identifier);
+    }
+
+    return WIN(expr);
+}
+
+std::tuple<Expression *, bool> Parser::eval_propagation() {
+    TRY(Expression *, expr, eval_or());
+
+    if (match(TOKEN_RETURN))
+    {
+        TRY_TOKEN(TOKEN_RETURN);
+        TRY(TypeExpression *, type, eval_type_expression());
+        TRY_TOKEN(TOKEN_ELSE);
+        TRY(TypeExpression *, otherwise, eval_type_expression());
+        expr = new PropagateExpression(expr, type, otherwise);
     }
 
     return WIN(expr);

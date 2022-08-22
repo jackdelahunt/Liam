@@ -74,6 +74,7 @@ struct Parser {
     /* normal expressions */
     std::tuple<Expression *, bool> eval_expression();
     std::tuple<Expression *, bool> eval_is();
+    std::tuple<Expression *, bool> eval_propagation();
     std::tuple<Expression *, bool> eval_or();
     std::tuple<Expression *, bool> eval_and();
     std::tuple<Expression *, bool> eval_equality();

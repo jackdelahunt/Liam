@@ -88,6 +88,16 @@ NullLiteralExpression::NullLiteralExpression() {
     this->type = ExpressionType::EXPRESSION_NULL_LITERAL;
 }
 
+PropagateExpression::PropagateExpression(
+    Expression *expression, TypeExpression *type_expression, TypeExpression *otherwise
+) {
+    this->expression      = expression;
+    this->type_expression = type_expression;
+    this->type            = ExpressionType::EXPRESSION_PROPAGATE;
+    this->span            = expression->span;
+    this->otherwise       = otherwise;
+}
+
 std::ostream &TypeExpression::format(std::ostream &os) const {
     os << "()";
     return os;
