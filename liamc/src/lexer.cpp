@@ -168,6 +168,7 @@ void Lexer::lex() {
         case '#':
             while (current < chars->size() && chars->at(current) != '\n')
             { next_char(); }
+            current_line++;
             break;
         case '"': {
             u64 start       = current_character;
