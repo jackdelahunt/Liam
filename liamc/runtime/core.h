@@ -41,11 +41,14 @@ struct str {
 str make_str(char *chars, uint64_t length);
 std::ostream &operator<<(std::ostream &os, const str &obj);
 
-void panic(str message);
 u64 len(const str &s);
 str substr(str s, u64 start, u64 length);
 str char_at(str s, u64 index);
 bool is_digit(str s);
+
+#define panic(message)                                                                                                 \
+    std::cout << "PANIC " << __FILE__ << " (" << __LINE__ << ") :: " << message << "\n";                               \
+    exit(1);
 
 #define assert_true(condition)                                                                                         \
     if (!(condition))                                                                                                  \

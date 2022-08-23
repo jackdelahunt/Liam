@@ -51,3 +51,6 @@ extern fn array_free[T](array: ^Array[T]): void;
 extern fn make_map[K, V](): Map[K, V];
 extern fn map_insert[K, V](map: ^Map[K, V], k: K, v: V): void;
 extern fn map_get[K, V](map: ^Map[K, V], k: K): V;
+
+# OS
+extern fn argv(): Array[str];

@@ -17,4 +17,7 @@
 #include "io.cpp"
 #include "io.h"
 
+#include "os.cpp"
+#include "os.h"
+
 #include "collections.h"
