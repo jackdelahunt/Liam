@@ -106,11 +106,6 @@ bool is_digit(str s) {
     return s.chars[0] >= '0' && s.chars[0] <= '9';
 }
 
-void panic(str message) {
-    std::cout << message << "\n";
-    exit(1);
-}
-
 namespace Internal {
 str make_str(const char *c_str) {
     u64 length = strlen(c_str);

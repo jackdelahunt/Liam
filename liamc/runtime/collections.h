@@ -1,3 +1,4 @@
+#pragma once
 #include "core.h"
 #include "memory.h"
 #include <map>
@@ -37,7 +38,7 @@ template <typename T> void array_append(Array<T> *array, T value) {
     if (array->length == array->capacity)
     {
         array->capacity *= 2;
-        array->data = (T *)Internal::allocator->re_alloc(array->data, array->capacity * sizeof(T));
+        array->data = re_alloc<T>(array->data, array->capacity * sizeof(T));
     }
     array->data[array->length++] = value;
 }
@@ -50,7 +51,7 @@ template <typename T> void array_insert(Array<T> *array, int index, T value) {
     if (array->length == array->capacity)
     {
         array->capacity *= 2;
-        array->data = (T *)Internal::allocator->re_alloc(array->data, array->capacity * sizeof(T));
+        array->data = re_alloc<T>(array->data, array->capacity * sizeof(T));
     }
     for (int i = array->length; i > index; i--)
     { array->data[i] = array->data[i - 1]; }
@@ -65,7 +66,7 @@ template <typename T> void array_remove(Array<T> *array, int index) {
 }
 
 template <typename T> void array_free(Array<T> *array) {
-    Internal::allocator->destroy(array->data);
+    destroy(array->data);
     array->capacity = 0;
     array->length   = 0;
 }

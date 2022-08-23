@@ -85,9 +85,17 @@ std::string CppBackend::emit(File *file) {
     }
 
     if (args->test)
-    { source_generated.append("int main(int argc, char **argv) { __liam__test__(); }"); }
+    {
+        source_generated.append(
+            "int main(int argc, char **argv) { Internal::argc = argc; Internal::argv = argv;  __liam__test__(); }"
+        );
+    }
     else
-    { source_generated.append("int main(int argc, char **argv) { __liam__main__(); }"); }
+    {
+        source_generated.append(
+            "int main(int argc, char **argv) { Internal::argc = argc; Internal::argv = argv; __liam__main__(); }"
+        );
+    }
 
     return source_generated;
 }
@@ -648,18 +656,13 @@ std::string CppBackend::emit_propagate_expression(PropagateExpression *expressio
     v;
 )";
 
-    // expr is the emitted expresison for the expression duh...
-    // type is the return type we are checking for
-    // type_list is the else type
-    // single_type is the type if type_list is a single type
-
     std::string type_list;
     if (expression->otherwise->type == TypeExpressionType::TYPE_UNION)
     {
         auto union_expression = static_cast<UnionTypeExpression *>(expression->otherwise);
 
         // if the type expression is a union type expression then the type
-        // needed in the
+        // needed is a comma seperated list of the types in the union
         for (u64 i = 0; i < union_expression->type_expressions.size(); i++)
         {
             type_list.append(emit_type_expression(union_expression->type_expressions[i]));

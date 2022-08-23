@@ -1,20 +1,18 @@
 #include "memory.h"
 
+namespace Internal {
+Allocator *allocator = NULL;
+}
+
 void *Malloc::alloc(u64 size) {
-    if (Internal::allocator == NULL)
-    { panic(Internal::make_str("Allocator not set")); }
     return malloc(size);
 }
 
 void *Malloc::re_alloc(void *data, u64 new_size) {
-    if (Internal::allocator == NULL)
-    { panic(Internal::make_str("Allocator not set")); }
     return realloc(data, new_size);
 }
 
 void Malloc::destroy(void *ptr) {
-    if (Internal::allocator == NULL)
-    { panic(Internal::make_str("Allocator not set")); }
     free(ptr);
 }
 
