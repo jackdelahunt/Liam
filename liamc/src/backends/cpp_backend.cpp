@@ -437,6 +437,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_PROPAGATE:
         return emit_propagate_expression(dynamic_cast<PropagateExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_ZERO_LITERAL:
+        return emit_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression));
+        break;
     default: {
         panic("Cannot emit this expression in cpp backend");
         return "";
@@ -689,6 +692,10 @@ std::string CppBackend::emit_propagate_expression(PropagateExpression *expressio
     }
 
     return source;
+}
+
+std::string CppBackend::emit_zero_literal_expression(ZeroLiteralExpression *expression) {
+    return "{}";
 }
 
 std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {

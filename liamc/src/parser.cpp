@@ -111,6 +111,7 @@ std::tuple<Statement *, bool> Parser::eval_statement() {
 }
 
 std::tuple<LetStatement *, bool> Parser::eval_let_statement() {
+
     TRY_TOKEN(TOKEN_LET);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
@@ -411,6 +412,7 @@ std::tuple<Expression *, bool> Parser::eval_propagation() {
 }
 
 std::tuple<Expression *, bool> Parser::eval_or() {
+
     TRY(Expression *, expr, eval_and());
 
     while (match(TokenType::TOKEN_OR))
@@ -556,10 +558,9 @@ std::tuple<Expression *, bool> Parser::eval_primary() {
     else if (type == TokenType::TOKEN_PAREN_OPEN)
     { return eval_group_expression(); }
     else if (type == TokenType::TOKEN_NULL)
-    {
-        consume_token();
-        return WIN(new NullLiteralExpression());
-    }
+    { return WIN(new NullLiteralExpression(*consume_token())); }
+    else if (type == TokenType::TOKEN_ZERO)
+    { return WIN(new ZeroLiteralExpression(*consume_token())); }
 
     return WIN(new Expression()); // empty expression found -- like when a
                                   // return has no expression

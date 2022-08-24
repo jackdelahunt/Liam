@@ -17,7 +17,8 @@ enum class ExpressionType {
     EXPRESSION_NEW,
     EXPRESSION_GROUP,
     EXPRESSION_NULL_LITERAL,
-    EXPRESSION_PROPAGATE
+    EXPRESSION_PROPAGATE,
+    EXPRESSION_ZERO_LITERAL
 };
 
 struct Expression {
@@ -112,7 +113,7 @@ struct GroupExpression : Expression {
 };
 
 struct NullLiteralExpression : Expression {
-    NullLiteralExpression();
+    NullLiteralExpression(Token token);
 };
 
 struct PropagateExpression : Expression {
@@ -121,6 +122,10 @@ struct PropagateExpression : Expression {
     TypeExpression *otherwise;
 
     PropagateExpression(Expression *expression, TypeExpression *type_expression, TypeExpression *otherwise);
+};
+
+struct ZeroLiteralExpression : Expression {
+    ZeroLiteralExpression(Token token);
 };
 
 enum class TypeExpressionType {

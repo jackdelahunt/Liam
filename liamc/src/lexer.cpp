@@ -6,7 +6,7 @@
 #include "liam.h"
 #include "utils.h"
 
-const char *TokenTypeStrings[53] = {"int Literal", "string Literal",
+const char *TokenTypeStrings[54] = {"int Literal", "string Literal",
                                     "identifier",  "let",
                                     "insert",      "fn",
                                     "(",           ")",
@@ -31,7 +31,8 @@ const char *TokenTypeStrings[53] = {"int Literal", "string Literal",
                                     "|",           "is",
                                     "null",        "enum",
                                     "continue",    "alias",
-                                    "as",          "test"};
+                                    "as",          "test",
+                                    "zero"};
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
     this->type   = type;
@@ -324,6 +325,12 @@ void Lexer::lex() {
             if (word == "test")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_TEST, word, current_line, word_start));
+                continue;
+            }
+
+            if (word == "zero")
+            {
+                tokens.emplace_back(Token(TokenType::TOKEN_ZERO, word, current_line, word_start));
                 continue;
             }
 

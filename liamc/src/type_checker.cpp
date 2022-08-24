@@ -301,14 +301,14 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     if (!top_level)
     { type_check_fn_decl(statement, symbol_table); }
 
-    auto existing_type_info = static_cast<FnTypeInfo *>(symbol_table->identifier_table[statement->identifier.string]);
+    auto fn_type_info = static_cast<FnTypeInfo *>(symbol_table->identifier_table[statement->identifier.string]);
 
     // params and get type expressions
     auto args = std::vector<std::tuple<Token, TypeInfo *>>();
-    for (int i = 0; i < existing_type_info->args.size(); i++)
+    for (int i = 0; i < fn_type_info->args.size(); i++)
     {
         auto &[identifier, expr] = statement->params.at(i);
-        args.push_back({identifier, existing_type_info->args.at(i)});
+        args.push_back({identifier, fn_type_info->args.at(i)});
     }
 
     // copy table and add params
@@ -316,15 +316,21 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     for (auto &[identifier, type_info] : args)
     { copied_symbol_table.add_identifier(identifier, type_info); }
 
+    if (statement->identifier.string == "eval_is_expression")
+    {
+        if (true)
+        {}
+    }
+
     // type statements and check return exists if needed
     TRY_CALL(type_check_scope_statement(statement->body, &copied_symbol_table, false));
     for (auto stmt : statement->body->statements)
     {
         if (stmt->statement_type == StatementType::STATEMENT_RETURN)
         {
-            auto rt = (ReturnStatement *)stmt;
+            auto rt = static_cast<ReturnStatement *>(stmt);
 
-            if (existing_type_info->return_type->type == TypeInfoType::VOID)
+            if (fn_type_info->return_type->type == TypeInfoType::VOID)
             {
                 if (rt->expression != NULL)
                 {
@@ -337,10 +343,10 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
             }
             else
             {
-                if (!type_match(existing_type_info->return_type, rt->expression->type_info))
+                if (!type_match(fn_type_info->return_type, rt->expression->type_info))
                 {
                     ErrorReporter::report_type_checker_error(
-                        current_file->path, rt->expression, NULL, NULL, NULL,
+                        current_file->path, rt->expression, NULL, statement->return_type, NULL,
                         "Mismatch types in function, return types do not match"
                     );
                     return;
@@ -515,6 +521,9 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         break;
     case ExpressionType::EXPRESSION_PROPAGATE:
         return type_check_propagation_expression(dynamic_cast<PropagateExpression *>(expression), symbol_table);
+        break;
+    case ExpressionType::EXPRESSION_ZERO_LITERAL:
+        return type_check_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression), symbol_table);
         break;
     default:
         panic("Expression not implemented in type checker");
@@ -1065,6 +1074,10 @@ void TypeChecker::type_check_propagation_expression(PropagateExpression *express
     }
 }
 
+void TypeChecker::type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table) {
+    expression->type_info = new AnyTypeInfo{TypeInfoType::ANY};
+}
+
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {
     switch (type_expression->type)
     {
@@ -1277,19 +1290,41 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     }
     else if (a->type == TypeInfoType::UNION)
     {
+        // unions can get tricky sometimes
+        // you can either try and match the unions through each
+        // of the members
+        // or you may want to use a as a member of the b union
         auto union_a = static_cast<UnionTypeInfo *>(a);
         auto union_b = static_cast<UnionTypeInfo *>(b);
 
-        if (union_a->types.size() != union_b->types.size())
-            return false;
-
-        for (int i = 0; i < union_a->types.size(); i++)
+        // of the size matches then try and match all the types of
+        // the union if the members of the union do not match then
+        // try and match as an instance
+        if (union_a->types.size() == union_b->types.size())
         {
-            if (!type_match(union_a->types.at(i), union_b->types.at(i)))
-                return false;
+            bool match = true;
+            for (int i = 0; i < union_a->types.size(); i++)
+            {
+                if (!type_match(union_a->types.at(i), union_b->types.at(i)))
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match)
+                return true;
         }
 
-        return true;
+        // if we are here then they are not the same union
+        // now try and see if a is a type of b
+        for (int i = 0; i < union_b->types.size(); i++)
+        {
+            if (type_match(union_a, union_b->types.at(i)))
+            { return true; }
+        }
+
+        return false;
     }
     else if (a->type == TypeInfoType::ENUM)
     {
