@@ -527,7 +527,7 @@ std::tuple<Expression *, bool> Parser::eval_call() {
             { return {nullptr, true}; }
             TRY_TOKEN(TOKEN_PAREN_CLOSE);
 
-            return {new CallExpression(expr, args, generics), false};
+            expr = new CallExpression(expr, args, generics);
         }
         else if (match(TOKEN_DOT))
         {
@@ -539,7 +539,7 @@ std::tuple<Expression *, bool> Parser::eval_call() {
         { break; }
     }
 
-    return {expr, false};
+    return WIN(expr);
 }
 
 std::tuple<Expression *, bool> Parser::eval_primary() {
