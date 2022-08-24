@@ -163,15 +163,17 @@ File TypeChecker::type_check(std::vector<File *> *files) {
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol_table) {
     SymbolTable *symbol_table_in_use = symbol_table;
+
+    auto generic_type_infos = std::vector<TypeInfo *>();
     if (!statement->generics.empty())
     {
         SymbolTable *copy = new SymbolTable();
         *copy             = *symbol_table;
-        for (auto &generic : statement->generics)
+        for (u64 i = 0; i < statement->generics.size(); i++)
         {
-            copy->add_type(
-                generic, new GenericTypeInfo{TypeInfoType::GENERIC, 0}
-            ); // TODO: generic ids need to work here
+            auto generic_type = new GenericTypeInfo{TypeInfoType::GENERIC, i};
+            copy->add_type(statement->generics[i], generic_type);
+            generic_type_infos.push_back(generic_type);
         }
 
         symbol_table_in_use = copy;
@@ -190,7 +192,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     symbol_table->add_identifier(
         statement->identifier,
         new FnTypeInfo{
-            TypeInfoType::FN, statement->return_type->type_info, param_type_infos, statement->generics.size()}
+            TypeInfoType::FN, statement->return_type->type_info, generic_type_infos, param_type_infos}
     );
 }
 
@@ -311,15 +313,14 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
         args.push_back({identifier, fn_type_info->args.at(i)});
     }
 
-    // copy table and add params
+    // copy table and add params and add generic types
     SymbolTable copied_symbol_table = *symbol_table;
     for (auto &[identifier, type_info] : args)
     { copied_symbol_table.add_identifier(identifier, type_info); }
 
-    if (statement->identifier.string == "eval_is_expression")
+    for(u64 i = 0; i < statement->generics.size(); i++)
     {
-        if (true)
-        {}
+        copied_symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i]);
     }
 
     // type statements and check return exists if needed
@@ -799,13 +800,13 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
         return;
     }
 
-    if (fn_type_info->generic_count != expression->generics.size())
+    if (fn_type_info->generic_type_infos.size() != expression->generics.size())
     {
         ErrorReporter::report_type_checker_error(
             current_file->path, type_of_callee, NULL, NULL, NULL,
             fmt::format(
                 "Incorrect number of generic arguments in call expression, expected {} got {}",
-                fn_type_info->generic_count, expression->generics.size()
+                fn_type_info->generic_type_infos.size(), expression->generics.size()
             )
         );
         return;
@@ -962,6 +963,18 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
                 "Incorrect number of arguments in new expression, expected {} got {}", struct_type_info->members.size(),
                 calling_args_type_infos.size()
             )
+        );
+        return;
+    }
+
+    if (struct_type_info->generic_count != expression->generics.size())
+    {
+        ErrorReporter::report_type_checker_error(
+                current_file->path, expression, NULL, NULL, NULL,
+                fmt::format(
+                        "Incorrect number of type param arguments in new expression, expected {} got {}", struct_type_info->generic_count,
+                        expression->generics.size()
+                )
         );
         return;
     }
