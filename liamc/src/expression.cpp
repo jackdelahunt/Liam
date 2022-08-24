@@ -84,8 +84,9 @@ GroupExpression::GroupExpression(Expression *expression) {
     this->span       = expression->span;
 }
 
-NullLiteralExpression::NullLiteralExpression() {
+NullLiteralExpression::NullLiteralExpression(Token token) {
     this->type = ExpressionType::EXPRESSION_NULL_LITERAL;
+    this->span = token.span;
 }
 
 PropagateExpression::PropagateExpression(
@@ -96,6 +97,11 @@ PropagateExpression::PropagateExpression(
     this->type            = ExpressionType::EXPRESSION_PROPAGATE;
     this->span            = expression->span;
     this->otherwise       = otherwise;
+}
+
+ZeroLiteralExpression::ZeroLiteralExpression(Token token) {
+    this->type = ExpressionType::EXPRESSION_ZERO_LITERAL;
+    this->span = token.span;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {

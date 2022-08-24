@@ -47,6 +47,7 @@ struct CppBackend {
     std::string emit_group_expression(GroupExpression *expression);
     std::string emit_null_literal_expression(NullLiteralExpression *expression);
     std::string emit_propagate_expression(PropagateExpression *expression);
+    std::string emit_zero_literal_expression(ZeroLiteralExpression *expression);
 
     std::string emit_type_expression(TypeExpression *type_expression);
     std::string emit_unary_type_expression(UnaryTypeExpression *type_expression);
