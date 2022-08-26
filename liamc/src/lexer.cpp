@@ -334,6 +334,11 @@ void Lexer::lex() {
                 continue;
             }
 
+            if(word == "break") {
+                tokens.emplace_back(Token(TokenType::TOKEN_BREAK, word, current_line, word_start));
+                continue;
+            }
+
             // check numbers
             if (is_digit(word.at(0)) || word.at(0) == '-')
             {

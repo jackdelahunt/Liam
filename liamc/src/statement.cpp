@@ -103,9 +103,8 @@ ReturnStatement::ReturnStatement(File *file, Expression *expression) {
     this->statement_type = StatementType::STATEMENT_RETURN;
 }
 
-BreakStatement::BreakStatement(File *file, Token identifier) {
+BreakStatement::BreakStatement(File *file) {
     this->file           = file;
-    this->identifier     = identifier;
     this->statement_type = StatementType::STATEMENT_BREAK;
 }
 

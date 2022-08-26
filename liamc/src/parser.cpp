@@ -111,7 +111,6 @@ std::tuple<Statement *, bool> Parser::eval_statement() {
 }
 
 std::tuple<LetStatement *, bool> Parser::eval_let_statement() {
-
     TRY_TOKEN(TOKEN_LET);
     NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
 
@@ -240,9 +239,8 @@ std::tuple<BreakStatement *, bool> Parser::eval_break_statement() {
     // might just use an expression statement for this but for now it is a
     // string lit
     TRY_TOKEN(TOKEN_BREAK);
-    NAMED_TOKEN(identifier, TOKEN_STRING_LITERAL);
     consume_token_of_type(TOKEN_SEMI_COLON);
-    return WIN(new BreakStatement(file, *identifier));
+    return WIN(new BreakStatement(file));
 }
 
 std::tuple<ImportStatement *, bool> Parser::eval_import_statement() {

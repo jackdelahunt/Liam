@@ -216,8 +216,7 @@ std::string CppBackend::emit_return_statement(ReturnStatement *statement) {
 }
 
 std::string CppBackend::emit_break_statement(BreakStatement *statement) {
-    panic("Not implemented in C backend");
-    return "";
+    return "break;";
 }
 
 std::string CppBackend::emit_let_statement(LetStatement *statement) {
