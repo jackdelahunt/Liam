@@ -8,6 +8,7 @@
 #include "liam.h"
 #include "parser.h"
 #include "utils.h"
+#include <tuple>
 
 SymbolTable::SymbolTable() {
     this->builtin_type_table = std::map<std::string, TypeInfo *>();
@@ -251,9 +252,7 @@ void TypeChecker::type_check_return_statement(ReturnStatement *statement, Symbol
         TRY_CALL(type_check_expression(statement->expression, symbol_table));
 }
 
-void TypeChecker::type_check_break_statement(BreakStatement *statement, SymbolTable *symbol_table) {
-    panic("Not implemented");
-}
+void TypeChecker::type_check_break_statement(BreakStatement *statement, SymbolTable *symbol_table) {}
 
 void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(statement->rhs, symbol_table));
@@ -435,6 +434,7 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info))
     {
+        auto b = type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info);
         ErrorReporter::report_type_checker_error(
             current_file->path, statement->lhs, statement->assigned_to->expression, NULL, NULL,
             "Type mismatch, trying to assign a identifier to an expression of different type"
@@ -761,6 +761,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
     panic("Internal :: Unrecognised unary operator");
 }
 void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
+
     TRY_CALL(type_check_expression(expression->identifier, symbol_table));
     auto type_of_callee = dynamic_cast<IdentifierExpression *>(expression->identifier);
 
@@ -826,9 +827,7 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     for (u64 i = 0; i < expression->generics.size(); i++)
     { TRY_CALL(type_check_type_expression(expression->generics.at(i), symbol_table)); }
 
-    fn_type_info->return_type = resolve_generics(fn_type_info->return_type, &expression->generics);
-
-    expression->type_info = fn_type_info->return_type;
+    expression->type_info = create_type_from_generics(fn_type_info->return_type, &expression->generics);
 }
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
     TypeInfo *type_info;
@@ -845,6 +844,7 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
             current_file->path, expression, NULL, NULL, NULL,
             fmt::format("Unrecognized identifier \"{}\"", expression->identifier.string)
         );
+        return;
     }
 
     expression->type_info = type_info;
@@ -988,7 +988,7 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
         // struct member and type info
         auto [member, type] = struct_type_info->members.at(i);
 
-        auto resolved_member_type = resolve_generics(type, &expression->generics);
+        auto resolved_member_type = create_type_from_generics(type, &expression->generics);
         if (expression_member != member)
         {
             auto [name, expr] = expression->named_expressions.at(i);
@@ -1171,28 +1171,32 @@ void TypeChecker::type_check_identifier_type_expression(
     type_expression->type_info = type;
 }
 
-TypeInfo *TypeChecker::resolve_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params) {
+TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params) {
+
     if (type_info->type == TypeInfoType::POINTER)
     {
         auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
-        pointer_type_info->to  = resolve_generics(pointer_type_info->to, generic_params);
-        return pointer_type_info;
+        return new PointerTypeInfo{TypeInfoType::POINTER, create_type_from_generics(pointer_type_info->to, generic_params)};
     }
 
     if (type_info->type == TypeInfoType::GENERIC)
     {
-        auto generic_type_info = static_cast<GenericTypeInfo *>(type_info);
-        return generic_params->at(generic_type_info->id)->type_info;
+        auto generic_to_resolve = static_cast<GenericTypeInfo *>(type_info);
+        return generic_params->at(generic_to_resolve->id)->type_info;
     }
 
     if (type_info->type == TypeInfoType::STRUCT_INSTANCE)
     {
         auto instance_type_info = static_cast<StructInstanceTypeInfo *>(type_info);
-        for (int i = 0; i < instance_type_info->generic_types.size(); i++)
+
+        auto new_type_info = new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE, instance_type_info->struct_type, instance_type_info->generic_types};
+        for (int i = 0; i < new_type_info->generic_types.size(); i++)
         {
-            instance_type_info->generic_types[i] =
-                resolve_generics(instance_type_info->generic_types[i], generic_params);
+            new_type_info->generic_types[i] =
+                    create_type_from_generics(new_type_info->generic_types[i], generic_params);
         }
+
+        return new_type_info;
     }
 
     return type_info;

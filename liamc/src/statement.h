@@ -130,9 +130,7 @@ struct ReturnStatement : Statement {
 };
 
 struct BreakStatement : Statement {
-    Token identifier;
-
-    BreakStatement(File *file, Token identifier);
+    BreakStatement(File *file);
 };
 
 struct EnumStatement : Statement {

@@ -87,7 +87,7 @@ struct TypeChecker {
     );
     void type_check_identifier_type_expression(IdentifierTypeExpression *type_expression, SymbolTable *symbol_table);
 
-    TypeInfo *resolve_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params);
+    TypeInfo *create_type_from_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params);
 };
 
 bool type_match(TypeInfo *a, TypeInfo *b);
