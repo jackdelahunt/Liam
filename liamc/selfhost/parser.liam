@@ -12,7 +12,10 @@ alias Expression as
     ^GetExpression | 
     ^NewExpression |
     ^GroupExpression |
-    ^NullLiteralExpression
+    ^NullLiteralExpression |
+    ^PropagateExpression |
+    ^ZeroLiteralExpression |
+    ^EmptyExpression
 ;
 
 alias TypeExpression as
@@ -44,6 +47,7 @@ alias Statement as
 
 struct IsExpression {
     expression: Expression,
+    type_expression: TypeExpression,
     identifier: Token
 }
 
@@ -79,7 +83,7 @@ struct CallExpression {
     # this is an expression but must be an identifier
     identifier: Expression,
     args: Array[Expression],
-    generics: Array[Expression]
+    generics: Array[TypeExpression]
 }
 
 struct GetExpression {
@@ -99,6 +103,20 @@ struct GroupExpression {
 }
 
 struct NullLiteralExpression {
+
+}
+
+struct PropagateExpression {
+    expression: Expression,
+    type_expression: TypeExpression,
+    otherwise: TypeExpression
+}
+
+struct ZeroLiteralExpression {
+
+}
+
+struct EmptyExpression {
 
 }
 
@@ -127,7 +145,7 @@ struct ExpressionStatement {
 struct LetStatement {
     identifier: Token,
     rhs: Expression,
-    type: TypeExpression
+    type: Option[TypeExpression]
 }
 
 struct ScopeStatement {
@@ -182,12 +200,11 @@ struct ReturnStatement {
 }
 
 struct BreakStatement {
-    identifier: Token
 }
 
 struct EnumStatement {
     identifier: Token,
-    instnaces: Array[Token]
+    instances: Array[Token]
 }
 
 struct ContinueStatement {
@@ -216,43 +233,57 @@ struct Parser {
     file: ^File
 }
 
-fn eval_statement(parser: ^Parser): Statement {
+struct ParserError {
+    message: str
+}
+
+fn eval_statement(parser: ^Parser): Statement | ParserError{
     let next_type := parser_peek(parser, 0u64);
 
+
     if next_type.type == TokenType.LET {
-        return eval_let_statement(parser);
+        let stmt := eval_let_statement(parser) return ParserError else ^LetStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.FN {
-        return eval_fn_statement(parser);
+        let stmt := eval_fn_statement(parser) return ParserError else ^FnStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.STRUCT {
-        return eval_struct_statement(parser);
+        let stmt := eval_struct_statement(parser) return ParserError else ^StructStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.INSERT {
-        return eval_insert_statement(parser);
+        let stmt := eval_insert_statement(parser) return ParserError else ^InsertStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.RETURN {
-        return eval_return_statement(parser);
+        let stmt := eval_return_statement(parser) return ParserError else ^ReturnStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.BREAK {
-        return eval_break_statement(parser);
+        let stmt := eval_break_statement(parser) return ParserError else ^BreakStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.IMPORT {
-        return eval_import_statement(parser);
+        let stmt := eval_import_statement(parser) return ParserError else ^ImportStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.FOR {
-        return eval_for_statement(parser);
+        let stmt := eval_for_statement(parser) return ParserError else ^ForStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.IF {
-        return eval_if_statement(parser);
+        let stmt := eval_if_statement(parser) return ParserError else ^IfStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.EXTERN {
@@ -260,93 +291,119 @@ fn eval_statement(parser: ^Parser): Statement {
     }
 
     if next_type.type == TokenType.ENUM {
-        return eval_enum_statement(parser);
+        let stmt := eval_enum_statement(parser) return ParserError else ^EnumStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.CONTINUE {
-        return eval_continue_statement(parser);
+        let stmt := eval_continue_statement(parser) return ParserError else ^ContinueStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.ALIAS {
-        return eval_alias_statement(parser);
+        let stmt := eval_alias_statement(parser) return ParserError else ^AliasStatement;
+        return stmt;
     }
 
     if next_type.type == TokenType.TEST {
-        return eval_test_statement(parser);
+        let stmt := eval_test_statement(parser) return ParserError else ^TestStatement  ;
+        return stmt;
     }
 
     return eval_line_starting_expression(parser);
 }
 
-fn eval_let_statement(parser: ^Parser): ^LetStatement {
+fn eval_let_statement(parser: ^Parser): ^LetStatement | ParserError {
+    try_token(parser, TokenType.LET) return ParserError else Token;
+    let identifier := try_token(parser, TokenType.IDENTIFIER) return ParserError else Token;
+
+    let type : Option[TypeExpression] = none[TypeExpression]();
+    try_token(parser, TokenType.COLON) return ParserError else Token;
+
+    if parser_peek(parser, 0u64).type != TokenType.ASSIGN {
+        type = some[TypeExpression](eval_type_expression(parser) return ParserError else TypeExpression);
+    }
+
+    let expression_statement := eval_expression_statement(parser) return ParserError else ^ExpressionStatement;
+    return alloc[LetStatement](
+        new LetStatement {
+            identifier: identifier,
+            rhs: expression_statement.expression,
+            type: type
+        }
+    );
+}
+
+fn eval_scope_statement(parser: ^Parser): ^ScopeStatement | ParserError {
     
 }
 
-fn eval_scope_statement(parser: ^Parser): ^ScopeStatement {
+fn eval_fn_statement(parser: ^Parser): ^FnStatement | ParserError {
     
 }
 
-fn eval_fn_statement(parser: ^Parser): ^FnStatement {
+fn eval_struct_statement(parser: ^Parser): ^StructStatement | ParserError {
     
 }
 
-fn eval_struct_statement(parser: ^Parser): ^StructStatement {
+fn eval_insert_statement(parser: ^Parser): ^InsertStatement | ParserError {
     
 }
 
-fn eval_insert_statement(parser: ^Parser): ^InsertStatement {
+fn eval_return_statement(parser: ^Parser): ^ReturnStatement | ParserError {
     
 }
 
-fn eval_return_statement(parser: ^Parser): ^ReturnStatement {
+fn eval_break_statement(parser: ^Parser): ^BreakStatement | ParserError {
     
 }
 
-fn eval_break_statement(parser: ^Parser): ^BreakStatement {
+fn eval_import_statement(parser: ^Parser): ^ImportStatement | ParserError {
     
 }
 
-fn eval_import_statement(parser: ^Parser): ^ImportStatement {
+fn eval_for_statement(parser: ^Parser): ^ForStatement | ParserError {
     
 }
 
-fn eval_for_statement(parser: ^Parser): ^ForStatement {
+fn eval_if_statement(parser: ^Parser): ^IfStatement | ParserError {
     
 }
 
-fn eval_if_statement(parser: ^Parser): ^IfStatement {
+fn eval_else_statement(parser: ^Parser): ^ElseStatement | ParserError {
     
 }
 
-fn eval_else_statement(parser: ^Parser): ^ElseStatement {
+fn eval_expression_statement(parser: ^Parser): ^ExpressionStatement | ParserError {
+    let expression := eval_expression(parser) return ParserError else Expression;
+    try_token(parser, TokenType.SEMI_COLON) return ParserError else Token;
+
+    return alloc[ExpressionStatement](new ExpressionStatement {
+        expression: expression
+    });
+}
+
+fn eval_extern_statement(parser: ^Parser): Statement | ParserError {
     
 }
 
-fn eval_expression_statement(parser: ^Parser): ^ExpressionStatement {
+fn eval_enum_statement(parser: ^Parser): ^EnumStatement | ParserError {
     
 }
 
-fn eval_extern_statement(parser: ^Parser): Statement {
+fn eval_continue_statement(parser: ^Parser): ^ContinueStatement | ParserError {
     
 }
 
-fn eval_enum_statement(parser: ^Parser): ^EnumStatement {
+fn eval_alias_statement(parser: ^Parser): ^AliasStatement | ParserError {
     
 }
 
-fn eval_continue_statement(parser: ^Parser): ^ContinueStatement {
+fn eval_test_statement(parser: ^Parser): ^TestStatement | ParserError {
     
 }
 
-fn eval_alias_statement(parser: ^Parser): ^AliasStatement {
-    
-}
-
-fn eval_test_statement(parser: ^Parser): ^TestStatement {
-    
-}
-
-fn eval_line_starting_expression(parser: ^Parser): Statement {
+fn eval_line_starting_expression(parser: ^Parser): Statement | ParserError {
     
 }
 
@@ -362,22 +419,25 @@ fn eval_line_starting_expression(parser: ^Parser): Statement {
 #  @ * !
 #  call()
 #  literal () new "" null true false
-fn eval_expression(parser: ^Parser): Expression {
+fn eval_expression(parser: ^Parser): Expression | ParserError {
     return eval_is_expression(parser);
 }
 
-fn eval_is_expression(parser: ^Parser): Expression {
-    let expr := eval_or_expression(parser);
+fn eval_is_expression(parser: ^Parser): Expression | ParserError {
+    let expr : Expression = eval_propagation_expression(parser) return ParserError else Expression;
 
     if (match(parser, TokenType.IS))
     {
         consume_token(parser);
-        let type := eval_type_expression(parser);
-        try_token(parser, TokenType.AS);
-        let identifier := try_token(parser, TokenType.IDENTIFIER);
+        let type_expression := eval_type_expression(parser) return ParserError else TypeExpression;
+        try_token(parser, TokenType.AS) return ParserError else Token;
+        let identifier := try_token(parser, TokenType.IDENTIFIER) return ParserError else Token;
+
+        let y: ^s64 = alloc[s64](100);
 
         expr = alloc[IsExpression](new IsExpression{
             expression: expr,
+            type_expression: type_expression,
             identifier: identifier
         });    
     }
@@ -385,68 +445,339 @@ fn eval_is_expression(parser: ^Parser): Expression {
     return expr;
 }
 
-fn eval_or_expression(parser: ^Parser): Expression {
+fn eval_propagation_expression(parser: ^Parser): Expression | ParserError {
+    let expr := eval_or_expression(parser) return ParserError else Expression;
     
+    if match(parser, TokenType.RETURN) {
+        try_token(parser, TokenType.RETURN) return ParserError else Token;
+        let type := eval_type_expression(parser) return ParserError else TypeExpression;
+        try_token(parser, TokenType.ELSE) return ParserError else Token;
+        let otherwise := eval_type_expression(parser) return ParserError else TypeExpression;
+        
+        expr = alloc[PropagateExpression](new PropagateExpression{
+            expression: expr,
+            type_expression: type,
+            otherwise: otherwise
+        });
+    }
+
+    return expr;
 }
 
-fn eval_and_expression(parser: ^Parser): Expression {
-    
+fn eval_or_expression(parser: ^Parser): Expression | ParserError {
+    let expr := eval_and_expression(parser) return ParserError else Expression;
+
+    for let ignore_me := 0; true; ignore_me = ignore_me; {
+
+        if !match(parser, TokenType.OR) {
+            break;
+        }
+
+        let op := consume_token(parser);
+        let right := eval_and_expression(parser) return ParserError else Expression;
+        expr = alloc[BinaryExpression](new BinaryExpression {
+            left: expr,
+            op: op,
+            right: right
+        });
+    }
+
+    return expr;
 }
 
-fn eval_equality_expression(parser: ^Parser): Expression {
-    
+fn eval_and_expression(parser: ^Parser): Expression | ParserError {
+    let expr := eval_equality_expression(parser) return ParserError else Expression;
+
+    for let ignore_me := 0; true; ignore_me = ignore_me; {
+
+        if !match(parser, TokenType.AND) {
+            break;
+        }
+
+        let op := consume_token(parser);
+        let right := eval_and_expression(parser) return ParserError else Expression;
+        expr = alloc[BinaryExpression](new BinaryExpression {
+            left: expr,
+            op: op,
+            right: right
+        });
+    }
+
+    return expr;
 }
 
-fn eval_relational_expression(parser: ^Parser): Expression {
-    
+fn eval_equality_expression(parser: ^Parser): Expression | ParserError {
+    let expr := eval_relational_expression(parser) return ParserError else Expression;
+
+    for let ignore_me := 0; true; ignore_me = ignore_me; {
+
+        if !(match(parser, TokenType.NOT_EQUAL) or match(parser, TokenType.EQUAL)) {
+            break;
+        }
+
+        let op := consume_token(parser);
+            let right := eval_relational_expression(parser) return ParserError else Expression;
+            expr = alloc[BinaryExpression](new BinaryExpression {
+                left: expr,
+                op: op,
+                right: right
+        });
+    }
+
+    return expr;
 }
 
-fn eval_term_expression(parser: ^Parser): Expression {
-    
+fn eval_relational_expression(parser: ^Parser): Expression | ParserError {
+    let expr := eval_term_expression(parser) return ParserError else Expression;
+
+    for let ignore_me := 0; true; ignore_me = ignore_me; {
+
+        if !(match(parser, TokenType.LESS) or match(parser, TokenType.GREATER) or match(parser, TokenType.GREATER_EQUAL) or match(parser, TokenType.LESS_EQUAL)) {
+            break;
+        }
+
+        let op := consume_token(parser);
+        let right := eval_term_expression(parser) return ParserError else Expression;
+        expr = alloc[BinaryExpression](new BinaryExpression {
+            left: expr,
+            op: op,
+            right: right
+        });
+    }
+
+    return expr;
 }
 
-fn eval_factor_expression(parser: ^Parser): Expression {
-    
+fn eval_term_expression(parser: ^Parser): Expression | ParserError {
+    let expr := eval_factor_expression(parser) return ParserError else Expression;
+
+    for let ignore_me := 0; true; ignore_me = ignore_me; {
+
+        if !(match(parser, TokenType.PLUS) or match(parser, TokenType.MINUS)) {
+            break;
+        }
+
+        let op := consume_token(parser);
+        let right := eval_factor_expression(parser) return ParserError else Expression;
+        expr = alloc[BinaryExpression](new BinaryExpression {
+            left: expr,
+            op: op,
+            right: right
+        });
+    }
+
+    return expr; 
 }
 
-fn eval_unary_expression(parser: ^Parser): Expression {
-    
+fn eval_factor_expression(parser: ^Parser): Expression | ParserError {
+    let expr := eval_unary_expression(parser) return ParserError else Expression;
+
+    for let ignore_me := 0; true; ignore_me = ignore_me; {
+
+        if !(match(parser, TokenType.STAR) or match(parser, TokenType.SLASH) or match(parser, TokenType.MOD)) {
+            break;
+        }
+
+        let op := consume_token(parser);
+        let right := eval_unary_expression(parser) return ParserError else Expression;
+        expr = alloc[BinaryExpression](new BinaryExpression {
+            left: expr,
+            op: op,
+            right: right
+        });
+    }
+
+    return expr;  
 }
 
-fn eval_call_expression(parser: ^Parser): Expression {
-    
+fn eval_unary_expression(parser: ^Parser): Expression | ParserError {
+    if match(parser, TokenType.AT) or match(parser, TokenType.STAR) or match(parser, TokenType.NOT) {
+        let op := consume_token(parser);
+        let expr := eval_unary_expression(parser) return ParserError else Expression;
+        return alloc[UnaryExpression](new UnaryExpression{
+            op: op,
+            expression: expr
+        });
+    }
+
+    return eval_call_expression(parser);
 }
 
-fn eval_primary_expression(parser: ^Parser): Expression {
-    
+fn eval_call_expression(parser: ^Parser): Expression | ParserError {
+    let expr := eval_primary_expression(parser) return ParserError else Expression;
+
+    for let ignore_me := 0; true; ignore_me = ignore_me; {
+        if match(parser, TokenType.PAREN_OPEN) or match(parser, TokenType.BRACKET_OPEN) {
+            let generics := make_array[TypeExpression]();
+
+            if parser_peek(parser, 1u64).type == TokenType.BRACKET_OPEN {
+                consume_token(parser);
+                let types := consume_comma_seperated_types(parser, TokenType.BRACKET_CLOSE) return ParserError else Array[TypeExpression];
+                try_token(parser, TokenType.BRACKET_CLOSE) return ParserError else Token;
+                generics = types;
+            }
+
+            try_token(parser, TokenType.PAREN_OPEN) return ParserError else Token;
+            let args := consume_comma_seperated_arguments(parser, TokenType.PAREN_CLOSE) return ParserError else Array[Expression];
+            try_token(parser, TokenType.PAREN_CLOSE) return ParserError else Token;
+
+            expr = alloc[CallExpression](new CallExpression {
+                identifier: expr,
+                args: args,
+                generics: generics
+            });
+
+        } else if match(parser, TokenType.DOT) {
+            consume_token(parser);
+            let identifier := try_token(parser, TokenType.IDENTIFIER) return ParserError else Token;
+            expr = alloc[GetExpression](new GetExpression {
+                lhs: expr,
+                member: identifier
+            });
+        } else {
+            break;
+        }
+    }
+
+    return expr;
 }
 
-fn eval_new_expression(parser: ^Parser): Expression {
-    
+fn eval_primary_expression(parser: ^Parser): Expression | ParserError {
+    let type := parser_peek(parser, 1u64).type;
+
+    if type == TokenType.NUMBER_LITERAL {
+        return alloc[NumberLiteralExpression](new NumberLiteralExpression{
+            token: consume_token(parser),
+            number: 0s64
+        });
+    } else if type == TokenType.STRING_LITERAL {
+        return alloc[StringLiteralExpression](new StringLiteralExpression{
+            token: consume_token(parser)
+        }); 
+    } else if type == TokenType.TRUE or type == TokenType.FALSE {
+        return alloc[BoolLiteralExpression](new BoolLiteralExpression{
+            value: consume_token(parser)
+        });
+    } else if type == TokenType.IDENTIFIER {
+        return alloc[IdentifierExpression](new IdentifierExpression{
+            identifier: consume_token(parser)
+        });
+    } else if type == TokenType.NEW {
+        return eval_new_expression(parser);
+    } else if type == TokenType.PAREN_OPEN {
+        return eval_group_expression(parser);
+    } else if type == TokenType.NULL_POINTER {
+        return alloc[NullLiteralExpression](new NullLiteralExpression{});
+    } else if type == TokenType.ZERO {
+        return alloc[ZeroLiteralExpression](new ZeroLiteralExpression{}); 
+    }
+
+    return alloc[EmptyExpression](new EmptyExpression{});
 }
 
-fn eval_group_expression(parser: ^Parser): Expression {
-    
+fn eval_new_expression(parser: ^Parser): Expression | ParserError {
+    try_token(parser, TokenType.NEW) return ParserError else Token;
+    let identifier := try_token(parser, TokenType.IDENTIFIER) return ParserError else Token;
+
+    let generics := make_array[TypeExpression]();
+    if parser_peek(parser, 1u64).type == TokenType.BRACKET_OPEN {
+        try_token(parser, TokenType.BRACKET_OPEN) return ParserError else Token;
+        let types := consume_comma_seperated_types(parser, TokenType.BRACKET_CLOSE) return ParserError else Array[TypeExpression];
+        
+        try_token(parser, TokenType.BRACKET_CLOSE) return ParserError else Token;
+        generics = types;
+    }
+
+    try_token(parser, TokenType.BRACE_OPEN) return ParserError else Token;
+    let named_expressions := consume_comma_seperated_named_arguments(parser, TokenType.BRACE_CLOSE) return ParserError else Array[Tuple[Token, Expression]];
+    try_token(parser, TokenType.BRACE_CLOSE) return ParserError else Token;
+
+    return alloc[NewExpression](new NewExpression{
+        identifier: identifier,
+        generics: generics,
+        named_expressions: named_expressions
+    });
 }
 
-fn eval_type_expression(parser: ^Parser): Expression {
+fn eval_group_expression(parser: ^Parser): Expression | ParserError {
+    try_token(parser, TokenType.PAREN_OPEN) return ParserError else Token;
+    let expr := eval_expression(parser) return ParserError else Expression;
+    try_token(parser, TokenType.PAREN_CLOSE) return ParserError else Token;
     
+    return alloc[GroupExpression](new GroupExpression {
+        expression: expr
+    });
 }
 
-fn eval_union_type_expression(parser: ^Parser): Expression {
-    
+# === type expression precedence === (lower is more precedence)
+# |
+# ^
+# []
+# identifier
+fn eval_type_expression(parser: ^Parser): TypeExpression | ParserError {
+    return eval_union_type_expression(parser);
 }
 
-fn eval_unary_type_expression(parser: ^Parser): Expression {
-    
+fn eval_union_type_expression(parser: ^Parser): TypeExpression | ParserError {
+    let type_expression := eval_unary_type_expression(parser) return ParserError else TypeExpression;
+
+    # there is a bar then this is a union type else return normal type
+    if match(parser, TokenType.BAR)
+    {
+        let type_expressions := make_array[TypeExpression]();
+        array_append[TypeExpression](@type_expressions, type_expression);
+        for let ignore_me := 0; match(parser, TokenType.BAR); ignore_me = ignore_me; {
+            try_token(parser, TokenType.BAR) return ParserError else Token;
+            let next_expression := eval_unary_type_expression(parser) return ParserError else TypeExpression;
+            array_append[TypeExpression](@type_expressions, next_expression); 
+        }
+
+        return alloc[UnionTypeExpression](new UnionTypeExpression {
+            type_expressions: type_expressions
+        });
+    }
+
+    return type_expression;
 }
 
-fn eval_specified_generics_type_expression(parser: ^Parser): Expression {
-    
+fn eval_unary_type_expression(parser: ^Parser): TypeExpression | ParserError {
+    if match(parser, TokenType.HAT)
+    {
+        let op := consume_token(parser);
+        let type_expression := eval_unary_type_expression(parser) return ParserError else TypeExpression;
+        
+        return alloc[UnaryTypeExpression](new UnaryTypeExpression{
+            op: op,
+            type_expression: type_expression
+        });
+    }
+
+    return eval_specified_generics_type_expression(parser);
 }
 
-fn eval_identifier_type_expression(parser: ^Parser): Expression {
-    
+fn eval_specified_generics_type_expression(parser: ^Parser): TypeExpression | ParserError {
+    let type_expr := eval_identifier_type_expression(parser) return ParserError else TypeExpression;
+    type_expr is ^IdentifierTypeExpression as identifier;
+
+    if match(parser, TokenType.BRACKET_OPEN) {
+        try_token(parser, TokenType.BRACKET_OPEN) return ParserError else Token;
+        let generics := consume_comma_seperated_types(parser, TokenType.BRACKET_CLOSE) return ParserError else Array[TypeExpression];
+        try_token(parser, TokenType.BRACKET_OPEN) return ParserError else Token;
+
+        return alloc[SpecifiedGenericsTypeExpression](new SpecifiedGenericsTypeExpression{
+            struct_type: *identifier,
+            generics: generics
+        });
+    }
+
+    return type_expr;
+}
+
+fn eval_identifier_type_expression(parser: ^Parser): TypeExpression | ParserError {
+    let identifier := try_token(parser, TokenType.IDENTIFIER) return ParserError else Token;
+    return alloc[IdentifierTypeExpression](new IdentifierTypeExpression{
+        identifier: identifier
+    });
 }
 
 fn match(parser: ^Parser, type: TokenType): bool {
@@ -469,8 +800,85 @@ fn consume_token(parser: ^Parser): Token {
     return token;
 }
 
-fn try_token(parser: ^Parser, type: TokenType): Token {
+fn try_token(parser: ^Parser, type: TokenType): Token | ParserError {
     let token := consume_token(parser);
-    assert_true(token.type == type);
+
+    if token.type != type {
+        return new ParserError{message: "Unexpected token"};
+    }
+    
     return token;
+}
+
+# e.g. (0, "hello sailor", ...)
+fn consume_comma_seperated_arguments(parser: ^Parser, closer: TokenType): Array[Expression] | ParserError { 
+    let args := make_array[Expression]();
+    let is_first := true;
+    if !match(parser, closer) {
+        for let ignore_me := 0; match(parser, TokenType.COMMA) or is_first; ignore_me = ignore_me; {
+            if !is_first {
+                parser.current = parser.current + 1u64; # only iterate current by one when it is not the first time
+            } 
+
+            let expr := eval_expression(parser) return ParserError else Expression;
+            array_append[Expression](@args, expr);
+
+            if is_first {
+                is_first = false;
+            }
+        }
+    }
+
+    return args;
+}
+
+# e.g. (int32, ^char, ...)
+fn consume_comma_seperated_types(parser: ^Parser, closer: TokenType): Array[TypeExpression] | ParserError {
+    let types := make_array[TypeExpression]();
+    let is_first := true;
+    if !match(parser, closer) {
+
+        for let ignore_me := 0; match(parser, TokenType.COMMA) or is_first; ignore_me = ignore_me; {
+            if !is_first {
+                parser.current = parser.current + 1u64; # only iterate current by one when it is not the first time
+            }
+
+            let type := eval_type_expression(parser) return ParserError else TypeExpression;
+            array_append[TypeExpression](@types, type);
+
+            if is_first {
+                is_first = false;
+            }
+        }
+    }
+
+    return types;
+}
+
+fn consume_comma_seperated_named_arguments(parser: ^Parser, closer: TokenType): Array[Tuple[Token, Expression]] | ParserError { 
+    let named_args := make_array[Tuple[Token, Expression]]();
+    let is_first := true;
+    if !match(parser, closer)
+    {
+        for let ignore_me := 0; match(parser, TokenType.COMMA) or is_first; ignore_me = ignore_me; {
+            if !is_first {
+                parser.current = parser.current + 1u64;
+            }
+
+            let name := try_token(parser, TokenType.IDENTIFIER) return ParserError else Token;
+            try_token(parser, TokenType.COLON) return ParserError else Token;
+
+            let expression := eval_expression(parser) return ParserError else Expression;
+            array_append[Tuple[Token, Expression]](@named_args, new Tuple[Token, Expression]{
+                one: name,
+                two: expression
+            });
+
+            if is_first {
+                is_first = false;
+            }
+        }
+    }
+
+    return named_args;
 }
