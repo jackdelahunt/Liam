@@ -26,9 +26,11 @@ void Parser::parse() {
     this->file = new File(path);
     while (current < tokens.size())
     {
-        auto [stmt, error] = eval_statement();
-        if (error)
-        { continue; }
+
+        auto errors_before = ErrorReporter::error_count();
+        auto stmt          = eval_statement();
+        if (ErrorReporter::error_count() > errors_before)
+            continue;
 
         if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
         {
@@ -59,49 +61,49 @@ void Parser::parse() {
     }
 }
 
-std::tuple<Statement *, bool> Parser::eval_statement() {
+Statement *Parser::eval_statement() {
     switch (peek()->type)
     {
-    case TOKEN_LET:
+    case TokenType::TOKEN_LET:
         return eval_let_statement();
         break;
-    case TOKEN_FN:
+    case TokenType::TOKEN_FN:
         return eval_fn_statement();
         break;
-    case TOKEN_STRUCT:
+    case TokenType::TOKEN_STRUCT:
         return eval_struct_statement();
         break;
-    case TOKEN_INSERT:
+    case TokenType::TOKEN_INSERT:
         return eval_insert_statement();
         break;
-    case TOKEN_RETURN:
+    case TokenType::TOKEN_RETURN:
         return eval_return_statement();
         break;
-    case TOKEN_BREAK:
+    case TokenType::TOKEN_BREAK:
         return eval_break_statement();
         break;
-    case TOKEN_IMPORT:
+    case TokenType::TOKEN_IMPORT:
         return eval_import_statement();
         break;
-    case TOKEN_FOR:
+    case TokenType::TOKEN_FOR:
         return eval_for_statement();
         break;
-    case TOKEN_IF:
+    case TokenType::TOKEN_IF:
         return eval_if_statement();
         break;
-    case TOKEN_EXTERN:
+    case TokenType::TOKEN_EXTERN:
         return eval_extern_statement();
         break;
-    case TOKEN_ENUM:
+    case TokenType::TOKEN_ENUM:
         return eval_enum_statement();
         break;
-    case TOKEN_CONTINUE:
+    case TokenType::TOKEN_CONTINUE:
         return eval_continue_statement();
         break;
-    case TOKEN_ALIAS:
+    case TokenType::TOKEN_ALIAS:
         return eval_alias_statement();
         break;
-    case TOKEN_TEST:
+    case TokenType::TOKEN_TEST:
         return eval_test_statement();
         break;
     default:
@@ -110,24 +112,25 @@ std::tuple<Statement *, bool> Parser::eval_statement() {
     }
 }
 
-std::tuple<LetStatement *, bool> Parser::eval_let_statement() {
-    TRY_TOKEN(TOKEN_LET);
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+LetStatement *Parser::eval_let_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LET), NULL);
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     TypeExpression *type = NULL;
 
-    TRY_TOKEN(TOKEN_COLON);
-    if (peek()->type != TOKEN_ASSIGN)
-    { TRY(, type, eval_type_expression()); }
-    TRY_TOKEN(TOKEN_ASSIGN);
-    TRY(ExpressionStatement *, expression, eval_expression_statement());
-    return WIN(new LetStatement(file, *identifier, expression->expression, type));
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
+    if (peek()->type != TokenType::TOKEN_ASSIGN)
+    { type = TRY_CALL_RET(eval_type_expression(), NULL); }
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ASSIGN), NULL);
+    auto expression = TRY_CALL_RET(eval_expression_statement(), NULL);
+    return new LetStatement(file, *identifier, expression->expression, type);
 }
 
-std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement() {
+ScopeStatement *Parser::eval_scope_statement() {
     auto statements = std::vector<Statement *>();
-    NAMED_TOKEN(open_brace, TOKEN_BRACE_OPEN);
-    s32 closing_brace_index = find_balance_point(TOKEN_BRACE_OPEN, TOKEN_BRACE_CLOSE, current - 1);
+    auto open_brace = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+    s32 closing_brace_index =
+        find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, current - 1);
     if (closing_brace_index == current + 1)
     { // if this scope is empty
         current++;
@@ -137,226 +140,227 @@ std::tuple<ScopeStatement *, bool> Parser::eval_scope_statement() {
         ErrorReporter::report_parser_error(
             path.string(), open_brace->span.start, open_brace->span.start, "No closing brace for scope found"
         );
-        return {nullptr, true};
+        return NULL;
     }
 
     while (current < closing_brace_index)
     {
-        TRY(Statement *, statement, eval_statement());
+        auto statement = TRY_CALL_RET(eval_statement(), NULL);
         statements.push_back(statement);
     }
-    TRY_TOKEN(TOKEN_BRACE_CLOSE);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return WIN(new ScopeStatement(file, statements));
+    return new ScopeStatement(file, statements);
 }
 
-std::tuple<FnStatement *, bool> Parser::eval_fn_statement(bool is_extern) {
-    TRY_TOKEN(TOKEN_FN);
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+FnStatement *Parser::eval_fn_statement(bool is_extern) {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<Token>();
-    if (peek()->type == TOKEN_BRACKET_OPEN)
+    if (peek()->type == TokenType::TOKEN_BRACKET_OPEN)
     {
-        TRY_TOKEN(TOKEN_BRACKET_OPEN);
-        auto [types, error] = consume_comma_seperated_token_arguments(TOKEN_BRACKET_CLOSE);
-        if (error)
-        { return {nullptr, true}; }
-        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+        auto types = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
 
         generics = types;
     }
 
-    TRY_TOKEN(TOKEN_PAREN_OPEN);
-    auto [params, error] = consume_comma_seperated_params();
-    if (error)
-    { return {nullptr, true}; }
-    TRY_TOKEN(TOKEN_PAREN_CLOSE);
-    TRY_TOKEN(TOKEN_COLON);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
 
-    TRY(TypeExpression *, type, eval_type_expression());
+    auto params = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
+
+    auto type = TRY_CALL_RET(eval_type_expression(), NULL);
 
     if (is_extern)
     {
-        TRY_TOKEN(TOKEN_SEMI_COLON);
-        return WIN(new FnStatement(file, *identifier, generics, params, type, NULL, true));
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+        return new FnStatement(file, *identifier, generics, params, type, NULL, true);
     }
     else
     {
-        TRY(ScopeStatement *, body, eval_scope_statement());
-        return WIN(new FnStatement(file, *identifier, generics, params, type, body, false));
+        auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
+        return new FnStatement(file, *identifier, generics, params, type, body, false);
     }
 }
 
-std::tuple<StructStatement *, bool> Parser::eval_struct_statement(bool is_extern) {
-    TRY_TOKEN(TOKEN_STRUCT);
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+StructStatement *Parser::eval_struct_statement(bool is_extern) {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_STRUCT), NULL);
+
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<Token>();
-    if (peek()->type == TOKEN_BRACKET_OPEN)
+    if (peek()->type == TokenType::TOKEN_BRACKET_OPEN)
     {
-        TRY_TOKEN(TOKEN_BRACKET_OPEN);
-        auto [types, error] = consume_comma_seperated_token_arguments(TOKEN_BRACKET_CLOSE);
-        if (error)
-        { return {nullptr, true}; }
-        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
 
+        auto types = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
         generics = types;
     }
 
-    TRY_TOKEN(TOKEN_BRACE_OPEN);
-    auto [member, error] = consume_comma_seperated_params();
-    if (error)
-    { return {nullptr, true}; }
-    TRY_TOKEN(TOKEN_BRACE_CLOSE);
-    return WIN(new StructStatement(file, *identifier, generics, member, is_extern));
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+
+    auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    return new StructStatement(file, *identifier, generics, member, is_extern);
 }
 
-std::tuple<InsertStatement *, bool> Parser::eval_insert_statement() {
-    TRY_TOKEN(TOKEN_INSERT);
-    TRY(Expression *, byte_code, eval_expression());
-    TRY_TOKEN(TOKEN_SEMI_COLON);
+InsertStatement *Parser::eval_insert_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_INSERT), NULL);
+    auto byte_code = TRY_CALL_RET(eval_expression(), NULL);
 
-    return WIN(new InsertStatement(file, byte_code));
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+
+    return new InsertStatement(file, byte_code);
 }
 
-std::tuple<ReturnStatement *, bool> Parser::eval_return_statement() {
-    TRY_TOKEN(TOKEN_RETURN);
+ReturnStatement *Parser::eval_return_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_RETURN), NULL);
 
     Expression *expression = NULL;
 
-    if (peek()->type != TOKEN_SEMI_COLON)
+    if (peek()->type != TokenType::TOKEN_SEMI_COLON)
     {
-        TRY(ExpressionStatement *, expression_statement, eval_expression_statement());
+        auto expression_statement = TRY_CALL_RET(eval_expression_statement(), NULL);
+
         expression = expression_statement->expression;
     }
     else
-    { TRY_TOKEN(TOKEN_SEMI_COLON); }
+    { TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL); }
 
-    return WIN(new ReturnStatement(file, expression));
+    return new ReturnStatement(file, expression);
 }
 
-std::tuple<BreakStatement *, bool> Parser::eval_break_statement() {
+BreakStatement *Parser::eval_break_statement() {
     // might just use an expression statement for this but for now it is a
     // string lit
-    TRY_TOKEN(TOKEN_BREAK);
-    consume_token_of_type(TOKEN_SEMI_COLON);
-    return WIN(new BreakStatement(file));
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BREAK), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    return new BreakStatement(file);
 }
 
-std::tuple<ImportStatement *, bool> Parser::eval_import_statement() {
-    TRY_TOKEN(TOKEN_IMPORT);
-    TRY(ExpressionStatement *, path, eval_expression_statement());
+ImportStatement *Parser::eval_import_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IMPORT), NULL);
+    auto import_path = TRY_CALL_RET(eval_expression_statement(), NULL);
 
-    return WIN(new ImportStatement(file, path->expression));
+    return new ImportStatement(file, import_path->expression);
 }
 
-std::tuple<ForStatement *, bool> Parser::eval_for_statement() {
-    TRY_TOKEN(TOKEN_FOR);
-    TRY(Statement *, assign, eval_statement())
-    TRY(Expression *, condition, eval_expression())
-    TRY_TOKEN(TOKEN_SEMI_COLON);
-    TRY(Statement *, update, eval_statement())
-    TRY(ScopeStatement *, body, eval_scope_statement())
+ForStatement *Parser::eval_for_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FOR), NULL);
 
-    return WIN(new ForStatement(file, assign, condition, update, body));
+    auto assign = TRY_CALL_RET(eval_statement(), NULL);
+
+    auto condition = TRY_CALL_RET(eval_expression(), NULL);
+
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    auto update = TRY_CALL_RET(eval_statement(), NULL);
+
+    auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
+
+    return new ForStatement(file, assign, condition, update, body);
 }
 
-std::tuple<IfStatement *, bool> Parser::eval_if_statement() {
-    TRY_TOKEN(TOKEN_IF);
-    TRY(Expression *, expression, eval_expression())
-    TRY(ScopeStatement *, body, eval_scope_statement())
+IfStatement *Parser::eval_if_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IF), NULL);
+    auto expression = TRY_CALL_RET(eval_expression(), NULL);
+    auto body       = TRY_CALL_RET(eval_scope_statement(), NULL);
 
     // next statement might be else so check if the next token is an 'else'
     // if so capture it and own it else just leave the else statement as NULL
     ElseStatement *else_statement = NULL;
-    if (peek()->type == TOKEN_ELSE)
-    { TRY(, else_statement, eval_else_statement()) }
+    if (peek()->type == TokenType::TOKEN_ELSE)
+    { else_statement = TRY_CALL_RET(eval_else_statement(), NULL); }
 
-    return WIN(new IfStatement(file, expression, body, else_statement));
+    return new IfStatement(file, expression, body, else_statement);
 }
 
-std::tuple<ElseStatement *, bool> Parser::eval_else_statement() {
-    TRY_TOKEN(TOKEN_ELSE);
+ElseStatement *Parser::eval_else_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ELSE), NULL);
 
     // check if it is an else if
-    if (peek()->type == TOKEN_IF)
+    if (peek()->type == TokenType::TOKEN_IF)
     {
-        TRY(IfStatement *, if_statement, eval_if_statement());
-        return WIN(new ElseStatement(if_statement, NULL));
+        auto if_statement = TRY_CALL_RET(eval_if_statement(), NULL);
+        return new ElseStatement(if_statement, NULL);
     }
 
-    TRY(ScopeStatement *, body, eval_scope_statement());
-    return WIN(new ElseStatement(NULL, body));
+    auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
+    return new ElseStatement(NULL, body);
 }
 
-std::tuple<ExpressionStatement *, bool> Parser::eval_expression_statement() {
-    TRY(Expression *, expression, eval_expression());
-    TRY_TOKEN(TOKEN_SEMI_COLON)
+ExpressionStatement *Parser::eval_expression_statement() {
+    auto expression = TRY_CALL_RET(eval_expression(), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
-    return WIN(new ExpressionStatement(file, expression));
+    return new ExpressionStatement(file, expression);
 }
 
-std::tuple<Statement *, bool> Parser::eval_extern_statement() {
-    TRY_TOKEN(TOKEN_EXTERN);
+Statement *Parser::eval_extern_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_EXTERN), NULL);
 
-    if (peek()->type == TOKEN_FN)
+    if (peek()->type == TokenType::TOKEN_FN)
     { return eval_fn_statement(true); }
 
-    if (peek()->type == TOKEN_STRUCT)
+    if (peek()->type == TokenType::TOKEN_STRUCT)
     { return eval_struct_statement(true); }
 
     panic("Cannot extern this statement");
-    return {NULL, true};
+    return NULL;
 }
 
-std::tuple<EnumStatement *, bool> Parser::eval_enum_statement() {
-    TRY_TOKEN(TOKEN_ENUM);
+EnumStatement *Parser::eval_enum_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ENUM), NULL);
 
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
-    TRY_TOKEN(TOKEN_BRACE_OPEN);
-    auto [instances, error] = consume_comma_seperated_token_arguments(TOKEN_BRACE_CLOSE);
-    if (error)
-    { return {nullptr, true}; }
-    TRY_TOKEN(TOKEN_BRACE_CLOSE);
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+    auto instances = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return WIN(new EnumStatement(file, *identifier, instances));
+    return new EnumStatement(file, *identifier, instances);
 }
 
-std::tuple<ContinueStatement *, bool> Parser::eval_continue_statement() {
-    TRY_TOKEN(TOKEN_CONTINUE);
-    TRY_TOKEN(TOKEN_SEMI_COLON);
-    return WIN(new ContinueStatement(file));
+ContinueStatement *Parser::eval_continue_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_CONTINUE), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    return new ContinueStatement(file);
 }
 
-std::tuple<AliasStatement *, bool> Parser::eval_alias_statement() {
-    TRY_TOKEN(TOKEN_ALIAS);
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
-    TRY_TOKEN(TOKEN_AS);
-    TRY(TypeExpression *, type_expression, eval_type_expression());
-    TRY_TOKEN(TOKEN_SEMI_COLON);
+AliasStatement *Parser::eval_alias_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ALIAS), NULL);
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_AS), NULL);
+    auto type_expression = TRY_CALL_RET(eval_type_expression(), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
-    return WIN(new AliasStatement(file, *identifier, type_expression));
+    return new AliasStatement(file, *identifier, type_expression);
 }
 
-std::tuple<TestStatement *, bool> Parser::eval_test_statement() {
-    TRY_TOKEN(TOKEN_TEST);
-    TRY(ScopeStatement *, tests, eval_scope_statement());
-    return WIN(new TestStatement(file, tests));
+TestStatement *Parser::eval_test_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_TEST), NULL);
+
+    auto tests = TRY_CALL_RET(eval_scope_statement(), NULL);
+    return new TestStatement(file, tests);
 }
 
-std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
-    TRY(Expression *, lhs, eval_expression());
-    if (peek()->type == TOKEN_ASSIGN)
+Statement *Parser::eval_line_starting_expression() {
+    auto lhs = TRY_CALL_RET(eval_expression(), NULL);
+
+    if (peek()->type == TokenType::TOKEN_ASSIGN)
     {
-        TRY_TOKEN(TOKEN_ASSIGN);
-        TRY(ExpressionStatement *, rhs, eval_expression_statement());
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ASSIGN), NULL);
+        auto rhs = TRY_CALL_RET(eval_expression_statement(), NULL);
 
-        return WIN(new AssigmentStatement(file, lhs, rhs));
+        return new AssigmentStatement(file, lhs, rhs);
     }
 
     // not assign, after eval expresion only semi colon is left
-    TRY_TOKEN(TOKEN_SEMI_COLON);
-    return {new ExpressionStatement(file, lhs), false};
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    return new ExpressionStatement(file, lhs);
 }
 
 /*
@@ -374,226 +378,218 @@ std::tuple<Statement *, bool> Parser::eval_line_starting_expression() {
  *  literal () new "" null true false
  */
 
-std::tuple<Expression *, bool> Parser::eval_expression() {
+Expression *Parser::eval_expression() {
     return eval_is();
 }
 
-std::tuple<Expression *, bool> Parser::eval_is() {
-    TRY(Expression *, expr, eval_propagation());
+Expression *Parser::eval_is() {
+    auto expr = TRY_CALL_RET(eval_propagation(), NULL);
 
-    if (match(TOKEN_IS))
+    if (match(TokenType::TOKEN_IS))
     {
         consume_token();
-        TRY(TypeExpression *, type, eval_type_expression());
-        TRY_TOKEN(TOKEN_AS);
-        NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+        auto type = TRY_CALL_RET(eval_type_expression(), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_AS), NULL);
+        auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
         expr = new IsExpression(expr, type, *identifier);
     }
 
-    return WIN(expr);
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_propagation() {
-    TRY(Expression *, expr, eval_or());
+Expression *Parser::eval_propagation() {
+    auto expr = TRY_CALL_RET(eval_or(), NULL);
 
-    if (match(TOKEN_RETURN))
+    if (match(TokenType::TOKEN_RETURN))
     {
-        TRY_TOKEN(TOKEN_RETURN);
-        TRY(TypeExpression *, type, eval_type_expression());
-        TRY_TOKEN(TOKEN_ELSE);
-        TRY(TypeExpression *, otherwise, eval_type_expression());
-        expr = new PropagateExpression(expr, type, otherwise);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_RETURN), NULL);
+        auto type = TRY_CALL_RET(eval_type_expression(), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ELSE), NULL);
+        auto otherwise = TRY_CALL_RET(eval_type_expression(), NULL);
+        expr           = new PropagateExpression(expr, type, otherwise);
     }
 
-    return WIN(expr);
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_or() {
-
-    TRY(Expression *, expr, eval_and());
+Expression *Parser::eval_or() {
+    auto expr = TRY_CALL_RET(eval_and(), NULL);
 
     while (match(TokenType::TOKEN_OR))
     {
-        Token *op = consume_token();
-        TRY(Expression *, right, eval_and());
-        expr = new BinaryExpression(expr, *op, right);
+        Token *op  = consume_token();
+        auto right = TRY_CALL_RET(eval_and(), NULL);
+        expr       = new BinaryExpression(expr, *op, right);
     }
 
-    return WIN(expr);
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_and() {
-    TRY(Expression *, expr, eval_equality());
+Expression *Parser::eval_and() {
+    auto expr = TRY_CALL_RET(eval_equality(), NULL);
 
     while (match(TokenType::TOKEN_AND))
     {
-        Token *op = consume_token();
-        TRY(Expression *, right, eval_equality());
-        expr = new BinaryExpression(expr, *op, right);
+        Token *op  = consume_token();
+        auto right = TRY_CALL_RET(eval_equality(), NULL);
+        expr       = new BinaryExpression(expr, *op, right);
     }
 
-    return WIN(expr);
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_equality() {
-    TRY(Expression *, expr, eval_relational());
+Expression *Parser::eval_equality() {
+    auto expr = TRY_CALL_RET(eval_relational(), NULL);
 
     while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL))
     {
-        Token *op = consume_token();
-        TRY(Expression *, right, eval_relational());
-        expr = new BinaryExpression(expr, *op, right);
+        Token *op  = consume_token();
+        auto right = TRY_CALL_RET(eval_relational(), NULL);
+        expr       = new BinaryExpression(expr, *op, right);
     }
 
-    return WIN(expr);
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_relational() {
-    TRY(Expression *, expr, eval_term());
+Expression *Parser::eval_relational() {
+    auto expr = TRY_CALL_RET(eval_term(), NULL);
 
     while (match(TokenType::TOKEN_LESS) || match(TokenType::TOKEN_GREATER) || match(TokenType::TOKEN_GREATER_EQUAL) ||
            match(TokenType::TOKEN_LESS_EQUAL))
     {
-        Token *op = consume_token();
-        TRY(Expression *, right, eval_term());
-        expr = new BinaryExpression(expr, *op, right);
+        Token *op  = consume_token();
+        auto right = TRY_CALL_RET(eval_term(), NULL);
+        expr       = new BinaryExpression(expr, *op, right);
     }
 
-    return WIN(expr);
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_term() {
-    TRY(Expression *, expr, eval_factor());
+Expression *Parser::eval_term() {
+    auto expr = TRY_CALL_RET(eval_factor(), NULL);
 
     while (match(TokenType::TOKEN_PLUS) || match(TokenType::TOKEN_MINUS))
     {
-        Token *op = consume_token();
-        TRY(Expression *, right, eval_factor());
-        expr = new BinaryExpression(expr, *op, right);
+        Token *op  = consume_token();
+        auto right = TRY_CALL_RET(eval_factor(), NULL);
+        expr       = new BinaryExpression(expr, *op, right);
     }
 
-    return WIN(expr);
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_factor() {
-    TRY(Expression *, expr, eval_unary());
+Expression *Parser::eval_factor() {
+    auto expr = TRY_CALL_RET(eval_unary(), NULL);
 
     while (match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_SLASH) || match(TokenType::TOKEN_MOD))
     {
-        Token *op = consume_token();
-        TRY(Expression *, right, eval_unary());
-        expr = new BinaryExpression(expr, *op, right);
+        Token *op  = consume_token();
+        auto right = TRY_CALL_RET(eval_unary(), NULL);
+        expr       = new BinaryExpression(expr, *op, right);
     }
 
-    return {expr, false};
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_unary() {
-    if (match(TOKEN_AT) || match(TOKEN_STAR) || match(TOKEN_NOT))
+Expression *Parser::eval_unary() {
+    if (match(TokenType::TOKEN_AT) || match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_NOT))
     {
-        auto op = consume_token();
-        TRY(Expression *, expr, eval_unary());
-        return {new UnaryExpression(expr, *op), false};
+        auto op   = consume_token();
+        auto expr = TRY_CALL_RET(eval_unary(), NULL);
+
+        return new UnaryExpression(expr, *op);
     }
 
     return eval_call();
 }
 
-std::tuple<Expression *, bool> Parser::eval_call() {
-    TRY(Expression *, expr, eval_primary());
+Expression *Parser::eval_call() {
+    auto expr = TRY_CALL_RET(eval_primary(), NULL);
 
     while (true)
     {
-        if (match(TOKEN_PAREN_OPEN) || match(TOKEN_BRACKET_OPEN))
+        if (match(TokenType::TOKEN_PAREN_OPEN) || match(TokenType::TOKEN_BRACKET_OPEN))
         {
             auto generics = std::vector<TypeExpression *>();
-            if (peek()->type == TOKEN_BRACKET_OPEN)
+            if (peek()->type == TokenType::TOKEN_BRACKET_OPEN)
             {
-                TRY_TOKEN(TOKEN_BRACKET_OPEN);
-                auto [types, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
-                if (error)
-                { return {nullptr, true}; }
-                TRY_TOKEN(TOKEN_BRACKET_CLOSE);
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+                auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
 
                 generics = types;
             }
 
-            TRY_TOKEN(TOKEN_PAREN_OPEN);
-            auto [args, error] = consume_comma_seperated_arguments(TOKEN_PAREN_CLOSE);
-            if (error)
-            { return {nullptr, true}; }
-            TRY_TOKEN(TOKEN_PAREN_CLOSE);
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+            auto call_args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
 
-            expr = new CallExpression(expr, args, generics);
+            expr = new CallExpression(expr, call_args, generics);
         }
-        else if (match(TOKEN_DOT))
+        else if (match(TokenType::TOKEN_DOT))
         {
             consume_token();
-            NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
-            expr = new GetExpression(expr, *identifier);
+            auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+            expr            = new GetExpression(expr, *identifier);
         }
         else
         { break; }
     }
 
-    return WIN(expr);
+    return expr;
 }
 
-std::tuple<Expression *, bool> Parser::eval_primary() {
+Expression *Parser::eval_primary() {
     auto type = peek()->type;
 
     if (type == TokenType::TOKEN_NUMBER_LITERAL)
-        return WIN(new NumberLiteralExpression(*consume_token()));
+        return new NumberLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_STRING_LITERAL)
-        return WIN(new StringLiteralExpression(*consume_token()));
+        return new StringLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_TRUE || type == TokenType::TOKEN_FALSE)
-        return WIN(new BoolLiteralExpression(*consume_token()));
+        return new BoolLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_IDENTIFIER)
-        return WIN(new IdentifierExpression(*consume_token()));
+        return new IdentifierExpression(*consume_token());
     else if (type == TokenType::TOKEN_NEW)
         return eval_new_expression();
     else if (type == TokenType::TOKEN_PAREN_OPEN)
         return eval_group_expression();
     else if (type == TokenType::TOKEN_NULL)
-        return WIN(new NullLiteralExpression(*consume_token()));
+        return new NullLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_ZERO)
-        return WIN(new ZeroLiteralExpression(*consume_token()));
+        return new ZeroLiteralExpression(*consume_token());
 
-    return WIN(new Expression()); // empty expression found -- like when a
-                                  // return has no expression
+    return new Expression(); // empty expression found -- like when a
+                             // return has no expression
 }
 
-std::tuple<Expression *, bool> Parser::eval_new_expression() {
-    TRY_TOKEN(TOKEN_NEW);
-    NAMED_TOKEN(identifier, TOKEN_IDENTIFIER);
+Expression *Parser::eval_new_expression() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<TypeExpression *>();
-    if (peek()->type == TOKEN_BRACKET_OPEN)
+    if (peek()->type == TokenType::TOKEN_BRACKET_OPEN)
     {
-        TRY_TOKEN(TOKEN_BRACKET_OPEN);
-        auto [types, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
-        if (error)
-        { return {nullptr, true}; }
-        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+        auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
 
         generics = types;
     }
 
-    TRY_TOKEN(TOKEN_BRACE_OPEN);
-    auto [named_expressions, error] = consume_comma_seperated_named_arguments(TOKEN_BRACE_CLOSE);
-    if (error)
-    { return {nullptr, true}; }
-    TRY_TOKEN(TOKEN_BRACE_CLOSE);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+    auto named_expressions = TRY_CALL_RET(consume_comma_seperated_named_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return WIN(new NewExpression(*identifier, generics, named_expressions));
+    return new NewExpression(*identifier, generics, named_expressions);
 }
 
-std::tuple<Expression *, bool> Parser::eval_group_expression() {
-    TRY_TOKEN(TOKEN_PAREN_OPEN);
-    TRY(Expression *, expr, eval_expression());
-    TRY_TOKEN(TOKEN_PAREN_CLOSE);
-    return WIN(new GroupExpression(expr));
+Expression *Parser::eval_group_expression() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+    auto expr = TRY_CALL_RET(eval_expression(), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    return new GroupExpression(expr);
 }
 
 /*
@@ -603,62 +599,60 @@ std::tuple<Expression *, bool> Parser::eval_group_expression() {
  * []
  * identifier
  */
-std::tuple<TypeExpression *, bool> Parser::eval_type_expression() {
+TypeExpression *Parser::eval_type_expression() {
     return eval_type_union();
 }
 
-std::tuple<TypeExpression *, bool> Parser::eval_type_union() {
-    TRY(TypeExpression *, type_expression, eval_type_unary());
+TypeExpression *Parser::eval_type_union() {
+    auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
 
     // there is a bar then this is a union type else return normal type
-    if (match(TOKEN_BAR))
+    if (match(TokenType::TOKEN_BAR))
     {
         auto expressions = std::vector<TypeExpression *>();
         expressions.push_back(type_expression);
-        while (match(TOKEN_BAR))
+        while (match(TokenType::TOKEN_BAR))
         {
-            TRY_TOKEN(TOKEN_BAR);
-            TRY(TypeExpression *, next_expression, eval_type_unary());
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BAR), NULL);
+            auto next_expression = TRY_CALL_RET(eval_type_unary(), NULL);
             expressions.push_back(next_expression);
         }
 
-        return WIN(new UnionTypeExpression(expressions));
+        return new UnionTypeExpression(expressions);
     }
 
-    return WIN(type_expression);
+    return type_expression;
 }
 
-std::tuple<TypeExpression *, bool> Parser::eval_type_unary() {
+TypeExpression *Parser::eval_type_unary() {
     if (match(TokenType::TOKEN_HAT))
     {
-        Token *op = consume_token();
-        TRY(TypeExpression *, type_expression, eval_type_unary());
-        return WIN(new UnaryTypeExpression(*op, type_expression));
+        Token *op            = consume_token();
+        auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
+        return new UnaryTypeExpression(*op, type_expression);
     }
 
     return eval_type_specified_generics();
 }
 
-std::tuple<TypeExpression *, bool> Parser::eval_type_specified_generics() {
-    TRY(IdentifierTypeExpression *, struct_type, eval_type_identifier());
+TypeExpression *Parser::eval_type_specified_generics() {
+    auto struct_type = TRY_CALL_RET(eval_type_identifier(), NULL);
 
-    if (match(TOKEN_BRACKET_OPEN))
+    if (match(TokenType::TOKEN_BRACKET_OPEN))
     {
-        TRY_TOKEN(TOKEN_BRACKET_OPEN);
-        auto [generics, error] = consume_comma_seperated_types(TOKEN_BRACKET_CLOSE);
-        if (error)
-        { return {nullptr, true}; }
-        TRY_TOKEN(TOKEN_BRACKET_CLOSE);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+        auto generics = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
 
-        return WIN(new SpecifiedGenericsTypeExpression(struct_type, generics));
+        return new SpecifiedGenericsTypeExpression(struct_type, generics);
     }
 
-    return WIN(struct_type);
+    return struct_type;
 }
 
-std::tuple<IdentifierTypeExpression *, bool> Parser::eval_type_identifier() {
-    NAMED_TOKEN(struct_identifier, TOKEN_IDENTIFIER);
-    return WIN(new IdentifierTypeExpression(*struct_identifier));
+IdentifierTypeExpression *Parser::eval_type_identifier() {
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    return new IdentifierTypeExpression(*identifier);
 }
 
 s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {
@@ -704,15 +698,15 @@ Token *Parser::consume_token() {
     return &tokens.at(current++);
 }
 
-std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type) {
+Token *Parser::consume_token_of_type(TokenType type) {
     if (current >= tokens.size())
     {
         auto last_token = tokens.at(tokens.size() - 1);
         ErrorReporter::report_parser_error(
             path.string(), last_token.span.line, last_token.span.start,
-            fmt::format("Expected '{}' but got unexpected end of file", TokenTypeStrings[type])
+            fmt::format("Expected '{}' but got unexpected end of file", TokenTypeStrings[(int)type])
         );
-        return {nullptr, true};
+        return NULL;
     }
 
     auto t_ptr = &tokens.at(current++);
@@ -721,18 +715,18 @@ std::tuple<Token *, bool> Parser::consume_token_of_type(TokenType type) {
         ErrorReporter::report_parser_error(
             path.string(), t_ptr->span.line, t_ptr->span.start,
             fmt::format(
-                "Expected '{}' got '{}' at({}:{})", TokenTypeStrings[type], t_ptr->string, t_ptr->span.line,
+                "Expected '{}' got '{}' at({}:{})", TokenTypeStrings[(int)type], t_ptr->string, t_ptr->span.line,
                 t_ptr->span.start
             )
         );
-        return {nullptr, true};
+        return NULL;
     }
 
-    return {t_ptr, false};
+    return t_ptr;
 }
 
 // e.g. (0, "hello sailor", ...)
-std::tuple<std::vector<Expression *>, bool> Parser::consume_comma_seperated_arguments(TokenType closer) {
+std::vector<Expression *> Parser::consume_comma_seperated_arguments(TokenType closer) {
     auto args     = std::vector<Expression *>();
     bool is_first = true;
     if (!match(closer))
@@ -743,23 +737,20 @@ std::tuple<std::vector<Expression *>, bool> Parser::consume_comma_seperated_argu
                 current++; // only iterate current by one when it is not the
                            // first time
 
-            auto [expr, error] = eval_expression();
-            if (error)
-            { return {std::vector<Expression *>(), true}; }
-
+            auto expr = TRY_CALL_RET(eval_expression(), {});
             args.push_back(expr);
 
             if (is_first)
                 is_first = false;
         }
-        while (match(TOKEN_COMMA));
+        while (match(TokenType::TOKEN_COMMA));
     }
 
-    return WIN(args);
+    return args;
 }
 
 // e.g. [X, Y, Z, ...]
-std::tuple<std::vector<Token>, bool> Parser::consume_comma_seperated_token_arguments(TokenType closer) {
+std::vector<Token> Parser::consume_comma_seperated_token_arguments(TokenType closer) {
     auto args     = std::vector<Token>();
     bool is_first = true;
     if (!match(closer))
@@ -776,14 +767,14 @@ std::tuple<std::vector<Token>, bool> Parser::consume_comma_seperated_token_argum
             if (is_first)
                 is_first = false;
         }
-        while (match(TOKEN_COMMA));
+        while (match(TokenType::TOKEN_COMMA));
     }
 
-    return WIN(args);
+    return args;
 }
 
 // e.g. (int32, ^char, ...)
-std::tuple<std::vector<TypeExpression *>, bool> Parser::consume_comma_seperated_types(TokenType closer) {
+std::vector<TypeExpression *> Parser::consume_comma_seperated_types(TokenType closer) {
     auto types    = std::vector<TypeExpression *>();
     bool is_first = true;
     if (!match(closer))
@@ -794,26 +785,23 @@ std::tuple<std::vector<TypeExpression *>, bool> Parser::consume_comma_seperated_
                 current++; // only iterate current by one when it is not the
                            // first time
 
-            auto [type, error] = eval_type_expression();
-            if (error)
-            { return {std::vector<TypeExpression *>(), true}; }
-
+            auto type = TRY_CALL_RET(eval_type_expression(), {});
             types.push_back(type);
 
             if (is_first)
                 is_first = false;
         }
-        while (match(TOKEN_COMMA));
+        while (match(TokenType::TOKEN_COMMA));
     }
 
-    return WIN(types);
+    return types;
 }
 
 // e.g. (int x, int y, ...)
-std::tuple<CSV, bool> Parser::consume_comma_seperated_params() {
+CSV Parser::consume_comma_seperated_params() {
     auto args_types = std::vector<std::tuple<Token, TypeExpression *>>();
     bool is_first   = true;
-    if (!match(TOKEN_PAREN_CLOSE) && !match(TOKEN_BRACE_CLOSE))
+    if (!match(TokenType::TOKEN_PAREN_CLOSE) && !match(TokenType::TOKEN_BRACE_CLOSE))
     {
         do
         {
@@ -821,32 +809,22 @@ std::tuple<CSV, bool> Parser::consume_comma_seperated_params() {
                 current++; // only iterate current by one when it is not the
                            // first time
 
-            auto [arg, identifier_error] = consume_token_of_type(TOKEN_IDENTIFIER);
-            if (identifier_error)
-            { return {CSV(), true}; }
-
-            auto [_, colon_error] = consume_token_of_type(TOKEN_COLON);
-            if (colon_error)
-            { return {CSV(), true}; }
-
-            auto [type, type_error] = eval_type_expression();
-            if (type_error)
-            { return {CSV(), true}; }
+            auto arg = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), {});
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), {});
+            auto type = TRY_CALL_RET(eval_type_expression(), {});
 
             args_types.emplace_back(*arg, type);
 
             if (is_first)
                 is_first = false;
         }
-        while (match(TOKEN_COMMA));
+        while (match(TokenType::TOKEN_COMMA));
     }
 
-    return WIN(args_types);
+    return args_types;
 }
 
-std::tuple<std::vector<std::tuple<Token, Expression *>>, bool> Parser::consume_comma_seperated_named_arguments(
-    TokenType closer
-) {
+std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_named_arguments(TokenType closer) {
     auto named_args = std::vector<std::tuple<Token, Expression *>>();
     bool is_first   = true;
     if (!match(closer))
@@ -857,25 +835,18 @@ std::tuple<std::vector<std::tuple<Token, Expression *>>, bool> Parser::consume_c
                 current++; // only iterate current by one when it is not the
             // first time
 
-            auto [name, identifier_error] = consume_token_of_type(TOKEN_IDENTIFIER);
-            if (identifier_error)
-            { return {std::vector<std::tuple<Token, Expression *>>(), true}; }
+            auto name = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), {});
 
-            auto [_, colon_error] = consume_token_of_type(TOKEN_COLON);
-            if (colon_error)
-            { return {{std::vector<std::tuple<Token, Expression *>>()}, true}; }
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), {});
 
-            auto [expression, type_error] = eval_expression();
-            if (type_error)
-            { return {std::vector<std::tuple<Token, Expression *>>(), true}; }
-
+            auto expression = TRY_CALL_RET(eval_expression(), {});
             named_args.emplace_back(*name, expression);
 
             if (is_first)
                 is_first = false;
         }
-        while (match(TOKEN_COMMA));
+        while (match(TokenType::TOKEN_COMMA));
     }
 
-    return WIN(named_args);
+    return named_args;
 }

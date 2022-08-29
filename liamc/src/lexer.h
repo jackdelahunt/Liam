@@ -13,7 +13,7 @@ enum NumberType {
     FLOAT
 };
 
-enum TokenType {
+enum class TokenType {
     TOKEN_NUMBER_LITERAL = 0, // 0
     TOKEN_STRING_LITERAL,     // "hello"
     TOKEN_IDENTIFIER,         // x

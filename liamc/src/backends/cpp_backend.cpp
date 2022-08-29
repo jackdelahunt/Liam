@@ -462,43 +462,43 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
     source.append(emit_expression(expression->left));
     switch (expression->op.type)
     {
-    case TOKEN_PLUS:
+    case TokenType::TOKEN_PLUS:
         source.append(" + ");
         break;
-    case TOKEN_MINUS:
+    case TokenType::TOKEN_MINUS:
         source.append(" - ");
         break;
-    case TOKEN_STAR:
+    case TokenType::TOKEN_STAR:
         source.append(" * ");
         break;
-    case TOKEN_SLASH:
+    case TokenType::TOKEN_SLASH:
         source.append(" / ");
         break;
-    case TOKEN_MOD:
+    case TokenType::TOKEN_MOD:
         source.append(" % ");
         break;
-    case TOKEN_OR:
+    case TokenType::TOKEN_OR:
         source.append(" || ");
         break;
-    case TOKEN_AND:
+    case TokenType::TOKEN_AND:
         source.append(" && ");
         break;
-    case TOKEN_EQUAL:
+    case TokenType::TOKEN_EQUAL:
         source.append(" == ");
         break;
-    case TOKEN_NOT_EQUAL:
+    case TokenType::TOKEN_NOT_EQUAL:
         source.append(" != ");
         break;
-    case TOKEN_LESS:
+    case TokenType::TOKEN_LESS:
         source.append(" < ");
         break;
-    case TOKEN_GREATER:
+    case TokenType::TOKEN_GREATER:
         source.append(" > ");
         break;
-    case TOKEN_GREATER_EQUAL:
+    case TokenType::TOKEN_GREATER_EQUAL:
         source.append(" >= ");
         break;
-    case TOKEN_LESS_EQUAL:
+    case TokenType::TOKEN_LESS_EQUAL:
         source.append(" <= ");
         break;
     default:
@@ -546,11 +546,11 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
 }
 
 std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {
-    if (expression->op.type == TOKEN_AT)
+    if (expression->op.type == TokenType::TOKEN_AT)
     { return "&(" + emit_expression(expression->expression) + ")"; }
-    else if (expression->op.type == TOKEN_STAR)
+    else if (expression->op.type == TokenType::TOKEN_STAR)
     { return "*(" + emit_expression(expression->expression) + ")"; }
-    else if (expression->op.type == TOKEN_NOT)
+    else if (expression->op.type == TokenType::TOKEN_NOT)
     { return "!(" + emit_expression(expression->expression) + ")"; }
 
     panic("Got a unrecognized operand in cpp backend");
