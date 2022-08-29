@@ -30,6 +30,7 @@ struct ErrorReporter {
     static ErrorReporter *singleton;
     std::vector<ParserError> parse_errors;
     std::vector<TypeCheckerError> type_check_errors;
+    bool error_reported_since_last_check = false;
 
     ErrorReporter();
 
@@ -40,5 +41,6 @@ struct ErrorReporter {
     );
     static bool has_parse_errors();
     static bool has_type_check_errors();
+    static bool has_error_since_last_check();
     static u64 error_count();
 };

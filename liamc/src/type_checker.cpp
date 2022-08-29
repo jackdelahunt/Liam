@@ -584,7 +584,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     TypeInfo *info = NULL;
 
     // logical ops - bools -> bool
-    if (expression->op.type == TOKEN_AND || expression->op.type == TOKEN_OR)
+    if (expression->op.type == TokenType::TOKEN_AND || expression->op.type == TokenType::TOKEN_OR)
     {
         if (expression->left->type_info->type != TypeInfoType::BOOLEAN &&
             expression->right->type_info->type != TypeInfoType::BOOLEAN)
@@ -600,8 +600,9 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     }
 
     // math ops - numbers -> numbers
-    if (expression->op.type == TOKEN_PLUS || expression->op.type == TOKEN_STAR || expression->op.type == TOKEN_SLASH ||
-        expression->op.type == TOKEN_MOD || expression->op.type == TOKEN_MINUS)
+    if (expression->op.type == TokenType::TOKEN_PLUS || expression->op.type == TokenType::TOKEN_STAR ||
+        expression->op.type == TokenType::TOKEN_SLASH || expression->op.type == TokenType::TOKEN_MOD ||
+        expression->op.type == TokenType::TOKEN_MINUS)
     {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
         {
@@ -615,8 +616,8 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     }
 
     // math ops - numbers -> bool
-    if (expression->op.type == TOKEN_LESS || expression->op.type == TOKEN_GREATER ||
-        expression->op.type == TOKEN_GREATER_EQUAL || expression->op.type == TOKEN_LESS_EQUAL)
+    if (expression->op.type == TokenType::TOKEN_LESS || expression->op.type == TokenType::TOKEN_GREATER ||
+        expression->op.type == TokenType::TOKEN_GREATER_EQUAL || expression->op.type == TokenType::TOKEN_LESS_EQUAL)
     {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
         {
@@ -630,7 +631,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     }
 
     // compare - any -> bool
-    if (expression->op.type == TOKEN_EQUAL || expression->op.type == TOKEN_NOT_EQUAL)
+    if (expression->op.type == TokenType::TOKEN_EQUAL || expression->op.type == TokenType::TOKEN_NOT_EQUAL)
     { info = symbol_table->builtin_type_table["bool"]; }
 
     assert(info != NULL);
@@ -722,13 +723,13 @@ void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expr
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(expression->expression, symbol_table));
 
-    if (expression->op.type == TOKEN_AT)
+    if (expression->op.type == TokenType::TOKEN_AT)
     {
         expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, expression->expression->type_info};
         return;
     }
 
-    if (expression->op.type == TOKEN_STAR)
+    if (expression->op.type == TokenType::TOKEN_STAR)
     {
         if (expression->expression->type_info->type != TypeInfoType::POINTER)
         {
@@ -742,7 +743,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
         return;
     }
 
-    if (expression->op.type == TOKEN_NOT)
+    if (expression->op.type == TokenType::TOKEN_NOT)
     {
         if (expression->expression->type_info->type != TypeInfoType::BOOLEAN)
         {

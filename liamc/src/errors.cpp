@@ -125,6 +125,7 @@ void ErrorReporter::report_parser_error(std::string file, u32 line, u32 characte
     { ErrorReporter::singleton = new ErrorReporter(); }
 
     ErrorReporter::singleton->parse_errors.push_back(ParserError{std::move(file), line, character, std::move(message)});
+    ErrorReporter::singleton->error_reported_since_last_check = true;
 }
 
 void ErrorReporter::report_type_checker_error(
@@ -136,6 +137,8 @@ void ErrorReporter::report_type_checker_error(
 
     ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
         std::move(file), expr_1, expr_2, type_expr_1, type_expr_2, std::move(message)});
+
+    ErrorReporter::singleton->error_reported_since_last_check = true;
 }
 
 bool ErrorReporter::has_parse_errors() {
@@ -150,6 +153,19 @@ bool ErrorReporter::has_type_check_errors() {
         return false;
 
     return !(ErrorReporter::singleton->type_check_errors.empty());
+}
+
+bool ErrorReporter::has_error_since_last_check() {
+    if (ErrorReporter::singleton == nullptr)
+        return false;
+
+    if (ErrorReporter::singleton->error_reported_since_last_check)
+    {
+        ErrorReporter::singleton->error_reported_since_last_check = false;
+        return true;
+    }
+
+    return false;
 }
 
 u64 ErrorReporter::error_count() {

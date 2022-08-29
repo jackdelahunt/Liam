@@ -50,62 +50,59 @@ struct Parser {
     void parse();
 
     /* statements */
-    std::tuple<Statement *, bool> eval_statement();
-    std::tuple<LetStatement *, bool> eval_let_statement();
-    std::tuple<ScopeStatement *, bool> eval_scope_statement();
-    std::tuple<StructStatement *, bool> eval_struct_statement(bool is_extern = false);
-    std::tuple<FnStatement *, bool> eval_fn_statement(bool is_extern = false);
-    std::tuple<InsertStatement *, bool> eval_insert_statement();
-    std::tuple<ReturnStatement *, bool> eval_return_statement();
-    std::tuple<BreakStatement *, bool> eval_break_statement();
-    std::tuple<ImportStatement *, bool> eval_import_statement();
-    std::tuple<ForStatement *, bool> eval_for_statement();
-    std::tuple<IfStatement *, bool> eval_if_statement();
-    std::tuple<ElseStatement *, bool> eval_else_statement();
-    std::tuple<ExpressionStatement *, bool> eval_expression_statement();
-    std::tuple<Statement *, bool> eval_extern_statement();
-    std::tuple<EnumStatement *, bool> eval_enum_statement();
-    std::tuple<ContinueStatement *, bool> eval_continue_statement();
-    std::tuple<AliasStatement *, bool> eval_alias_statement();
-    std::tuple<TestStatement *, bool> eval_test_statement();
-
-    std::tuple<Statement *, bool> eval_line_starting_expression();
+    Statement *eval_statement();
+    LetStatement *eval_let_statement();
+    ScopeStatement *eval_scope_statement();
+    StructStatement *eval_struct_statement(bool is_extern = false);
+    FnStatement *eval_fn_statement(bool is_extern = false);
+    InsertStatement *eval_insert_statement();
+    ReturnStatement *eval_return_statement();
+    BreakStatement *eval_break_statement();
+    ImportStatement *eval_import_statement();
+    ForStatement *eval_for_statement();
+    IfStatement *eval_if_statement();
+    ElseStatement *eval_else_statement();
+    ExpressionStatement *eval_expression_statement();
+    Statement *eval_extern_statement();
+    EnumStatement *eval_enum_statement();
+    ContinueStatement *eval_continue_statement();
+    AliasStatement *eval_alias_statement();
+    TestStatement *eval_test_statement();
+    Statement *eval_line_starting_expression();
 
     /* normal expressions */
-    std::tuple<Expression *, bool> eval_expression();
-    std::tuple<Expression *, bool> eval_is();
-    std::tuple<Expression *, bool> eval_propagation();
-    std::tuple<Expression *, bool> eval_or();
-    std::tuple<Expression *, bool> eval_and();
-    std::tuple<Expression *, bool> eval_equality();
-    std::tuple<Expression *, bool> eval_relational();
-    std::tuple<Expression *, bool> eval_term();
-    std::tuple<Expression *, bool> eval_factor();
-    std::tuple<Expression *, bool> eval_unary();
-    std::tuple<Expression *, bool> eval_call();
-    std::tuple<Expression *, bool> eval_primary();
-    std::tuple<Expression *, bool> eval_new_expression();
-    std::tuple<Expression *, bool> eval_group_expression();
+    Expression *eval_expression();
+    Expression *eval_is();
+    Expression *eval_propagation();
+    Expression *eval_or();
+    Expression *eval_and();
+    Expression *eval_equality();
+    Expression *eval_relational();
+    Expression *eval_term();
+    Expression *eval_factor();
+    Expression *eval_unary();
+    Expression *eval_call();
+    Expression *eval_primary();
+    Expression *eval_new_expression();
+    Expression *eval_group_expression();
 
     /* return_type expressions */
-    std::tuple<TypeExpression *, bool> eval_type_expression();
-    std::tuple<TypeExpression *, bool> eval_type_union();
-    std::tuple<TypeExpression *, bool> eval_type_unary();
-    std::tuple<TypeExpression *, bool> eval_type_specified_generics();
-    std::tuple<IdentifierTypeExpression *, bool> eval_type_identifier();
+    TypeExpression *eval_type_expression();
+    TypeExpression *eval_type_union();
+    TypeExpression *eval_type_unary();
+    TypeExpression *eval_type_specified_generics();
+    IdentifierTypeExpression *eval_type_identifier();
 
     bool match(TokenType type);
     inline Token *peek(s32 offset = 0);
     Token *consume_token();
     s32 find_balance_point(TokenType push, TokenType pull, s32 from);
-    std::tuple<Token *, bool> consume_token_of_type(TokenType type);
-    std::tuple<std::vector<Expression *>, bool> consume_comma_seperated_arguments(TokenType closer);
-    std::tuple<std::vector<TypeExpression *>, bool> consume_comma_seperated_types(TokenType closer);
-    std::tuple<std::vector<Token>, bool> consume_comma_seperated_token_arguments(TokenType closer);
-    std::tuple<std::vector<std::tuple<Token, Expression *>>, bool> consume_comma_seperated_named_arguments(
-        TokenType closer
-    );
+    Token *consume_token_of_type(TokenType type);
+    std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
+    std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
+    std::vector<Token> consume_comma_seperated_token_arguments(TokenType closer);
+    std::vector<std::tuple<Token, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
 
     // this is what CSV is
-    std::tuple<std::vector<std::tuple<Token, TypeExpression *>>, bool> consume_comma_seperated_params();
+    std::vector<std::tuple<Token, TypeExpression *>> consume_comma_seperated_params();
 };

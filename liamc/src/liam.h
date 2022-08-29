@@ -47,20 +47,22 @@ void panic(const std::string &msg);
         { return {nullptr, true}; }                                                                                    \
     }
 
-#define TRY_TOKEN(type)                                                                                                \
-    {                                                                                                                  \
-        auto [_, _try_error_] = consume_token_of_type(type);                                                           \
-        if (_try_error_)                                                                                               \
-        { return {nullptr, true}; }                                                                                    \
-    }
-
 #define WIN(value)                                                                                                     \
     { value, false }
 
 #define TRY_CALL(func)                                                                                                 \
     {                                                                                                                  \
-        auto start = ErrorReporter::error_count();                                                                     \
+        auto __start = ErrorReporter::error_count();                                                                   \
         func;                                                                                                          \
-        if (ErrorReporter::error_count() > start)                                                                      \
+        if (ErrorReporter::error_count() > __start)                                                                    \
         { return; }                                                                                                    \
     }
+
+#define TRY_CALL_RET(func, ret)                                                                                        \
+    ({                                                                                                                 \
+        auto __start = ErrorReporter::error_count();                                                                   \
+        auto __v     = func;                                                                                           \
+        if (ErrorReporter::error_count() > __start)                                                                    \
+        { return ret; }                                                                                                \
+        __v;                                                                                                           \
+    })
