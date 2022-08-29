@@ -334,7 +334,8 @@ void Lexer::lex() {
                 continue;
             }
 
-            if(word == "break") {
+            if (word == "break")
+            {
                 tokens.emplace_back(Token(TokenType::TOKEN_BREAK, word, current_line, word_start));
                 continue;
             }

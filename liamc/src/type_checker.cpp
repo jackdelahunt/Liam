@@ -192,8 +192,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     // add this fn decl to parent symbol table
     symbol_table->add_identifier(
         statement->identifier,
-        new FnTypeInfo{
-            TypeInfoType::FN, statement->return_type->type_info, generic_type_infos, param_type_infos}
+        new FnTypeInfo{TypeInfoType::FN, statement->return_type->type_info, generic_type_infos, param_type_infos}
     );
 }
 
@@ -252,7 +251,8 @@ void TypeChecker::type_check_return_statement(ReturnStatement *statement, Symbol
         TRY_CALL(type_check_expression(statement->expression, symbol_table));
 }
 
-void TypeChecker::type_check_break_statement(BreakStatement *statement, SymbolTable *symbol_table) {}
+void TypeChecker::type_check_break_statement(BreakStatement *statement, SymbolTable *symbol_table) {
+}
 
 void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(statement->rhs, symbol_table));
@@ -317,10 +317,8 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     for (auto &[identifier, type_info] : args)
     { copied_symbol_table.add_identifier(identifier, type_info); }
 
-    for(u64 i = 0; i < statement->generics.size(); i++)
-    {
-        copied_symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i]);
-    }
+    for (u64 i = 0; i < statement->generics.size(); i++)
+    { copied_symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i]); }
 
     // type statements and check return exists if needed
     TRY_CALL(type_check_scope_statement(statement->body, &copied_symbol_table, false));
@@ -970,11 +968,11 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     if (struct_type_info->generic_count != expression->generics.size())
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, expression, NULL, NULL, NULL,
-                fmt::format(
-                        "Incorrect number of type param arguments in new expression, expected {} got {}", struct_type_info->generic_count,
-                        expression->generics.size()
-                )
+            current_file->path, expression, NULL, NULL, NULL,
+            fmt::format(
+                "Incorrect number of type param arguments in new expression, expected {} got {}",
+                struct_type_info->generic_count, expression->generics.size()
+            )
         );
         return;
     }
@@ -1176,7 +1174,8 @@ TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vecto
     if (type_info->type == TypeInfoType::POINTER)
     {
         auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
-        return new PointerTypeInfo{TypeInfoType::POINTER, create_type_from_generics(pointer_type_info->to, generic_params)};
+        return new PointerTypeInfo{
+            TypeInfoType::POINTER, create_type_from_generics(pointer_type_info->to, generic_params)};
     }
 
     if (type_info->type == TypeInfoType::GENERIC)
@@ -1189,11 +1188,12 @@ TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vecto
     {
         auto instance_type_info = static_cast<StructInstanceTypeInfo *>(type_info);
 
-        auto new_type_info = new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE, instance_type_info->struct_type, instance_type_info->generic_types};
+        auto new_type_info = new StructInstanceTypeInfo{
+            TypeInfoType::STRUCT_INSTANCE, instance_type_info->struct_type, instance_type_info->generic_types};
         for (int i = 0; i < new_type_info->generic_types.size(); i++)
         {
             new_type_info->generic_types[i] =
-                    create_type_from_generics(new_type_info->generic_types[i], generic_params);
+                create_type_from_generics(new_type_info->generic_types[i], generic_params);
         }
 
         return new_type_info;

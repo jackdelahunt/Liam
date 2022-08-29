@@ -554,11 +554,11 @@ std::tuple<Expression *, bool> Parser::eval_primary() {
     else if (type == TokenType::TOKEN_NEW)
         return eval_new_expression();
     else if (type == TokenType::TOKEN_PAREN_OPEN)
-    { return eval_group_expression(); }
+        return eval_group_expression();
     else if (type == TokenType::TOKEN_NULL)
-    { return WIN(new NullLiteralExpression(*consume_token())); }
+        return WIN(new NullLiteralExpression(*consume_token()));
     else if (type == TokenType::TOKEN_ZERO)
-    { return WIN(new ZeroLiteralExpression(*consume_token())); }
+        return WIN(new ZeroLiteralExpression(*consume_token()));
 
     return WIN(new Expression()); // empty expression found -- like when a
                                   // return has no expression

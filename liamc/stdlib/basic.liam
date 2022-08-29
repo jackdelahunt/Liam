@@ -26,6 +26,11 @@ extern fn string_append(s: ^String, x: ^String): void;
 extern fn string_append_str(s: ^String, s: str): void;
 
 # collections
+struct Option[T] {
+    value: T,
+    is_value: bool
+}
+
 struct Tuple[O, T] {
     one: O,
     two: T
@@ -37,8 +42,20 @@ extern struct Array[T] {
     data: ^T
 }
 
-extern struct Map[K, V] {
+extern struct Map[K, V] {}
 
+fn some[T](t: T): Option[T] {
+    return new Option[T] {
+        value: t,
+        is_value: true
+    };
+}
+
+fn none[T](): Option[T] {
+    return new Option[T] {
+        value: zero,
+        is_value: false
+    };
 }
 
 extern fn make_array[T](): Array[T];

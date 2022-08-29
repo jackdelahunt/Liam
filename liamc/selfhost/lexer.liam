@@ -50,7 +50,8 @@ enum TokenType {
     CONTINUE,
     ALIAS,
     AS,
-    TEST
+    TEST,
+    ZERO
 }
 
 struct Token {
@@ -78,7 +79,7 @@ fn next_char(lexer: ^Lexer): void {
     lexer.current = lexer.current + 1u64;
 }
 
-fn peek(lexer: ^Lexer): str {
+fn lexer_peek(lexer: ^Lexer): str {
     return substr(lexer.source.string, lexer.current + 1u64, 1u64);
 }
 
@@ -131,7 +132,7 @@ fn lex(lexer: ^Lexer): void {
         }
 
         if current_char == "=" {
-            if peek(lexer) == "=" {
+            if lexer_peek(lexer) == "=" {
                 next_char(lexer);
                 array_append[Token](@lexer.tokens, new Token{
                     type: TokenType.EQUAL,
@@ -245,7 +246,7 @@ fn lex(lexer: ^Lexer): void {
 
         if current_char == "<" {
 
-            if peek(lexer) == "=" {
+            if lexer_peek(lexer) == "=" {
                 next_char(lexer);
                 array_append[Token](@lexer.tokens, new Token{
                     type: TokenType.LESS_EQUAL,
@@ -263,7 +264,7 @@ fn lex(lexer: ^Lexer): void {
 
         if current_char == ">" {
 
-            if peek(lexer) == "=" {
+            if lexer_peek(lexer) == "=" {
                 next_char(lexer);
                 array_append[Token](@lexer.tokens, new Token{
                     type: TokenType.GREATER_EQUAL,
@@ -289,7 +290,7 @@ fn lex(lexer: ^Lexer): void {
 
         if current_char == "!" {
 
-            if peek(lexer) == "=" {
+            if lexer_peek(lexer) == "=" {
                 next_char(lexer);
                 array_append[Token](@lexer.tokens, new Token{
                     type: TokenType.NOT_EQUAL,
@@ -522,6 +523,33 @@ fn lex(lexer: ^Lexer): void {
 
             continue;
         }
+
+        if word == "test" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.TEST,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "zero" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.ZERO,
+                string: word
+            });
+
+            continue;
+        }
+
+        if word == "break" {
+            array_append[Token](@lexer.tokens, new Token{
+                type: TokenType.BREAK,
+                string: word
+            });
+
+            continue;
+        } 
 
         array_append[Token](@lexer.tokens, new Token{
             type: TokenType.IDENTIFIER,

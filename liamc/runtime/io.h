@@ -28,4 +28,4 @@ template <typename T> void println(const T &t) {
     std::cout << t << "\n";
 }
 
-String read(str path);
+String rea(str path);
