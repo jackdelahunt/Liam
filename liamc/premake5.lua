@@ -12,7 +12,7 @@ workspace "Liam"
 		"Dist",
 	}
 
-distpath = "%{wks.location}/" .. "/%{prj.name}"
+distpath = "%{wks.location}/" .. "/%{prj.name}-%{cfg.system}-%{cfg.architecture}"
 
 project "liamc"
 	location "src"
