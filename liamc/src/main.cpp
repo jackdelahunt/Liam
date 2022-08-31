@@ -3,11 +3,11 @@
 #include <iostream>
 
 #include "args.h"
-#include "cpp_backend.h"
-#include "llvm_backend.h"
 #include "compiler.h"
+#include "cpp_backend.h"
 #include "fmt/core.h"
 #include "liam.h"
+#include "llvm_backend.h"
 
 #ifndef TEST
 
@@ -34,12 +34,12 @@ s32 main(s32 argc, char **argv) {
     // auto code = CppBackend().emit(&typed_file);
     LLVMBackend().emit(&typed_file);
     TIME_END(code_gen, "Code generation time");
-/*
-    if (args->codegen)
-    { std::cout << code << "\n"; }
+    /*
+        if (args->codegen)
+        { std::cout << code << "\n"; }
 
-    build_step(&code);
-    */
+        build_step(&code);
+        */
     return 0;
 }
 
@@ -50,11 +50,10 @@ void build_step(std::string *code) {
     std::ofstream out_file;
     std::string out_file_path = "";
 
-    if(args->emit.empty()) {
-        out_file_path = "out.cpp";
-    } else {
-        out_file_path = args->emit;
-    }
+    if (args->emit.empty())
+    { out_file_path = "out.cpp"; }
+    else
+    { out_file_path = args->emit; }
 
     out_file = std::ofstream(out_file_path);
 
@@ -75,7 +74,7 @@ void build_step(std::string *code) {
     {
         if (args->emit.empty())
         {
-            FILE *file = popen(fmt::format("rm {}", out_file_path).c_str(),  "r");
+            FILE *file = popen(fmt::format("rm {}", out_file_path).c_str(), "r");
             pclose(file);
         }
     }

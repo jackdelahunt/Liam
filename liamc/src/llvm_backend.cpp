@@ -1,16 +1,14 @@
 #include "llvm_backend.h"
 
-
 LLVMBackend::LLVMBackend() {
-    context = std::make_unique<llvm::LLVMContext>();
-    module = std::make_unique<llvm::Module>("liam-llvm-module", *context);
+    context = new llvm::LLVMContext();
+    module  = std::make_unique<llvm::Module>("liam-llvm-module", *context);
     builder = std::make_unique<llvm::IRBuilder<>>(*context);
 }
 
 void LLVMBackend::emit(File *file) {
-    for(auto stmt : file->statements) {
-        emit_statement(stmt);
-    }
+    for (auto stmt : file->statements)
+    { emit_statement(stmt); }
 
     module->print(llvm::outs(), nullptr);
 
@@ -29,18 +27,18 @@ void LLVMBackend::emit(File *file) {
     // Print an error and exit if we couldn't find the requested target.
     // This generally occurs if we've forgotten to initialise the
     // TargetRegistry or we have a bogus target triple.
-    if (!Target) {
+    if (!Target)
+    {
         llvm::errs() << Error;
         return;
     }
 
-    auto CPU = "generic";
+    auto CPU      = "generic";
     auto Features = "";
 
     llvm::TargetOptions opt;
-    auto RM = llvm::Optional<llvm::Reloc::Model>();
-    auto TheTargetMachine =
-            Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+    auto RM               = llvm::Optional<llvm::Reloc::Model>();
+    auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
     module->setDataLayout(TheTargetMachine->createDataLayout());
 
@@ -48,7 +46,8 @@ void LLVMBackend::emit(File *file) {
     std::error_code EC;
     llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::OF_None);
 
-    if (EC) {
+    if (EC)
+    {
         llvm::errs() << "Could not open file: " << EC.message();
         return;
     }
@@ -56,7 +55,8 @@ void LLVMBackend::emit(File *file) {
     llvm::legacy::PassManager pass;
     auto FileType = llvm::CGFT_ObjectFile;
 
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType))
+    {
         llvm::errs() << "TheTargetMachine can't emit a file of this type";
         return;
     }
@@ -69,12 +69,14 @@ void LLVMBackend::emit(File *file) {
 
 void LLVMBackend::emit_statement(Statement *statement) {
 
-    if(statement->statement_type == StatementType::STATEMENT_FN) {
+    if (statement->statement_type == StatementType::STATEMENT_FN)
+    {
         emit_fn_statement(static_cast<FnStatement *>(statement));
         return;
     }
 
-    if(statement->statement_type == StatementType::STATEMENT_RETURN) {
+    if (statement->statement_type == StatementType::STATEMENT_RETURN)
+    {
         emit_return_statement(static_cast<ReturnStatement *>(statement));
         return;
     }
@@ -83,22 +85,24 @@ void LLVMBackend::emit_statement(Statement *statement) {
 }
 
 void LLVMBackend::emit_return_statement(ReturnStatement *statement) {
-    if(statement->expression == NULL) return;
+    if (statement->expression == NULL)
+        return;
 
     auto ret = emit_expression(statement->expression);
     builder->CreateRet(ret);
 }
 
 void LLVMBackend::emit_scope_statement(ScopeStatement *statement) {
-   for(auto stmt : statement->statements) {
-       emit_statement(stmt);
-   }
+    for (auto stmt : statement->statements)
+    { emit_statement(stmt); }
 }
 
 void LLVMBackend::emit_fn_statement(FnStatement *statement) {
     // function type decl
-    llvm::FunctionType *ft = llvm::FunctionType::get(llvm::Type::getInt64Ty(*context), false);
-    llvm::Function *func = llvm::Function::Create(ft, llvm::Function::ExternalLinkage, statement->identifier.string, module.get());
+    llvm::FunctionType *ft =
+        llvm::FunctionType::get(map_liam_type_to_llvm_type(context, statement->return_type->type_info), false);
+    llvm::Function *func =
+        llvm::Function::Create(ft, llvm::Function::ExternalLinkage, statement->identifier.string, module.get());
 
     // func body decl
     llvm::BasicBlock *block = llvm::BasicBlock::Create(*context, statement->identifier.string + "_body", func);
@@ -109,18 +113,49 @@ void LLVMBackend::emit_fn_statement(FnStatement *statement) {
 }
 
 llvm::Value *LLVMBackend::emit_expression(Expression *expression) {
-    if(expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL) {
-        return emit_int_literal_expression(static_cast<NumberLiteralExpression *>(expression));
-    }
+    if (expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL)
+    { return emit_int_literal_expression(static_cast<NumberLiteralExpression *>(expression)); }
 
+    panic("Cannot emit this expression yet in llvm backend...");
     return NULL;
 }
 
 llvm::Value *LLVMBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
     auto number_type_info = static_cast<NumberTypeInfo *>(expression->type_info);
 
-    if(number_type_info->type != NumberType::SIGNED) panic("Can only emit ints right now :[");
-    if(number_type_info->size != 64) panic("Can only emit 64 bit numbers right now :[");
+    llvm::CallInst();
 
-    return llvm::ConstantInt::get(*context, llvm::APInt(64, (int)expression->number, true));
+    switch (number_type_info->type)
+    {
+    case NumberType::SIGNED:
+        return llvm::ConstantInt::get(*context, llvm::APInt(number_type_info->size, expression->number, true));
+    case NumberType::UNSIGNED:
+        return llvm::ConstantInt::get(*context, llvm::APInt(number_type_info->size, expression->number, false));
+    case NumberType::FLOAT:
+        return llvm::ConstantFP::get(*context, llvm::APFloat((float)expression->number));
+    }
+}
+
+llvm::Type *map_liam_type_to_llvm_type(llvm::LLVMContext *context, TypeInfo *type_info) {
+    switch (type_info->type)
+    {
+    case TypeInfoType::VOID:
+        return llvm::Type::getVoidTy(*context);
+    case TypeInfoType::NUMBER: {
+        auto number_type_info = static_cast<NumberTypeInfo *>(type_info);
+
+        switch (number_type_info->type)
+        {
+        case NumberType::SIGNED:
+        case NumberType::UNSIGNED:
+            // TODO: does not seem to be a unsigned int llvm type maybe this will
+            // cause issues in code gen
+            return llvm::Type::getIntNTy(*context, number_type_info->size);
+        case NumberType::FLOAT:
+            return llvm::Type::getFloatTy(*context);
+        }
+    }
+    default:
+        panic("Cannot convert this type to llvm type yet... :[");
+    }
 }

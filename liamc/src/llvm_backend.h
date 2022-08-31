@@ -32,7 +32,7 @@
 
 struct LLVMBackend {
 
-    std::unique_ptr<llvm::LLVMContext> context;
+    llvm::LLVMContext *context;
     std::unique_ptr<llvm::IRBuilder<>> builder;
     std::unique_ptr<llvm::Module> module;
 
@@ -58,19 +58,21 @@ struct LLVMBackend {
     std::string emit_alias_statement(AliasStatement *statement);
     std::string emit_test_statement(TestStatement *statement);
 
-    llvm::Value * emit_expression(Expression *expression);
-    llvm::Value * emit_is_expression(IsExpression *expression);
-    llvm::Value * emit_binary_expression(BinaryExpression *expression);
-    llvm::Value * emit_string_literal_expression(StringLiteralExpression *expression);
-    llvm::Value * emit_bool_literal_expression(BoolLiteralExpression *expression);
-    llvm::Value * emit_int_literal_expression(NumberLiteralExpression *expression);
-    llvm::Value * emit_unary_expression(UnaryExpression *expression);
-    llvm::Value * emit_call_expression(CallExpression *expression);
-    llvm::Value * emit_identifier_expression(IdentifierExpression *expression);
-    llvm::Value * emit_get_expression(GetExpression *expression);
-    llvm::Value * emit_new_expression(NewExpression *expression);
-    llvm::Value * emit_group_expression(GroupExpression *expression);
-    llvm::Value * emit_null_literal_expression(NullLiteralExpression *expression);
-    llvm::Value * emit_propagate_expression(PropagateExpression *expression);
-    llvm::Value * emit_zero_literal_expression(ZeroLiteralExpression *expression);
+    llvm::Value *emit_expression(Expression *expression);
+    llvm::Value *emit_is_expression(IsExpression *expression);
+    llvm::Value *emit_binary_expression(BinaryExpression *expression);
+    llvm::Value *emit_string_literal_expression(StringLiteralExpression *expression);
+    llvm::Value *emit_bool_literal_expression(BoolLiteralExpression *expression);
+    llvm::Value *emit_int_literal_expression(NumberLiteralExpression *expression);
+    llvm::Value *emit_unary_expression(UnaryExpression *expression);
+    llvm::Value *emit_call_expression(CallExpression *expression);
+    llvm::Value *emit_identifier_expression(IdentifierExpression *expression);
+    llvm::Value *emit_get_expression(GetExpression *expression);
+    llvm::Value *emit_new_expression(NewExpression *expression);
+    llvm::Value *emit_group_expression(GroupExpression *expression);
+    llvm::Value *emit_null_literal_expression(NullLiteralExpression *expression);
+    llvm::Value *emit_propagate_expression(PropagateExpression *expression);
+    llvm::Value *emit_zero_literal_expression(ZeroLiteralExpression *expression);
 };
+
+llvm::Type *map_liam_type_to_llvm_type(llvm::LLVMContext *context, TypeInfo *type_info);

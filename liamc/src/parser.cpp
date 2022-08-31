@@ -29,7 +29,7 @@ void Parser::parse() {
 
         auto errors_before = ErrorReporter::error_count();
         auto stmt          = eval_statement();
-        if (ErrorReporter::error_count() > errors_before)   
+        if (ErrorReporter::error_count() > errors_before)
             continue;
 
         if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
