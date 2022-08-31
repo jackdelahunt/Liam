@@ -36,6 +36,8 @@ struct LLVMBackend {
     std::unique_ptr<llvm::IRBuilder<>> builder;
     std::unique_ptr<llvm::Module> module;
 
+    std::map<std::string, llvm::Function *> function_map;
+
     LLVMBackend();
 
     void emit(File *file);

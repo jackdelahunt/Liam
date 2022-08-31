@@ -4,6 +4,8 @@ LLVMBackend::LLVMBackend() {
     context = new llvm::LLVMContext();
     module  = std::make_unique<llvm::Module>("liam-llvm-module", *context);
     builder = std::make_unique<llvm::IRBuilder<>>(*context);
+
+    function_map = std::map<std::string, llvm::Function *>();
 }
 
 void LLVMBackend::emit(File *file) {
@@ -104,6 +106,9 @@ void LLVMBackend::emit_fn_statement(FnStatement *statement) {
     llvm::Function *func =
         llvm::Function::Create(ft, llvm::Function::ExternalLinkage, statement->identifier.string, module.get());
 
+    // add llvm function type to function map for use with call expressions
+    function_map[statement->identifier.string] = func;
+
     // func body decl
     llvm::BasicBlock *block = llvm::BasicBlock::Create(*context, statement->identifier.string + "_body", func);
     builder->SetInsertPoint(block);
@@ -116,14 +121,15 @@ llvm::Value *LLVMBackend::emit_expression(Expression *expression) {
     if (expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL)
     { return emit_int_literal_expression(static_cast<NumberLiteralExpression *>(expression)); }
 
+    if (expression->type == ExpressionType::EXPRESSION_CALL)
+    { return emit_call_expression(static_cast<CallExpression *>(expression)); }
+
     panic("Cannot emit this expression yet in llvm backend...");
     return NULL;
 }
 
 llvm::Value *LLVMBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
     auto number_type_info = static_cast<NumberTypeInfo *>(expression->type_info);
-
-    llvm::CallInst();
 
     switch (number_type_info->type)
     {
@@ -134,6 +140,13 @@ llvm::Value *LLVMBackend::emit_int_literal_expression(NumberLiteralExpression *e
     case NumberType::FLOAT:
         return llvm::ConstantFP::get(*context, llvm::APFloat((float)expression->number));
     }
+}
+
+llvm::Value *LLVMBackend::emit_call_expression(CallExpression *expression) {
+    IdentifierExpression *identifier = static_cast<IdentifierExpression *>(expression->identifier);
+    auto func = function_map[identifier->identifier.string];
+
+    return builder->CreateCall(func, {}, identifier->identifier.string + "_call");
 }
 
 llvm::Type *map_liam_type_to_llvm_type(llvm::LLVMContext *context, TypeInfo *type_info) {
