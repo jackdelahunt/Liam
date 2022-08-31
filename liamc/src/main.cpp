@@ -4,6 +4,7 @@
 
 #include "args.h"
 #include "cpp_backend.h"
+#include "llvm_backend.h"
 #include "compiler.h"
 #include "fmt/core.h"
 #include "liam.h"
@@ -30,13 +31,15 @@ s32 main(s32 argc, char **argv) {
     TIME_END(type_time, "Type checking time");
 
     TIME_START(code_gen);
-    auto code = CppBackend().emit(&typed_file);
+    // auto code = CppBackend().emit(&typed_file);
+    LLVMBackend().emit(&typed_file);
     TIME_END(code_gen, "Code generation time");
-
+/*
     if (args->codegen)
     { std::cout << code << "\n"; }
 
     build_step(&code);
+    */
     return 0;
 }
 
