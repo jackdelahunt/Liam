@@ -10,7 +10,7 @@ void Arguments::New(int argc, char **argv) {
     options->add_options()("i,in", "Input file path", cxxopts::value<std::string>());
 
     // optionals with defaults
-    options->add_options()("o,out", "Output file path", cxxopts::value<std::string>()->default_value("out.cpp"));
+    options->add_options()("o,out", "Output binary path", cxxopts::value<std::string>()->default_value("a.out"));
     options->add_options()("c,codegen", "Print codegen to stdout", cxxopts::value<bool>()->default_value("false"));
     options->add_options()("t,time", "Print times", cxxopts::value<bool>()->default_value("false"));
     options->add_options()("s,stdlib", "Get the stdlib location", cxxopts::value<std::string>());
