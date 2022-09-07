@@ -58,11 +58,11 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     identifier_table[identifier.string] = type_info;
 }
 
-std::tuple<TypeInfo *, bool> SymbolTable::get_type(Token *identifier) {
+Tuple<TypeInfo *, bool> SymbolTable::get_type(Token *identifier) {
     return get_type(identifier->string);
 }
 
-std::tuple<TypeInfo *, bool> SymbolTable::get_type(std::string identifier) {
+Tuple<TypeInfo *, bool> SymbolTable::get_type(std::string identifier) {
     if (builtin_type_table.contains(identifier))
     { return {builtin_type_table[identifier], false}; }
 
@@ -305,7 +305,7 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     auto fn_type_info = static_cast<FnTypeInfo *>(symbol_table->identifier_table[statement->identifier.string]);
 
     // params and get type expressions
-    auto args = std::vector<std::tuple<Token, TypeInfo *>>();
+    auto args = std::vector<Tuple<Token, TypeInfo *>>();
     for (int i = 0; i < fn_type_info->args.size(); i++)
     {
         auto &[identifier, expr] = statement->params.at(i);
@@ -402,11 +402,11 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
     for (u64 i = 0; i < statement->generics.size(); i++)
     { sub_symbol_table_copy.add_type(statement->generics[i], new GenericTypeInfo{TypeInfoType::GENERIC, i}); }
 
-    auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
+    auto members_type_info = std::vector<Tuple<std::string, TypeInfo *>>();
     for (auto &[member, expr] : statement->members)
     {
         TRY_CALL(type_check_type_expression(expr, &sub_symbol_table_copy));
-        members_type_info.emplace_back(member.string, expr->type_info);
+        members_type_info.push_back({member.string, expr->type_info});
     }
 
     // if this is a top level struct it means its identifier is already in the symbol table from the first pass
@@ -938,11 +938,11 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     auto struct_type_info = static_cast<StructTypeInfo *>(symbol_table->type_table[expression->identifier.string]);
 
     // collect members from new constructor
-    auto calling_args_type_infos = std::vector<std::tuple<std::string, TypeInfo *>>();
+    auto calling_args_type_infos = std::vector<Tuple<std::string, TypeInfo *>>();
     for (auto [name, expr] : expression->named_expressions)
     {
         TRY_CALL(type_check_expression(expr, symbol_table));
-        calling_args_type_infos.emplace_back(name.string, expr->type_info);
+        calling_args_type_infos.push_back({name.string, expr->type_info});
     }
 
     // collect generic types from new constructor

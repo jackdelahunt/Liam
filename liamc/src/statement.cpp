@@ -23,8 +23,8 @@ LetStatement::LetStatement(File *file, Token identifier, Expression *expression,
 }
 
 FnStatement::FnStatement(
-    File *file, Token identifier, std::vector<Token> generics, CSV params, TypeExpression *type, ScopeStatement *body,
-    bool is_extern
+    File *file, Token identifier, std::vector<Token> generics, std::vector<Tuple<Token, TypeExpression *>> params,
+    TypeExpression *type, ScopeStatement *body, bool is_extern
 ) {
     this->file           = file;
     this->identifier     = identifier;
@@ -37,7 +37,8 @@ FnStatement::FnStatement(
 }
 
 StructStatement::StructStatement(
-    File *file, Token identifier, std::vector<Token> generics, CSV members, bool is_extern
+    File *file, Token identifier, std::vector<Token> generics, std::vector<Tuple<Token, TypeExpression *>> members,
+    bool is_extern
 ) {
     this->file           = file;
     this->identifier     = identifier;

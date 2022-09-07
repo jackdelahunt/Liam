@@ -11,14 +11,16 @@ extern Arguments *args;
 struct Arguments {
     std::string out_path;
     std::string in_path;
-    bool codegen;
+    bool emit;
     bool time;
     std::string stdlib;
     bool help;
     std::string include;
-    std::string emit;
+    std::string cpp_source;
     bool debug;
     bool test;
+    bool cpp;
+    bool llvm;
 
     cxxopts::Options *options;
     cxxopts::ParseResult result;

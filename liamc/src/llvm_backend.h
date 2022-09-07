@@ -37,6 +37,7 @@ struct LLVMBackend {
     std::unique_ptr<llvm::Module> module;
 
     std::map<std::string, llvm::Function *> function_map;
+    std::map<std::string, llvm::AllocaInst *> var_map;
 
     LLVMBackend();
 

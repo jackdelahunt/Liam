@@ -798,8 +798,8 @@ std::vector<TypeExpression *> Parser::consume_comma_seperated_types(TokenType cl
 }
 
 // e.g. (int x, int y, ...)
-CSV Parser::consume_comma_seperated_params() {
-    auto args_types = std::vector<std::tuple<Token, TypeExpression *>>();
+std::vector<Tuple<Token, TypeExpression *>> Parser::consume_comma_seperated_params() {
+    auto args_types = std::vector<Tuple<Token, TypeExpression *>>();
     bool is_first   = true;
     if (!match(TokenType::TOKEN_PAREN_CLOSE) && !match(TokenType::TOKEN_BRACE_CLOSE))
     {
@@ -813,7 +813,7 @@ CSV Parser::consume_comma_seperated_params() {
             TRY_CALL_RETURN(consume_token_of_type(TokenType::TOKEN_COLON), {});
             auto type = TRY_CALL_RETURN(eval_type_expression(), {});
 
-            args_types.emplace_back(*arg, type);
+            args_types.push_back({*arg, type});
 
             if (is_first)
                 is_first = false;
@@ -824,8 +824,8 @@ CSV Parser::consume_comma_seperated_params() {
     return args_types;
 }
 
-std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_named_arguments(TokenType closer) {
-    auto named_args = std::vector<std::tuple<Token, Expression *>>();
+std::vector<Tuple<Token, Expression *>> Parser::consume_comma_seperated_named_arguments(TokenType closer) {
+    auto named_args = std::vector<Tuple<Token, Expression *>>();
     bool is_first   = true;
     if (!match(closer))
     {
@@ -840,7 +840,7 @@ std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_nam
             TRY_CALL_RETURN(consume_token_of_type(TokenType::TOKEN_COLON), {});
 
             auto expression = TRY_CALL_RETURN(eval_expression(), {});
-            named_args.emplace_back(*name, expression);
+            named_args.push_back({*name, expression});
 
             if (is_first)
                 is_first = false;

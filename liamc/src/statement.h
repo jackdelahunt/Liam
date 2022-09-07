@@ -2,13 +2,12 @@
 
 #include "expression.h"
 #include "lexer.h"
+#include "liam.h"
 #include "parser.h"
 
 struct Expression;
 struct Token;
 struct File;
-
-typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
 enum class StatementType {
     STATEMENT_EXPRESSION,
@@ -59,24 +58,27 @@ struct ScopeStatement : Statement {
 struct FnStatement : Statement {
     Token identifier;
     std::vector<Token> generics;
-    CSV params;
+    std::vector<Tuple<Token, TypeExpression *>> params;
     TypeExpression *return_type;
     ScopeStatement *body;
     bool is_extern;
 
     FnStatement(
-        File *file, Token identifier, std::vector<Token> generics, CSV params, TypeExpression *type,
-        ScopeStatement *body, bool is_extern
+        File *file, Token identifier, std::vector<Token> generics, std::vector<Tuple<Token, TypeExpression *>> params,
+        TypeExpression *type, ScopeStatement *body, bool is_extern
     );
 };
 
 struct StructStatement : Statement {
     Token identifier;
     std::vector<Token> generics;
-    CSV members;
+    std::vector<Tuple<Token, TypeExpression *>> members;
     bool is_extern;
 
-    StructStatement(File *file, Token identifier, std::vector<Token> generics, CSV members, bool is_extern);
+    StructStatement(
+        File *file, Token identifier, std::vector<Token> generics, std::vector<Tuple<Token, TypeExpression *>> members,
+        bool is_extern
+    );
 };
 
 struct AssigmentStatement : Statement {

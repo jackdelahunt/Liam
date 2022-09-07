@@ -16,6 +16,17 @@ typedef uint32_t u32;
 typedef int64_t s64;
 typedef uint64_t u64;
 
+template <typename T, typename E> struct Tuple {
+    T one;
+    E two;
+};
+
+template <typename T, typename E, typename R> struct Tuple3 {
+    T one;
+    E two;
+    R three;
+};
+
 void panic(const std::string &msg);
 
 #define TIME_START(name) auto name = std::chrono::high_resolution_clock::now();
@@ -58,16 +69,12 @@ void panic(const std::string &msg);
         { return; }                                                                                                    \
     }
 
-#define TRY_CALL_RET(func)                                                                                              \
-    func;                                                                                                             \
-    if (ErrorReporter::has_error_since_last_check())                                                                    \
-    {                                                                                                               \
-        return NULL;                                                                                                \
-    }
+#define TRY_CALL_RET(func)                                                                                             \
+    func;                                                                                                              \
+    if (ErrorReporter::has_error_since_last_check())                                                                   \
+    { return NULL; }
 
-#define TRY_CALL_RETURN(func, ret)                                                                                              \
-    func;                                                                                                             \
-    if (ErrorReporter::has_error_since_last_check())                                                                    \
-    {                                                                                                               \
-        return ret;                                                                                                \
-    }
+#define TRY_CALL_RETURN(func, ret)                                                                                     \
+    func;                                                                                                              \
+    if (ErrorReporter::has_error_since_last_check())                                                                   \
+    { return ret; }

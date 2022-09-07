@@ -57,7 +57,7 @@ struct FnTypeInfo : TypeInfo {
 };
 
 struct StructTypeInfo : TypeInfo {
-    std::vector<std::tuple<std::string, TypeInfo *>> members;
+    std::vector<Tuple<std::string, TypeInfo *>> members;
     u64 generic_count;
 };
 

@@ -68,8 +68,7 @@ GetExpression::GetExpression(Expression *expression, Token member) {
 }
 
 NewExpression::NewExpression(
-    Token identifier, std::vector<TypeExpression *> generics,
-    std::vector<std::tuple<Token, Expression *>> named_expressions
+    Token identifier, std::vector<TypeExpression *> generics, std::vector<Tuple<Token, Expression *>> named_expressions
 ) {
     this->identifier        = identifier;
     this->generics          = generics;

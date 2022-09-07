@@ -98,11 +98,11 @@ struct GetExpression : Expression {
 struct NewExpression : Expression {
     Token identifier;
     std::vector<TypeExpression *> generics;
-    std::vector<std::tuple<Token, Expression *>> named_expressions;
+    std::vector<Tuple<Token, Expression *>> named_expressions;
 
     NewExpression(
         Token identifier, std::vector<TypeExpression *> generics,
-        std::vector<std::tuple<Token, Expression *>> named_expressions
+        std::vector<Tuple<Token, Expression *>> named_expressions
     );
 };
 

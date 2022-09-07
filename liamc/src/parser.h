@@ -101,8 +101,7 @@ struct Parser {
     std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
     std::vector<Token> consume_comma_seperated_token_arguments(TokenType closer);
-    std::vector<std::tuple<Token, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
+    std::vector<Tuple<Token, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
 
-    // this is what CSV is
-    std::vector<std::tuple<Token, TypeExpression *>> consume_comma_seperated_params();
+    std::vector<Tuple<Token, TypeExpression *>> consume_comma_seperated_params();
 };

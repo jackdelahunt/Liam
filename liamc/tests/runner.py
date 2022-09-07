@@ -6,7 +6,7 @@ import os
 
 source_dir = "liam/"
 runtime_path = os.path.abspath("../runtime")
-compiler_path = "../bin/liamc/liamc"
+compiler_path = "../cmake-build-debug/liamc"
 source_files = [source_dir + f for f in listdir(source_dir) if isfile(join(source_dir, f))]
 
 for i, file_path in enumerate(source_files):
@@ -21,6 +21,7 @@ for i, file_path in enumerate(source_files):
 
     compile_output = subprocess.run([
         compiler_path,
+        "--cpp",
         "--in", file_path,
         "--out", "out.exe",
         "--include", "../runtime",
