@@ -53,7 +53,7 @@ struct LLVMBackend {
     std::string emit_assigment_statement(AssigmentStatement *statement);
     std::string emit_expression_statement(ExpressionStatement *statement);
     std::string emit_for_statement(ForStatement *statement);
-    std::string emit_if_statement(IfStatement *statement);
+    void emit_if_statement(IfStatement *statement);
     std::string emit_else_statement(ElseStatement *statement);
     std::string emit_enum_statement(EnumStatement *statement);
     std::string emit_continue_statement(ContinueStatement *statement);
@@ -78,3 +78,5 @@ struct LLVMBackend {
 };
 
 llvm::Type *map_liam_type_to_llvm_type(llvm::LLVMContext *context, TypeInfo *type_info);
+llvm::Value *get_llvm_true_literal(llvm::LLVMContext *context);
+llvm::Value *get_llvm_false_literal(llvm::LLVMContext *context);

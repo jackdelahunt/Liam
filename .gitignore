@@ -24,7 +24,6 @@ liamrs/Cargo.lock
 **.vcxproj.user
 liamc/Code
 liamc/Makefile
-**/CMakeLists.txt
 liamc/src/Makefile
 **.DS_Store
 **/dependencies/

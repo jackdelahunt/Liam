@@ -58,11 +58,16 @@ void panic(const std::string &msg);
         { return; }                                                                                                    \
     }
 
-#define TRY_CALL_RET(func, ret)                                                                                        \
-    ({                                                                                                                 \
-        auto __start = ErrorReporter::error_count();                                                                   \
-        auto __v     = func;                                                                                           \
-        if (ErrorReporter::error_count() > __start)                                                                    \
-        { return ret; }                                                                                                \
-        __v;                                                                                                           \
-    })
+#define TRY_CALL_RET(func)                                                                                              \
+    func;                                                                                                             \
+    if (ErrorReporter::has_error_since_last_check())                                                                    \
+    {                                                                                                               \
+        return NULL;                                                                                                \
+    }
+
+#define TRY_CALL_RETURN(func, ret)                                                                                              \
+    func;                                                                                                             \
+    if (ErrorReporter::has_error_since_last_check())                                                                    \
+    {                                                                                                               \
+        return ret;                                                                                                \
+    }

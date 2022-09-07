@@ -83,7 +83,7 @@ void LLVMBackend::emit_statement(Statement *statement) {
         return;
     }
 
-    panic("Uh oh");
+    panic("Cannot emit this statement in llvm backend");
 }
 
 void LLVMBackend::emit_return_statement(ReturnStatement *statement) {
@@ -117,15 +117,66 @@ void LLVMBackend::emit_fn_statement(FnStatement *statement) {
     llvm::verifyFunction(*func);
 }
 
+void LLVMBackend::emit_if_statement(IfStatement *statement) {
+
+    // https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl05.html#llvm-ir-for-if-then-else
+
+    llvm::Value * condition = emit_expression(statement->expression);
+
+    // compare expression to see if it is not equal to zero
+    llvm::Value *compare_expression = builder->CreateFCmpONE(condition, get_llvm_false_literal(context), "if_condition");
+
+    // merge block -> the rest of the code after this if statement
+    llvm::Function *parent_func = builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock *if_block = llvm::BasicBlock::Create(*context, "if_block", parent_func);
+    llvm::BasicBlock *else_block = llvm::BasicBlock::Create(*context, "else_block");
+    llvm::BasicBlock *merge_block = llvm::BasicBlock::Create(*context, "merge");
+
+    // conditional branch id the condition is true then jump to if_block and
+    // if it is not true move to else block
+    builder->CreateCondBr(condition, if_block, else_block);
+
+    // emit the scope statement into the if block
+    // then at the end of the if block create a branch to the merge block
+    builder->SetInsertPoint(if_block);
+    emit_scope_statement(statement->body);
+    builder->CreateBr(merge_block);
+
+    // after emitting the scope statement in the if statement
+    // the merge may be change so just use that
+    merge_block = builder->GetInsertBlock();
+
+    // else block was not added to build when it was created so add it now
+    parent_func->getBasicBlockList().push_back(else_block);
+    builder->SetInsertPoint(else_block);
+    emit_else_statement(statement->else_statement);
+    builder->CreateBr(merge_block);
+
+    // codegen of 'Else' can change the current block, update ElseBB for the PHI.
+    else_block = builder->GetInsertBlock();
+}
+
 llvm::Value *LLVMBackend::emit_expression(Expression *expression) {
-    if (expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL)
-    { return emit_int_literal_expression(static_cast<NumberLiteralExpression *>(expression)); }
 
-    if (expression->type == ExpressionType::EXPRESSION_CALL)
-    { return emit_call_expression(static_cast<CallExpression *>(expression)); }
+    switch (expression->type) {
+        case ExpressionType::EXPRESSION_BOOL_LITERAL:
+            return emit_bool_literal_expression(static_cast<BoolLiteralExpression *>(expression));
+        case ExpressionType::EXPRESSION_NUMBER_LITERAL:
+            return emit_int_literal_expression(static_cast<NumberLiteralExpression *>(expression));
+        case  ExpressionType::EXPRESSION_CALL:
+            return emit_call_expression(static_cast<CallExpression *>(expression));
+        default:
+            panic("Cannot emit this expression yet in llvm backend...");
+        return NULL;
+    }
+}
 
-    panic("Cannot emit this expression yet in llvm backend...");
-    return NULL;
+llvm::Value *LLVMBackend::emit_bool_literal_expression(BoolLiteralExpression *expression) {
+    if(expression->value.string == "true") {
+        return get_llvm_true_literal(context);
+    } else {
+        return get_llvm_false_literal(context);
+    }
 }
 
 llvm::Value *LLVMBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
@@ -168,7 +219,16 @@ llvm::Type *map_liam_type_to_llvm_type(llvm::LLVMContext *context, TypeInfo *typ
             return llvm::Type::getFloatTy(*context);
         }
     }
+    case TypeInfoType::BOOLEAN:
+        return llvm::Type::getInt1Ty(*context);
     default:
         panic("Cannot convert this type to llvm type yet... :[");
     }
+}
+
+llvm::Value *get_llvm_true_literal(llvm::LLVMContext *context) {
+    return llvm::ConstantInt::get(*context, llvm::APInt(1, 1));
+}
+llvm::Value *get_llvm_false_literal(llvm::LLVMContext *context) {
+    return llvm::ConstantInt::get(*context, llvm::APInt(1, 0));
 }
