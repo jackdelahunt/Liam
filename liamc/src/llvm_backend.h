@@ -37,7 +37,7 @@ struct LLVMBackend {
     std::unique_ptr<llvm::Module> module;
 
     std::map<std::string, llvm::Function *> function_map;
-    std::map<std::string, llvm::AllocaInst *> var_map;
+    std::map<std::string, llvm::StructType *> struct_map;
 
     LLVMBackend();
 
@@ -50,9 +50,9 @@ struct LLVMBackend {
     std::string emit_let_statement(LetStatement *statement);
     void emit_scope_statement(ScopeStatement *statement);
     void emit_fn_statement(FnStatement *statement);
-    std::string emit_struct_statement(StructStatement *statement);
+    void emit_struct_statement(StructStatement *statement);
     std::string emit_assigment_statement(AssigmentStatement *statement);
-    std::string emit_expression_statement(ExpressionStatement *statement);
+    void emit_expression_statement(ExpressionStatement *statement);
     std::string emit_for_statement(ForStatement *statement);
     void emit_if_statement(IfStatement *statement);
     std::string emit_else_statement(ElseStatement *statement);

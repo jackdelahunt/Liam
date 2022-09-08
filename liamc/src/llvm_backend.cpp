@@ -6,6 +6,7 @@ LLVMBackend::LLVMBackend() {
     builder = std::make_unique<llvm::IRBuilder<>>(*context);
 
     function_map = std::map<std::string, llvm::Function *>();
+    struct_map = std::map<std::string, llvm::StructType *>();
 }
 
 void LLVMBackend::emit(File *file) {
@@ -71,19 +72,24 @@ void LLVMBackend::emit(File *file) {
 
 void LLVMBackend::emit_statement(Statement *statement) {
 
-    if (statement->statement_type == StatementType::STATEMENT_FN)
-    {
-        emit_fn_statement(static_cast<FnStatement *>(statement));
-        return;
+    switch (statement->statement_type) {
+        case StatementType::STATEMENT_FN:
+            emit_fn_statement(static_cast<FnStatement *>(statement));
+            break;
+        case StatementType::STATEMENT_STRUCT:
+            emit_struct_statement(static_cast<StructStatement *>(statement));
+            break;
+        case StatementType::STATEMENT_RETURN:
+            emit_return_statement(static_cast<ReturnStatement *>(statement));
+            break;
+        case StatementType::STATEMENT_EXPRESSION:
+            emit_expression_statement(static_cast<ExpressionStatement *>(statement));
+            break;
+
+        default:
+            panic("Cannot emit this statement in llvm backend");
     }
 
-    if (statement->statement_type == StatementType::STATEMENT_RETURN)
-    {
-        emit_return_statement(static_cast<ReturnStatement *>(statement));
-        return;
-    }
-
-    panic("Cannot emit this statement in llvm backend");
 }
 
 void LLVMBackend::emit_return_statement(ReturnStatement *statement) {
@@ -126,6 +132,23 @@ void LLVMBackend::emit_fn_statement(FnStatement *statement) {
     emit_scope_statement(statement->body);
 
     llvm::verifyFunction(*func);
+}
+
+void LLVMBackend::emit_struct_statement(StructStatement *statement) {
+    auto struct_type = llvm::StructType::create(*context, statement->identifier.string);
+
+    std::vector<llvm::Type *> member_types = {};
+
+    for(auto [name, type] : statement->members) {
+        member_types.push_back(map_liam_type_to_llvm_type(context, type->type_info));
+    }
+
+    struct_type->setBody(member_types);
+
+}
+
+void LLVMBackend::emit_expression_statement(ExpressionStatement *statement) {
+    emit_expression(statement->expression);
 }
 
 llvm::Value *LLVMBackend::emit_expression(Expression *expression) {
