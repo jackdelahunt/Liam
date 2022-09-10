@@ -6,7 +6,7 @@ LLVMBackend::LLVMBackend() {
     builder = std::make_unique<llvm::IRBuilder<>>(*context);
 
     function_map = std::map<std::string, llvm::Function *>();
-    struct_map = std::map<std::string, llvm::StructType *>();
+    struct_map   = std::map<std::string, llvm::StructType *>();
 }
 
 void LLVMBackend::emit(File *file) {
@@ -72,24 +72,27 @@ void LLVMBackend::emit(File *file) {
 
 void LLVMBackend::emit_statement(Statement *statement) {
 
-    switch (statement->statement_type) {
-        case StatementType::STATEMENT_FN:
-            emit_fn_statement(static_cast<FnStatement *>(statement));
-            break;
-        case StatementType::STATEMENT_STRUCT:
-            emit_struct_statement(static_cast<StructStatement *>(statement));
-            break;
-        case StatementType::STATEMENT_RETURN:
-            emit_return_statement(static_cast<ReturnStatement *>(statement));
-            break;
-        case StatementType::STATEMENT_EXPRESSION:
-            emit_expression_statement(static_cast<ExpressionStatement *>(statement));
-            break;
+    switch (statement->statement_type)
+    {
+    case StatementType::STATEMENT_RETURN:
+        emit_return_statement(static_cast<ReturnStatement *>(statement));
+        break;
+    case StatementType::STATEMENT_LET:
+        emit_let_statement(static_cast<LetStatement *>(statement));
+        break;
+    case StatementType::STATEMENT_FN:
+        emit_fn_statement(static_cast<FnStatement *>(statement));
+        break;
+    case StatementType::STATEMENT_STRUCT:
+        emit_struct_statement(static_cast<StructStatement *>(statement));
+        break;
+    case StatementType::STATEMENT_EXPRESSION:
+        emit_expression_statement(static_cast<ExpressionStatement *>(statement));
+        break;
 
-        default:
-            panic("Cannot emit this statement in llvm backend");
+    default:
+        panic("Cannot emit this statement in llvm backend");
     }
-
 }
 
 void LLVMBackend::emit_return_statement(ReturnStatement *statement) {
@@ -98,6 +101,16 @@ void LLVMBackend::emit_return_statement(ReturnStatement *statement) {
 
     auto ret = emit_expression(statement->expression);
     builder->CreateRet(ret);
+}
+
+void LLVMBackend::emit_let_statement(LetStatement *statement) {
+    auto rhs = emit_expression(statement->rhs);
+
+    // put allocainst in entry block of parent function, to be optimised by mem2reg
+    llvm::Function *parentFunction = builder->GetInsertBlock()->getParent();
+    llvm::IRBuilder<> TmpBuilder(&(parentFunction->getEntryBlock()), parentFunction->getEntryBlock().begin());
+    llvm::AllocaInst *var = TmpBuilder.CreateAlloca(rhs->getType(), nullptr, statement->identifier.string);
+    builder->CreateStore(rhs, var);
 }
 
 void LLVMBackend::emit_scope_statement(ScopeStatement *statement) {
@@ -110,12 +123,11 @@ void LLVMBackend::emit_fn_statement(FnStatement *statement) {
     // converting each type in the function params to llvm types
     auto param_type_list = std::vector<llvm::Type *>();
     for (s32 i = 0; i < statement->params.size(); i++)
-    { param_type_list.push_back(map_liam_type_to_llvm_type(context, statement->params[i].two->type_info)); }
+    { param_type_list.push_back(emit_type_expression(statement->params[i].two)); }
 
     // function type decl
-    llvm::FunctionType *ft = llvm::FunctionType::get(
-        map_liam_type_to_llvm_type(context, statement->return_type->type_info), param_type_list, false
-    );
+    llvm::FunctionType *ft =
+        llvm::FunctionType::get(emit_type_expression(statement->return_type), param_type_list, false);
     llvm::Function *func =
         llvm::Function::Create(ft, llvm::Function::ExternalLinkage, statement->identifier.string, module.get());
 
@@ -139,12 +151,10 @@ void LLVMBackend::emit_struct_statement(StructStatement *statement) {
 
     std::vector<llvm::Type *> member_types = {};
 
-    for(auto [name, type] : statement->members) {
-        member_types.push_back(map_liam_type_to_llvm_type(context, type->type_info));
-    }
+    for (auto [name, type] : statement->members)
+    { member_types.push_back(emit_type_expression(type)); }
 
     struct_type->setBody(member_types);
-
 }
 
 void LLVMBackend::emit_expression_statement(ExpressionStatement *statement) {
@@ -193,6 +203,50 @@ llvm::Value *LLVMBackend::emit_call_expression(CallExpression *expression) {
     auto func                        = function_map[identifier->identifier.string];
 
     return builder->CreateCall(func, {}, identifier->identifier.string + "_call");
+}
+
+llvm::Type *LLVMBackend::emit_type_expression(TypeExpression *type_expression) {
+    switch (type_expression->type)
+    {
+    case TypeExpressionType::TYPE_UNION:
+        panic("Cpp back end does not support this return_type expression");
+        return emit_union_type_expression(dynamic_cast<UnionTypeExpression *>(type_expression));
+        break;
+    case TypeExpressionType::TYPE_IDENTIFIER:
+        return emit_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression));
+        break;
+    case TypeExpressionType::TYPE_UNARY:
+        panic("Cpp back end does not support this return_type expression");
+        return emit_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression));
+        break;
+    case TypeExpressionType::TYPE_SPECIFIED_GENERICS:
+        panic("Cpp back end does not support this return_type expression");
+        return emit_specified_generics_type_expression(dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression)
+        );
+        break;
+    default:
+        panic("Cpp back end does not support this return_type expression");
+        return NULL;
+    }
+}
+
+llvm::Type *LLVMBackend::emit_union_type_expression(UnionTypeExpression *type_expression) {
+    return NULL;
+}
+
+llvm::Type *LLVMBackend::emit_identifier_type_expression(IdentifierTypeExpression *type_expression) {
+    if (type_expression->type_info->type == TypeInfoType::STRUCT)
+    { return llvm::StructType::getTypeByName(*context, type_expression->identifier.string); }
+
+    return map_liam_type_to_llvm_type(context, type_expression->type_info);
+}
+
+llvm::Type *LLVMBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
+    return NULL;
+}
+
+llvm::Type *LLVMBackend::emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression) {
+    return NULL;
 }
 
 llvm::Type *map_liam_type_to_llvm_type(llvm::LLVMContext *context, TypeInfo *type_info) {

@@ -47,7 +47,7 @@ struct LLVMBackend {
     std::string emit_insert_statement(InsertStatement *statement);
     void emit_return_statement(ReturnStatement *statement);
     std::string emit_break_statement(BreakStatement *statement);
-    std::string emit_let_statement(LetStatement *statement);
+    void emit_let_statement(LetStatement *statement);
     void emit_scope_statement(ScopeStatement *statement);
     void emit_fn_statement(FnStatement *statement);
     void emit_struct_statement(StructStatement *statement);
@@ -76,6 +76,12 @@ struct LLVMBackend {
     llvm::Value *emit_null_literal_expression(NullLiteralExpression *expression);
     llvm::Value *emit_propagate_expression(PropagateExpression *expression);
     llvm::Value *emit_zero_literal_expression(ZeroLiteralExpression *expression);
+
+    llvm::Type *emit_type_expression(TypeExpression *type_expression);
+    llvm::Type *emit_unary_type_expression(UnaryTypeExpression *type_expression);
+    llvm::Type *emit_union_type_expression(UnionTypeExpression *type_expression);
+    llvm::Type *emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression);
+    llvm::Type *emit_identifier_type_expression(IdentifierTypeExpression *type_expression);
 };
 
 llvm::Type *map_liam_type_to_llvm_type(llvm::LLVMContext *context, TypeInfo *type_info);
