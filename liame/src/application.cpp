@@ -6,6 +6,8 @@
 #include "memory.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/imgui_impl_glfw.h"
+#include <glad/glad.h>
+#include "glm/gtc/matrix_transform.hpp"
 
 Input input = {};
 
@@ -48,6 +50,8 @@ void Application::start() {
 
 void Application::draw() {
 	if (!this->is_running) return;
+
+	 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// tell imgui to start preparing to draw another frame
 	// this is done before any imgui ui calls and is done once

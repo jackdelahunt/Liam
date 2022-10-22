@@ -13,22 +13,22 @@ Window make_window(
 	void (*window_size_callback)(GLFWwindow*, s32, s32)) {
     
     if (!glfwInit()) {
-		LOG_ERR_ENGINE("%s", "Could not init glfw.. crashing");
+		LOG_ERR("%s", "Could not init glfw.. crashing");
 		exit(EXIT_FAILURE);
 	}
 
 	GLFWwindow* glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
 	if (!glfw_window) {
 		glfwTerminate();
-		LOG_ERR_ENGINE("%s", "Could not create glfw window.. crashing");
+		LOG_ERR("%s", "Could not create glfw window.. crashing");
 		exit(EXIT_FAILURE);
 	}
 
 	glfwMakeContextCurrent(glfw_window);
 	s32 status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-	ASSERT_ENGINE(status, "%s", "Glad could not load glfw proc address");
+	ASSERT(status, "%s", "Glad could not load glfw proc address");
 
-    LOG_INFO_ENGINE("{} :: {} :: {}", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
+    LOG_INFO("{} :: {} :: {}", glGetString(GL_VENDOR), glGetString(GL_RENDERER), glGetString(GL_VERSION));
 
 	glClearColor(0.3, 0.3, 0.3, 0);
 	glfwSwapInterval(1); // vsync, set to 0 to turn off
