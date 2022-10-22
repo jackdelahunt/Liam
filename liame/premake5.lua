@@ -3,10 +3,12 @@ all_includes = {}
 all_includes["GLFW"] = "libs/GLFW/include" 
 all_includes["Glad"] = "libs/Glad/include" 
 all_includes["ImGui"] = "libs/imgui" 
+all_includes["stb_image"] = "libs/stb_image"
+all_includes["glm"] = "libs/glm"
 
-workspace "Liam text editor"
+workspace "Liam"
 	architecture "x64"
-	startproject "Game" -- this isnt working for some reason
+	startproject "liame" -- this isnt working for some reason
 
 	configurations {
 		"Debug",
@@ -21,6 +23,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 include "libs/GLFW"
 include "libs/Glad"
 include "libs/imgui"
+include "libs/stb_image"
 
 project "liame"
 	location "src"
@@ -33,16 +36,19 @@ project "liame"
 	objdir ("obj/" .. outputdir .. "/%{prj.name}")
 
 	files {
-		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp",
-	}
+	    "src/**.h",
+	    "src/**.cpp",
+	    "src/**.c",
+		}
 
 	includedirs {
-		"%{prj.name}/src",
+	    "src",
 		"%{all_includes.GLFW}",
 		"%{all_includes.Glad}",
 		"%{all_includes.ImGui}",
-	}
+		"%{all_includes.stb_image}",
+		"%{all_includes.glm}",
+		}
 
 	links {
 		"GLFW",
