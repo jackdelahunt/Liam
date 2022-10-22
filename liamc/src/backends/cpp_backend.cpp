@@ -677,17 +677,19 @@ std::string CppBackend::emit_propagate_expression(PropagateExpression *expressio
 
     if (expression->otherwise->type == TypeExpressionType::TYPE_UNION)
     {
-        source = fmt::format(
-            source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
-            type_list, multi_type_source
-        );
+        // TODO: fix this 
+        //source = fmt::format(
+        //    source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
+        //    type_list, multi_type_source
+        //);
     }
     else
     {
-        source = fmt::format(
-            source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
-            type_list, fmt::format(single_type_source, emit_type_expression(expression->otherwise))
-        );
+        // TODO: fix this
+        //source = fmt::format(
+        //    source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
+        //    type_list, fmt::format(single_type_source, emit_type_expression(expression->otherwise))
+        //);
     }
 
     return source;

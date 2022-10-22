@@ -57,7 +57,7 @@ void build_step(std::string *code) {
     auto command = fmt::format(
         "clang++ {} -I {} {} -std=c++20 -o {} ", unwanted_warnings, args->include, args->emit, args->out_path
     );
-
+#if 0
     if (args->debug)
     { command += "-g "; }
 
@@ -72,5 +72,6 @@ void build_step(std::string *code) {
             pclose(file);
         }
     }
+#endif
 }
 #endif

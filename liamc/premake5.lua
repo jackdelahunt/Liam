@@ -1,17 +1,5 @@
 require "cmake"
 
-workspace "Liam"
-	architecture "x64"
-	startproject "liamc" -- this isnt working for some reason
-	cppdialect "C++20"
-
-	configurations {
-		"Debug",
-		"Test",
-		"Release",
-		"Dist",
-	}
-
 distpath = "%{wks.location}/" .. "/%{prj.name}"
 
 project "liamc"
@@ -20,6 +8,7 @@ project "liamc"
 	staticruntime "On"
 	language "C++"
 	cppdialect "C++20"
+	toolset "clang"
 
 	targetdir ("bin/%{prj.name}")
 	objdir ("obj/%{prj.name}")
@@ -76,7 +65,6 @@ project "liamc"
 
 	-- linux specific stuffy
 	filter "system:linux"
-		toolset "clang"
 		defines {
 			"LINUX",
 		}
