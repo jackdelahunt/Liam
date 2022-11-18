@@ -26,7 +26,7 @@ typedef float f32;
 	#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #endif
 
-#define EDITOR_START() \
+#define ENGINE_START() \
 { \
 	init_logger(); \
 }

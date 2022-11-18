@@ -59,7 +59,7 @@ FileData *FileManager::load(std::string *path) {
     if (FileManager::singleton == NULL)
     { singleton = new FileManager(); }
 
-    if (FileManager::singleton->files.count(*path) > 0)
+    if (FileManager::singleton->files.contains(*path))
     { return &FileManager::singleton->files[*path]; }
 
     auto vec = std::vector<char>();

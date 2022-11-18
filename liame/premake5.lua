@@ -6,6 +6,18 @@ all_includes["ImGui"] = "libs/imgui"
 all_includes["stb_image"] = "libs/stb_image"
 all_includes["glm"] = "libs/glm"
 
+workspace "Liam"
+	architecture "x64"
+	startproject "liame" -- this isnt working for some reason
+
+	configurations {
+		"Debug",
+		"Release",
+		"Dist"
+	}
+
+outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
 		
 -- include glfw premake file
 include "libs/GLFW"
