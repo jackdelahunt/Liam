@@ -76,7 +76,3 @@ File type_check(std::vector<File *> *files) {
 
     return file;
 }
-
-void print_help() {
-    std::cout << args->options->help();
-}
