@@ -11,12 +11,10 @@ extern Arguments *args;
 struct Arguments {
     std::string out_path;
     std::string in_path;
-    bool codegen;
+    bool emit;
     bool time;
     std::string stdlib;
-    bool help;
     std::string include;
-    bool debug;
     bool test;
 
     cxxopts::Options *options;

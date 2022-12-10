@@ -13,12 +13,6 @@
 s32 main(s32 argc, char **argv) {
     Arguments::New(argc, argv);
 
-    if (args->help)
-    {
-        print_help();
-        return 0;
-    }
-
     TIME_START(l_p_time);
     auto files = lex_parse(std::filesystem::absolute(args->in_path));
     TIME_END(l_p_time, "Lex and parsing time");
@@ -31,7 +25,7 @@ s32 main(s32 argc, char **argv) {
     auto code = CppBackend().emit(&typed_file);
     TIME_END(code_gen, "Code generation time");
 
-    if (args->codegen)
+    if (args->emit)
     { std::cout << code << "\n"; }
 
     std::ofstream out_file;
