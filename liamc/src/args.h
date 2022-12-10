@@ -16,7 +16,6 @@ struct Arguments {
     std::string stdlib;
     bool help;
     std::string include;
-    std::string emit;
     bool debug;
     bool test;
 

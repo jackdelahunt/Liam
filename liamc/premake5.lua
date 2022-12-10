@@ -2,70 +2,80 @@ require "cmake"
 
 distpath = "%{wks.location}/" .. "/%{prj.name}"
 
-project "liamc"
-	location "src"
-	kind "ConsoleApp"
-	staticruntime "On"
-	language "C++"
-	cppdialect "C++20"
-	toolset "clang"
+workspace "Liam"
+    architecture "x64"
+    startproject "liamc" -- this isnt working for some reason
 
-	targetdir ("bin/%{prj.name}")
-	objdir ("obj/%{prj.name}")
-
-	files {
-		"./src/**.h",
-		"./src/**.cpp",
-		"./src/**.cc",
-	}
-
-	includedirs {
-		"./src",
-	}
-
-	filter "configurations:Test"
-        defines {
-            "TEST",
-            symbols "on"
+    configurations {
+        "Debug",
+        "Release",
+        "Dist"
         }
 
-	filter "configurations:Debug"
-		-- buildoptions "/DEBUG:FULL" -- FULL is for VS to out all debug symbols in the pdb
-		defines {
-			"DEBUG",
-			symbols "on"
+	project "liamc"
+		location "src"
+		kind "ConsoleApp"
+		staticruntime "On"
+		language "C++"
+		cppdialect "C++20"
+		toolset "clang"
+
+		targetdir ("bin/%{prj.name}")
+		objdir ("obj/%{prj.name}")
+
+		files {
+			"./src/**.h",
+			"./src/**.cpp",
+			"./src/**.cc",
 		}
 
-	filter "configurations:Release"
-		defines {
-			"RELEASE",
-			optimize "on"
+		includedirs {
+			"./src",
 		}
 
-	filter "configurations:Dist"
-		defines {
-			"DIST",
-			optimize "on"
-		}
+		filter "configurations:Test"
+			defines {
+				"TEST",
+				symbols "on"
+			}
 
-		postbuildcommands {
-			"{MKDIR} %{distpath}",
-			"{COPYFILE} %{cfg.buildtarget.abspath} %{distpath}/",
-			"{COPYDIR} %{wks.location}/runtime %{distpath}/runtime",
-			"{COPYDIR} %{wks.location}/stdlib %{distpath}/stdlib",
-	  	}
+		filter "configurations:Debug"
+			-- buildoptions "/DEBUG:FULL" -- FULL is for VS to out all debug symbols in the pdb
+			defines {
+				"DEBUG",
+				symbols "on"
+			}
 
-	-- windows specific stuffy
-	filter "system:windows"
-		systemversion "latest"
+		filter "configurations:Release"
+			defines {
+				"RELEASE",
+				optimize "on"
+			}
 
-		defines {
-			"WINDOWS",
-		}
+		filter "configurations:Dist"
+			defines {
+				"DIST",
+				optimize "on"
+			}
 
-	-- linux specific stuffy
-	filter "system:linux"
-		defines {
-			"LINUX",
-		}
+			postbuildcommands {
+				"{MKDIR} %{distpath}",
+				"{COPYFILE} %{cfg.buildtarget.abspath} %{distpath}/",
+				"{COPYDIR} %{wks.location}/runtime %{distpath}/runtime",
+				"{COPYDIR} %{wks.location}/stdlib %{distpath}/stdlib",
+			}
+
+		-- windows specific stuffy
+		filter "system:windows"
+			systemversion "latest"
+
+			defines {
+				"WINDOWS",
+			}
+
+		-- linux specific stuffy
+		filter "system:linux"
+			defines {
+				"LINUX",
+			}
 

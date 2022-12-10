@@ -677,8 +677,8 @@ std::string CppBackend::emit_propagate_expression(PropagateExpression *expressio
 
     if (expression->otherwise->type == TypeExpressionType::TYPE_UNION)
     {
-        // TODO: fix this 
-        //source = fmt::format(
+        // TODO: fix this
+        // source = fmt::format(
         //    source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
         //    type_list, multi_type_source
         //);
@@ -686,7 +686,7 @@ std::string CppBackend::emit_propagate_expression(PropagateExpression *expressio
     else
     {
         // TODO: fix this
-        //source = fmt::format(
+        // source = fmt::format(
         //    source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
         //    type_list, fmt::format(single_type_source, emit_type_expression(expression->otherwise))
         //);

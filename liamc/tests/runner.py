@@ -22,8 +22,7 @@ for i, file_path in enumerate(source_files):
     compile_output = subprocess.run([
         compiler_path,
         "--in", file_path,
-        "--out", "out.exe",
-        "--include", "../runtime",
+        "--out", "out.cpp",
         "--stdlib", "../stdlib"
     ], capture_output=True)
 
@@ -33,6 +32,18 @@ for i, file_path in enumerate(source_files):
 
     if compile_output.returncode != 0:
         print(f"COMPILE ERROR :: {file_path} :: return code was {compile_output.returncode}")
+        exit(1)
+
+    clang_output = subprocess.run([
+        "clang++",
+        "-I", runtime_path,
+        "-o", "out.exe",
+        "-std=c++20",
+        "out.cpp"
+    ], capture_output=True)
+
+    if clang_output.returncode != 0:
+        print(f"CLANG ERROR :: {file_path} :: {clang_output.stderr}")
         exit(1)
 
     running_output = subprocess.run(["./out.exe"], capture_output=True)
