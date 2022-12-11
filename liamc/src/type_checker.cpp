@@ -197,7 +197,9 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
 }
 
 void TypeChecker::type_check_struct_decl(StructStatement *statement, SymbolTable *symbol_table) {
-    symbol_table->add_type(statement->identifier, new UndefinedTypeInfo{TypeInfoType::UNDEFINED});
+    // this type does exist but the type info has not been type checked yet so just
+    // add it to the table and leave its type info blank until we type check it
+    symbol_table->add_type(statement->identifier, new StructTypeInfo{TypeInfoType::STRUCT, {}, statement->generics.size()});
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table, bool top_level) {
@@ -414,9 +416,10 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
     // existing identifier in the table instead of added a new one
     if (top_level)
     {
-        // struct type in undefined need to cast it to a struct into * and copy data in [ :
+        // this struct has not been fully typed until now just add to the type that already exists in the
+        // type table
         StructTypeInfo *sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
-        *sti                = StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()};
+        sti->members = members_type_info;
     }
     else
     {

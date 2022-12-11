@@ -27,10 +27,6 @@ struct TypeInfo {
     TypeInfoType type;
 };
 
-struct UndefinedTypeInfo : TypeInfo {
-    char buffer[UNDEFINED_TYPE_BUFFER];
-};
-
 struct AnyTypeInfo : TypeInfo {};
 
 struct VoidTypeInfo : TypeInfo {};
