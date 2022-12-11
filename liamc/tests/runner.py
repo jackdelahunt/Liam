@@ -5,9 +5,12 @@ import subprocess
 import os
 
 source_dir = "liam/"
-runtime_path = os.path.abspath("../runtime")
 compiler_path = "../bin/liamc/liamc"
+stdlib_path = "../stdlib"
 source_files = [source_dir + f for f in listdir(source_dir) if isfile(join(source_dir, f))]
+
+failed_tests_count = 0
+tests_count = len(source_files)
 
 for i, file_path in enumerate(source_files):
 
@@ -23,42 +26,44 @@ for i, file_path in enumerate(source_files):
         compiler_path,
         "--in", file_path,
         "--out", "out.cpp",
-        "--stdlib", "../stdlib"
+        "--stdlib", stdlib_path
     ], capture_output=True)
 
-    if compile_output.stderr != b'':
-        print("COMPILE ERROR :: ", file_path,  compile_output.stderr.decode("UTF-8"))
-        exit(1)
-
-    if compile_output.returncode != 0:
-        print(f"COMPILE ERROR :: {file_path} :: return code was {compile_output.returncode}")
-        exit(1)
+    if compile_output.stderr != b'' or compile_output.returncode != 0:
+        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: liamc compile error")
+        failed_tests_count += 1
+        continue
 
     clang_output = subprocess.run([
         "clang++",
-        "-I", runtime_path,
-        "-o", "out.exe",
+        "-I", f"{stdlib_path}/include",
         "-std=c++20",
+        "-o", "out.exe",
         "out.cpp"
     ], capture_output=True)
 
     if clang_output.returncode != 0:
-        print(f"CLANG ERROR :: {file_path} :: {clang_output.stderr}")
-        exit(1)
+        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: clang++ compile error")
+        failed_tests_count += 1
+        continue
 
     running_output = subprocess.run(["./out.exe"], capture_output=True)
-    if running_output.stderr != b'':
-        print("RUNTIME ERROR :: ", file_path, compile_output.stderr.decode("UTF-8"))
-        exit(1)
+
+    if running_output.stderr != b'' or running_output.returncode != 0:
+        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: runtime error")
+        failed_tests_count += 1
+        continue
 
     output_lines = running_output.stdout.decode("UTF-8").splitlines()
     if lines != output_lines:
-        print(f"MATCH ERROR :: non matching output {file_path} expected {lines} got {output_lines}")
+        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: {file_path} expected {lines} got {output_lines}")
+        failed_tests_count += 1
     else:
         print(f"({i + 1},{len(source_files)}) TEST PASSED [:")
 
     if os.path.exists("out.exe"):
         os.remove("out.exe")
 
-
+print(f"\nPassing {tests_count - failed_tests_count}/{tests_count} tests")
+print(f"Failing {failed_tests_count}/{tests_count} tests")
 
