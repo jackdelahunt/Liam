@@ -1,6 +1,6 @@
-#100
+//100
 
-# multiple imports should work [ :
+// multiple imports should work [ :
 import "other/import_me.liam";
 import "stdlib/basic.liam";
 import "stdlib/basic.liam";

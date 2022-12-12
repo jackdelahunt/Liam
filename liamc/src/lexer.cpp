@@ -86,6 +86,12 @@ void Lexer::lex() {
             tokens.emplace_back(TokenType::TOKEN_STAR, "*", current_line, current_character);
             break;
         case '/':
+            if(peek(chars) == '/') {
+                while (current < chars->size() && chars->at(current) != '\n')
+                { next_char(); }
+                current_line++;
+                break;
+            }
             tokens.emplace_back(TokenType::TOKEN_SLASH, "/", current_line, current_character);
             break;
         case '%':
@@ -165,11 +171,6 @@ void Lexer::lex() {
                 break;
             }
             tokens.emplace_back(Token(TokenType::TOKEN_NOT, "!", current_line, current_character));
-            break;
-        case '#':
-            while (current < chars->size() && chars->at(current) != '\n')
-            { next_char(); }
-            current_line++;
             break;
         case '"': {
             u64 start       = current_character;

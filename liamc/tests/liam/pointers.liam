@@ -1,7 +1,7 @@
-#100
-#100
-#this is a string
-#this is a string
+//100
+//100
+//this is a string
+//this is a string
 
 import "stdlib/basic.liam";
 
@@ -20,7 +20,7 @@ fn main(): void {
     let p := new Pointers{s: s, s_ptr: @s};
     println[str](s);
 
-    # auto pointer dereference
+    // auto pointer dereference
     let ptr := @p;
     println[str](*ptr.s_ptr);
 }
