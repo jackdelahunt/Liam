@@ -162,6 +162,20 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     return typed_file;
 }
 
+StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
+    StructTypeInfo *parent_type_info = NULL;
+
+    if (type_info->type == TypeInfoType::STRUCT)
+    { parent_type_info = (StructTypeInfo *)type_info; }
+    else if (type_info->type == TypeInfoType::STRUCT_INSTANCE)
+    {
+        auto struct_instance_type = (StructInstanceTypeInfo *)(type_info);
+        parent_type_info          = (StructTypeInfo *)struct_instance_type->struct_type;
+    }
+
+    return parent_type_info;
+}
+
 void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol_table) {
     SymbolTable *symbol_table_in_use = symbol_table;
 
@@ -190,12 +204,13 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     TRY_CALL(type_check_type_expression(statement->return_type, symbol_table_in_use));
 
     // this function is a part of a struct so it needs to be added to the struct type info
-    // no the parent symbol table; if it has no parent type then it is apart of the parent symbol table
+    // of the parent if it has no parent type then it is apart of the parent symbol table
     if (statement->parent_type != NULL)
     {
         TRY_CALL(type_check_type_expression(statement->parent_type, symbol_table_in_use));
 
-        if (statement->parent_type->type_info->type != TypeInfoType::STRUCT)
+        auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
+        if (parent_type_info == NULL)
         {
             ErrorReporter::report_type_checker_error(
                 current_file->path, NULL, NULL, statement->parent_type, NULL,
@@ -204,7 +219,6 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
             return;
         }
 
-        auto *parent_type_info = static_cast<StructTypeInfo *>(statement->parent_type->type_info);
         parent_type_info->member_functions.push_back(
             {statement->identifier.string,
              new FnTypeInfo{
@@ -333,16 +347,25 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     { type_check_fn_decl(statement, symbol_table); }
 
     // getting the already existing type info for the function is done in 2 ways
-    // 1. looking into the symbol table of the parent
-    // 2. looking into the symbol table for a struct with a member function
+    // 1. looking into the symbol table of the current scope (normal function)
+    // 2. looking into the member functions of a type (member function)
     FnTypeInfo *fn_type_info = NULL;
 
     if (statement->parent_type == NULL)
     { fn_type_info = static_cast<FnTypeInfo *>(symbol_table->identifier_table[statement->identifier.string]); }
     else
     {
-        // struct is already typed so it already should exist
-        auto parent_type_info = (StructTypeInfo *)symbol_table->type_table[statement->parent_type->identifier.string];
+
+        auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
+        if (parent_type_info == NULL)
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, NULL, NULL, statement->parent_type, NULL,
+                "Member functions can only be used on struct types"
+            );
+            return;
+        }
+
         for (auto [identifier, type_info] : parent_type_info->member_functions)
         {
             if (identifier == statement->identifier.string)
@@ -367,9 +390,12 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     // copy table and add params and add generic types
     SymbolTable copied_symbol_table = symbol_table->copy();
 
-    if(statement->parent_type != NULL) {
-        copied_symbol_table.add_identifier(Token(TokenType::TOKEN_IDENTIFIER, "self", 0, 0),
-                                           new PointerTypeInfo{TypeInfoType::POINTER, statement->parent_type->type_info});
+    if (statement->parent_type != NULL)
+    {
+        copied_symbol_table.add_identifier(
+            Token(TokenType::TOKEN_IDENTIFIER, "self", 0, 0),
+            new PointerTypeInfo{TypeInfoType::POINTER, statement->parent_type->type_info}
+        );
     }
 
     for (auto &[identifier, type_info] : args)
@@ -491,7 +517,6 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info))
     {
-        auto b = type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info);
         ErrorReporter::report_type_checker_error(
             current_file->path, statement->lhs, statement->assigned_to->expression, NULL, NULL,
             "Type mismatch, trying to assign a identifier to an expression of different type"
@@ -826,7 +851,7 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     if (callee_expression->type_info->type != TypeInfoType::FN)
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, callee_expression, NULL, NULL, NULL, "Can only call function types"
+            current_file->path, callee_expression, NULL, NULL, NULL, "Can only call function types"
         );
         return;
     }
@@ -842,8 +867,8 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     if (fn_type_info->args.size() != arg_type_infos.size())
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, callee_expression, NULL, NULL, NULL,
-                fmt::format(
+            current_file->path, callee_expression, NULL, NULL, NULL,
+            fmt::format(
                 "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
                 arg_type_infos.size()
             )
@@ -854,8 +879,8 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     if (fn_type_info->generic_type_infos.size() != expression->generics.size())
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, callee_expression, NULL, NULL, NULL,
-                fmt::format(
+            current_file->path, callee_expression, NULL, NULL, NULL,
+            fmt::format(
                 "Incorrect number of generic arguments in call expression, expected {} got {}",
                 fn_type_info->generic_type_infos.size(), expression->generics.size()
             )
@@ -868,7 +893,8 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
             ErrorReporter::report_type_checker_error(
-                    current_file->path, callee_expression, expression->args.at(i), NULL, NULL, "Mismatched types function call"
+                current_file->path, callee_expression, expression->args.at(i), NULL, NULL,
+                "Mismatched types function call"
             );
             return;
         }
@@ -909,22 +935,35 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
         return;
     }
 
-    TypeInfo *member_type_info       = NULL;
-    StructTypeInfo *struct_type_info = NULL;
+    TypeInfo *member_type_info       = NULL; // populated every time
+    StructTypeInfo *struct_type_info = NULL; // populated every time
+    StructInstanceTypeInfo *struct_instance_type_info =
+        NULL; // populated when the lhs is a struct instance and we need to use generics
 
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     {
         auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);
-        if (ptr_type_info->to->type != TypeInfoType::STRUCT_INSTANCE && ptr_type_info->to->type != TypeInfoType::STRUCT)
-        { panic("Cannot derive member from non struct type"); }
-        else
+
+        if (ptr_type_info->to->type == TypeInfoType::STRUCT)
         { struct_type_info = (StructTypeInfo *)ptr_type_info->to; }
+        else if (ptr_type_info->to->type == TypeInfoType::STRUCT_INSTANCE)
+        {
+            struct_instance_type_info = (StructInstanceTypeInfo *)(ptr_type_info->to);
+            struct_type_info          = (StructTypeInfo *)struct_instance_type_info->struct_type;
+        }
+        else
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression->lhs, NULL, NULL, NULL, "Cannot derive member from non struct type"
+            );
+            return;
+        }
     }
     else if (expression->lhs->type_info->type == TypeInfoType::STRUCT)
     { struct_type_info = static_cast<StructTypeInfo *>(expression->lhs->type_info); }
     else if (expression->lhs->type_info->type == TypeInfoType::STRUCT_INSTANCE)
     {
-        auto struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
+        struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
         assert(struct_instance_type_info->struct_type->type == TypeInfoType::STRUCT);
         struct_type_info = static_cast<StructTypeInfo *>(struct_instance_type_info->struct_type);
     }
@@ -942,9 +981,12 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     }
 
     // identifier does not refer to a member in the struct type so check the function members
-    if(member_type_info == NULL) {
-        for (auto [identifier, function_member_type]: struct_type_info->member_functions) {
-            if (identifier == expression->member.string) {
+    if (member_type_info == NULL)
+    {
+        for (auto [identifier, function_member_type] : struct_type_info->member_functions)
+        {
+            if (identifier == expression->member.string)
+            {
                 member_type_info = function_member_type;
                 break;
             }
@@ -963,15 +1005,8 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     // if it is generic then resolve the id of it in the struct instance
     if (member_type_info->type == TypeInfoType::GENERIC)
     {
-        if (expression->lhs->type_info->type == TypeInfoType::STRUCT)
-        { panic("No generic parameters set for struct type"); }
-
-        auto struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
-        auto generic_member_info       = static_cast<GenericTypeInfo *>(member_type_info);
-        assert(
-            generic_member_info->id >= 0 && generic_member_info->id < struct_instance_type_info->generic_types.size()
-        );
-        member_type_info = struct_instance_type_info->generic_types[generic_member_info->id];
+        auto generic_member_info = static_cast<GenericTypeInfo *>(member_type_info);
+        member_type_info         = struct_instance_type_info->generic_types[generic_member_info->id];
     }
 
     expression->type_info = member_type_info;
@@ -1199,12 +1234,18 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
 void TypeChecker::type_check_specified_generics_type_expression(
     SpecifiedGenericsTypeExpression *type_expression, SymbolTable *symbol_table
 ) {
-    // struct StructInstanceTypeInfo : TypeInfo {
-    //      TypeInfo* struct_type;
-    //      std::vector<TypeInfo*> generic_types;
-    // };
-
     TRY_CALL(type_check_type_expression(type_expression->struct_type, symbol_table));
+    if (type_expression->struct_type->type_info->type != TypeInfoType::STRUCT)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, NULL, NULL, type_expression->struct_type, NULL,
+            "Can only use generic parameters on struct types"
+        );
+        return;
+    }
+
+    StructTypeInfo *struct_type_info = (StructTypeInfo *)type_expression->struct_type->type_info;
+
     auto generic_types = std::vector<TypeInfo *>();
     for (u64 i = 0; i < type_expression->generics.size(); i++)
     {
@@ -1212,8 +1253,8 @@ void TypeChecker::type_check_specified_generics_type_expression(
         generic_types.push_back(type_expression->generics.at(i)->type_info);
     }
 
-    type_expression->type_info = new StructInstanceTypeInfo{
-        TypeInfoType::STRUCT_INSTANCE, type_expression->struct_type->type_info, generic_types};
+    type_expression->type_info =
+        new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE, struct_type_info, generic_types};
 }
 
 void TypeChecker::type_check_identifier_type_expression(

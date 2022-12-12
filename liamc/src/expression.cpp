@@ -53,11 +53,11 @@ IdentifierExpression::IdentifierExpression(const Token identifier) {
 CallExpression::CallExpression(
     Expression *identifier, std::vector<Expression *> args, std::vector<TypeExpression *> generics
 ) {
-    this->callee = identifier;
-    this->args       = args;
-    this->generics   = generics;
-    this->type       = ExpressionType::EXPRESSION_CALL;
-    this->span       = identifier->span;
+    this->callee   = identifier;
+    this->args     = args;
+    this->generics = generics;
+    this->type     = ExpressionType::EXPRESSION_CALL;
+    this->span     = identifier->span;
 }
 
 GetExpression::GetExpression(Expression *expression, Token member) {

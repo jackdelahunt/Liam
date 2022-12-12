@@ -86,7 +86,8 @@ void Lexer::lex() {
             tokens.emplace_back(TokenType::TOKEN_STAR, "*", current_line, current_character);
             break;
         case '/':
-            if(peek(chars) == '/') {
+            if (peek(chars) == '/')
+            {
                 while (current < chars->size() && chars->at(current) != '\n')
                 { next_char(); }
                 current_line++;

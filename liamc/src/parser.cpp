@@ -156,13 +156,13 @@ ScopeStatement *Parser::eval_scope_statement() {
 FnStatement *Parser::eval_fn_statement(bool is_extern) {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
 
-    IdentifierTypeExpression *parent_type = NULL;
+    TypeExpression *parent_type = NULL;
 
     // check if there is a ( identifier ), if so it means this is a member function
     if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
     {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
-        parent_type = TRY_CALL_RET(eval_type_identifier(), NULL);
+        parent_type = TRY_CALL_RET(eval_type_expression(), NULL);
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
     }
 

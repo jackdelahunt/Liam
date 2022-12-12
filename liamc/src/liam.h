@@ -63,7 +63,7 @@ void panic(const std::string &msg);
 #define TRY_CALL_RET_VOID(func, ret)                                                                                   \
     ({                                                                                                                 \
         auto __start = ErrorReporter::error_count();                                                                   \
-        func;                                                                                           \
+        func;                                                                                                          \
         if (ErrorReporter::error_count() > __start)                                                                    \
         { return ret; }                                                                                                \
     })
