@@ -53,7 +53,7 @@ IdentifierExpression::IdentifierExpression(const Token identifier) {
 CallExpression::CallExpression(
     Expression *identifier, std::vector<Expression *> args, std::vector<TypeExpression *> generics
 ) {
-    this->identifier = identifier;
+    this->callee = identifier;
     this->args       = args;
     this->generics   = generics;
     this->type       = ExpressionType::EXPRESSION_CALL;

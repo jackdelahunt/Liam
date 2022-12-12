@@ -57,6 +57,7 @@ struct ScopeStatement : Statement {
 };
 
 struct FnStatement : Statement {
+    IdentifierTypeExpression *parent_type;
     Token identifier;
     std::vector<Token> generics;
     CSV params;
@@ -65,8 +66,8 @@ struct FnStatement : Statement {
     bool is_extern;
 
     FnStatement(
-        File *file, Token identifier, std::vector<Token> generics, CSV params, TypeExpression *type,
-        ScopeStatement *body, bool is_extern
+        File *file, IdentifierTypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
+        TypeExpression *type, ScopeStatement *body, bool is_extern
     );
 };
 

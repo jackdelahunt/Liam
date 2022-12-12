@@ -122,18 +122,18 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : enums)
     {
         current_file = stmt->file;
-        type_check_enum_statement(stmt, &top_level_symbol_table);
+        TRY_CALL_RET_VOID(type_check_enum_statement(stmt, &top_level_symbol_table), typed_file);
         typed_file.statements.push_back(stmt);
     }
 
     // struct identifier pass
     for (auto stmt : structs)
-    { type_check_struct_decl(stmt, &top_level_symbol_table); }
+    { TRY_CALL_RET_VOID(type_check_struct_decl(stmt, &top_level_symbol_table), typed_file); }
 
     // typedefs
     for (auto stmt : aliases)
     {
-        type_check_alias_statement(stmt, &top_level_symbol_table);
+        TRY_CALL_RET_VOID(type_check_alias_statement(stmt, &top_level_symbol_table), typed_file);
         typed_file.statements.push_back(stmt);
     }
 
@@ -141,7 +141,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : structs)
     {
         current_file = stmt->file;
-        type_check_struct_statement(stmt, &top_level_symbol_table, true);
+        TRY_CALL_RET_VOID(type_check_struct_statement(stmt, &top_level_symbol_table, true), typed_file);
         typed_file.statements.push_back(stmt);
     }
 
@@ -149,13 +149,13 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : funcs)
     {
         current_file = stmt->file;
-        type_check_fn_decl(stmt, &top_level_symbol_table);
+        TRY_CALL_RET_VOID(type_check_fn_decl(stmt, &top_level_symbol_table), typed_file);
     }
 
     for (auto stmt : others)
     {
         current_file = stmt->file;
-        type_check_statement(stmt, &top_level_symbol_table, true);
+        TRY_CALL_RET_VOID(type_check_statement(stmt, &top_level_symbol_table, true), typed_file);
         typed_file.statements.push_back(stmt);
     }
 
@@ -189,17 +189,45 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
 
     TRY_CALL(type_check_type_expression(statement->return_type, symbol_table_in_use));
 
+    // this function is a part of a struct so it needs to be added to the struct type info
+    // no the parent symbol table; if it has no parent type then it is apart of the parent symbol table
+    if (statement->parent_type != NULL)
+    {
+        TRY_CALL(type_check_type_expression(statement->parent_type, symbol_table_in_use));
+
+        if (statement->parent_type->type_info->type != TypeInfoType::STRUCT)
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, NULL, NULL, statement->parent_type, NULL,
+                "Member functions can only be used on struct types"
+            );
+            return;
+        }
+
+        auto *parent_type_info = static_cast<StructTypeInfo *>(statement->parent_type->type_info);
+        parent_type_info->member_functions.push_back(
+            {statement->identifier.string,
+             new FnTypeInfo{
+                 TypeInfoType::FN, parent_type_info, statement->return_type->type_info, generic_type_infos,
+                 param_type_infos}}
+        );
+
+        return;
+    }
+
     // add this fn decl to parent symbol table
     symbol_table->add_identifier(
         statement->identifier,
-        new FnTypeInfo{TypeInfoType::FN, statement->return_type->type_info, generic_type_infos, param_type_infos}
+        new FnTypeInfo{TypeInfoType::FN, NULL, statement->return_type->type_info, generic_type_infos, param_type_infos}
     );
 }
 
 void TypeChecker::type_check_struct_decl(StructStatement *statement, SymbolTable *symbol_table) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
-    symbol_table->add_type(statement->identifier, new StructTypeInfo{TypeInfoType::STRUCT, {}, statement->generics.size()});
+    symbol_table->add_type(
+        statement->identifier, new StructTypeInfo{TypeInfoType::STRUCT, {}, {}, statement->generics.size()}
+    );
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table, bool top_level) {
@@ -304,7 +332,29 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     if (!top_level)
     { type_check_fn_decl(statement, symbol_table); }
 
-    auto fn_type_info = static_cast<FnTypeInfo *>(symbol_table->identifier_table[statement->identifier.string]);
+    // getting the already existing type info for the function is done in 2 ways
+    // 1. looking into the symbol table of the parent
+    // 2. looking into the symbol table for a struct with a member function
+    FnTypeInfo *fn_type_info = NULL;
+
+    if (statement->parent_type == NULL)
+    { fn_type_info = static_cast<FnTypeInfo *>(symbol_table->identifier_table[statement->identifier.string]); }
+    else
+    {
+        // struct is already typed so it already should exist
+        auto parent_type_info = (StructTypeInfo *)symbol_table->type_table[statement->parent_type->identifier.string];
+        for (auto [identifier, type_info] : parent_type_info->member_functions)
+        {
+            if (identifier == statement->identifier.string)
+            {
+                fn_type_info = type_info;
+                break;
+            }
+        }
+        // we should always be able to find the fn type info in the struct as it is
+        // already been type checked if this does not happen then something has gone very wrong
+        assert(statement->parent_type != NULL);
+    }
 
     // params and get type expressions
     auto args = std::vector<std::tuple<Token, TypeInfo *>>();
@@ -315,7 +365,13 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     }
 
     // copy table and add params and add generic types
-    SymbolTable copied_symbol_table = *symbol_table;
+    SymbolTable copied_symbol_table = symbol_table->copy();
+
+    if(statement->parent_type != NULL) {
+        copied_symbol_table.add_identifier(Token(TokenType::TOKEN_IDENTIFIER, "self", 0, 0),
+                                           new PointerTypeInfo{TypeInfoType::POINTER, statement->parent_type->type_info});
+    }
+
     for (auto &[identifier, type_info] : args)
     { copied_symbol_table.add_identifier(identifier, type_info); }
 
@@ -419,13 +475,13 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
         // this struct has not been fully typed until now just add to the type that already exists in the
         // type table
         StructTypeInfo *sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
-        sti->members = members_type_info;
+        sti->members        = members_type_info;
     }
     else
     {
         symbol_table->add_identifier(
             statement->identifier,
-            new StructTypeInfo{TypeInfoType::STRUCT, members_type_info, statement->generics.size()}
+            new StructTypeInfo{TypeInfoType::STRUCT, {}, members_type_info, statement->generics.size()}
         );
     }
 }
@@ -764,21 +820,13 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
 }
 void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
 
-    TRY_CALL(type_check_expression(expression->identifier, symbol_table));
-    auto type_of_callee = dynamic_cast<IdentifierExpression *>(expression->identifier);
+    TRY_CALL(type_check_expression(expression->callee, symbol_table));
+    auto callee_expression = expression->callee;
 
-    if (!type_of_callee)
+    if (callee_expression->type_info->type != TypeInfoType::FN)
     {
         ErrorReporter::report_type_checker_error(
-            current_file->path, expression->identifier, NULL, NULL, NULL, "Can only call identifier expressions"
-        );
-        return;
-    }
-
-    if (type_of_callee->type_info->type != TypeInfoType::FN)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path, type_of_callee, NULL, NULL, NULL, "Can only call function types"
+                current_file->path, callee_expression, NULL, NULL, NULL, "Can only call function types"
         );
         return;
     }
@@ -790,12 +838,12 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
         arg_type_infos.push_back(arg->type_info);
     }
 
-    auto fn_type_info = static_cast<FnTypeInfo *>(type_of_callee->type_info);
+    auto fn_type_info = static_cast<FnTypeInfo *>(callee_expression->type_info);
     if (fn_type_info->args.size() != arg_type_infos.size())
     {
         ErrorReporter::report_type_checker_error(
-            current_file->path, type_of_callee, NULL, NULL, NULL,
-            fmt::format(
+                current_file->path, callee_expression, NULL, NULL, NULL,
+                fmt::format(
                 "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
                 arg_type_infos.size()
             )
@@ -806,8 +854,8 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     if (fn_type_info->generic_type_infos.size() != expression->generics.size())
     {
         ErrorReporter::report_type_checker_error(
-            current_file->path, type_of_callee, NULL, NULL, NULL,
-            fmt::format(
+                current_file->path, callee_expression, NULL, NULL, NULL,
+                fmt::format(
                 "Incorrect number of generic arguments in call expression, expected {} got {}",
                 fn_type_info->generic_type_infos.size(), expression->generics.size()
             )
@@ -820,7 +868,7 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
             ErrorReporter::report_type_checker_error(
-                current_file->path, type_of_callee, expression->args.at(i), NULL, NULL, "Mismatched types function call"
+                    current_file->path, callee_expression, expression->args.at(i), NULL, NULL, "Mismatched types function call"
             );
             return;
         }
@@ -881,14 +929,25 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
         struct_type_info = static_cast<StructTypeInfo *>(struct_instance_type_info->struct_type);
     }
 
-    // find the type infp in the struct definition, here it could be a base
-    // type or it could be a generic type
+    // find the type info of the member we are looking for in the struct
+    // definition, here it could be a base type or it could be a generic type
+    // we are also checking if it is a member or a function member
     for (auto [identifier, member_type] : struct_type_info->members)
     {
         if (identifier == expression->member.string)
         {
             member_type_info = member_type;
             break;
+        }
+    }
+
+    // identifier does not refer to a member in the struct type so check the function members
+    if(member_type_info == NULL) {
+        for (auto [identifier, function_member_type]: struct_type_info->member_functions) {
+            if (identifier == expression->member.string) {
+                member_type_info = function_member_type;
+                break;
+            }
         }
     }
 

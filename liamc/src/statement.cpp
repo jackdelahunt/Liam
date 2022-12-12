@@ -23,10 +23,11 @@ LetStatement::LetStatement(File *file, Token identifier, Expression *expression,
 }
 
 FnStatement::FnStatement(
-    File *file, Token identifier, std::vector<Token> generics, CSV params, TypeExpression *type, ScopeStatement *body,
-    bool is_extern
+    File *file, IdentifierTypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
+    TypeExpression *type, ScopeStatement *body, bool is_extern
 ) {
     this->file           = file;
+    this->parent_type    = parent_type;
     this->identifier     = identifier;
     this->generics       = generics;
     this->return_type    = type;
