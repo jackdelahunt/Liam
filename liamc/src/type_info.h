@@ -53,7 +53,7 @@ struct StructTypeInfo : TypeInfo {
 };
 
 struct StructInstanceTypeInfo : TypeInfo {
-    TypeInfo *struct_type;
+    StructTypeInfo *struct_type;
     std::vector<TypeInfo *> generic_types;
 };
 

@@ -1,0 +1,20 @@
+//200
+//100
+
+import "stdlib/basic.liam";
+
+struct Foo[T] {
+    foo: T
+}
+
+fn (Foo[T]) change_foo[T](t: T): void {
+    self.foo = t;
+}
+
+fn main(): void {
+    let foo := new Foo[s64]{foo: 100};
+    foo.change_foo[s64](200);
+    println[s64](foo.foo);
+    foo.change_foo[s64](100);
+    println[s64](foo.foo);
+}

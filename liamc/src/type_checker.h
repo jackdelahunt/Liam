@@ -91,3 +91,4 @@ struct TypeChecker {
 };
 
 bool type_match(TypeInfo *a, TypeInfo *b);
+StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info);
