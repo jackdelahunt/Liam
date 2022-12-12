@@ -1,7 +1,7 @@
-#true
-#else
-#else if
-#else
+//true
+//else
+//else if
+//else
 
 import "stdlib/basic.liam";
 

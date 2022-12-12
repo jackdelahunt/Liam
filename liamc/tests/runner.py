@@ -17,8 +17,8 @@ for i, file_path in enumerate(source_files):
     lines = []
     source = open(file_path).readlines()
     for line in source:
-        if line.startswith("#"):
-            lines.append(line.strip("\n#"))
+        if line.startswith("//"):
+            lines.append(line.strip("\n/"))
         else:
             break
 
@@ -30,7 +30,7 @@ for i, file_path in enumerate(source_files):
     ], capture_output=True)
 
     if compile_output.stderr != b'' or compile_output.returncode != 0:
-        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: liamc compile error")
+        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: {file_path} liamc compile error")
         failed_tests_count += 1
         continue
 

@@ -1,6 +1,6 @@
-#Hello
-#100
-#0
+//Hello
+//100
+//0
 
 import "stdlib/basic.liam";
 

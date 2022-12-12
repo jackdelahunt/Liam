@@ -1,6 +1,6 @@
-#100
-#x is null
-#null is x
+//100
+//x is null
+//null is x
 
 import "stdlib/basic.liam";
 

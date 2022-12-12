@@ -1,14 +1,14 @@
-#true
-#!false
-#true and true
-#false or true
-#4 == 4
-#1 < 10
-#10 > 1
-#10 <= 10
-#8 <= 9
-#100 >= 100
-#90 >= 80
+//true
+//!false
+//true and true
+//false or true
+//4 == 4
+//1 < 10
+//10 > 1
+//10 <= 10
+//8 <= 9
+//100 >= 100
+//90 >= 80
 
 
 import "stdlib/basic.liam";

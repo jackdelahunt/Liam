@@ -1,15 +1,15 @@
-# io
+// io
 extern fn print[T](t: T): void;
 extern fn println[T](t: T): void;
 extern fn read(path: str): String;
 
-# memory
+// memory
 extern fn set_allocator(name: str, size: u64): void;
 extern fn alloc[T](t: T): ^T;
 extern fn destroy[T](t: ^T): void;
 extern fn hashcode[T](t: ^T): u64;
 
-# core
+// core
 extern fn panic(string: str): void;
 extern fn len(string: str): u64;
 extern fn substr(s: str, start: u64, length: u64): str;
@@ -17,7 +17,7 @@ extern fn char_at(s: str, index: u64): str;
 extern fn is_digit(s: str): bool;
 extern fn assert_true(condition: bool): void;
 
-# String
+// String
 extern struct String {
     string: str
 }
@@ -25,7 +25,7 @@ extern fn make_string(from: str): String;
 extern fn string_append(s: ^String, x: ^String): void;
 extern fn string_append_str(s: ^String, s: str): void;
 
-# collections
+// collections
 struct Option[T] {
     value: T,
     is_value: bool
@@ -69,5 +69,5 @@ extern fn make_map[K, V](): Map[K, V];
 extern fn map_insert[K, V](map: ^Map[K, V], k: K, v: V): void;
 extern fn map_get[K, V](map: ^Map[K, V], k: K): V;
 
-# OS
+// OS
 extern fn argv(): Array[str];

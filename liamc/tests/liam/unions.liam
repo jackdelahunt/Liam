@@ -1,8 +1,8 @@
-#100
-#this is a string
-#100
-#0
-#wrong input
+//100
+//this is a string
+//100
+//0
+//wrong input
 
 import "stdlib/basic.liam";
 
