@@ -131,6 +131,14 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
     { source.append(statement->identifier.string); }
 
     source.append("(");
+
+    if(statement->parent_type != NULL) {
+        source.append(statement->parent_type->identifier.string + " *self");
+        if(statement->params.size() > 0) {
+            source.append(", ");
+        }
+    }
+
     int index = 0;
     for (auto [identifier, type] : statement->params)
     {
@@ -268,6 +276,15 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 
     source.append("(");
     int index = 0;
+
+    // if this is a member function add the magic *self parameter
+    if(statement->parent_type != NULL) {
+        source.append(statement->parent_type->identifier.string + " *self");
+        if(statement->params.size() > 0) {
+            source.append(", ");
+        }
+    }
+
     for (auto [identifier, type] : statement->params)
     {
         source.append(emit_type_expression(type) + " " + identifier.string);
@@ -559,7 +576,7 @@ std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {
 
 std::string CppBackend::emit_call_expression(CallExpression *expression) {
     auto source = std::string();
-    source.append(emit_expression(expression->identifier));
+    source.append(emit_expression(expression->callee));
 
     if (expression->generics.size() > 0)
     {
@@ -578,6 +595,15 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
 
     int index = 0;
     source.append("(");
+
+    if(expression->callee->type == ExpressionType::EXPRESSION_GET) {
+        auto get_expression = dynamic_cast<GetExpression *>(expression->callee);
+        source.append("&" + emit_expression(get_expression->lhs));
+        if(expression->args.size() > 0) {
+            source.append(", ");
+        }
+    }
+
     for (auto expr : expression->args)
     {
         source.append(emit_expression(expr));
@@ -595,6 +621,11 @@ std::string CppBackend::emit_identifier_expression(IdentifierExpression *express
 }
 
 std::string CppBackend::emit_get_expression(GetExpression *expression) {
+
+    if(expression->type_info->type == TypeInfoType::FN) {
+        return expression->member.string;
+    }
+
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     { return emit_expression(expression->lhs) + "->" + expression->member.string; }
 

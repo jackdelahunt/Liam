@@ -50,6 +50,7 @@ void panic(const std::string &msg);
 #define WIN(value)                                                                                                     \
     { value, false }
 
+// call a func and if there is an error return with void
 #define TRY_CALL(func)                                                                                                 \
     {                                                                                                                  \
         auto __start = ErrorReporter::error_count();                                                                   \
@@ -58,6 +59,17 @@ void panic(const std::string &msg);
         { return; }                                                                                                    \
     }
 
+// call a func and if there is an error return with a given value
+#define TRY_CALL_RET_VOID(func, ret)                                                                                   \
+    ({                                                                                                                 \
+        auto __start = ErrorReporter::error_count();                                                                   \
+        func;                                                                                           \
+        if (ErrorReporter::error_count() > __start)                                                                    \
+        { return ret; }                                                                                                \
+    })
+
+// call a func and if there is an error return with a given value
+// return the value from the func
 #define TRY_CALL_RET(func, ret)                                                                                        \
     ({                                                                                                                 \
         auto __start = ErrorReporter::error_count();                                                                   \

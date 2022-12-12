@@ -80,7 +80,7 @@ struct IdentifierExpression : Expression {
 
 struct CallExpression : Expression {
     // this is an expression but it must be a identifier
-    Expression *identifier;
+    Expression *callee;
     std::vector<Expression *> args;
     std::vector<TypeExpression *> generics;
 

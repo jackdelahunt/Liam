@@ -155,6 +155,17 @@ ScopeStatement *Parser::eval_scope_statement() {
 
 FnStatement *Parser::eval_fn_statement(bool is_extern) {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
+
+    IdentifierTypeExpression *parent_type = NULL;
+
+    // check if there is a ( identifier ), if so it means this is a member function
+    if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
+    {
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+        parent_type = TRY_CALL_RET(eval_type_identifier(), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    }
+
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<Token>();
@@ -178,12 +189,12 @@ FnStatement *Parser::eval_fn_statement(bool is_extern) {
     if (is_extern)
     {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-        return new FnStatement(file, *identifier, generics, params, type, NULL, true);
+        return new FnStatement(file, parent_type, *identifier, generics, params, type, NULL, true);
     }
     else
     {
         auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-        return new FnStatement(file, *identifier, generics, params, type, body, false);
+        return new FnStatement(file, parent_type, *identifier, generics, params, type, body, false);
     }
 }
 

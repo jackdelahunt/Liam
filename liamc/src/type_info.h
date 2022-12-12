@@ -4,8 +4,8 @@
 #include "lexer.h"
 
 struct TypeExpression;
-
-#define UNDEFINED_TYPE_BUFFER 75
+struct StructTypeInfo;
+struct FnTypeInfo;
 
 enum class TypeInfoType {
     ANY,
@@ -46,13 +46,8 @@ struct StrTypeInfo : TypeInfo {};
 
 struct TypeTypeInfo : TypeInfo {};
 
-struct FnTypeInfo : TypeInfo {
-    TypeInfo *return_type;
-    std::vector<TypeInfo *> generic_type_infos;
-    std::vector<TypeInfo *> args;
-};
-
 struct StructTypeInfo : TypeInfo {
+    std::vector<std::tuple<std::string, FnTypeInfo *>> member_functions;
     std::vector<std::tuple<std::string, TypeInfo *>> members;
     u64 generic_count;
 };
@@ -60,6 +55,13 @@ struct StructTypeInfo : TypeInfo {
 struct StructInstanceTypeInfo : TypeInfo {
     TypeInfo *struct_type;
     std::vector<TypeInfo *> generic_types;
+};
+
+struct FnTypeInfo : TypeInfo {
+    StructTypeInfo *parent_type;
+    TypeInfo *return_type;
+    std::vector<TypeInfo *> generic_type_infos;
+    std::vector<TypeInfo *> args;
 };
 
 struct GenericTypeInfo : TypeInfo {
