@@ -55,7 +55,6 @@ struct Parser {
     ScopeStatement *eval_scope_statement();
     StructStatement *eval_struct_statement(bool is_extern = false);
     FnStatement *eval_fn_statement(bool is_extern = false);
-    InsertStatement *eval_insert_statement();
     ReturnStatement *eval_return_statement();
     BreakStatement *eval_break_statement();
     ImportStatement *eval_import_statement();

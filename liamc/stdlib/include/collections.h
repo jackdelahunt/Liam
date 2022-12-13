@@ -22,51 +22,51 @@ template <typename K, typename V> Map<K, V> make_map() {
     return Map<K, V>{.map = std::map<K, V>()};
 }
 
-template <typename K, typename V> Map<K, V> map_insert(Map<K, V> *map, K k, V v) {
-    (*map)[k] = v;
+template <typename K, typename V> void __insert(Map<K, V> *self, K k, V v) {
+    self->map[k] = v;
 }
 
-template <typename K, typename V> Map<K, V> map_get(Map<K, V> *map, K k) {
-    return (*map)[k];
+template <typename K, typename V> V __get(Map<K, V> *self, K k) {
+    return self->map[k];
 }
 
 template <typename T> Array<T> make_array() {
     return Array<T>{.data = NULL, .length = 0, .capacity = 0};
 }
 
-template <typename T> void array_append(Array<T> *array, T value) {
-    if (array->length == array->capacity)
+template <typename T> void __append(Array<T> *self, T value) {
+    if (self->length == self->capacity)
     {
-        array->capacity *= 2;
-        array->data = re_alloc<T>(array->data, array->capacity * sizeof(T));
+        self->capacity *= 2;
+        self->data = re_alloc<T>(self->data, self->capacity * sizeof(T));
     }
-    array->data[array->length++] = value;
+    self->data[self->length++] = value;
 }
 
-template <typename T> T array_index(Array<T> *array, int index) {
-    return array->data[index];
+template <typename T> T __index(Array<T> *self, int index) {
+    return self->data[index];
 }
 
-template <typename T> void array_insert(Array<T> *array, int index, T value) {
-    if (array->length == array->capacity)
+template <typename T> void __insert(Array<T> *self, int index, T value) {
+    if (self->length == self->capacity)
     {
-        array->capacity *= 2;
-        array->data = re_alloc<T>(array->data, array->capacity * sizeof(T));
+        self->capacity *= 2;
+        self->data = re_alloc<T>(self->data, self->capacity * sizeof(T));
     }
-    for (int i = array->length; i > index; i--)
-    { array->data[i] = array->data[i - 1]; }
-    array->data[index] = value;
-    array->length++;
+    for (int i = self->length; i > index; i--)
+    { self->data[i] = self->data[i - 1]; }
+    self->data[index] = value;
+    self->length++;
 }
 
-template <typename T> void array_remove(Array<T> *array, int index) {
-    for (int i = index; i < array->length - 1; i++)
-    { array->data[i] = array->data[i + 1]; }
-    array->length--;
+template <typename T> void __remove(Array<T> *self, int index) {
+    for (int i = index; i < self->length - 1; i++)
+    { self->data[i] = self->data[i + 1]; }
+    self->length--;
 }
 
-template <typename T> void array_free(Array<T> *array) {
-    destroy(array->data);
-    array->capacity = 0;
-    array->length   = 0;
+template <typename T> void __free(Array<T> *self) {
+    destroy(self->data);
+    self->capacity = 0;
+    self->length   = 0;
 }

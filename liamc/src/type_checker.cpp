@@ -248,8 +248,6 @@ void TypeChecker::type_check_struct_decl(StructStatement *statement, SymbolTable
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table, bool top_level) {
     switch (statement->statement_type)
     {
-    case StatementType::STATEMENT_INSERT:
-        return type_check_insert_statement(dynamic_cast<InsertStatement *>(statement), symbol_table);
     case StatementType::STATEMENT_RETURN:
         return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement), symbol_table);
     case StatementType::STATEMENT_BREAK:
@@ -282,13 +280,6 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
     default:
         panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
     }
-}
-
-void TypeChecker::type_check_insert_statement(InsertStatement *statement, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(statement->byte_code, symbol_table));
-    auto to_compare = PointerTypeInfo{TypeInfoType::POINTER, symbol_table->builtin_type_table["char"]};
-    if (!type_match(statement->byte_code->type_info, &to_compare))
-    { panic("Insert requires a string"); }
 }
 
 void TypeChecker::type_check_return_statement(ReturnStatement *statement, SymbolTable *symbol_table) {

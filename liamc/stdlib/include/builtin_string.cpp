@@ -22,26 +22,26 @@ String make_string(str s) {
     return String{.string = str{.chars = data, .length = s.length}, .size = size};
 }
 
-void string_append(String *s, String *x) {
-    if (s->string.length + x->string.length > s->size)
+void __append(String *self, String *x) {
+    if (self->string.length + x->string.length > self->size)
     {
-        u64 new_size = s->size + x->string.length + 50;
-        Internal::allocator->re_alloc(s->string.chars, new_size);
-        s->size = new_size;
+        u64 new_size = self->size + x->string.length + 50;
+        Internal::allocator->re_alloc(self->string.chars, new_size);
+        self->size = new_size;
     }
 
-    memcpy(s->string.chars + s->string.length, x->string.chars, x->string.length);
-    s->string.length += x->string.length;
+    memcpy(self->string.chars + self->string.length, x->string.chars, x->string.length);
+    self->string.length += x->string.length;
 }
 
-void string_append_str(String *string, str s) {
-    if (string->string.length + s.length > string->size)
+void __append_str(String *self, str s) {
+    if (self->string.length + s.length > self->size)
     {
-        u64 new_size = string->size + s.length + 50;
-        Internal::allocator->re_alloc(string->string.chars, new_size);
-        string->size = new_size;
+        u64 new_size = self->size + s.length + 50;
+        Internal::allocator->re_alloc(self->string.chars, new_size);
+        self->size = new_size;
     }
 
-    memcpy(string->string.chars + string->string.length, s.chars, s.length);
-    string->string.length += s.length;
+    memcpy(self->string.chars + self->string.length, s.chars, s.length);
+    self->string.length += s.length;
 }
