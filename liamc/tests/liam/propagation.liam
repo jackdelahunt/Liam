@@ -7,7 +7,7 @@ struct Error {
     message: str
 }
 
-fn main(): u64 {
+fn main() u64 {
 
     let err := maybe_error(9u64) return u64 else Error;
     println[str](err.message);
@@ -19,7 +19,7 @@ fn main(): u64 {
     }
 }
 
-fn maybe_error(n: u64): u64 | Error {
+fn maybe_error(n: u64) u64 | Error {
 
     if n > 10u64 {
         return n;
@@ -30,6 +30,6 @@ fn maybe_error(n: u64): u64 | Error {
     };
 }
 
-fn give_me_union(): u64 | bool | str {
+fn give_me_union() u64 | bool | str {
     return false;    
 }

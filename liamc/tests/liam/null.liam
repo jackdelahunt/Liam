@@ -4,7 +4,7 @@
 
 import "stdlib/basic.liam";
 
-fn main(): void {
+fn main() void {
     let y := 100;
     let x : ^s64 = null;
 

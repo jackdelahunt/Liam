@@ -179,7 +179,6 @@ FnStatement *Parser::eval_fn_statement(bool is_extern) {
 
     auto params = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
 
     auto type = TRY_CALL_RET(eval_type_expression(), NULL);
 

@@ -9,7 +9,7 @@
 
 import "stdlib/basic.liam";
 
-fn main(): void {
+fn main() void {
     for let i := 0u64; i < 2u64; i = i + 1u64; {
         println[u64](i);
     }
@@ -23,14 +23,14 @@ fn main(): void {
     }
 }
 
-fn init(): u64 {
+fn init() u64 {
     return 0u64;
 }
 
-fn compare(n: u64): bool {
+fn compare(n: u64) bool {
     return n < 2u64;
 }
 
-fn add(n: u64): u64 {
+fn add(n: u64) u64 {
     return n + 1u64;
 }

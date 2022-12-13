@@ -5,7 +5,7 @@
 
 import "stdlib/basic.liam";
 
-fn main(): void {
+fn main() void {
 
     if true {
         println[str]("true");

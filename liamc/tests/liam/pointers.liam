@@ -10,7 +10,7 @@ struct Pointers {
     s_ptr: ^str
 }
 
-fn main(): void {
+fn main() void {
     let x := 100;
     let y := @x;
     println[s64](x);

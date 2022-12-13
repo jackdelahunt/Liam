@@ -8,7 +8,7 @@ struct Person {
     foo: Foo
 }
 
-fn main(): void {
+fn main() void {
     let p := new Person{foo: false};
 
     if p.foo is bool as b {
