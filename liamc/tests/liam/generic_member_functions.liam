@@ -7,11 +7,11 @@ struct Foo[T] {
     foo: T
 }
 
-fn (Foo[T]) change_foo[T](t: T): void {
+fn (Foo[T]) change_foo[T](t: T) void {
     self.foo = t;
 }
 
-fn main(): void {
+fn main() void {
     let foo := new Foo[s64]{foo: 100};
     foo.change_foo[s64](200);
     println[s64](foo.foo);

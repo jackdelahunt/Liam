@@ -8,7 +8,7 @@
 
 import "stdlib/basic.liam";
 
-fn main(): void {
+fn main() void {
     let x := 100;
     let y := 200;
 

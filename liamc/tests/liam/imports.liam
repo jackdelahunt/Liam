@@ -8,7 +8,7 @@ import "stdlib/basic.liam";
 import "stdlib/basic.liam";
 import "stdlib/basic.liam";
 
-fn main(): void {
+fn main() void {
     hello("Hello");
     helloToYou[str]("Hello to you");
     let i: ImportMe = new ImportMe{number: 100u64};

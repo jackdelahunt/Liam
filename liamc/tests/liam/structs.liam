@@ -15,7 +15,7 @@ struct People {
     two: Person
 }
 
-fn main(): void {
+fn main() void {
     let p: Person = new Person{name: "jack", age: 21};
     println[str](p.name);
     println[s64](p.age);

@@ -10,7 +10,7 @@ enum Foo {
     B
 }
 
-fn main(): void {
+fn main() void {
     if Foo.A == Foo.A {
         println[str]("A");
     }

@@ -1,8 +1,8 @@
-fn hello(s: str): void {
+fn hello(s: str) void {
     
 }
 
-fn helloToYou[T](t: T): void {
+fn helloToYou[T](t: T) void {
 
 }
 

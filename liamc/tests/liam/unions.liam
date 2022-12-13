@@ -10,7 +10,7 @@ struct Struct {
     data: u64 | bool
 }
 
-fn main(): void {
+fn main() void {
     let x: s64 | str = 100;
 
     if x is s64 as n {
@@ -40,7 +40,7 @@ fn main(): void {
     }
 }
 
-fn num_or_string(x: u64 | bool): u64 | str {
+fn num_or_string(x: u64 | bool) u64 | str {
 
     if x is u64 as n {
         return *n;

@@ -12,7 +12,7 @@ struct NumberLiteral {
     n: s64
 }
 
-fn main(): void {
+fn main() void {
     let l := get_literal();
 
     if l is StringLiteral as sl {
@@ -20,6 +20,6 @@ fn main(): void {
     }
 }
 
-fn get_literal(): Literal {
+fn get_literal() Literal {
     return new StringLiteral{s: "Hello"};
 }
