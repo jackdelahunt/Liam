@@ -22,8 +22,8 @@ extern struct String {
     string: str
 }
 extern fn make_string(from: str): String;
-extern fn string_append(s: ^String, x: ^String): void;
-extern fn string_append_str(s: ^String, s: str): void;
+extern fn (String) append(x: ^String): void;
+extern fn (String) append_str(s: str): void;
 
 // collections
 struct Option[T] {
@@ -59,15 +59,15 @@ fn none[T](): Option[T] {
 }
 
 extern fn make_array[T](): Array[T];
-extern fn array_append[T](array: ^Array[T], t: T): void;
-extern fn array_index[T](array: ^Array[T], index: u64): T;
-extern fn array_insert[T](array: ^Array[T], index: u64, t: T): void;
-extern fn array_remove[T](array: ^Array[T], index: u64): void;
-extern fn array_free[T](array: ^Array[T]): void;
+extern fn (Array[T]) append[T](t: T): void;
+extern fn (Array[T]) index[T](index: u64): T;
+extern fn (Array[T]) insert[T](index: u64, t: T): void;
+extern fn (Array[T]) remove[T](index: u64): void;
+extern fn (Array[T]) free[T](): void;
 
 extern fn make_map[K, V](): Map[K, V];
-extern fn map_insert[K, V](map: ^Map[K, V], k: K, v: V): void;
-extern fn map_get[K, V](map: ^Map[K, V], k: K): V;
+extern fn (Map[K, V]) insert[K, V](k: K, v: V): void;
+extern fn (Map[K, V]) get[K, V](k: K): V;
 
-// OS
+// OS   
 extern fn argv(): Array[str];

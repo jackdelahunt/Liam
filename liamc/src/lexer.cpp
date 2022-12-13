@@ -6,33 +6,32 @@
 #include "liam.h"
 #include "utils.h"
 
-const char *TokenTypeStrings[54] = {"int Literal", "string Literal",
+const char *TokenTypeStrings[53] = {"int Literal", "string Literal",
                                     "identifier",  "let",
-                                    "insert",      "fn",
-                                    "(",           ")",
-                                    "{",           "}",
-                                    "+",           "-",
-                                    "*",           "/",
-                                    "%",           "=",
-                                    ";",           ",",
-                                    ":",           "return",
-                                    "^",           "@",
-                                    "struct",      ".",
-                                    "new",         "break",
-                                    "import",      "[",
-                                    "]",           "for",
-                                    "false",       "true",
-                                    "if",          "else",
-                                    "or",          "and",
-                                    "==",          "!=",
-                                    "!",           "<",
-                                    ">",           ">=",
-                                    "<=",          "extern",
-                                    "|",           "is",
-                                    "null",        "enum",
-                                    "continue",    "alias",
-                                    "as",          "test",
-                                    "zero"};
+                                    "fn",          "(",
+                                    ")",           "{",
+                                    "}",           "+",
+                                    "-",           "*",
+                                    "/",           "%",
+                                    "=",           ";",
+                                    ",",           ":",
+                                    "return",      "^",
+                                    "@",           "struct",
+                                    ".",           "new",
+                                    "break",       "import",
+                                    "[",           "]",
+                                    "for",         "false",
+                                    "true",        "if",
+                                    "else",        "or",
+                                    "and",         "==",
+                                    "!=",          "!",
+                                    "<",           ">",
+                                    ">=",          "<=",
+                                    "extern",      "|",
+                                    "is",          "null",
+                                    "enum",        "continue",
+                                    "alias",       "as",
+                                    "test",        "zero"};
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
     this->type   = type;
@@ -201,12 +200,6 @@ void Lexer::lex() {
             if (word == "let")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_LET, word, current_line, word_start));
-                continue;
-            }
-
-            if (word == "insert")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_INSERT, word, current_line, word_start));
                 continue;
             }
 

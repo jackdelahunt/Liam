@@ -127,7 +127,8 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
 
     if (statement->identifier.string == "main")
     { source.append(" __liam__main__"); }
-    else if(statement->parent_type != NULL) {
+    else if (statement->parent_type != NULL)
+    {
         // add a __ to any member functions, this keeps the inclusion that they are scoped
         // to the type even though they are not in the cpp generation
         source.append("__" + statement->identifier.string);
@@ -159,9 +160,6 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
 std::string CppBackend::emit_statement(Statement *statement) {
     switch (statement->statement_type)
     {
-    case StatementType::STATEMENT_INSERT:
-        return emit_insert_statement(dynamic_cast<InsertStatement *>(statement));
-        break;
     case StatementType::STATEMENT_RETURN:
         return emit_return_statement(dynamic_cast<ReturnStatement *>(statement));
         break;
@@ -211,14 +209,6 @@ std::string CppBackend::emit_statement(Statement *statement) {
 
     panic("Statement not implemented in cpp back end :[");
     return "";
-}
-
-std::string CppBackend::emit_insert_statement(InsertStatement *statement) {
-    if (statement->byte_code->type != ExpressionType::EXPRESSION_STRING_LITERAL)
-    { panic("Cannot emit non string literal in insert"); }
-
-    auto string_literal = dynamic_cast<StringLiteralExpression *>(statement->byte_code);
-    return string_literal->token.string;
 }
 
 std::string CppBackend::emit_return_statement(ReturnStatement *statement) {
@@ -276,7 +266,8 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 
     if (statement->identifier.string == "main")
     { source.append("__liam__main__"); }
-    else if(statement->parent_type != NULL) {
+    else if (statement->parent_type != NULL)
+    {
         // add a __ to any member functions, this keeps the illusion that they are scoped
         // to the type even though they are not in the cpp generation
         source.append("__" + statement->identifier.string);

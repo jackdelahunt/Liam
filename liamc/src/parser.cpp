@@ -73,9 +73,6 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_STRUCT:
         return eval_struct_statement();
         break;
-    case TokenType::TOKEN_INSERT:
-        return eval_insert_statement();
-        break;
     case TokenType::TOKEN_RETURN:
         return eval_return_statement();
         break;
@@ -218,15 +215,6 @@ StructStatement *Parser::eval_struct_statement(bool is_extern) {
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
     return new StructStatement(file, *identifier, generics, member, is_extern);
-}
-
-InsertStatement *Parser::eval_insert_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_INSERT), NULL);
-    auto byte_code = TRY_CALL_RET(eval_expression(), NULL);
-
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-
-    return new InsertStatement(file, byte_code);
 }
 
 ReturnStatement *Parser::eval_return_statement() {

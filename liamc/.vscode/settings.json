@@ -81,6 +81,7 @@
         "bitset": "cpp",
         "unordered_set": "cpp",
         "regex": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "__tuple": "cpp"
     }
 }

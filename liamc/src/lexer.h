@@ -18,7 +18,6 @@ enum class TokenType {
     TOKEN_STRING_LITERAL,     // "hello"
     TOKEN_IDENTIFIER,         // x
     TOKEN_LET,                // let
-    TOKEN_INSERT,             // insert
     TOKEN_FN,                 // fn
     TOKEN_PAREN_OPEN,         // (
     TOKEN_PAREN_CLOSE,        // )
@@ -69,7 +68,7 @@ enum class TokenType {
     TOKEN_ZERO                // zero
 };
 
-extern const char *TokenTypeStrings[54];
+extern const char *TokenTypeStrings[53];
 
 std::string get_token_type_string(TokenType type);
 
