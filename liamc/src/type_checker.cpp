@@ -182,6 +182,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     auto generic_type_infos = std::vector<TypeInfo *>();
     if (!statement->generics.empty())
     {
+        // FIXME: find a way to not use new here
         SymbolTable *copy = new SymbolTable();
         *copy             = *symbol_table;
         for (u64 i = 0; i < statement->generics.size(); i++)

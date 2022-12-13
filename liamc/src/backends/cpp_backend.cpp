@@ -127,6 +127,11 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
 
     if (statement->identifier.string == "main")
     { source.append(" __liam__main__"); }
+    else if(statement->parent_type != NULL) {
+        // add a __ to any member functions, this keeps the inclusion that they are scoped
+        // to the type even though they are not in the cpp generation
+        source.append("__" + statement->identifier.string);
+    }
     else
     { source.append(statement->identifier.string); }
 
@@ -271,6 +276,11 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 
     if (statement->identifier.string == "main")
     { source.append("__liam__main__"); }
+    else if(statement->parent_type != NULL) {
+        // add a __ to any member functions, this keeps the illusion that they are scoped
+        // to the type even though they are not in the cpp generation
+        source.append("__" + statement->identifier.string);
+    }
     else
     { source.append(statement->identifier.string); }
 
@@ -622,8 +632,9 @@ std::string CppBackend::emit_identifier_expression(IdentifierExpression *express
 
 std::string CppBackend::emit_get_expression(GetExpression *expression) {
 
+    // to stop conflicts with member functions we emit __func for the get expression
     if (expression->type_info->type == TypeInfoType::FN)
-    { return expression->member.string; }
+    { return "__" + expression->member.string; }
 
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     { return emit_expression(expression->lhs) + "->" + expression->member.string; }
