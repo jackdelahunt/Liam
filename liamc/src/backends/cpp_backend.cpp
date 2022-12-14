@@ -457,6 +457,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_ZERO_LITERAL:
         return emit_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_FN:
+        return emit_fn_expression(dynamic_cast<FnExpression *>(expression));
+        break;
     default: {
         panic("Cannot emit this expression in cpp backend");
         return "";
@@ -729,6 +732,23 @@ std::string CppBackend::emit_zero_literal_expression(ZeroLiteralExpression *expr
     return "{}";
 }
 
+std::string CppBackend::emit_fn_expression(FnExpression *expression) {
+    std::string source = "[](";
+
+    int index = 0;
+
+    for (auto [identifier, type] : expression->params)
+    {
+        source.append(emit_type_expression(type) + " " + identifier.string);
+        if (index + 1 < expression->params.size())
+        { source.append(", "); }
+        index++;
+    }
+    source.append(")");
+    source.append(emit_scope_statement(expression->body));
+    return source;
+}
+
 std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
@@ -745,8 +765,12 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
         return emit_specified_generics_type_expression(dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression)
         );
         break;
+    case TypeExpressionType::TYPE_FN:
+        return emit_fn_type_expression(dynamic_cast<FnTypeExpression *>(type_expression)
+        );
+        break;
     default:
-        panic("Cpp back end does not support this return_type expression");
+        panic("Cpp back end does not support this type expression");
         return "";
     }
 }
@@ -766,7 +790,7 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
 }
 
 std::string CppBackend::emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression) {
-    auto source = emit_identifier_type_expression(type_expression->struct_type);
+    auto source = emit_type_expression(type_expression->struct_type);
     if (type_expression->generics.size() > 0)
     {
         int index = 0;
@@ -782,6 +806,21 @@ std::string CppBackend::emit_specified_generics_type_expression(SpecifiedGeneric
         source.append(">");
     }
 
+    return source;
+}
+
+std::string CppBackend::emit_fn_type_expression(FnTypeExpression *type_expression) {
+    std::string source = "std::function<" + emit_type_expression(type_expression->return_type) + "(";
+
+    int index = 0;
+    for (auto type : type_expression->params)
+    {
+        source.append(emit_type_expression(type));
+        if (index + 1 < type_expression->params.size())
+        { source.append(", "); }
+        index++;
+    }
+    source.append(")>");
     return source;
 }
 

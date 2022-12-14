@@ -82,6 +82,7 @@ struct Parser {
     Expression *eval_unary();
     Expression *eval_call();
     Expression *eval_primary();
+    Expression *eval_fn();
     Expression *eval_new_expression();
     Expression *eval_group_expression();
 
@@ -90,7 +91,8 @@ struct Parser {
     TypeExpression *eval_type_union();
     TypeExpression *eval_type_unary();
     TypeExpression *eval_type_specified_generics();
-    IdentifierTypeExpression *eval_type_identifier();
+    TypeExpression *eval_type_primary();
+    TypeExpression *eval_type_fn();
 
     bool match(TokenType type);
     inline Token *peek(s32 offset = 0);

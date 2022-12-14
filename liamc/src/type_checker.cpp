@@ -600,6 +600,9 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_ZERO_LITERAL:
         return type_check_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression), symbol_table);
         break;
+    case ExpressionType::EXPRESSION_FN:
+        return type_check_fn_expression(dynamic_cast<FnExpression*>(expression), symbol_table);
+        break;
     default:
         panic("Expression not implemented in type checker");
     }
@@ -835,18 +838,30 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
 
     panic("Internal :: Unrecognised unary operator");
 }
+
 void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
 
     TRY_CALL(type_check_expression(expression->callee, symbol_table));
     auto callee_expression = expression->callee;
 
-    if (callee_expression->type_info->type != TypeInfoType::FN)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path, callee_expression, NULL, NULL, NULL, "Can only call function types"
-        );
+    if(expression->callee->type_info->type == TypeInfoType::FN) {
+        TRY_CALL(type_check_fn_call_expression(expression, symbol_table));
         return;
     }
+
+    if(expression->callee->type_info->type == TypeInfoType::FN_EXPRESSION) {
+        TRY_CALL(type_check_fn_expression_call_expression(expression, symbol_table));
+        return;
+    }
+
+    ErrorReporter::report_type_checker_error(
+        current_file->path, callee_expression, NULL, NULL, NULL, "Can only call functions"
+    );
+}
+
+void TypeChecker::type_check_fn_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
+
+    auto callee_expression = expression->callee;
 
     auto arg_type_infos = std::vector<TypeInfo *>();
     for (auto arg : expression->args)
@@ -859,11 +874,11 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     if (fn_type_info->args.size() != arg_type_infos.size())
     {
         ErrorReporter::report_type_checker_error(
-            current_file->path, callee_expression, NULL, NULL, NULL,
-            fmt::format(
-                "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
-                arg_type_infos.size()
-            )
+                current_file->path, callee_expression, NULL, NULL, NULL,
+                fmt::format(
+                        "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
+                        arg_type_infos.size()
+                )
         );
         return;
     }
@@ -871,11 +886,11 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     if (fn_type_info->generic_type_infos.size() != expression->generics.size())
     {
         ErrorReporter::report_type_checker_error(
-            current_file->path, callee_expression, NULL, NULL, NULL,
-            fmt::format(
-                "Incorrect number of generic arguments in call expression, expected {} got {}",
-                fn_type_info->generic_type_infos.size(), expression->generics.size()
-            )
+                current_file->path, callee_expression, NULL, NULL, NULL,
+                fmt::format(
+                        "Incorrect number of generic arguments in call expression, expected {} got {}",
+                        fn_type_info->generic_type_infos.size(), expression->generics.size()
+                )
         );
         return;
     }
@@ -885,8 +900,8 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
             ErrorReporter::report_type_checker_error(
-                current_file->path, callee_expression, expression->args.at(i), NULL, NULL,
-                "Mismatched types function call"
+                    current_file->path, callee_expression, expression->args.at(i), NULL, NULL,
+                    "Mismatched types function call"
             );
             return;
         }
@@ -897,6 +912,53 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
 
     expression->type_info = create_type_from_generics(fn_type_info->return_type, &expression->generics);
 }
+
+void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
+    auto callee_expression = expression->callee;
+
+    auto arg_type_infos = std::vector<TypeInfo *>();
+    for (auto arg : expression->args)
+    {
+        TRY_CALL(type_check_expression(arg, symbol_table));
+        arg_type_infos.push_back(arg->type_info);
+    }
+
+    auto fn_type_info = static_cast<FnExpressionTypeInfo *>(callee_expression->type_info);
+    if (fn_type_info->args.size() != arg_type_infos.size())
+    {
+        ErrorReporter::report_type_checker_error(
+                current_file->path, callee_expression, NULL, NULL, NULL,
+                fmt::format(
+                        "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
+                        arg_type_infos.size()
+                )
+        );
+        return;
+    }
+
+    for (s32 i = 0; i < fn_type_info->args.size(); i++)
+    {
+        if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
+        {
+            ErrorReporter::report_type_checker_error(
+                    current_file->path, callee_expression, expression->args.at(i), NULL, NULL,
+                    "Mismatched types function call"
+            );
+            return;
+        }
+    }
+
+    if(expression->generics.size() > 0) {
+        ErrorReporter::report_type_checker_error(
+                current_file->path, callee_expression, NULL, NULL, NULL,
+                "Cannot pass generic params to functions created from expressions"
+        );
+        return;
+    }
+
+    expression->type_info = fn_type_info->return_type;
+}
+
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
     TypeInfo *type_info;
 
@@ -1178,6 +1240,59 @@ void TypeChecker::type_check_zero_literal_expression(ZeroLiteralExpression *expr
     expression->type_info = new AnyTypeInfo{TypeInfoType::ANY};
 }
 
+void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable *symbol_table) {
+    auto param_type_infos = std::vector<TypeInfo *>();
+    for (auto &[identifier, expr] : expression->params)
+    {
+        TRY_CALL(type_check_type_expression(expr, symbol_table))
+        param_type_infos.push_back(expr->type_info);
+    }
+
+    TRY_CALL(type_check_type_expression(expression->return_type, symbol_table));
+
+    // copy table and add params and add generic types
+    SymbolTable copied_symbol_table = symbol_table->copy();
+
+    for (auto &[identifier, type_expression] : expression->params)
+    { copied_symbol_table.add_identifier(identifier, type_expression->type_info); }
+
+    // type statements and check return exists if needed
+    TRY_CALL(type_check_scope_statement(expression->body, &copied_symbol_table, false));
+
+    for (auto stmt : expression->body->statements)
+    {
+        if (stmt->statement_type == StatementType::STATEMENT_RETURN)
+        {
+            auto rt = static_cast<ReturnStatement *>(stmt);
+
+            if (expression->return_type->type_info->type == TypeInfoType::VOID)
+            {
+                if (rt->expression != NULL)
+                {
+                    ErrorReporter::report_type_checker_error(
+                            current_file->path, rt->expression, NULL, NULL, NULL,
+                            "found expression in return when return type is void"
+                    );
+                    return;
+                }
+            }
+            else
+            {
+                if (!type_match(expression->return_type->type_info, rt->expression->type_info))
+                {
+                    ErrorReporter::report_type_checker_error(
+                            current_file->path, rt->expression, NULL, expression->return_type, NULL,
+                            "Mismatch types in function, return types do not match"
+                    );
+                    return;
+                }
+            }
+        }
+    }
+
+    expression->type_info = new FnExpressionTypeInfo{TypeInfoType::FN_EXPRESSION, expression->return_type->type_info, param_type_infos};
+}
+
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {
     switch (type_expression->type)
     {
@@ -1194,6 +1309,9 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
         type_check_specified_generics_type_expression(
             dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression), symbol_table
         );
+        break;
+    case TypeExpressionType::TYPE_FN:
+        type_check_fn_type_expression(dynamic_cast<FnTypeExpression *>(type_expression), symbol_table);
         break;
     default:
         panic("Not implemented for type checker");
@@ -1247,6 +1365,19 @@ void TypeChecker::type_check_specified_generics_type_expression(
 
     type_expression->type_info =
         new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE, struct_type_info, generic_types};
+}
+
+void TypeChecker::type_check_fn_type_expression(FnTypeExpression *type_expression, SymbolTable *symbol_table) {
+    auto param_type_infos = std::vector<TypeInfo *>();
+    for (auto type : type_expression->params)
+    {
+        TRY_CALL(type_check_type_expression(type, symbol_table))
+        param_type_infos.push_back(type->type_info);
+    }
+
+    TRY_CALL(type_check_type_expression(type_expression->return_type, symbol_table));
+
+    type_expression->type_info = new FnExpressionTypeInfo{TypeInfoType::FN_EXPRESSION, type_expression->return_type->type_info, param_type_infos};
 }
 
 void TypeChecker::type_check_identifier_type_expression(
@@ -1444,6 +1575,27 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         auto enum_b = static_cast<EnumTypeInfo *>(b);
 
         return enum_a->identifier == enum_b->identifier;
+    }
+    else if (a->type == TypeInfoType::FN_EXPRESSION)
+    {
+        auto fn_a = static_cast<FnExpressionTypeInfo *>(a);
+        auto fn_b = static_cast<FnExpressionTypeInfo *>(b);
+
+        if(!type_match(fn_a->return_type, fn_b->return_type)) {
+            return false;
+        }
+
+        if(fn_a->args.size() != fn_b->args.size()) {
+            return false;
+        }
+
+        for(u32 i = 0; i < fn_a->args.size(); i++) {
+            if(!type_match(fn_a->args[i], fn_b->args[i])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     panic("Cannot type check this type info");

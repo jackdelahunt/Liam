@@ -14,13 +14,13 @@ enum class TypeInfoType {
     BOOLEAN,
     STRING,
     FN,
+    FN_EXPRESSION,
     STRUCT,
     STRUCT_INSTANCE,
     POINTER,
     GENERIC,
     UNION,
     ENUM,
-    UNDEFINED
 };
 
 struct TypeInfo {
@@ -61,6 +61,11 @@ struct FnTypeInfo : TypeInfo {
     StructTypeInfo *parent_type;
     TypeInfo *return_type;
     std::vector<TypeInfo *> generic_type_infos;
+    std::vector<TypeInfo *> args;
+};
+
+struct FnExpressionTypeInfo : TypeInfo {
+    TypeInfo *return_type;
     std::vector<TypeInfo *> args;
 };
 

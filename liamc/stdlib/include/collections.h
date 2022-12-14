@@ -43,11 +43,11 @@ template <typename T> void __append(Array<T> *self, T value) {
     self->data[self->length++] = value;
 }
 
-template <typename T> T __index(Array<T> *self, int index) {
+template <typename T> T __get(Array<T> *self, u64 index) {
     return self->data[index];
 }
 
-template <typename T> void __insert(Array<T> *self, int index, T value) {
+template <typename T> void __insert(Array<T> *self, u64 index, T value) {
     if (self->length == self->capacity)
     {
         self->capacity *= 2;
@@ -59,7 +59,7 @@ template <typename T> void __insert(Array<T> *self, int index, T value) {
     self->length++;
 }
 
-template <typename T> void __remove(Array<T> *self, int index) {
+template <typename T> void __remove(Array<T> *self, u64 index) {
     for (int i = index; i < self->length - 1; i++)
     { self->data[i] = self->data[i + 1]; }
     self->length--;

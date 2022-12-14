@@ -557,9 +557,24 @@ Expression *Parser::eval_primary() {
         return new NullLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_ZERO)
         return new ZeroLiteralExpression(*consume_token());
+    else if (type == TokenType::TOKEN_FN)
+        return TRY_CALL_RET(eval_fn(), NULL);
 
     return new Expression(); // empty expression found -- like when a
                              // return has no expression
+}
+
+Expression * Parser::eval_fn() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
+
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+    auto params = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+
+    auto type = TRY_CALL_RET(eval_type_expression(), NULL);
+
+    auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
+    return new FnExpression(params, type, body);
 }
 
 Expression *Parser::eval_new_expression() {
@@ -634,7 +649,7 @@ TypeExpression *Parser::eval_type_unary() {
 }
 
 TypeExpression *Parser::eval_type_specified_generics() {
-    auto struct_type = TRY_CALL_RET(eval_type_identifier(), NULL);
+    auto primary = TRY_CALL_RET(eval_type_primary(), NULL);
 
     if (match(TokenType::TOKEN_BRACKET_OPEN))
     {
@@ -642,15 +657,30 @@ TypeExpression *Parser::eval_type_specified_generics() {
         auto generics = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_BRACKET_CLOSE), NULL);
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
 
-        return new SpecifiedGenericsTypeExpression(struct_type, generics);
+        return new SpecifiedGenericsTypeExpression(primary, generics);
     }
 
-    return struct_type;
+    return primary;
 }
 
-IdentifierTypeExpression *Parser::eval_type_identifier() {
+TypeExpression *Parser::eval_type_primary() {
+
+    if (peek()->type == TokenType::TOKEN_FN)
+    { return TRY_CALL_RET(eval_type_fn(), NULL); }
+
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
     return new IdentifierTypeExpression(*identifier);
+}
+
+TypeExpression *Parser::eval_type_fn() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+    auto params = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+
+    auto return_type = TRY_CALL_RET(eval_type_expression(), NULL);
+
+    return new FnTypeExpression(params, return_type);
 }
 
 s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {
