@@ -7,8 +7,13 @@
 #include "compiler.h"
 #include "fmt/core.h"
 #include "liam.h"
+#include <functional>
 
 #ifndef TEST
+
+void temp(std::function<int(double)> x) {
+    int y = x(100);
+}
 
 s32 main(s32 argc, char **argv) {
     Arguments::New(argc, argv);

@@ -1,0 +1,27 @@
+//100
+//200
+//300
+
+import "stdlib/basic.liam";
+
+fn main() void {
+
+    set_allocator("malloc", 0u64);
+    let array := make_array[s64]();
+
+    array.append[s64](100);
+    array.append[s64](200);
+    array.append[s64](300);
+
+    let callback := fn (x: s64) void {
+        println[s64](x);
+    };
+
+    iter[s64](array, callback);
+}
+
+fn iter[T](array: Array[T], callback: fn (T) void) void {
+    for let i := 0u64; i < array.length; i = i + 1u64; {
+        callback(array.get[T](i));
+    }
+}

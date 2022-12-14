@@ -1,8 +1,10 @@
 #pragma once
 #include "lexer.h"
 #include "type_info.h"
+#include "statement.h"
 
 struct TypeExpression;
+struct ScopeStatement;
 
 enum class ExpressionType {
     EXPRESSION_IS,
@@ -18,7 +20,8 @@ enum class ExpressionType {
     EXPRESSION_GROUP,
     EXPRESSION_NULL_LITERAL,
     EXPRESSION_PROPAGATE,
-    EXPRESSION_ZERO_LITERAL
+    EXPRESSION_ZERO_LITERAL,
+    EXPRESSION_FN
 };
 
 struct Expression {
@@ -128,11 +131,20 @@ struct ZeroLiteralExpression : Expression {
     ZeroLiteralExpression(Token token);
 };
 
+struct FnExpression : Expression {
+    std::vector<std::tuple<Token, TypeExpression *>> params;
+    TypeExpression *return_type;
+    ScopeStatement *body;
+
+    FnExpression(std::vector<std::tuple<Token, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body);
+};
+
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_UNARY,
     TYPE_UNION,
     TYPE_SPECIFIED_GENERICS,
+    TYPE_FN,
 };
 
 struct TypeExpression {
@@ -162,8 +174,15 @@ struct UnionTypeExpression : TypeExpression {
 };
 
 struct SpecifiedGenericsTypeExpression : TypeExpression {
-    IdentifierTypeExpression *struct_type;
+    TypeExpression *struct_type;
     std::vector<TypeExpression *> generics;
 
-    SpecifiedGenericsTypeExpression(IdentifierTypeExpression *struct_type, std::vector<TypeExpression *> generics);
+    SpecifiedGenericsTypeExpression(TypeExpression *struct_type, std::vector<TypeExpression *> generics);
+};
+
+struct FnTypeExpression : TypeExpression {
+    std::vector<TypeExpression *> params;
+    TypeExpression *return_type;
+
+    FnTypeExpression(std::vector<TypeExpression *> params, TypeExpression *return_type);
 };
