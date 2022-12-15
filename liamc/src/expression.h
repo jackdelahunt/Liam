@@ -91,7 +91,6 @@ struct CallExpression : Expression {
 };
 
 struct GetExpression : Expression {
-    // this is an expression but it must be a identifier
     Expression *lhs;
     Token member;
 
