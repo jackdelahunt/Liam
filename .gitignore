@@ -20,6 +20,5 @@ liamc/src/Makefile
 **/target/
 liamc/tests/out.cpp
 liamc/out.cpp
-vendor/
 **/build-debug/
 *.exe
