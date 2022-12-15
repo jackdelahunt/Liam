@@ -603,7 +603,14 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
     if (expression->callee->type == ExpressionType::EXPRESSION_GET)
     {
         auto get_expression = dynamic_cast<GetExpression *>(expression->callee);
-        source.append("&" + emit_expression(get_expression->lhs));
+
+        // because we can call members of a type T on ^T sometimes we do not need to add
+        // a & as it is already a pointer, if it is not a pointer then add the &
+        if(get_expression->lhs->type_info->type != TypeInfoType::POINTER) {
+            source.append("&");
+        }
+
+        source.append( emit_expression(get_expression->lhs));
         if (expression->args.size() > 0)
         { source.append(", "); }
     }

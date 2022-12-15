@@ -1,0 +1,22 @@
+//100
+//100
+//100
+
+import "stdlib/basic.liam";
+
+struct Foo {
+    n: s64
+}
+
+fn (Foo) foo() void {
+    println[s64](self.n);
+}
+
+fn main() void {
+    let foo := new Foo{n: 100};
+    foo.foo();
+
+    let ptr := @foo;
+    ptr.foo();
+    println[s64](ptr.n);
+}
