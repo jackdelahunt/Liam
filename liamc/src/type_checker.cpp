@@ -601,7 +601,7 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         return type_check_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression), symbol_table);
         break;
     case ExpressionType::EXPRESSION_FN:
-        return type_check_fn_expression(dynamic_cast<FnExpression*>(expression), symbol_table);
+        return type_check_fn_expression(dynamic_cast<FnExpression *>(expression), symbol_table);
         break;
     default:
         panic("Expression not implemented in type checker");
@@ -844,12 +844,14 @@ void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolT
     TRY_CALL(type_check_expression(expression->callee, symbol_table));
     auto callee_expression = expression->callee;
 
-    if(expression->callee->type_info->type == TypeInfoType::FN) {
+    if (expression->callee->type_info->type == TypeInfoType::FN)
+    {
         TRY_CALL(type_check_fn_call_expression(expression, symbol_table));
         return;
     }
 
-    if(expression->callee->type_info->type == TypeInfoType::FN_EXPRESSION) {
+    if (expression->callee->type_info->type == TypeInfoType::FN_EXPRESSION)
+    {
         TRY_CALL(type_check_fn_expression_call_expression(expression, symbol_table));
         return;
     }
@@ -874,11 +876,11 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
     if (fn_type_info->args.size() != arg_type_infos.size())
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, callee_expression, NULL, NULL, NULL,
-                fmt::format(
-                        "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
-                        arg_type_infos.size()
-                )
+            current_file->path, callee_expression, NULL, NULL, NULL,
+            fmt::format(
+                "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
+                arg_type_infos.size()
+            )
         );
         return;
     }
@@ -886,11 +888,11 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
     if (fn_type_info->generic_type_infos.size() != expression->generics.size())
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, callee_expression, NULL, NULL, NULL,
-                fmt::format(
-                        "Incorrect number of generic arguments in call expression, expected {} got {}",
-                        fn_type_info->generic_type_infos.size(), expression->generics.size()
-                )
+            current_file->path, callee_expression, NULL, NULL, NULL,
+            fmt::format(
+                "Incorrect number of generic arguments in call expression, expected {} got {}",
+                fn_type_info->generic_type_infos.size(), expression->generics.size()
+            )
         );
         return;
     }
@@ -900,8 +902,8 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
             ErrorReporter::report_type_checker_error(
-                    current_file->path, callee_expression, expression->args.at(i), NULL, NULL,
-                    "Mismatched types function call"
+                current_file->path, callee_expression, expression->args.at(i), NULL, NULL,
+                "Mismatched types function call"
             );
             return;
         }
@@ -927,11 +929,11 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
     if (fn_type_info->args.size() != arg_type_infos.size())
     {
         ErrorReporter::report_type_checker_error(
-                current_file->path, callee_expression, NULL, NULL, NULL,
-                fmt::format(
-                        "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
-                        arg_type_infos.size()
-                )
+            current_file->path, callee_expression, NULL, NULL, NULL,
+            fmt::format(
+                "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
+                arg_type_infos.size()
+            )
         );
         return;
     }
@@ -941,17 +943,18 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
             ErrorReporter::report_type_checker_error(
-                    current_file->path, callee_expression, expression->args.at(i), NULL, NULL,
-                    "Mismatched types function call"
+                current_file->path, callee_expression, expression->args.at(i), NULL, NULL,
+                "Mismatched types function call"
             );
             return;
         }
     }
 
-    if(expression->generics.size() > 0) {
+    if (expression->generics.size() > 0)
+    {
         ErrorReporter::report_type_checker_error(
-                current_file->path, callee_expression, NULL, NULL, NULL,
-                "Cannot pass generic params to functions created from expressions"
+            current_file->path, callee_expression, NULL, NULL, NULL,
+            "Cannot pass generic params to functions created from expressions"
         );
         return;
     }
@@ -1270,8 +1273,8 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
                 if (rt->expression != NULL)
                 {
                     ErrorReporter::report_type_checker_error(
-                            current_file->path, rt->expression, NULL, NULL, NULL,
-                            "found expression in return when return type is void"
+                        current_file->path, rt->expression, NULL, NULL, NULL,
+                        "found expression in return when return type is void"
                     );
                     return;
                 }
@@ -1281,8 +1284,8 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
                 if (!type_match(expression->return_type->type_info, rt->expression->type_info))
                 {
                     ErrorReporter::report_type_checker_error(
-                            current_file->path, rt->expression, NULL, expression->return_type, NULL,
-                            "Mismatch types in function, return types do not match"
+                        current_file->path, rt->expression, NULL, expression->return_type, NULL,
+                        "Mismatch types in function, return types do not match"
                     );
                     return;
                 }
@@ -1290,7 +1293,8 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
         }
     }
 
-    expression->type_info = new FnExpressionTypeInfo{TypeInfoType::FN_EXPRESSION, expression->return_type->type_info, param_type_infos};
+    expression->type_info =
+        new FnExpressionTypeInfo{TypeInfoType::FN_EXPRESSION, expression->return_type->type_info, param_type_infos};
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {
@@ -1377,7 +1381,8 @@ void TypeChecker::type_check_fn_type_expression(FnTypeExpression *type_expressio
 
     TRY_CALL(type_check_type_expression(type_expression->return_type, symbol_table));
 
-    type_expression->type_info = new FnExpressionTypeInfo{TypeInfoType::FN_EXPRESSION, type_expression->return_type->type_info, param_type_infos};
+    type_expression->type_info = new FnExpressionTypeInfo{
+        TypeInfoType::FN_EXPRESSION, type_expression->return_type->type_info, param_type_infos};
 }
 
 void TypeChecker::type_check_identifier_type_expression(
@@ -1581,18 +1586,16 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         auto fn_a = static_cast<FnExpressionTypeInfo *>(a);
         auto fn_b = static_cast<FnExpressionTypeInfo *>(b);
 
-        if(!type_match(fn_a->return_type, fn_b->return_type)) {
-            return false;
-        }
+        if (!type_match(fn_a->return_type, fn_b->return_type))
+        { return false; }
 
-        if(fn_a->args.size() != fn_b->args.size()) {
-            return false;
-        }
+        if (fn_a->args.size() != fn_b->args.size())
+        { return false; }
 
-        for(u32 i = 0; i < fn_a->args.size(); i++) {
-            if(!type_match(fn_a->args[i], fn_b->args[i])) {
-                return false;
-            }
+        for (u32 i = 0; i < fn_a->args.size(); i++)
+        {
+            if (!type_match(fn_a->args[i], fn_b->args[i]))
+            { return false; }
         }
 
         return true;

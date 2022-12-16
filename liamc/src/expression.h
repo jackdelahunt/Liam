@@ -1,7 +1,7 @@
 #pragma once
 #include "lexer.h"
-#include "type_info.h"
 #include "statement.h"
+#include "type_info.h"
 
 struct TypeExpression;
 struct ScopeStatement;
@@ -135,7 +135,9 @@ struct FnExpression : Expression {
     TypeExpression *return_type;
     ScopeStatement *body;
 
-    FnExpression(std::vector<std::tuple<Token, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body);
+    FnExpression(
+        std::vector<std::tuple<Token, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
+    );
 };
 
 enum class TypeExpressionType {
