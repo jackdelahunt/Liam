@@ -606,11 +606,10 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
 
         // because we can call members of a type T on ^T sometimes we do not need to add
         // a & as it is already a pointer, if it is not a pointer then add the &
-        if(get_expression->lhs->type_info->type != TypeInfoType::POINTER) {
-            source.append("&");
-        }
+        if (get_expression->lhs->type_info->type != TypeInfoType::POINTER)
+        { source.append("&"); }
 
-        source.append( emit_expression(get_expression->lhs));
+        source.append(emit_expression(get_expression->lhs));
         if (expression->args.size() > 0)
         { source.append(", "); }
     }
@@ -773,8 +772,7 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
         );
         break;
     case TypeExpressionType::TYPE_FN:
-        return emit_fn_type_expression(dynamic_cast<FnTypeExpression *>(type_expression)
-        );
+        return emit_fn_type_expression(dynamic_cast<FnTypeExpression *>(type_expression));
         break;
     default:
         panic("Cpp back end does not support this type expression");

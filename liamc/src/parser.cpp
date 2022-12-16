@@ -564,7 +564,7 @@ Expression *Parser::eval_primary() {
                              // return has no expression
 }
 
-Expression * Parser::eval_fn() {
+Expression *Parser::eval_fn() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
 
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);

@@ -4,13 +4,18 @@ distpath = "%{wks.location}/" .. "/%{prj.name}"
 
 workspace "Liam"
     architecture "x64"
-    startproject "liamc" -- this isnt working for some reason
+    startproject "liamc" 
 
     configurations {
         "Debug",
         "Release",
-        "Dist"
         }
+
+		platforms {
+			"win64",
+        	"macos",
+        	"linux64",
+		}
 
 	project "liamc"
 		location "src"
@@ -50,19 +55,6 @@ workspace "Liam"
 			defines {
 				"RELEASE",
 				optimize "on"
-			}
-
-		filter "configurations:Dist"
-			defines {
-				"DIST",
-				optimize "on"
-			}
-
-			postbuildcommands {
-				"{MKDIR} %{distpath}",
-				"{COPYFILE} %{cfg.buildtarget.abspath} %{distpath}/",
-				"{COPYDIR} %{wks.location}/runtime %{distpath}/runtime",
-				"{COPYDIR} %{wks.location}/stdlib %{distpath}/stdlib",
 			}
 
 		-- windows specific stuffy
