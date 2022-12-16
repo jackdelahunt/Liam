@@ -9,18 +9,23 @@ let var_name := ... ; // type inferance
 
 ### Functions
 ```rust
-fn func_name(param: type): return_type {}
+fn func_name(param: type) return_type {}
 ```
 
 ### Generic Functions
 ```rust
-fn func_name[T](param: T): ^T {}
+fn func_name[T](param: T) ^T {}
+```
+
+### Function expression
+```rust
+let func: fn (s64) void = fn (n: s64) void { ... }
 ```
 
 ### For Loops
 ```rust
-for let i: u64 = 0; i < 10; i = i + 1; {
-    print[u64](i);   
+for let i: s64 = 0; i < 10; i = i + 1; {
+    println[s64](i);   
 }
 ```
 
