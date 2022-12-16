@@ -7,6 +7,7 @@
 struct Expression;
 struct Token;
 struct File;
+struct TypeExpression;
 
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
