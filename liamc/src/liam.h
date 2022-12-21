@@ -60,7 +60,7 @@ void panic(const std::string &msg);
     }
 
 // call a func and if there is an error return with a given value
-#define TRY_CALL_RET_VOID(func, ret)                                                                                   \
+#define TRY_CALL_RET_WITH(func, ret)                                                                                   \
     ({                                                                                                                 \
         auto __start = ErrorReporter::error_count();                                                                   \
         func;                                                                                                          \

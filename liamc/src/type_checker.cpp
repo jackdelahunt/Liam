@@ -122,18 +122,18 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : enums)
     {
         current_file = stmt->file;
-        TRY_CALL_RET_VOID(type_check_enum_statement(stmt, &top_level_symbol_table), typed_file);
+        TRY_CALL_RET_WITH(type_check_enum_statement(stmt, &top_level_symbol_table), typed_file);
         typed_file.statements.push_back(stmt);
     }
 
     // struct identifier pass
     for (auto stmt : structs)
-    { TRY_CALL_RET_VOID(type_check_struct_decl(stmt, &top_level_symbol_table), typed_file); }
+    { TRY_CALL_RET_WITH(type_check_struct_decl(stmt, &top_level_symbol_table), typed_file); }
 
     // typedefs
     for (auto stmt : aliases)
     {
-        TRY_CALL_RET_VOID(type_check_alias_statement(stmt, &top_level_symbol_table), typed_file);
+        TRY_CALL_RET_WITH(type_check_alias_statement(stmt, &top_level_symbol_table), typed_file);
         typed_file.statements.push_back(stmt);
     }
 
@@ -141,7 +141,7 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : structs)
     {
         current_file = stmt->file;
-        TRY_CALL_RET_VOID(type_check_struct_statement(stmt, &top_level_symbol_table, true), typed_file);
+        TRY_CALL_RET_WITH(type_check_struct_statement(stmt, &top_level_symbol_table, true), typed_file);
         typed_file.statements.push_back(stmt);
     }
 
@@ -149,13 +149,13 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : funcs)
     {
         current_file = stmt->file;
-        TRY_CALL_RET_VOID(type_check_fn_decl(stmt, &top_level_symbol_table), typed_file);
+        TRY_CALL_RET_WITH(type_check_fn_decl(stmt, &top_level_symbol_table), typed_file);
     }
 
     for (auto stmt : others)
     {
         current_file = stmt->file;
-        TRY_CALL_RET_VOID(type_check_statement(stmt, &top_level_symbol_table, true), typed_file);
+        TRY_CALL_RET_WITH(type_check_statement(stmt, &top_level_symbol_table, true), typed_file);
         typed_file.statements.push_back(stmt);
     }
 
