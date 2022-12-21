@@ -6,7 +6,6 @@ import "stdlib/basic.liam";
 
 fn main() void {
 
-    set_allocator("malloc", 0u64);
     let array := make_array[s64]();
 
     array.append[s64](100);
