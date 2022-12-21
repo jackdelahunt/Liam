@@ -64,7 +64,7 @@ struct UnaryExpression {
 
 struct NumberLiteralExpression {
     token: Token,
-    number: s64
+    number: i64
 }
 
 struct StringLiteralExpression {
@@ -433,7 +433,7 @@ fn eval_is_expression(parser: ^Parser): Expression | ParserError {
         try_token(parser, TokenType.AS) return ParserError else Token;
         let identifier := try_token(parser, TokenType.IDENTIFIER) return ParserError else Token;
 
-        let y: ^s64 = alloc[s64](100);
+        let y: ^i64 = alloc[i64](100);
 
         expr = alloc[IsExpression](new IsExpression{
             expression: expr,

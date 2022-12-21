@@ -70,7 +70,7 @@ FileData *FileManager::load(std::string *path) {
     { panic("cannot open file " + *path); }
 
     u64 line_count = 0;
-    for (s32 i = file.get(); i != EOF; i = file.get())
+    for (i32 i = file.get(); i != EOF; i = file.get())
     {
         if ((char)i == '\n')
         { line_count++; }

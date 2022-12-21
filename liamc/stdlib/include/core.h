@@ -7,26 +7,26 @@
 #include <variant>
 
 typedef uint8_t u8;
-typedef int8_t s8;
+typedef int8_t i8;
 
 typedef uint16_t u16;
-typedef int16_t s16;
+typedef int16_t i16;
 
-typedef int32_t s32;
+typedef int32_t i32;
 typedef uint32_t u32;
 typedef float f32;
 
 typedef uint64_t u64;
-typedef int64_t s64;
+typedef int64_t i64;
 typedef double f64;
 
 u8 _u8(u8 n);
-s8 _s8(s8 n);
+i8 _i8(i8 n);
 u32 _u32(u32 n);
-s32 _s32(s32 n);
+i32 _i32(i32 n);
 f32 _f32(f32 n);
 u64 _u64(u64 n);
-s64 _s64(s64 n);
+i64 _i64(i64 n);
 f64 _f64(f64 n);
 
 struct str {

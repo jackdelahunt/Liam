@@ -6,7 +6,7 @@ bool is_digit(char c) {
     return c >= '0' && c <= '9';
 }
 
-std::tuple<s64, NumberType, s32> extract_number_literal_size(std::string literal) {
+std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal) {
 
 #define BAD_PARSE                                                                                                      \
     { 0, UNSIGNED, -1 }
@@ -26,7 +26,7 @@ std::tuple<s64, NumberType, s32> extract_number_literal_size(std::string literal
     std::string postfix_string = "";
 
     // if there is a postfix notation
-    // else just infer a s64
+    // else just infer a i64
     if (literal_end != literal.size())
     {
         type_string    = literal.substr(literal_end, 1);

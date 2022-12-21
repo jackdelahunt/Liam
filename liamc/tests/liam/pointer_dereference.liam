@@ -5,11 +5,11 @@
 import "stdlib/basic.liam";
 
 struct Foo {
-    n: s64
+    n: i64
 }
 
 fn (Foo) foo() void {
-    println[s64](self.n);
+    println[i64](self.n);
 }
 
 fn main() void {
@@ -18,5 +18,5 @@ fn main() void {
 
     let ptr := @foo;
     ptr.foo();
-    println[s64](ptr.n);
+    println[i64](ptr.n);
 }

@@ -13,8 +13,8 @@ struct Pointers {
 fn main() void {
     let x := 100;
     let y := @x;
-    println[s64](x);
-    println[s64](*y);
+    println[i64](x);
+    println[i64](*y);
 
     let s := "this is a string";
     let p := new Pointers{s: s, s_ptr: @s};

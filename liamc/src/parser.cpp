@@ -126,7 +126,7 @@ LetStatement *Parser::eval_let_statement() {
 ScopeStatement *Parser::eval_scope_statement() {
     auto statements = std::vector<Statement *>();
     auto open_brace = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
-    s32 closing_brace_index =
+    i32 closing_brace_index =
         find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, current - 1);
     if (closing_brace_index == current + 1)
     { // if this scope is empty
@@ -683,9 +683,9 @@ TypeExpression *Parser::eval_type_fn() {
     return new FnTypeExpression(params, return_type);
 }
 
-s32 Parser::find_balance_point(TokenType push, TokenType pull, s32 from) {
-    s32 current_index = from;
-    s32 balance       = 0;
+i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
+    i32 current_index = from;
+    i32 balance       = 0;
 
     while (current_index < tokens.size())
     {
@@ -715,7 +715,7 @@ bool Parser::match(TokenType type) {
     return false;
 }
 
-Token *Parser::peek(s32 offset) {
+Token *Parser::peek(i32 offset) {
     return &tokens.at(current + offset);
 }
 

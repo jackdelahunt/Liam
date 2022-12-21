@@ -41,7 +41,7 @@ struct File {
 
 struct Parser {
     std::vector<Token> tokens;
-    s32 current;
+    i32 current;
     std::filesystem::path path;
     File *file;
 
@@ -95,9 +95,9 @@ struct Parser {
     TypeExpression *eval_type_fn();
 
     bool match(TokenType type);
-    inline Token *peek(s32 offset = 0);
+    inline Token *peek(i32 offset = 0);
     Token *consume_token();
-    s32 find_balance_point(TokenType push, TokenType pull, s32 from);
+    i32 find_balance_point(TokenType push, TokenType pull, i32 from);
     Token *consume_token_of_type(TokenType type);
     std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
