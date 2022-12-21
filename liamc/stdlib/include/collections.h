@@ -11,13 +11,6 @@ template <typename T> struct Array {
 
 template <typename K, typename V> struct Map { std::map<K, V> map; };
 
-/*
- * extern fn make_map[K. V](): Map[K, V];
-extern fn map_insert[K, V](k: K, v: V): void;
-extern fn map_get[K, V](k: K): V;
-
- */
-
 template <typename K, typename V> Map<K, V> make_map() {
     return Map<K, V>{.map = std::map<K, V>()};
 }

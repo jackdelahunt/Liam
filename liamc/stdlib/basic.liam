@@ -1,10 +1,8 @@
 // io
 extern fn print[T](t: T) void;
 extern fn println[T](t: T) void;
-extern fn read(path: str) String;
 
 // memory
-extern fn set_allocator(name: str, size: u64) void;
 extern fn alloc[T](t: T) ^T;
 extern fn destroy[T](t: ^T) void;
 extern fn hashcode[T](t: ^T) u64;
