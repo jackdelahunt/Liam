@@ -5,7 +5,7 @@ u8 _u8(u8 n) {
     return n;
 }
 
-s8 _s8(s8 n) {
+i8 _i8(i8 n) {
     return n;
 }
 
@@ -13,7 +13,7 @@ u32 _u32(u32 n) {
     return n;
 }
 
-s32 _s32(s32 n) {
+i32 _i32(i32 n) {
     return n;
 }
 
@@ -25,7 +25,7 @@ u64 _u64(u64 n) {
     return n;
 }
 
-s64 _s64(s64 n) {
+i64 _i64(i64 n) {
     return n;
 }
 

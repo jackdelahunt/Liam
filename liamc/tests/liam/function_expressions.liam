@@ -6,17 +6,17 @@ import "stdlib/basic.liam";
 
 fn main() void {
 
-    let array := make_array[s64]();
+    let array := make_array[i64]();
 
-    array.append[s64](100);
-    array.append[s64](200);
-    array.append[s64](300);
+    array.append[i64](100);
+    array.append[i64](200);
+    array.append[i64](300);
 
-    let callback := fn (x: s64) void {
-        println[s64](x);
+    let callback := fn (x: i64) void {
+        println[i64](x);
     };
 
-    iter[s64](array, callback);
+    iter[i64](array, callback);
 }
 
 fn iter[T](array: Array[T], callback: fn (T) void) void {

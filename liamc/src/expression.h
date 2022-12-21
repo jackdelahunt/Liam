@@ -58,7 +58,7 @@ struct UnaryExpression : Expression {
 
 struct NumberLiteralExpression : Expression {
     Token token;
-    s64 number;
+    i64 number;
 
     NumberLiteralExpression(Token token);
 };

@@ -548,7 +548,7 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
     if (number_type->type == UNSIGNED)
     { func_call.append("u"); }
     else if (number_type->type == SIGNED)
-    { func_call.append("s"); }
+    { func_call.append("i"); }
     else if (number_type->type == FLOAT)
     { func_call.append("f"); }
 

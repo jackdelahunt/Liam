@@ -193,7 +193,7 @@ void Lexer::lex() {
         }
         break;
         default:
-            s32 word_start = current_character;
+            i32 word_start = current_character;
             auto word      = get_word(chars);
 
             // check keywords

@@ -15,7 +15,7 @@ fn main() void {
     }
 
     for let i := 10s64; i < 17; i = i + 2; {
-        println[s64](i);
+        println[i64](i);
     }
  
     for let i: u64 = init(); compare(i); i = add(i); {

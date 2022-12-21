@@ -11,10 +11,10 @@ struct Struct {
 }
 
 fn main() void {
-    let x: s64 | str = 100;
+    let x: i64 | str = 100;
 
-    if x is s64 as n {
-        println[s64](*n);
+    if x is i64 as n {
+        println[i64](*n);
     }
 
     x = "this is a string";

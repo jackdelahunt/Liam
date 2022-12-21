@@ -15,7 +15,7 @@ void temp(std::function<int(double)> x) {
     int y = x(100);
 }
 
-s32 main(s32 argc, char **argv) {
+i32 main(i32 argc, char **argv) {
     Arguments::New(argc, argv);
 
     TIME_START(l_p_time);

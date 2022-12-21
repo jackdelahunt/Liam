@@ -9,7 +9,7 @@ struct StringLiteral {
 }
 
 struct NumberLiteral {
-    n: s64
+    n: i64
 }
 
 fn main() void {

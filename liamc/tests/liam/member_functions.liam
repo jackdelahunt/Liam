@@ -6,16 +6,16 @@
 import "stdlib/basic.liam";
 
 struct Foo {
-    foo: s64
+    foo: i64
 }
 
 fn (Foo) print_foo() void {
-    println[s64](self.foo);
+    println[i64](self.foo);
 }
 
-fn (Foo) change_foo(n: s64) void {
+fn (Foo) change_foo(n: i64) void {
     self.foo = self.foo + n;
-    println[s64](self.foo);
+    println[i64](self.foo);
 }
 
 fn main() void {

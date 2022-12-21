@@ -20,17 +20,17 @@ SymbolTable::SymbolTable() {
     builtin_type_table["str"]  = new StrTypeInfo{TypeInfoType::STRING};
 
     builtin_type_table["u8"] = new NumberTypeInfo{TypeInfoType::NUMBER, 8, UNSIGNED};
-    builtin_type_table["s8"] = new NumberTypeInfo{TypeInfoType::NUMBER, 8, SIGNED};
+    builtin_type_table["i8"] = new NumberTypeInfo{TypeInfoType::NUMBER, 8, SIGNED};
 
     builtin_type_table["u16"] = new NumberTypeInfo{TypeInfoType::NUMBER, 16, UNSIGNED};
-    builtin_type_table["s16"] = new NumberTypeInfo{TypeInfoType::NUMBER, 16, SIGNED};
+    builtin_type_table["i16"] = new NumberTypeInfo{TypeInfoType::NUMBER, 16, SIGNED};
 
     builtin_type_table["u32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, UNSIGNED};
-    builtin_type_table["s32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, SIGNED};
+    builtin_type_table["i32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, SIGNED};
     builtin_type_table["f32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, FLOAT};
 
     builtin_type_table["u64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, UNSIGNED};
-    builtin_type_table["s64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, SIGNED};
+    builtin_type_table["i64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, SIGNED};
     builtin_type_table["f64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, FLOAT};
 }
 
@@ -733,7 +733,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         return;
     }
 
-    if (type != FLOAT && number != (s64)number)
+    if (type != FLOAT && number != (i64)number)
     {
         ErrorReporter::report_type_checker_error(
             current_file->path, expression, NULL, NULL, NULL, "Cannot use decimal point on non float types"
@@ -768,13 +768,13 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     case SIGNED: {
 
         if (size == 8)
-        { expression->type_info = symbol_table->builtin_type_table["s8"]; }
+        { expression->type_info = symbol_table->builtin_type_table["i8"]; }
         else if (size == 16)
-        { expression->type_info = symbol_table->builtin_type_table["s16"]; }
+        { expression->type_info = symbol_table->builtin_type_table["i16"]; }
         else if (size == 32)
-        { expression->type_info = symbol_table->builtin_type_table["s32"]; }
+        { expression->type_info = symbol_table->builtin_type_table["i32"]; }
         else if (size == 64)
-        { expression->type_info = symbol_table->builtin_type_table["s64"]; }
+        { expression->type_info = symbol_table->builtin_type_table["i64"]; }
     }
     break;
     case FLOAT: {
@@ -897,7 +897,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
         return;
     }
 
-    for (s32 i = 0; i < fn_type_info->args.size(); i++)
+    for (i32 i = 0; i < fn_type_info->args.size(); i++)
     {
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
@@ -938,7 +938,7 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
         return;
     }
 
-    for (s32 i = 0; i < fn_type_info->args.size(); i++)
+    for (i32 i = 0; i < fn_type_info->args.size(); i++)
     {
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
@@ -1132,7 +1132,7 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     }
 
     // check types
-    for (s32 i = 0; i < calling_args_type_infos.size(); i++)
+    for (i32 i = 0; i < calling_args_type_infos.size(); i++)
     {
         // new expression member and type info
         auto [expression_member, expression_type] = calling_args_type_infos.at(i);
@@ -1194,8 +1194,8 @@ void TypeChecker::type_check_propagation_expression(PropagateExpression *express
     // find the index of the type expression in the union type if
     // not there then report an error
     auto expression_union_type = static_cast<UnionTypeInfo *>(expression->expression->type_info);
-    s64 index                  = -1;
-    for (s64 i = 0; i < expression_union_type->types.size(); i++)
+    i64 index                  = -1;
+    for (i64 i = 0; i < expression_union_type->types.size(); i++)
     {
         auto t = expression_union_type->types[i];
         if (type_match(t, expression->type_expression->type_info))
@@ -1218,7 +1218,7 @@ void TypeChecker::type_check_propagation_expression(PropagateExpression *express
     // type is the return type, if the union with the type removed is a single type
     // then it is converted to a single type without the union
     auto remaining_types = std::vector<TypeInfo *>();
-    for (s64 i = 0; i < expression_union_type->types.size(); i++)
+    for (i64 i = 0; i < expression_union_type->types.size(); i++)
     {
         if (i != index)
         { remaining_types.push_back(expression_union_type->types[i]); }
@@ -1491,7 +1491,7 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
 
         if (type_match(fn_a->return_type, fn_b->return_type))
         {
-            for (s32 i = 0; i < fn_a->args.size(); i++)
+            for (i32 i = 0; i < fn_a->args.size(); i++)
             {
                 if (type_match(fn_a->args.at(i), fn_b->args.at(i)))
                 {}

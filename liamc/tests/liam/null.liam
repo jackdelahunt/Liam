@@ -6,10 +6,10 @@ import "stdlib/basic.liam";
 
 fn main() void {
     let y := 100;
-    let x : ^s64 = null;
+    let x : ^i64 = null;
 
     x = @y;
-    println[s64](*x);
+    println[i64](*x);
 
     x = null;
     if x == null {

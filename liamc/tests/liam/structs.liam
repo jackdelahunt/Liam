@@ -7,7 +7,7 @@ import "stdlib/basic.liam";
 
 struct Person {
     name: str,
-    age: s64
+    age: i64
 }
 
 struct People {
@@ -18,7 +18,7 @@ struct People {
 fn main() void {
     let p: Person = new Person{name: "jack", age: 21};
     println[str](p.name);
-    println[s64](p.age);
+    println[i64](p.age);
 
     let people: People = new People {
         one: new Person {name: "liam", age: 25},
@@ -26,5 +26,5 @@ fn main() void {
     };
 
     println[str](people.one.name);
-    println[s64](people.two.age);
+    println[i64](people.two.age);
 }
