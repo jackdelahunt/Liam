@@ -93,5 +93,6 @@ struct TypeChecker {
     TypeInfo *create_type_from_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params);
 };
 
-bool type_match(TypeInfo *a, TypeInfo *b);
+bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce = false);
+bool type_coerce(TypeInfo *a, TypeInfo *b);
 StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info);

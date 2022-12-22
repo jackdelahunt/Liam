@@ -14,6 +14,7 @@ extern fn substr(s: str, start: u64, length: u64) str;
 extern fn char_at(s: str, index: u64) str;
 extern fn is_digit(s: str) bool;
 extern fn assert_true(condition: bool) void;
+extern fn cast[T, E](t: T) E;
 
 // String
 extern struct String {

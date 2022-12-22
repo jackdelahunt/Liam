@@ -1433,13 +1433,12 @@ TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vecto
     return type_info;
 }
 
-bool type_match(TypeInfo *a, TypeInfo *b) {
+bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
     if (a->type == TypeInfoType::ANY && b->type == TypeInfoType::ANY)
     { panic("cannot match types that are both any, will be fixed xx"); }
 
     if (a->type == TypeInfoType::GENERIC)
-        return true; // TODO: this might be a bug n ot checking b but not sure
-                     // what to do here...
+        return true; // TODO: this might be a bug not checking b but not sure what to do here...
 
     if (a->type != b->type)
     {
@@ -1481,6 +1480,10 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
 
         if (int_a->size == int_b->size && int_a->type == int_b->type)
             return true;
+
+        if(!dont_coerce && type_coerce(int_a, int_b)) {
+            return true;
+        }
 
         return false;
     }
@@ -1603,4 +1606,17 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
 
     panic("Cannot type check this type info");
     return false;
+}
+
+bool type_coerce(TypeInfo *a, TypeInfo *b) {
+    // right now coercing types only works for number types
+    if(a->type != TypeInfoType::NUMBER || b->type != TypeInfoType::NUMBER)
+        return false;
+
+    auto a_number = static_cast<NumberTypeInfo *>(a);
+    auto b_number = static_cast<NumberTypeInfo *>(b);
+
+    if(a_number->type != b_number->type) return false;
+
+    return a_number->size >= b_number->size;
 }
