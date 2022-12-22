@@ -1,0 +1,15 @@
+name: Release Macos
+on:
+  workflow_dispatch:
+jobs:
+  make_release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: latest
+          platform: x64
+      - name: compile
+        run: bash liamc/scripts/release_macos.sh
