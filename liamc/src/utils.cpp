@@ -51,7 +51,7 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     { type = UNSIGNED; }
     else if (type_string == "f")
     { type = FLOAT; }
-    else if (type_string == "s")
+    else if (type_string == "i")
     { type = SIGNED; }
     else
     { return BAD_PARSE; }

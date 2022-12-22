@@ -46,6 +46,13 @@ str substr(str s, u64 start, u64 length);
 str char_at(str s, u64 index);
 bool is_digit(str s);
 
+template<typename T, typename E>
+E cast(T t) {
+    return (E)t;
+}
+
+// extern fn cast[T, E](T t) E;
+
 #define panic(message)                                                                                                 \
     std::cout << "PANIC " << __FILE__ << " (" << __LINE__ << ") :: " << message << "\n";                               \
     exit(1);
