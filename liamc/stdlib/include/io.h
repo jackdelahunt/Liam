@@ -20,10 +20,6 @@ std::string pretty_string_pointer(std::string indentation, void *ptr) {
     return indentation + ss.str();
 }
 
-template <typename T> void print(const T &t) {
-    std::cout << t;
-}
-
 template <typename T> void println(const T &t) {
     std::cout << t << "\n";
 }

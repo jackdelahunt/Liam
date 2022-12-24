@@ -14,7 +14,7 @@ fn main() void {
         println[u64](i);
     }
 
-    for let i := 10s64; i < 17; i = i + 2; {
+    for let i := 10i64; i < 17; i = i + 2; {
         println[i64](i);
     }
  

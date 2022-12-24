@@ -9,20 +9,6 @@ template <typename T> struct Array {
     int capacity;
 };
 
-template <typename K, typename V> struct Map { std::map<K, V> map; };
-
-template <typename K, typename V> Map<K, V> make_map() {
-    return Map<K, V>{.map = std::map<K, V>()};
-}
-
-template <typename K, typename V> void __insert(Map<K, V> *self, K k, V v) {
-    self->map[k] = v;
-}
-
-template <typename K, typename V> V __get(Map<K, V> *self, K k) {
-    return self->map[k];
-}
-
 template <typename T> Array<T> make_array() {
     return Array<T>{.data = NULL, .length = 0, .capacity = 0};
 }

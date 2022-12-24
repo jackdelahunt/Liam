@@ -17,7 +17,3 @@ template <typename T> T *re_alloc(T *data, u64 new_size) {
 template <typename T> void destroy(T *t) {
     free(t);
 }
-
-template <typename T> u64 hashcode(T *t) {
-    return u64{(uint64_t)t};
-}

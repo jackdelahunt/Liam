@@ -1,20 +1,15 @@
 // io
-extern fn print[T](t: T) void;
 extern fn println[T](t: T) void;
 
 // memory
 extern fn alloc[T](t: T) ^T;
+extern fn re_alloc[T](t: ^T, new_size: u64) ^T;
 extern fn destroy[T](t: ^T) void;
-extern fn hashcode[T](t: ^T) u64;
 
 // core
-extern fn panic(string: str) void;
 extern fn len(string: str) u64;
 extern fn substr(s: str, start: u64, length: u64) str;
 extern fn char_at(s: str, index: u64) str;
-extern fn is_digit(s: str) bool;
-extern fn assert_true(condition: bool) void;
-extern fn cast[T, E](t: T) E;
 
 // String
 extern struct String {
@@ -25,36 +20,10 @@ extern fn (String) append(x: ^String) void;
 extern fn (String) append_str(s: str) void;
 
 // collections
-struct Option[T] {
-    value: T,
-    is_value: bool
-}
-
-struct Tuple[O, T] {
-    one: O,
-    two: T
-}
-
 extern struct Array[T] {
     length: u64,
     capacity: u64,
     data: ^T
-}
-
-extern struct Map[K, V] {}
-
-fn some[T](t: T) Option[T] {
-    return new Option[T] {
-        value: t,
-        is_value: true
-    };
-}
-
-fn none[T]() Option[T] {
-    return new Option[T] {
-        value: zero,
-        is_value: false
-    };
 }
 
 extern fn make_array[T]() Array[T];
@@ -63,10 +32,6 @@ extern fn (Array[T]) get[T](index: u64) T;
 extern fn (Array[T]) insert[T](index: u64, t: T) void;
 extern fn (Array[T]) remove[T](index: u64) void;
 extern fn (Array[T]) free[T]() void;
-
-extern fn make_map[K, V]() Map[K, V];
-extern fn (Map[K, V]) insert[K, V](k: K, v: V) void;
-extern fn (Map[K, V]) get[K, V](k: K) V;
 
 // OS   
 extern fn argv() Array[str];
