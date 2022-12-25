@@ -21,7 +21,13 @@ enum class ExpressionType {
     EXPRESSION_NULL_LITERAL,
     EXPRESSION_PROPAGATE,
     EXPRESSION_ZERO_LITERAL,
-    EXPRESSION_FN
+    EXPRESSION_FN,
+    EXPRESSION_SLICE,
+};
+
+enum class UnaryType {
+    POINTER,
+    SLICE
 };
 
 struct Expression {
@@ -140,6 +146,13 @@ struct FnExpression : Expression {
     );
 };
 
+struct SliceExpression : Expression {
+    std::vector<Expression *> members;
+    TypeExpression *slice_type;
+
+    SliceExpression(std::vector<Expression *> members, TypeExpression *slice_type);
+};
+
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_UNARY,
@@ -162,10 +175,10 @@ struct IdentifierTypeExpression : TypeExpression {
 };
 
 struct UnaryTypeExpression : TypeExpression {
-    Token op;
+    UnaryType unary_type;
     TypeExpression *type_expression;
 
-    UnaryTypeExpression(Token op, TypeExpression *type_expression);
+    UnaryTypeExpression(UnaryType unary_type, TypeExpression *type_expression);
 };
 
 struct UnionTypeExpression : TypeExpression {

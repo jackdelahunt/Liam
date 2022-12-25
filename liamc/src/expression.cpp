@@ -114,6 +114,13 @@ FnExpression::FnExpression(
     this->span        = return_type->span; // FIXME: use a better place to put the span for the fn expression
 }
 
+SliceExpression::SliceExpression(std::vector<Expression *> members, TypeExpression *slice_type) {
+    this->members    = std::move(members);
+    this->slice_type = slice_type;
+    this->span       = {}; // FIXME: another span issue
+    this->type       = ExpressionType::EXPRESSION_SLICE;
+}
+
 std::ostream &TypeExpression::format(std::ostream &os) const {
     os << "()";
     return os;
@@ -129,8 +136,8 @@ IdentifierTypeExpression::IdentifierTypeExpression(Token identifier) {
     this->span       = identifier.span;
 }
 
-UnaryTypeExpression::UnaryTypeExpression(Token op, TypeExpression *type_expression) {
-    this->op              = op;
+UnaryTypeExpression::UnaryTypeExpression(UnaryType unary_type, TypeExpression *type_expression) {
+    this->unary_type      = unary_type;
     this->type_expression = type_expression;
     this->type            = TypeExpressionType::TYPE_UNARY;
     this->span            = type_expression->span;

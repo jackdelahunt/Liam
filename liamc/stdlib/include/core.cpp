@@ -1,35 +1,35 @@
 #include "core.h"
 #include <string.h>
 
-u8 _u8(u8 n) {
+u8 __u8(u8 n) {
     return n;
 }
 
-i8 _i8(i8 n) {
+i8 __i8(i8 n) {
     return n;
 }
 
-u32 _u32(u32 n) {
+u32 __u32(u32 n) {
     return n;
 }
 
-i32 _i32(i32 n) {
+i32 __i32(i32 n) {
     return n;
 }
 
-f32 _f32(f32 n) {
+f32 __f32(f32 n) {
     return n;
 }
 
-u64 _u64(u64 n) {
+u64 __u64(u64 n) {
     return n;
 }
 
-i64 _i64(i64 n) {
+i64 __i64(i64 n) {
     return n;
 }
 
-f64 _f64(f64 n) {
+f64 __f64(f64 n) {
     return n;
 }
 

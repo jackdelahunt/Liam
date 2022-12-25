@@ -8,14 +8,28 @@
 #include "fmt/core.h"
 #include "liam.h"
 #include <functional>
+#include <initializer_list>
 
 #ifndef TEST
 
-void temp(std::function<int(double)> x) {
-    int y = x(100);
-}
+template <typename T> struct Slice {
+
+    u64 length;
+    const T *data_ptr;
+
+    Slice(std::initializer_list<T> list) {
+        this->length   = list.size();
+        this->data_ptr = data(list);
+    }
+
+    Slice(T *data_ptr, u64 length) {
+        this->length   = length;
+        this->data_ptr = data_ptr;
+    }
+};
 
 i32 main(i32 argc, char **argv) {
+
     Arguments::New(argc, argv);
 
     TIME_START(l_p_time);

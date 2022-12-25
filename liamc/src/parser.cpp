@@ -373,7 +373,7 @@ Statement *Parser::eval_line_starting_expression() {
  *  * / %
  *  @ * !
  *  call()
- *  literal () new "" null true false
+ *  literal () new "" null true false []u64{}
  */
 
 Expression *Parser::eval_expression() {
@@ -559,6 +559,8 @@ Expression *Parser::eval_primary() {
         return new ZeroLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_FN)
         return TRY_CALL_RET(eval_fn(), NULL);
+    else if (type == TokenType::TOKEN_BRACKET_OPEN)
+        return TRY_CALL_RET(eval_slice(), NULL);
 
     return new Expression(); // empty expression found -- like when a
                              // return has no expression
@@ -575,6 +577,18 @@ Expression *Parser::eval_fn() {
 
     auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
     return new FnExpression(params, type, body);
+}
+
+Expression *Parser::eval_slice() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+
+    auto slice_type = TRY_CALL_RET(eval_type_expression(), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+    auto members = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
+
+    return new SliceExpression(members, slice_type);
 }
 
 Expression *Parser::eval_new_expression() {
@@ -640,9 +654,19 @@ TypeExpression *Parser::eval_type_union() {
 TypeExpression *Parser::eval_type_unary() {
     if (match(TokenType::TOKEN_HAT))
     {
-        Token *op            = consume_token();
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_HAT), NULL);
+
         auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
-        return new UnaryTypeExpression(*op, type_expression);
+        return new UnaryTypeExpression(UnaryType::POINTER, type_expression);
+    }
+
+    if (match(TokenType::TOKEN_BRACKET_OPEN))
+    {
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+
+        auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
+        return new UnaryTypeExpression(UnaryType::SLICE, type_expression);
     }
 
     return eval_type_specified_generics();

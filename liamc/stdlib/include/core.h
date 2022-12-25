@@ -20,18 +20,34 @@ typedef uint64_t u64;
 typedef int64_t i64;
 typedef double f64;
 
-u8 _u8(u8 n);
-i8 _i8(i8 n);
-u32 _u32(u32 n);
-i32 _i32(i32 n);
-f32 _f32(f32 n);
-u64 _u64(u64 n);
-i64 _i64(i64 n);
-f64 _f64(f64 n);
+u8 __u8(u8 n);
+i8 __i8(i8 n);
+u32 __u32(u32 n);
+i32 __i32(i32 n);
+f32 __f32(f32 n);
+u64 __u64(u64 n);
+i64 __i64(i64 n);
+f64 __f64(f64 n);
+
+template <typename T> struct __Slice {
+
+    u64 length;
+    const T *data_ptr;
+
+    __Slice(std::initializer_list<T> list) {
+        this->length   = list.size();
+        this->data_ptr = data(list);
+    }
+
+    __Slice(T *data_ptr, u64 length) {
+        this->length   = length;
+        this->data_ptr = data_ptr;
+    }
+};
 
 struct str {
     char *chars;
-    uint64_t length;
+    u64 length;
 
     std::string pretty_string(std::string indentation);
     bool compare_c_str(const char *c_str);

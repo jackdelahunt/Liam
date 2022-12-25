@@ -460,6 +460,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_FN:
         return emit_fn_expression(dynamic_cast<FnExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_SLICE:
+        return emit_slice_expression(dynamic_cast<SliceExpression *>(expression));
+        break;
     default: {
         panic("Cannot emit this expression in cpp backend");
         return "";
@@ -543,7 +546,7 @@ std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expr
 std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
     auto number_type = static_cast<NumberTypeInfo *>(expression->type_info);
 
-    std::string func_call = "_";
+    std::string func_call = "__";
 
     if (number_type->type == UNSIGNED)
     { func_call.append("u"); }
@@ -755,6 +758,24 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
     return source;
 }
 
+std::string CppBackend::emit_slice_expression(SliceExpression *expression) {
+    std::string source = "__Slice<" + emit_type_expression(expression->slice_type) + ">({";
+
+    int index = 0;
+
+    for (auto expr : expression->members)
+    {
+        source.append(emit_expression(expr));
+        if (index + 1 < expression->members.size())
+        { source.append(", "); }
+        index++;
+    }
+
+    source.append("})");
+
+    return source;
+}
+
 std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
@@ -787,8 +808,12 @@ std::string CppBackend::emit_union_type_expression(UnionTypeExpression *type_exp
 }
 
 std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
-    if (type_expression->op.type == TokenType::TOKEN_HAT)
+
+    if (type_expression->unary_type == UnaryType::POINTER)
     { return emit_type_expression(type_expression->type_expression) + "*"; }
+
+    if (type_expression->unary_type == UnaryType::SLICE)
+    { return "__Slice<" + emit_type_expression(type_expression->type_expression) + ">"; }
 
     panic("Cpp backend does not support this op yet...");
     return "";

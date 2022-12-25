@@ -603,6 +603,9 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_FN:
         return type_check_fn_expression(dynamic_cast<FnExpression *>(expression), symbol_table);
         break;
+    case ExpressionType::EXPRESSION_SLICE:
+        return type_check_slice_expression(dynamic_cast<SliceExpression *>(expression), symbol_table);
+        break;
     default:
         panic("Expression not implemented in type checker");
     }
@@ -1297,6 +1300,25 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
         new FnExpressionTypeInfo{TypeInfoType::FN_EXPRESSION, expression->return_type->type_info, param_type_infos};
 }
 
+void TypeChecker::type_check_slice_expression(SliceExpression *expression, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_type_expression(expression->slice_type, symbol_table));
+
+    for (auto member : expression->members)
+    {
+        TRY_CALL(type_check_expression(member, symbol_table));
+        if (!type_match(expression->slice_type->type_info, member->type_info))
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, member, NULL, expression->slice_type, NULL,
+                "Mismatch types in slice, slice type must match expressions passed"
+            );
+            return;
+        }
+    }
+
+    expression->type_info = new SliceTypeInfo{TypeInfoType::SLICE, expression->slice_type->type_info};
+}
+
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {
     switch (type_expression->type)
     {
@@ -1334,11 +1356,19 @@ void TypeChecker::type_check_union_type_expression(UnionTypeExpression *type_exp
 }
 
 void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table) {
-    if (type_expression->op.type == TokenType::TOKEN_HAT)
+    if (type_expression->unary_type == UnaryType::POINTER)
     {
         TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
         type_expression->type_info =
             new PointerTypeInfo{TypeInfoType::POINTER, type_expression->type_expression->type_info};
+        return;
+    }
+
+    if (type_expression->unary_type == UnaryType::SLICE)
+    {
+        TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
+        type_expression->type_info =
+            new SliceTypeInfo{TypeInfoType::SLICE, type_expression->type_expression->type_info};
         return;
     }
 
@@ -1481,9 +1511,8 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
         if (int_a->size == int_b->size && int_a->type == int_b->type)
             return true;
 
-        if(!dont_coerce && type_coerce(int_a, int_b)) {
-            return true;
-        }
+        if (!dont_coerce && type_coerce(int_a, int_b))
+        { return true; }
 
         return false;
     }
@@ -1610,13 +1639,14 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
 
 bool type_coerce(TypeInfo *a, TypeInfo *b) {
     // right now coercing types only works for number types
-    if(a->type != TypeInfoType::NUMBER || b->type != TypeInfoType::NUMBER)
+    if (a->type != TypeInfoType::NUMBER || b->type != TypeInfoType::NUMBER)
         return false;
 
     auto a_number = static_cast<NumberTypeInfo *>(a);
     auto b_number = static_cast<NumberTypeInfo *>(b);
 
-    if(a_number->type != b_number->type) return false;
+    if (a_number->type != b_number->type)
+        return false;
 
     return a_number->size >= b_number->size;
 }
