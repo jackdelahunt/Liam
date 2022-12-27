@@ -372,7 +372,7 @@ Statement *Parser::eval_line_starting_expression() {
  *  + -
  *  * / %
  *  @ * !
- *  call()
+ *  call() slice[0]
  *  literal () new "" null true false []u64{}
  */
 
@@ -499,7 +499,28 @@ Expression *Parser::eval_unary() {
         return new UnaryExpression(expr, *op);
     }
 
-    return eval_call();
+    return TRY_CALL_RET(eval_subscript(), NULL);
+}
+
+Expression *Parser::eval_subscript() {
+
+    if(match(TokenType::TOKEN_BRACKET_OPEN)) {
+        if(peek(1)->type == TokenType::TOKEN_BRACKET_CLOSE) {
+            // if there is a [] with no expression in between then this is a slice
+            // literal expression so continue the parser along, if there is something
+            // in between the [ something ] then this is a subscript
+            return TRY_CALL_RET(eval_call(), NULL);
+        }
+
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+        auto param = TRY_CALL_RET(eval_subscript(), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        auto expression = TRY_CALL_RET(eval_subscript(), NULL);
+
+        return new SubscriptExpression(expression, param);
+    }
+
+    return TRY_CALL_RET(eval_call(), NULL);
 }
 
 Expression *Parser::eval_call() {

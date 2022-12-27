@@ -60,6 +60,13 @@ CallExpression::CallExpression(
     this->span     = identifier->span;
 }
 
+SubscriptExpression::SubscriptExpression(Expression *lhs, Expression *param) {
+    this->rhs = lhs;
+    this->param = param;
+    this->type     = ExpressionType::EXPRESSION_SUBSCRIPT;
+    this->span     = lhs->span;
+}
+
 GetExpression::GetExpression(Expression *expression, Token member) {
     this->lhs    = expression;
     this->member = member;

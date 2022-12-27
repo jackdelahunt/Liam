@@ -43,6 +43,10 @@ template <typename T> struct __Slice {
         this->length   = length;
         this->data_ptr = data_ptr;
     }
+
+    T operator[](int index) {
+        return this->data_ptr[index];
+    }
 };
 
 struct str {

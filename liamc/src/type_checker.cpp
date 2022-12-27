@@ -606,6 +606,9 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_SLICE:
         return type_check_slice_expression(dynamic_cast<SliceExpression *>(expression), symbol_table);
         break;
+        case ExpressionType::EXPRESSION_SUBSCRIPT:
+            return type_check_subscript_expression(dynamic_cast<SubscriptExpression *>(expression), symbol_table);
+            break;
     default:
         panic("Expression not implemented in type checker");
     }
@@ -1317,6 +1320,30 @@ void TypeChecker::type_check_slice_expression(SliceExpression *expression, Symbo
     }
 
     expression->type_info = new SliceTypeInfo{TypeInfoType::SLICE, expression->slice_type->type_info};
+}
+
+void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_expression(expression->rhs, symbol_table));
+    TRY_CALL(type_check_expression(expression->param, symbol_table));
+
+    if(expression->param->type_info->type != TypeInfoType::NUMBER) {
+        ErrorReporter::report_type_checker_error(
+                current_file->path, expression->param, NULL, NULL, NULL,
+                "Can only pass number types when subscripting slice type"
+        );
+        return;
+    }
+
+    if(expression->rhs->type_info->type != TypeInfoType::SLICE) {
+        ErrorReporter::report_type_checker_error(
+                current_file->path, expression->rhs, NULL, NULL, NULL,
+                "Can only subsript slice types"
+        );
+        return;
+    }
+
+    auto slice_type_info = static_cast<SliceTypeInfo *>(expression->rhs->type_info);
+    expression->type_info = slice_type_info->to;
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {

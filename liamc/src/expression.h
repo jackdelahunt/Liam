@@ -15,6 +15,7 @@ enum class ExpressionType {
     EXPRESSION_BOOL_LITERAL,
     EXPRESSION_IDENTIFIER,
     EXPRESSION_CALL,
+    EXPRESSION_SUBSCRIPT,
     EXPRESSION_GET,
     EXPRESSION_NEW,
     EXPRESSION_GROUP,
@@ -88,12 +89,18 @@ struct IdentifierExpression : Expression {
 };
 
 struct CallExpression : Expression {
-    // this is an expression but it must be a identifier
     Expression *callee;
     std::vector<Expression *> args;
     std::vector<TypeExpression *> generics;
 
     CallExpression(Expression *identifier, std::vector<Expression *> args, std::vector<TypeExpression *> generics);
+};
+
+struct SubscriptExpression : Expression {
+    Expression *rhs;
+    Expression *param;
+
+    SubscriptExpression(Expression *lhs, Expression *param);
 };
 
 struct GetExpression : Expression {

@@ -80,6 +80,7 @@ struct Parser {
     Expression *eval_term();
     Expression *eval_factor();
     Expression *eval_unary();
+    Expression *eval_subscript();
     Expression *eval_call();
     Expression *eval_primary();
     Expression *eval_fn();

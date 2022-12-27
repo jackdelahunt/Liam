@@ -1,0 +1,24 @@
+//1
+//2
+//3
+//same
+
+import "stdlib/basic.liam";
+
+struct Foo {
+    foo: str
+}
+
+fn main() void {
+    let x := []i64{1, 2, 3};
+    println[i64]([0]x);
+    println[i64]([1]x);
+    println[i64]([2]x);
+
+    let foo := new Foo{foo: "foo"};
+
+    let foos := []^Foo{@foo};
+    if [0]foos == @foo {
+        println[str]("same");
+    }
+}

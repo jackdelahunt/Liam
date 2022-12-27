@@ -463,6 +463,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_SLICE:
         return emit_slice_expression(dynamic_cast<SliceExpression *>(expression));
         break;
+        case ExpressionType::EXPRESSION_SUBSCRIPT:
+            return emit_subscript_expression(dynamic_cast<SubscriptExpression *>(expression));
+            break;
     default: {
         panic("Cannot emit this expression in cpp backend");
         return "";
@@ -773,6 +776,13 @@ std::string CppBackend::emit_slice_expression(SliceExpression *expression) {
 
     source.append("})");
 
+    return source;
+}
+
+std::string CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
+    std::string source = emit_expression(expression->rhs) + "[";
+    source.append(emit_expression(expression->param));
+    source.append("]");
     return source;
 }
 
