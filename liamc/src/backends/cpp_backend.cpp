@@ -551,11 +551,11 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
 
     std::string func_call = "__";
 
-    if (number_type->type == UNSIGNED)
+    if (number_type->number_type == UNSIGNED)
     { func_call.append("u"); }
-    else if (number_type->type == SIGNED)
+    else if (number_type->number_type == SIGNED)
     { func_call.append("i"); }
-    else if (number_type->type == FLOAT)
+    else if (number_type->number_type == FLOAT)
     { func_call.append("f"); }
 
     if (number_type->size == 8)
@@ -612,7 +612,7 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
 
         // because we can call members of a type T on ^T sometimes we do not need to add
         // a & as it is already a pointer, if it is not a pointer then add the &
-        if (get_expression->lhs->type_info->type != TypeInfoType::POINTER)
+        if (get_expression->lhs->type_info->type != TypeInfoType::WEAK_POINTER)
         { source.append("&"); }
 
         source.append(emit_expression(get_expression->lhs));
@@ -642,7 +642,7 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     if (expression->type_info->type == TypeInfoType::FN)
     { return "__" + expression->member.string; }
 
-    if (expression->lhs->type_info->type == TypeInfoType::POINTER)
+    if (expression->lhs->type_info->type == TypeInfoType::WEAK_POINTER)
     { return emit_expression(expression->lhs) + "->" + expression->member.string; }
 
     if (expression->lhs->type_info->type == TypeInfoType::ENUM)
@@ -819,7 +819,7 @@ std::string CppBackend::emit_union_type_expression(UnionTypeExpression *type_exp
 
 std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
 
-    if (type_expression->unary_type == UnaryType::POINTER)
+    if (type_expression->unary_type == UnaryType::WEAK_POINTER || type_expression->unary_type == UnaryType::OWNED_POINTER)
     { return emit_type_expression(type_expression->type_expression) + "*"; }
 
     if (type_expression->unary_type == UnaryType::SLICE)

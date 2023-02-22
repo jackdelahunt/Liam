@@ -16,22 +16,22 @@ SymbolTable::SymbolTable() {
     this->identifier_table   = std::map<std::string, TypeInfo *>();
 
     builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
-    builtin_type_table["bool"] = new BoolTypeInfo{TypeInfoType::BOOLEAN};
-    builtin_type_table["str"]  = new StrTypeInfo{TypeInfoType::STRING};
+    builtin_type_table["bool"] = new BoolTypeInfo();
+    builtin_type_table["str"]  = new StrTypeInfo();
 
-    builtin_type_table["u8"] = new NumberTypeInfo{TypeInfoType::NUMBER, 8, UNSIGNED};
-    builtin_type_table["i8"] = new NumberTypeInfo{TypeInfoType::NUMBER, 8, SIGNED};
+    builtin_type_table["u8"] = new NumberTypeInfo(8, UNSIGNED);
+    builtin_type_table["i8"] = new NumberTypeInfo(8, SIGNED);
 
-    builtin_type_table["u16"] = new NumberTypeInfo{TypeInfoType::NUMBER, 16, UNSIGNED};
-    builtin_type_table["i16"] = new NumberTypeInfo{TypeInfoType::NUMBER, 16, SIGNED};
+    builtin_type_table["u16"] = new NumberTypeInfo(16, UNSIGNED);
+    builtin_type_table["i16"] = new NumberTypeInfo(16, SIGNED);
 
-    builtin_type_table["u32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, UNSIGNED};
-    builtin_type_table["i32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, SIGNED};
-    builtin_type_table["f32"] = new NumberTypeInfo{TypeInfoType::NUMBER, 32, FLOAT};
+    builtin_type_table["u32"] = new NumberTypeInfo(32, UNSIGNED);
+    builtin_type_table["i32"] = new NumberTypeInfo(32, SIGNED);
+    builtin_type_table["f32"] = new NumberTypeInfo(32, FLOAT);
 
-    builtin_type_table["u64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, UNSIGNED};
-    builtin_type_table["i64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, SIGNED};
-    builtin_type_table["f64"] = new NumberTypeInfo{TypeInfoType::NUMBER, 64, FLOAT};
+    builtin_type_table["u64"] = new NumberTypeInfo(64, UNSIGNED);
+    builtin_type_table["i64"] = new NumberTypeInfo(64, SIGNED);
+    builtin_type_table["f64"] = new NumberTypeInfo(64, FLOAT);
 }
 
 void SymbolTable::add_type(Token type, TypeInfo *type_info) {
@@ -187,7 +187,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
         *copy             = *symbol_table;
         for (u64 i = 0; i < statement->generics.size(); i++)
         {
-            auto generic_type = new GenericTypeInfo{TypeInfoType::GENERIC, i};
+            auto generic_type = new GenericTypeInfo(i);
             copy->add_type(statement->generics[i], generic_type);
             generic_type_infos.push_back(generic_type);
         }
@@ -222,9 +222,8 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
 
         parent_type_info->member_functions.push_back(
             {statement->identifier.string,
-             new FnTypeInfo{
-                 TypeInfoType::FN, parent_type_info, statement->return_type->type_info, generic_type_infos,
-                 param_type_infos}}
+             new FnTypeInfo(parent_type_info, statement->return_type->type_info, generic_type_infos,
+                 param_type_infos)}
         );
 
         return;
@@ -233,7 +232,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     // add this fn decl to parent symbol table
     symbol_table->add_identifier(
         statement->identifier,
-        new FnTypeInfo{TypeInfoType::FN, NULL, statement->return_type->type_info, generic_type_infos, param_type_infos}
+        new FnTypeInfo(NULL, statement->return_type->type_info, generic_type_infos, param_type_infos)
     );
 }
 
@@ -241,7 +240,7 @@ void TypeChecker::type_check_struct_decl(StructStatement *statement, SymbolTable
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
     symbol_table->add_type(
-        statement->identifier, new StructTypeInfo{TypeInfoType::STRUCT, {}, {}, statement->generics.size()}
+        statement->identifier, new StructTypeInfo({}, {}, statement->generics.size())
     );
 }
 
@@ -386,7 +385,7 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
     {
         copied_symbol_table.add_identifier(
             Token(TokenType::TOKEN_IDENTIFIER, "self", 0, 0),
-            new PointerTypeInfo{TypeInfoType::POINTER, statement->parent_type->type_info}
+            new WeakPointerTypeInfo(statement->parent_type->type_info)
         );
     }
 
@@ -476,7 +475,7 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
     SymbolTable sub_symbol_table_copy = symbol_table->copy();
 
     for (u64 i = 0; i < statement->generics.size(); i++)
-    { sub_symbol_table_copy.add_type(statement->generics[i], new GenericTypeInfo{TypeInfoType::GENERIC, i}); }
+    { sub_symbol_table_copy.add_type(statement->generics[i], new GenericTypeInfo(i)); }
 
     auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
     for (auto &[member, expr] : statement->members)
@@ -499,7 +498,7 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
     {
         symbol_table->add_identifier(
             statement->identifier,
-            new StructTypeInfo{TypeInfoType::STRUCT, {}, members_type_info, statement->generics.size()}
+            new StructTypeInfo({}, members_type_info, statement->generics.size())
         );
     }
 }
@@ -528,7 +527,7 @@ void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTabl
     { instances.push_back(t.string); }
 
     symbol_table->add_type(
-        statement->identifier, new EnumTypeInfo{TypeInfoType::ENUM, statement->identifier.string, instances}
+        statement->identifier, new EnumTypeInfo(statement->identifier.string, instances)
     );
 }
 
@@ -650,7 +649,7 @@ void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable
 
     expression->type_info = symbol_table->builtin_type_table["bool"];
     symbol_table->add_identifier(
-        expression->identifier, new PointerTypeInfo{TypeInfoType::POINTER, expression->type_expression->type_info}
+        expression->identifier, new WeakPointerTypeInfo(expression->type_expression->type_info)
     );
 }
 
@@ -802,7 +801,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
 }
 
 void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expression, SymbolTable *symbol_table) {
-    expression->type_info = new BoolTypeInfo{TypeInfoType::BOOLEAN};
+    expression->type_info = new BoolTypeInfo();
 }
 
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table) {
@@ -810,13 +809,13 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
 
     if (expression->op.type == TokenType::TOKEN_AT)
     {
-        expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, expression->expression->type_info};
+        expression->type_info = new WeakPointerTypeInfo(expression->expression->type_info);
         return;
     }
 
     if (expression->op.type == TokenType::TOKEN_STAR)
     {
-        if (expression->expression->type_info->type != TypeInfoType::POINTER)
+        if (expression->expression->type_info->type != TypeInfoType::WEAK_POINTER)
         {
             ErrorReporter::report_type_checker_error(
                 current_file->path, expression, NULL, NULL, NULL, "Cannot dereference non-pointer value"
@@ -824,7 +823,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
             return;
         }
 
-        expression->type_info = static_cast<PointerTypeInfo *>(expression->expression->type_info)->to;
+        expression->type_info = static_cast<WeakPointerTypeInfo *>(expression->expression->type_info)->to;
         return;
     }
 
@@ -1003,9 +1002,9 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     StructInstanceTypeInfo *struct_instance_type_info =
         NULL; // populated when the lhs is a struct instance and we need to use generics
 
-    if (expression->lhs->type_info->type == TypeInfoType::POINTER)
+    if (expression->lhs->type_info->type == TypeInfoType::WEAK_POINTER)
     {
-        auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);
+        auto ptr_type_info = static_cast<WeakPointerTypeInfo *>(expression->lhs->type_info);
 
         if (ptr_type_info->to->type == TypeInfoType::STRUCT)
         { struct_type_info = (StructTypeInfo *)ptr_type_info->to; }
@@ -1169,7 +1168,7 @@ void TypeChecker::type_check_new_expression(NewExpression *expression, SymbolTab
     if (struct_type_info->generic_count > 0)
     {
         expression->type_info =
-            new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE, struct_type_info, generic_type_infos};
+            new StructInstanceTypeInfo(struct_type_info, generic_type_infos);
     }
     else
     { expression->type_info = struct_type_info; }
@@ -1181,7 +1180,7 @@ void TypeChecker::type_check_group_expression(GroupExpression *expression, Symbo
 }
 
 void TypeChecker::type_check_null_literal_expression(NullLiteralExpression *expression, SymbolTable *symbol_table) {
-    expression->type_info = new PointerTypeInfo{TypeInfoType::POINTER, new AnyTypeInfo{TypeInfoType::ANY}};
+    expression->type_info = new WeakPointerTypeInfo(new AnyTypeInfo());
 }
 
 void TypeChecker::type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table) {
@@ -1233,7 +1232,7 @@ void TypeChecker::type_check_propagation_expression(PropagateExpression *express
     if (remaining_types.size() == 1)
     { expression->type_info = remaining_types[0]; }
     else
-    { expression->type_info = new UnionTypeInfo{TypeInfoType::UNION, remaining_types}; }
+    { expression->type_info = new UnionTypeInfo(remaining_types); }
 
     if (!type_match(expression->type_info, expression->otherwise->type_info))
     {
@@ -1300,7 +1299,7 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
     }
 
     expression->type_info =
-        new FnExpressionTypeInfo{TypeInfoType::FN_EXPRESSION, expression->return_type->type_info, param_type_infos};
+        new FnExpressionTypeInfo(expression->return_type->type_info, param_type_infos);
 }
 
 void TypeChecker::type_check_slice_expression(SliceExpression *expression, SymbolTable *symbol_table) {
@@ -1319,7 +1318,7 @@ void TypeChecker::type_check_slice_expression(SliceExpression *expression, Symbo
         }
     }
 
-    expression->type_info = new SliceTypeInfo{TypeInfoType::SLICE, expression->slice_type->type_info};
+    expression->type_info = new SliceTypeInfo(expression->slice_type->type_info);
 }
 
 void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table) {
@@ -1379,15 +1378,23 @@ void TypeChecker::type_check_union_type_expression(UnionTypeExpression *type_exp
         sub_types.push_back(sub_type_expression->type_info);
     }
 
-    type_expression->type_info = new UnionTypeInfo{TypeInfoType::UNION, sub_types};
+    type_expression->type_info = new UnionTypeInfo(sub_types);
 }
 
 void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table) {
-    if (type_expression->unary_type == UnaryType::POINTER)
+    if (type_expression->unary_type == UnaryType::WEAK_POINTER)
     {
         TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
         type_expression->type_info =
-            new PointerTypeInfo{TypeInfoType::POINTER, type_expression->type_expression->type_info};
+            new WeakPointerTypeInfo(type_expression->type_expression->type_info);
+        return;
+    }
+
+    if (type_expression->unary_type == UnaryType::OWNED_POINTER)
+    {
+        TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
+        type_expression->type_info =
+                new OwnedPointerTypeInfo(type_expression->type_expression->type_info);
         return;
     }
 
@@ -1395,7 +1402,7 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
     {
         TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
         type_expression->type_info =
-            new SliceTypeInfo{TypeInfoType::SLICE, type_expression->type_expression->type_info};
+            new SliceTypeInfo(type_expression->type_expression->type_info);
         return;
     }
 
@@ -1425,7 +1432,7 @@ void TypeChecker::type_check_specified_generics_type_expression(
     }
 
     type_expression->type_info =
-        new StructInstanceTypeInfo{TypeInfoType::STRUCT_INSTANCE, struct_type_info, generic_types};
+        new StructInstanceTypeInfo(struct_type_info, generic_types);
 }
 
 void TypeChecker::type_check_fn_type_expression(FnTypeExpression *type_expression, SymbolTable *symbol_table) {
@@ -1438,8 +1445,7 @@ void TypeChecker::type_check_fn_type_expression(FnTypeExpression *type_expressio
 
     TRY_CALL(type_check_type_expression(type_expression->return_type, symbol_table));
 
-    type_expression->type_info = new FnExpressionTypeInfo{
-        TypeInfoType::FN_EXPRESSION, type_expression->return_type->type_info, param_type_infos};
+    type_expression->type_info = new FnExpressionTypeInfo(type_expression->return_type->type_info, param_type_infos);
 }
 
 void TypeChecker::type_check_identifier_type_expression(
@@ -1459,11 +1465,16 @@ void TypeChecker::type_check_identifier_type_expression(
 
 TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params) {
 
-    if (type_info->type == TypeInfoType::POINTER)
+    if (type_info->type == TypeInfoType::WEAK_POINTER)
     {
-        auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
-        return new PointerTypeInfo{
-            TypeInfoType::POINTER, create_type_from_generics(pointer_type_info->to, generic_params)};
+        auto pointer_type_info = static_cast<WeakPointerTypeInfo *>(type_info);
+        return new WeakPointerTypeInfo(create_type_from_generics(pointer_type_info->to, generic_params));
+    }
+
+    if (type_info->type == TypeInfoType::OWNED_POINTER)
+    {
+        auto pointer_type_info = static_cast<OwnedPointerTypeInfo *>(type_info);
+        return new OwnedPointerTypeInfo(create_type_from_generics(pointer_type_info->to, generic_params));
     }
 
     if (type_info->type == TypeInfoType::GENERIC)
@@ -1476,8 +1487,8 @@ TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vecto
     {
         auto instance_type_info = static_cast<StructInstanceTypeInfo *>(type_info);
 
-        auto new_type_info = new StructInstanceTypeInfo{
-            TypeInfoType::STRUCT_INSTANCE, instance_type_info->struct_type, instance_type_info->generic_types};
+        auto new_type_info = new StructInstanceTypeInfo(
+            instance_type_info->struct_type, instance_type_info->generic_types);
         for (int i = 0; i < new_type_info->generic_types.size(); i++)
         {
             new_type_info->generic_types[i] =
@@ -1573,10 +1584,17 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
         // is ALWAYS the same as another
         return struct_a == struct_b;
     }
-    else if (a->type == TypeInfoType::POINTER)
+    else if (a->type == TypeInfoType::WEAK_POINTER)
     {
-        auto ptr_a = static_cast<PointerTypeInfo *>(a);
-        auto ptr_b = static_cast<PointerTypeInfo *>(b);
+        auto ptr_a = static_cast<WeakPointerTypeInfo *>(a);
+        auto ptr_b = static_cast<WeakPointerTypeInfo *>(b);
+
+        return type_match(ptr_a->to, ptr_b->to);
+    }
+    else if (a->type == TypeInfoType::OWNED_POINTER)
+    {
+        auto ptr_a = static_cast<OwnedPointerTypeInfo *>(a);
+        auto ptr_b = static_cast<OwnedPointerTypeInfo *>(b);
 
         return type_match(ptr_a->to, ptr_b->to);
     }
@@ -1665,15 +1683,23 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
 }
 
 bool type_coerce(TypeInfo *a, TypeInfo *b) {
-    // right now coercing types only works for number types
-    if (a->type != TypeInfoType::NUMBER || b->type != TypeInfoType::NUMBER)
-        return false;
 
-    auto a_number = static_cast<NumberTypeInfo *>(a);
-    auto b_number = static_cast<NumberTypeInfo *>(b);
+    if(a->type == TypeInfoType::NUMBER && b->type == TypeInfoType::NUMBER) {
+        auto a_number = static_cast<NumberTypeInfo *>(a);
+        auto b_number = static_cast<NumberTypeInfo *>(b);
 
-    if (a_number->type != b_number->type)
-        return false;
+        if (a_number->type != b_number->type)
+            return false;
 
-    return a_number->size >= b_number->size;
+        return a_number->size >= b_number->size;
+    }
+
+    if(a->type == TypeInfoType::WEAK_POINTER && b->type == TypeInfoType::WEAK_POINTER) {
+        auto a_ptr = static_cast<WeakPointerTypeInfo *>(a);
+        auto b_ptr = static_cast<WeakPointerTypeInfo *>(b);
+
+        if(b_ptr->to->type == TypeInfoType::ANY) return true; // if b is a null ptr then it can coerce
+    }
+
+    return false;
 }

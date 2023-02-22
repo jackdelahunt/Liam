@@ -5,6 +5,7 @@
 
 struct TypeExpression;
 struct ScopeStatement;
+struct TypeInfo;
 
 enum class ExpressionType {
     EXPRESSION_IS,
@@ -27,7 +28,8 @@ enum class ExpressionType {
 };
 
 enum class UnaryType {
-    POINTER,
+    WEAK_POINTER,
+    OWNED_POINTER,
     SLICE
 };
 

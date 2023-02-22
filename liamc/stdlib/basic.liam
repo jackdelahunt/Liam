@@ -29,6 +29,8 @@ extern struct Array[T] {
 extern fn make_array[T]() Array[T];
 extern fn (Array[T]) append[T](t: T) void;
 extern fn (Array[T]) get[T](index: u64) T;
+extern fn (Array[T]) get_ptr[T](index: u64) ^T;
+extern fn (Array[T]) set[T](index: u64, t: T) void;
 extern fn (Array[T]) insert[T](index: u64, t: T) void;
 extern fn (Array[T]) remove[T](index: u64) void;
 extern fn (Array[T]) free[T]() void;

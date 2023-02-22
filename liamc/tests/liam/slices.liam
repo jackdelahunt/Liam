@@ -17,7 +17,7 @@ fn main() void {
 
     let foo := new Foo{foo: "foo"};
 
-    let foos := []^Foo{@foo};
+    let foos := []^weak Foo{@foo};
     if [0]foos == @foo {
         println[str]("same");
     }
