@@ -11,12 +11,6 @@ workspace "Liam"
         "Release",
         }
 
-		platforms {
-			"win64",
-        	"macos",
-        	"linux64",
-		}
-
 	project "liamc"
 		location "src"
 		kind "ConsoleApp"

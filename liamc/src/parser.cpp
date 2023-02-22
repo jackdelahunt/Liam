@@ -673,14 +673,27 @@ TypeExpression *Parser::eval_type_union() {
 }
 
 TypeExpression *Parser::eval_type_unary() {
+
+    // ^weak
+    if (match(TokenType::TOKEN_HAT) && peek(1)->type == TokenType::TOKEN_WEAK)
+    {
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_HAT), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_WEAK), NULL);
+
+        auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
+        return new UnaryTypeExpression(UnaryType::WEAK_POINTER, type_expression);
+    }
+
+    // ^
     if (match(TokenType::TOKEN_HAT))
     {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_HAT), NULL);
 
         auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
-        return new UnaryTypeExpression(UnaryType::POINTER, type_expression);
+        return new UnaryTypeExpression(UnaryType::OWNED_POINTER, type_expression);
     }
 
+    // [
     if (match(TokenType::TOKEN_BRACKET_OPEN))
     {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);

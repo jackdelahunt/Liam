@@ -6,7 +6,7 @@ import "stdlib/basic.liam";
 
 fn main() void {
     let y := 100;
-    let x : ^i64 = null;
+    let x : ^weak i64 = null;
 
     x = @y;
     println[i64](*x);

@@ -26,6 +26,14 @@ template <typename T> T __get(Array<T> *self, u64 index) {
     return self->data[index];
 }
 
+template <typename T> T* __get_ptr(Array<T> *self, u64 index) {
+    return &self->data[index];
+}
+
+template <typename T> void __set(Array<T> *self, u64 index, T t) {
+    self->data[index] = t;
+}
+
 template <typename T> void __insert(Array<T> *self, u64 index, T value) {
     if (self->length == self->capacity)
     {
