@@ -1,26 +1,15 @@
-//100
 //200
 //300
+//400
 
 import "stdlib/basic.liam";
 
 fn main() void {
-
-    let array := make_array[i64]();
-
-    array.append[i64](100);
-    array.append[i64](200);
-    array.append[i64](300);
-
-    let callback := fn (x: i64) void {
-        println[i64](x);
+    let multiply := fn (n: i64, m: i64) i64 {
+        return n * m;
     };
 
-    iter[i64](array, callback);
-}
-
-fn iter[T](array: Array[T], callback: fn (T) void) void {
-    for let i := 0u64; i < array.length; i = i + 1u64; {
-        callback(array.get[T](i));
-    }
+    println[i64](multiply(10, 20));
+    println[i64](multiply(10, 30));
+    println[i64](multiply(10, 40));
 }
