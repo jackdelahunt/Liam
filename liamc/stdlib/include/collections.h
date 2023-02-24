@@ -26,7 +26,7 @@ template <typename T> T __get(Array<T> *self, u64 index) {
     return self->data[index];
 }
 
-template <typename T> T* __get_ptr(Array<T> *self, u64 index) {
+template <typename T> T *__get_ptr(Array<T> *self, u64 index) {
     return &self->data[index];
 }
 

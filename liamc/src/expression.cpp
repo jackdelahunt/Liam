@@ -61,10 +61,10 @@ CallExpression::CallExpression(
 }
 
 SubscriptExpression::SubscriptExpression(Expression *lhs, Expression *param) {
-    this->rhs = lhs;
+    this->rhs   = lhs;
     this->param = param;
-    this->type     = ExpressionType::EXPRESSION_SUBSCRIPT;
-    this->span     = lhs->span;
+    this->type  = ExpressionType::EXPRESSION_SUBSCRIPT;
+    this->span  = lhs->span;
 }
 
 GetExpression::GetExpression(Expression *expression, Token member) {
@@ -74,13 +74,14 @@ GetExpression::GetExpression(Expression *expression, Token member) {
     this->span   = Span{expression->span.line, expression->span.start, member.span.end};
 }
 
-NewExpression::NewExpression(
+InstantiateExpression::InstantiateExpression(
     Token identifier, std::vector<TypeExpression *> generics,
-    std::vector<std::tuple<Token, Expression *>> named_expressions
+    std::vector<std::tuple<Token, Expression *>> named_expressions, InstantiateType instantiate_type
 ) {
     this->identifier        = identifier;
     this->generics          = generics;
     this->named_expressions = named_expressions;
+    this->instantiate_type  = instantiate_type;
     this->span              = identifier.span;
     this->type              = ExpressionType::EXPRESSION_NEW;
 }

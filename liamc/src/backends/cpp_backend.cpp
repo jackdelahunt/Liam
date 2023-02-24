@@ -443,7 +443,7 @@ std::string CppBackend::emit_expression(Expression *expression) {
         return emit_get_expression(dynamic_cast<GetExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_NEW:
-        return emit_new_expression(dynamic_cast<NewExpression *>(expression));
+        return emit_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_GROUP:
         return emit_group_expression(dynamic_cast<GroupExpression *>(expression));
@@ -463,9 +463,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_SLICE:
         return emit_slice_expression(dynamic_cast<SliceExpression *>(expression));
         break;
-        case ExpressionType::EXPRESSION_SUBSCRIPT:
-            return emit_subscript_expression(dynamic_cast<SubscriptExpression *>(expression));
-            break;
+    case ExpressionType::EXPRESSION_SUBSCRIPT:
+        return emit_subscript_expression(dynamic_cast<SubscriptExpression *>(expression));
+        break;
     default: {
         panic("Cannot emit this expression in cpp backend");
         return "";
@@ -642,7 +642,8 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     if (expression->type_info->type == TypeInfoType::FN)
     { return "__" + expression->member.string; }
 
-    if (expression->lhs->type_info->type == TypeInfoType::WEAK_POINTER)
+    if (expression->lhs->type_info->type == TypeInfoType::WEAK_POINTER ||
+        expression->lhs->type_info->type == TypeInfoType::OWNED_POINTER)
     { return emit_expression(expression->lhs) + "->" + expression->member.string; }
 
     if (expression->lhs->type_info->type == TypeInfoType::ENUM)
@@ -651,8 +652,12 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     return emit_expression(expression->lhs) + "." + expression->member.string;
 }
 
-std::string CppBackend::emit_new_expression(NewExpression *expression) {
+std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expression) {
     auto source = std::string();
+
+    if (expression->instantiate_type == InstantiateExpression::NEW)
+    { source.append("new "); }
+
     source.append(expression->identifier.string);
 
     source.append(emit_cpp_template_params(&expression->generics));
@@ -819,7 +824,8 @@ std::string CppBackend::emit_union_type_expression(UnionTypeExpression *type_exp
 
 std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
 
-    if (type_expression->unary_type == UnaryType::WEAK_POINTER || type_expression->unary_type == UnaryType::OWNED_POINTER)
+    if (type_expression->unary_type == UnaryType::WEAK_POINTER ||
+        type_expression->unary_type == UnaryType::OWNED_POINTER)
     { return emit_type_expression(type_expression->type_expression) + "*"; }
 
     if (type_expression->unary_type == UnaryType::SLICE)

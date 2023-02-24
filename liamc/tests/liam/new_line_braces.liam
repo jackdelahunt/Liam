@@ -13,7 +13,7 @@ fn main() void
 {
 	if true 
 	{
-		let p := new Person{name: "jack", age: 21};
+		let p := make Person{name: "jack", age: 21};
 		println[str](p.name);
 		println[i64](p.age);
 	}

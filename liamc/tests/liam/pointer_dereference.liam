@@ -13,7 +13,7 @@ fn (Foo) foo() void {
 }
 
 fn main() void {
-    let foo := new Foo{n: 100};
+    let foo := make Foo{n: 100};
     foo.foo();
 
     let ptr := @foo;

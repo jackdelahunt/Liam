@@ -504,8 +504,10 @@ Expression *Parser::eval_unary() {
 
 Expression *Parser::eval_subscript() {
 
-    if(match(TokenType::TOKEN_BRACKET_OPEN)) {
-        if(peek(1)->type == TokenType::TOKEN_BRACKET_CLOSE) {
+    if (match(TokenType::TOKEN_BRACKET_OPEN))
+    {
+        if (peek(1)->type == TokenType::TOKEN_BRACKET_CLOSE)
+        {
             // if there is a [] with no expression in between then this is a slice
             // literal expression so continue the parser along, if there is something
             // in between the [ something ] then this is a subscript
@@ -570,8 +572,8 @@ Expression *Parser::eval_primary() {
         return new BoolLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_IDENTIFIER)
         return new IdentifierExpression(*consume_token());
-    else if (type == TokenType::TOKEN_NEW)
-        return eval_new_expression();
+    else if (type == TokenType::TOKEN_NEW || type == TokenType::TOKEN_MAKE)
+        return eval_instantiate_expression();
     else if (type == TokenType::TOKEN_PAREN_OPEN)
         return eval_group_expression();
     else if (type == TokenType::TOKEN_NULL)
@@ -612,8 +614,21 @@ Expression *Parser::eval_slice() {
     return new SliceExpression(members, slice_type);
 }
 
-Expression *Parser::eval_new_expression() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
+Expression *Parser::eval_instantiate_expression() {
+
+    InstantiateExpression::InstantiateType instantiate_type;
+
+    if (peek()->type == TokenType::TOKEN_NEW)
+    {
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
+        instantiate_type = InstantiateExpression::NEW;
+    }
+    else
+    {
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_MAKE), NULL);
+        instantiate_type = InstantiateExpression::MAKE;
+    }
+
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<TypeExpression *>();
@@ -630,7 +645,7 @@ Expression *Parser::eval_new_expression() {
     auto named_expressions = TRY_CALL_RET(consume_comma_seperated_named_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new NewExpression(*identifier, generics, named_expressions);
+    return new InstantiateExpression(*identifier, generics, named_expressions, instantiate_type);
 }
 
 Expression *Parser::eval_group_expression() {

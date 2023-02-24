@@ -42,7 +42,7 @@ struct CppBackend {
     std::string emit_call_expression(CallExpression *expression);
     std::string emit_identifier_expression(IdentifierExpression *expression);
     std::string emit_get_expression(GetExpression *expression);
-    std::string emit_new_expression(NewExpression *expression);
+    std::string emit_instantiate_expression(InstantiateExpression *expression);
     std::string emit_group_expression(GroupExpression *expression);
     std::string emit_null_literal_expression(NullLiteralExpression *expression);
     std::string emit_propagate_expression(PropagateExpression *expression);
