@@ -1,39 +1,7 @@
 // io
 extern fn println[T](t: T) void;
 
-// memory
-extern fn alloc[T](t: T) ^T;
-extern fn re_alloc[T](t: ^T, new_size: u64) ^T;
-extern fn destroy[T](t: ^T) void;
-
 // core
 extern fn len(string: str) u64;
 extern fn substr(s: str, start: u64, length: u64) str;
 extern fn char_at(s: str, index: u64) str;
-
-// String
-extern struct String {
-    string: str
-}
-extern fn make_string(from: str) String;
-extern fn (String) append(x: ^String) void;
-extern fn (String) append_str(s: str) void;
-
-// collections
-extern struct Array[T] {
-    length: u64,
-    capacity: u64,
-    data: ^T
-}
-
-extern fn make_array[T]() Array[T];
-extern fn (Array[T]) append[T](t: T) void;
-extern fn (Array[T]) get[T](index: u64) T;
-extern fn (Array[T]) get_ptr[T](index: u64) ^T;
-extern fn (Array[T]) set[T](index: u64, t: T) void;
-extern fn (Array[T]) insert[T](index: u64, t: T) void;
-extern fn (Array[T]) remove[T](index: u64) void;
-extern fn (Array[T]) free[T]() void;
-
-// OS   
-extern fn argv() Array[str];

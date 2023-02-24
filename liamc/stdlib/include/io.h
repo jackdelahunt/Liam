@@ -1,6 +1,5 @@
 #pragma once
 
-#include "builtin_string.h"
 #include "core.h"
 #include <fstream>
 #include <sstream>
