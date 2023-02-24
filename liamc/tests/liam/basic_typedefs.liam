@@ -9,7 +9,7 @@ struct Person {
 }
 
 fn main() void {
-    let p := new Person{foo: false};
+    let p := make Person{foo: false};
 
     if p.foo is bool as b {
         println[bool](*b);

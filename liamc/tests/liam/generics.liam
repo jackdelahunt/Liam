@@ -21,20 +21,20 @@ fn generic_func[T, E](t: T, e: ^weak E) ^weak E {
 
 fn get_u64_vector() Vector[u64] {
     let x := 20u64;
-    let v := new Vector[u64]{x: x, y: @x};
+    let v := make Vector[u64]{x: x, y: @x};
     return v;
 }
 
 fn get_any_vector[T]() Vector[T] {
     let x: T = zero;
     let y := @x;
-    return new Vector[T]{x: x, y: y};
+    return make Vector[T]{x: x, y: y};
 }
 
 
 fn main() void {
     let n := 100u64;
-    let v: Vector[u64] = new Vector[u64]{x: n, y: @n};
+    let v: Vector[u64] = make Vector[u64]{x: n, y: @n};
     println[u64](v.x);
     println[u64](*(v.y));
 

@@ -112,14 +112,19 @@ struct GetExpression : Expression {
     GetExpression(Expression *expression, Token member);
 };
 
-struct NewExpression : Expression {
+struct InstantiateExpression : Expression {
     Token identifier;
     std::vector<TypeExpression *> generics;
     std::vector<std::tuple<Token, Expression *>> named_expressions;
 
-    NewExpression(
+    enum InstantiateType {
+        MAKE,
+        NEW
+    } instantiate_type;
+
+    InstantiateExpression(
         Token identifier, std::vector<TypeExpression *> generics,
-        std::vector<std::tuple<Token, Expression *>> named_expressions
+        std::vector<std::tuple<Token, Expression *>> named_expressions, InstantiateType instantiate_type
     );
 };
 

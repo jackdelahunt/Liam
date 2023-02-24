@@ -47,13 +47,13 @@ struct BoolTypeInfo : TypeInfo {
 struct WeakPointerTypeInfo : TypeInfo {
     TypeInfo *to;
 
-    WeakPointerTypeInfo(TypeInfo* to);
+    WeakPointerTypeInfo(TypeInfo *to);
 };
 
 struct OwnedPointerTypeInfo : TypeInfo {
     TypeInfo *to;
 
-    OwnedPointerTypeInfo(TypeInfo* to);
+    OwnedPointerTypeInfo(TypeInfo *to);
 };
 
 struct SliceTypeInfo : TypeInfo {
@@ -74,8 +74,10 @@ struct StructTypeInfo : TypeInfo {
     std::vector<std::tuple<std::string, TypeInfo *>> members;
     u64 generic_count;
 
-    StructTypeInfo(std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
-                   std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount);
+    StructTypeInfo(
+        std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+        std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
+    );
 };
 
 struct StructInstanceTypeInfo : TypeInfo {
@@ -91,8 +93,10 @@ struct FnTypeInfo : TypeInfo {
     std::vector<TypeInfo *> generic_type_infos;
     std::vector<TypeInfo *> args;
 
-    FnTypeInfo(StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
-               std::vector<TypeInfo *> args);
+    FnTypeInfo(
+        StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
+        std::vector<TypeInfo *> args
+    );
 };
 
 struct FnExpressionTypeInfo : TypeInfo {
