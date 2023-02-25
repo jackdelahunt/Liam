@@ -29,6 +29,7 @@
 #include "format.h"
 
 FMT_BEGIN_NAMESPACE
+
 namespace detail {
 
 FMT_FUNC void assert_fail(const char *file, int line, const char *message) {
@@ -54,6 +55,7 @@ inline int fmt_snprintf(char *buffer, size_t size, const char *format, ...) {
     va_end(args);
     return result;
 }
+
 #define FMT_SNPRINTF fmt_snprintf
 #endif // _MSC_VER
 
@@ -111,6 +113,7 @@ template <typename Char> FMT_FUNC auto thousands_sep_impl(locale_ref loc) -> tho
     auto thousands_sep = grouping.empty() ? Char() : facet.thousands_sep();
     return {std::move(grouping), thousands_sep};
 }
+
 template <typename Char> FMT_FUNC Char decimal_point_impl(locale_ref loc) {
     return std::use_facet<std::numpunct<Char>>(loc.get<std::locale>()).decimal_point();
 }
@@ -118,6 +121,7 @@ template <typename Char> FMT_FUNC Char decimal_point_impl(locale_ref loc) {
 template <typename Char> FMT_FUNC auto thousands_sep_impl(locale_ref) -> thousands_sep_result<Char> {
     return {"\03", FMT_STATIC_THOUSANDS_SEPARATOR};
 }
+
 template <typename Char> FMT_FUNC Char decimal_point_impl(locale_ref) {
     return '.';
 }
@@ -222,6 +226,7 @@ struct fp {
 
     constexpr fp() : f(0), e(0) {
     }
+
     constexpr fp(uint64_t f_val, int e_val) : f(f_val), e(e_val) {
     }
 
@@ -332,6 +337,7 @@ struct accumulator {
 
     constexpr accumulator() : lower(0), upper(0) {
     }
+
     constexpr explicit operator uint32_t() const {
         return static_cast<uint32_t>(lower);
     }
@@ -341,6 +347,7 @@ struct accumulator {
         if (lower < n)
             ++upper;
     }
+
     FMT_CONSTEXPR void operator>>=(int shift) {
         FMT_ASSERT(shift == 32, "");
         (void)shift;
@@ -355,15 +362,18 @@ class bigint {
     // 0 being the least significant one.
     using bigit        = uint32_t;
     using double_bigit = uint64_t;
+
     enum {
         bigits_capacity = 32
     };
+
     basic_memory_buffer<bigit, bigits_capacity> bigits_;
     int exp_;
 
     FMT_CONSTEXPR20 bigit operator[](int index) const {
         return bigits_[to_unsigned(index)];
     }
+
     FMT_CONSTEXPR20 bigit &operator[](int index) {
         return bigits_[to_unsigned(index)];
     }
@@ -432,9 +442,11 @@ class bigint {
   public:
     FMT_CONSTEXPR20 bigint() : exp_(0) {
     }
+
     explicit bigint(uint64_t n) {
         assign(n);
     }
+
     FMT_CONSTEXPR20 ~bigint() {
         FMT_ASSERT(bigits_.capacity() <= bigits_capacity, "");
     }
@@ -829,6 +841,7 @@ struct uint128_wrapper {
     constexpr uint64_t high() const FMT_NOEXCEPT {
         return uint64_t(internal_ >> 64);
     }
+
     constexpr uint64_t low() const FMT_NOEXCEPT {
         return uint64_t(internal_);
     }
@@ -847,6 +860,7 @@ struct uint128_wrapper {
     constexpr uint64_t high() const FMT_NOEXCEPT {
         return high_;
     }
+
     constexpr uint64_t low() const FMT_NOEXCEPT {
         return low_;
     }
@@ -954,6 +968,7 @@ inline int floor_log2_pow10(int e) FMT_NOEXCEPT {
                 )) >>
            shift_amount;
 }
+
 inline int floor_log10_pow2_minus_log10_4_over_3(int e) FMT_NOEXCEPT {
     FMT_ASSERT(e <= 1700 && e >= -1700, "too large exponent");
     const uint64_t log10_4_over_3_fractional_digits = 0x1ffbfc2bbc780375;
@@ -973,6 +988,7 @@ inline bool divisible_by_power_of_2(uint32_t x, int exp) FMT_NOEXCEPT {
     return exp < num_bits<uint32_t>() && x == ((x >> exp) << exp);
 #endif
 }
+
 inline bool divisible_by_power_of_2(uint64_t x, int exp) FMT_NOEXCEPT {
     FMT_ASSERT(exp >= 1, "");
     FMT_ASSERT(x != 0, "");
@@ -998,6 +1014,7 @@ inline bool divisible_by_power_of_5(uint32_t x, int exp) FMT_NOEXCEPT {
         {0x22e90e21, 0x00002af3}, {0x3a2e9c6d, 0x00000897}, {0x3ed61f49, 0x000001b7}};
     return x * divtest_table[exp].mod_inv <= divtest_table[exp].max_quotient;
 }
+
 inline bool divisible_by_power_of_5(uint64_t x, int exp) FMT_NOEXCEPT {
     FMT_ASSERT(exp <= 23, "too large exponent");
     static constexpr const divtest_table_entry<uint64_t> divtest_table[] = {
@@ -1025,7 +1042,8 @@ template <int N> bool check_divisibility_and_divide_by_pow5(uint32_t &n) FMT_NOE
         int bits_for_comparison;
         uint32_t threshold;
         int shift_amount;
-    } infos[]           = {{0xcccd, 16, 0x3333, 18}, {0xa429, 8, 0x0a, 20}};
+    } infos[] = {{0xcccd, 16, 0x3333, 18}, {0xa429, 8, 0x0a, 20}};
+
     constexpr auto info = infos[N - 1];
     n *= info.magic_number;
     const uint32_t comparison_mask = (1u << info.bits_for_comparison) - 1;
@@ -1041,7 +1059,8 @@ template <int N> uint32_t small_division_by_pow10(uint32_t n) FMT_NOEXCEPT {
         uint32_t magic_number;
         int shift_amount;
         uint32_t divisor_times_10;
-    } infos[]           = {{0xcccd, 19, 100}, {0xa3d8, 22, 1000}};
+    } infos[] = {{0xcccd, 19, 100}, {0xa3d8, 22, 1000}};
+
     constexpr auto info = infos[N - 1];
     FMT_ASSERT(n <= info.divisor_times_10, "n is too large");
     return n * info.magic_number >> info.shift_amount;
@@ -1051,6 +1070,7 @@ template <int N> uint32_t small_division_by_pow10(uint32_t n) FMT_NOEXCEPT {
 inline uint32_t divide_by_10_to_kappa_plus_1(uint32_t n) FMT_NOEXCEPT {
     return n / float_info<float>::big_divisor;
 }
+
 // Computes floor(n / 10^(kappa + 1)) (double)
 inline uint64_t divide_by_10_to_kappa_plus_1(uint64_t n) FMT_NOEXCEPT {
     return umul128_upper64(n, 0x83126e978d4fdf3c) >> 9;
@@ -1879,6 +1899,7 @@ template <class T> bool is_left_endpoint_integer_shorter_interval(int exponent) 
     return exponent >= float_info<T>::case_shorter_interval_left_endpoint_lower_threshold &&
            exponent <= float_info<T>::case_shorter_interval_left_endpoint_upper_threshold;
 }
+
 template <class T>
 bool is_endpoint_integer(typename float_info<T>::carrier_uint two_f, int exponent, int minus_k) FMT_NOEXCEPT {
     if (exponent < float_info<T>::case_fc_pm_half_lower_threshold)
@@ -2444,6 +2465,7 @@ template <typename T> int snprintf_float(T value, int precision, float_specs spe
     enum {
         max_format_size = 7
     }; // The longest format is "%#.*Le".
+
     char format[max_format_size];
     char *format_ptr = format;
     *format_ptr++    = '%';

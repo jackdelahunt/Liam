@@ -416,6 +416,7 @@ struct IntegerDesc {
     std::string base     = "";
     std::string value    = "";
 };
+
 struct ArguDesc {
     std::string arg_name = "";
     bool grouping        = false;
