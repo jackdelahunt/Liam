@@ -29,6 +29,35 @@ u64 __u64(u64 n);
 i64 __i64(i64 n);
 f64 __f64(f64 n);
 
+template <typename T>
+struct OwnedPtr {
+    T* ptr;
+
+    OwnedPtr(T* ptr) {
+        this->ptr = ptr;
+    }
+
+    OwnedPtr(OwnedPtr<T>& other)
+    {
+        this->ptr = other.ptr;
+        other.ptr = NULL;
+    }
+
+    OwnedPtr(OwnedPtr<T>&& other) {
+        this->ptr = other.ptr;
+        other.ptr = NULL;
+    }
+
+    T* operator ->() {
+        return this->ptr;
+    }
+
+    ~OwnedPtr() {
+        std::cout << "Delted owned ptr\n";
+        delete this->ptr;
+    }
+};
+
 template <typename T> struct __Slice {
 
     u64 length;
