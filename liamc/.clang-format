@@ -2,16 +2,21 @@ BasedOnStyle: microsoft
 IndentWidth: 4
 ---
 Language: Cpp
-# Force pointers to the type for C++.
 DerivePointerAlignment: false
 PointerAlignment: Right
 AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+SpaceBeforeAssignmentOperators: true
 RemoveBracesLLVM: false
 SpaceBeforeCaseColon: false
 AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveAssignments: Consecutive
+SeparateDefinitionBlocks: Always
+SortIncludes: CaseInsensitive
+SpaceAfterCStyleCast: false
+BreakStringLiterals: false
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel: false

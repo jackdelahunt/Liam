@@ -192,13 +192,17 @@ enum class emphasis : uint8_t {
 struct rgb {
     FMT_CONSTEXPR rgb() : r(0), g(0), b(0) {
     }
+
     FMT_CONSTEXPR rgb(uint8_t r_, uint8_t g_, uint8_t b_) : r(r_), g(g_), b(b_) {
     }
+
     FMT_CONSTEXPR rgb(uint32_t hex) : r((hex >> 16) & 0xFF), g((hex >> 8) & 0xFF), b(hex & 0xFF) {
     }
+
     FMT_CONSTEXPR rgb(color hex)
         : r((uint32_t(hex) >> 16) & 0xFF), g((uint32_t(hex) >> 8) & 0xFF), b(uint32_t(hex) & 0xFF) {
     }
+
     uint8_t r;
     uint8_t g;
     uint8_t b;
@@ -210,17 +214,22 @@ FMT_BEGIN_DETAIL_NAMESPACE
 struct color_type {
     FMT_CONSTEXPR color_type() noexcept : is_rgb(), value{} {
     }
+
     FMT_CONSTEXPR color_type(color rgb_color) noexcept : is_rgb(true), value{} {
         value.rgb_color = static_cast<uint32_t>(rgb_color);
     }
+
     FMT_CONSTEXPR color_type(rgb rgb_color) noexcept : is_rgb(true), value{} {
         value.rgb_color =
             (static_cast<uint32_t>(rgb_color.r) << 16) | (static_cast<uint32_t>(rgb_color.g) << 8) | rgb_color.b;
     }
+
     FMT_CONSTEXPR color_type(terminal_color term_color) noexcept : is_rgb(), value{} {
         value.term_color = static_cast<uint8_t>(term_color);
     }
+
     bool is_rgb;
+
     union color_union {
         uint8_t term_color;
         uint32_t rgb_color;
@@ -272,20 +281,25 @@ class text_style {
     FMT_CONSTEXPR bool has_foreground() const noexcept {
         return set_foreground_color;
     }
+
     FMT_CONSTEXPR bool has_background() const noexcept {
         return set_background_color;
     }
+
     FMT_CONSTEXPR bool has_emphasis() const noexcept {
         return static_cast<uint8_t>(ems) != 0;
     }
+
     FMT_CONSTEXPR detail::color_type get_foreground() const noexcept {
         FMT_ASSERT(has_foreground(), "no foreground specified for this style");
         return foreground_color;
     }
+
     FMT_CONSTEXPR detail::color_type get_background() const noexcept {
         FMT_ASSERT(has_background(), "no background specified for this style");
         return background_color;
     }
+
     FMT_CONSTEXPR emphasis get_emphasis() const noexcept {
         FMT_ASSERT(has_emphasis(), "no emphasis specified for this style");
         return ems;
@@ -371,6 +385,7 @@ template <typename Char> struct ansi_color_escape {
         to_esc(color.b, buffer + 15, 'm');
         buffer[19] = static_cast<Char>(0);
     }
+
     FMT_CONSTEXPR ansi_color_escape(emphasis em) noexcept {
         uint8_t em_codes[num_emphases] = {};
         if (has_emphasis(em, emphasis::bold))
@@ -402,6 +417,7 @@ template <typename Char> struct ansi_color_escape {
         }
         buffer[index++] = static_cast<Char>(0);
     }
+
     FMT_CONSTEXPR operator const Char *() const noexcept {
         return buffer;
     }
@@ -409,6 +425,7 @@ template <typename Char> struct ansi_color_escape {
     FMT_CONSTEXPR const Char *begin() const noexcept {
         return buffer;
     }
+
     FMT_CONSTEXPR_CHAR_TRAITS const Char *end() const noexcept {
         return buffer + std::char_traits<Char>::length(buffer);
     }
@@ -423,6 +440,7 @@ template <typename Char> struct ansi_color_escape {
         out[2] = static_cast<Char>('0' + c % 10);
         out[3] = static_cast<Char>(delimiter);
     }
+
     static FMT_CONSTEXPR bool has_emphasis(emphasis em, emphasis mask) noexcept {
         return static_cast<uint8_t>(em) & static_cast<uint8_t>(mask);
     }

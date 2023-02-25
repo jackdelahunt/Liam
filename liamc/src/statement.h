@@ -99,6 +99,7 @@ struct ImportStatement : Statement {
 
     ImportStatement(File *file, Expression *path);
 };
+
 struct ForStatement : Statement {
     Statement *assign;
     Expression *condition;

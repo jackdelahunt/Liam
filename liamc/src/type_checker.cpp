@@ -324,6 +324,7 @@ void TypeChecker::type_check_scope_statement(
     for (auto stmt : statement->statements)
     { TRY_CALL(type_check_statement(stmt, scopes_symbol_table)); }
 }
+
 void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table, bool top_level) {
     if (statement->is_extern)
         return;
@@ -497,6 +498,7 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
         );
     }
 }
+
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(statement->lhs, symbol_table));
     TRY_CALL(type_check_expression(statement->assigned_to->expression, symbol_table));
@@ -715,6 +717,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
 
     expression->type_info = info;
 }
+
 void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *expression, SymbolTable *symbol_table) {
     expression->type_info = symbol_table->builtin_type_table["str"];
 }
