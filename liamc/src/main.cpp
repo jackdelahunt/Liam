@@ -5,10 +5,8 @@
 #include "args.h"
 #include "backends/cpp_backend.h"
 #include "compiler.h"
-#include "fmt/core.h"
 #include "liam.h"
 #include <functional>
-#include <initializer_list>
 
 #ifndef TEST
 

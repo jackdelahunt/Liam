@@ -14,6 +14,8 @@ tests_count = len(source_files)
 
 for i, file_path in enumerate(source_files):
 
+    file_name_for_output = os.path.basename(file_path)
+
     lines = []
     source = open(file_path).readlines()
     for line in source:
@@ -30,7 +32,7 @@ for i, file_path in enumerate(source_files):
     ], capture_output=True)
 
     if compile_output.stderr != b'' or compile_output.returncode != 0:
-        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: {file_path} liamc compile error")
+        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: {file_name_for_output} liamc compile error")
         failed_tests_count += 1
         continue
 
@@ -43,7 +45,7 @@ for i, file_path in enumerate(source_files):
     ], capture_output=True)
 
     if clang_output.returncode != 0:
-        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: clang++ compile error")
+        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: {file_name_for_output} clang++ compile error")
         failed_tests_count += 1
         continue
 
@@ -56,7 +58,7 @@ for i, file_path in enumerate(source_files):
 
     output_lines = running_output.stdout.decode("UTF-8").splitlines()
     if lines != output_lines:
-        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: {file_path} expected {lines} got {output_lines}")
+        print(f"({i + 1},{len(source_files)}) TEST FAILED ]: {file_name_for_output  } expected {lines} got {output_lines}")
         failed_tests_count += 1
     else:
         print(f"({i + 1},{len(source_files)}) TEST PASSED [:")
