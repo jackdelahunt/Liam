@@ -655,8 +655,13 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
 std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expression) {
     auto source = std::string();
 
+    // |          New            |
+    // |            |   Make   ||
+    // |                        |
+    // OwnedPtr(new Foo{x, y, z});
+
     if (expression->instantiate_type == InstantiateExpression::NEW)
-    { source.append("new "); }
+    { source.append("OwnedPtr(new "); }
 
     source.append(expression->identifier.string);
 
@@ -672,6 +677,10 @@ std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expre
         index++;
     }
     source.append("}");
+
+    // add the final ) for tbe Owned Ptr constructor
+    if (expression->instantiate_type == InstantiateExpression::NEW)
+    { source.append(")"); }
 
     return source;
 }
@@ -824,9 +833,13 @@ std::string CppBackend::emit_union_type_expression(UnionTypeExpression *type_exp
 
 std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
 
-    if (type_expression->unary_type == UnaryType::WEAK_POINTER ||
-        type_expression->unary_type == UnaryType::OWNED_POINTER)
+    if (type_expression->unary_type == UnaryType::WEAK_POINTER)
     { return emit_type_expression(type_expression->type_expression) + "*"; }
+
+    if (type_expression->unary_type == UnaryType::OWNED_POINTER)
+    {
+        return "OwnedPtr<" + emit_type_expression(type_expression->type_expression) + ">";
+    }
 
     if (type_expression->unary_type == UnaryType::SLICE)
     { return "__Slice<" + emit_type_expression(type_expression->type_expression) + ">"; }
