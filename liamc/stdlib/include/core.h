@@ -6,6 +6,19 @@
 #include <string>
 #include <variant>
 
+#define __PROPAGATE(type, expr, __VA_ARGS__)                                                                           \
+    ({                                                                                                                 \
+        auto __evaluated = (expr);                                                                                     \
+        if (auto __temp = std::get_if<type>(&__evaluated))                                                             \
+        { return *__temp; }                                                                                            \
+        std::variant<__VA_ARGS__> v = LiamInternal::cast_variant<__VA_ARGS__>(__evaluated);                            \
+        v;                                                                                                             \
+    })
+
+#define panic(message)                                                                                                 \
+    std::cout << "PANIC " << __FILE__ << " (" << __LINE__ << ") :: " << message << "\n";                               \
+    exit(1);
+
 typedef uint8_t u8;
 typedef int8_t i8;
 
@@ -20,6 +33,17 @@ typedef uint64_t u64;
 typedef int64_t i64;
 typedef double f64;
 
+struct str {
+    char *chars;
+    u64 length;
+
+    bool compare_c_str(const char *c_str);
+    friend bool operator==(const str &l, const str &r);
+};
+
+std::ostream &operator<<(std::ostream &os, const str &obj);
+
+namespace LiamInternal {
 u8 __u8(u8 n);
 i8 __i8(i8 n);
 u32 __u32(u32 n);
@@ -29,26 +53,24 @@ u64 __u64(u64 n);
 i64 __i64(i64 n);
 f64 __f64(f64 n);
 
-template <typename T>
-struct OwnedPtr {
-    T* ptr;
+template <typename T> struct OwnedPtr {
+    T *ptr;
 
-    OwnedPtr(T* ptr) {
+    OwnedPtr(T *ptr) {
         this->ptr = ptr;
     }
 
-    OwnedPtr(OwnedPtr<T>& other)
-    {
+    OwnedPtr(OwnedPtr<T> &other) {
         this->ptr = other.ptr;
         other.ptr = NULL;
     }
 
-    OwnedPtr(OwnedPtr<T>&& other) {
+    OwnedPtr(OwnedPtr<T> &&other) {
         this->ptr = other.ptr;
         other.ptr = NULL;
     }
 
-    T* operator ->() {
+    T *operator->() {
         return this->ptr;
     }
 
@@ -58,17 +80,17 @@ struct OwnedPtr {
     }
 };
 
-template <typename T> struct __Slice {
+template <typename T> struct Slice {
 
     u64 length;
     const T *data_ptr;
 
-    __Slice(std::initializer_list<T> list) {
+    Slice(std::initializer_list<T> list) {
         this->length   = list.size();
         this->data_ptr = data(list);
     }
 
-    __Slice(T *data_ptr, u64 length) {
+    Slice(T *data_ptr, u64 length) {
         this->length   = length;
         this->data_ptr = data_ptr;
     }
@@ -78,42 +100,16 @@ template <typename T> struct __Slice {
     }
 };
 
-struct str {
-    char *chars;
-    u64 length;
-
-    std::string pretty_string(std::string indentation);
-    bool compare_c_str(const char *c_str);
-    friend bool operator==(const str &l, const str &r);
-};
-
+/*
+    str functions, str is declared outside of namespace as it is not interal only
+*/
 str make_str(char *chars, uint64_t length);
-std::ostream &operator<<(std::ostream &os, const str &obj);
-
-u64 len(const str &s);
-str substr(str s, u64 start, u64 length);
-str char_at(str s, u64 index);
-
-#define panic(message)                                                                                                 \
-    std::cout << "PANIC " << __FILE__ << " (" << __LINE__ << ") :: " << message << "\n";                               \
-    exit(1);
+str make_str(const char *c_str);
 
 template <typename T, typename... Ts> std::ostream &operator<<(std::ostream &os, const std::variant<T, Ts...> &obj) {
     os << "<?>";
     return os;
 }
-
-#define __PROPAGATE(type, expr, __VA_ARGS__)                                                                           \
-    ({                                                                                                                 \
-        auto __evaluated = (expr);                                                                                     \
-        if (auto __temp = std::get_if<type>(&__evaluated))                                                             \
-        { return *__temp; }                                                                                            \
-        std::variant<__VA_ARGS__> v = Internal::cast_variant<__VA_ARGS__>(__evaluated);                                \
-        v;                                                                                                             \
-    })
-
-namespace Internal {
-str make_str(const char *c_str);
 
 template <typename... newTypes, typename... oldTypes> auto cast_variant(const std::variant<oldTypes...> &var) {
     return std::visit(
@@ -126,4 +122,4 @@ template <typename... newTypes, typename... oldTypes> auto cast_variant(const st
         var
     );
 }
-} // namespace Internal
+} // namespace LiamInternal

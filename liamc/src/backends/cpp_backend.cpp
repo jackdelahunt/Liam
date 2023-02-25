@@ -85,17 +85,9 @@ std::string CppBackend::emit(File *file) {
     }
 
     if (args->test)
-    {
-        source_generated.append(
-            "int main(int argc, char **argv) { Internal::argc = argc; Internal::argv = argv;  __liam__test__(); }"
-        );
-    }
+    { source_generated.append("int main(int argc, char **argv) { __liam__test__(); return 0; }"); }
     else
-    {
-        source_generated.append(
-            "int main(int argc, char **argv) { Internal::argc = argc; Internal::argv = argv; __liam__main__(); }"
-        );
-    }
+    { source_generated.append("int main(int argc, char **argv) { __liam__main__(); return 0; }"); }
 
     return source_generated;
 }
@@ -538,7 +530,7 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
 }
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
-    return "make_str((char*)\"" + expression->token.string + "\", " +
+    return "LiamInternal::make_str((char*)\"" + expression->token.string + "\", " +
            std::to_string(string_literal_length(&expression->token.string)) + ")";
 }
 
@@ -549,7 +541,7 @@ std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expr
 std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
     auto number_type = static_cast<NumberTypeInfo *>(expression->type_info);
 
-    std::string func_call = "__";
+    std::string func_call = "LiamInternal::__";
 
     if (number_type->number_type == UNSIGNED)
     { func_call.append("u"); }
@@ -661,7 +653,7 @@ std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expre
     // OwnedPtr(new Foo{x, y, z});
 
     if (expression->instantiate_type == InstantiateExpression::NEW)
-    { source.append("OwnedPtr(new "); }
+    { source.append("LiamInternal::OwnedPtr(new "); }
 
     source.append(expression->identifier.string);
 
@@ -704,7 +696,7 @@ std::string CppBackend::emit_propagate_expression(PropagateExpression *expressio
             return *__temp;
 
         //                              vv type list from else type
-        auto v = Internal::cast_variant<{}>(__evaluated);
+        auto v = LiamInternal::cast_variant<{}>(__evaluated);
 
         {}
 }})
@@ -776,7 +768,7 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
 }
 
 std::string CppBackend::emit_slice_expression(SliceExpression *expression) {
-    std::string source = "__Slice<" + emit_type_expression(expression->slice_type) + ">({";
+    std::string source = "LiamInternal::Slice<" + emit_type_expression(expression->slice_type) + ">({";
 
     int index = 0;
 
@@ -837,12 +829,10 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
     { return emit_type_expression(type_expression->type_expression) + "*"; }
 
     if (type_expression->unary_type == UnaryType::OWNED_POINTER)
-    {
-        return "OwnedPtr<" + emit_type_expression(type_expression->type_expression) + ">";
-    }
+    { return "LiamInternal::OwnedPtr<" + emit_type_expression(type_expression->type_expression) + ">"; }
 
     if (type_expression->unary_type == UnaryType::SLICE)
-    { return "__Slice<" + emit_type_expression(type_expression->type_expression) + ">"; }
+    { return "LiamInternal::Slice<" + emit_type_expression(type_expression->type_expression) + ">"; }
 
     panic("Cpp backend does not support this op yet...");
     return "";
