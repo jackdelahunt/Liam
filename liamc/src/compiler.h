@@ -85,7 +85,7 @@ void borrow_check(File *typed_file) {
     // TODO: change to borrow check errors
     if (ErrorReporter::has_type_check_errors())
     {
-        for (auto &error : ErrorReporter::singleton->type_check_errors)
+        for (auto &error : ErrorReporter::singleton->borrow_check_errors)
         { error.print_error_message(); }
 
         panic(
