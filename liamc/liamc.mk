@@ -28,3 +28,16 @@ run: build
 	@clang++ -I "stdlib/include"  -std=c++20 -o out.exe out.cpp
 	@./out.exe
 
+clean:
+	@rm -f Makefile
+	@rm -f liamc.cmake
+	@rm -f out.cpp
+	@rm -f out.exe
+	@rm -rf obj
+	@rm -rf build-debug
+	@rm -rf bin
+	@rm -rf .idea
+	@rm -f src/Makefile
+	@rm -rf src/liamc.xcodeproj
+	@rm -rf Liam.xcworkspace
+
