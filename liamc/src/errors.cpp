@@ -46,32 +46,6 @@ void print_error_at_span(std::string *file, Span span) {
     );
 }
 
-void print_type_expression_type_error(std::string *file, TypeExpression *type_expression) {
-    auto file_data = FileManager::load(file);
-
-    std::string top    = "";
-    std::string middle = file_data->line(type_expression->span.line);
-    std::string bottom =
-        build_highlighter(type_expression->span.start, type_expression->span.end - type_expression->span.start);
-
-    if (type_expression->span.line > 1)
-    {
-        top = file_data->line(type_expression->span.line - 1);
-        trim(top);
-    }
-
-    rtrim(middle);
-
-    fmt::print(
-        stderr,
-        "--> {}:{}:{}\n"
-        "   |   {}\n"
-        "   |   {}\n"
-        "   |   {}\n",
-        *file, type_expression->span.line, type_expression->span.start, top, middle, bottom
-    );
-}
-
 void ParserError::print_error_message() {
 
     auto file_data = FileManager::load(&file);
@@ -88,7 +62,7 @@ void ParserError::print_error_message() {
 
     rtrim(middle);
 
-    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
+    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "ERROR :: {}\n", error);
     fmt::print(
         stderr,
         "--> {}:{}:{}\n"
@@ -100,7 +74,7 @@ void ParserError::print_error_message() {
 }
 
 void TypeCheckerError::print_error_message() {
-    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
+    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "ERROR :: {}\n", error);
 
     if (this->expr_1)
     { print_error_at_span(&file, expr_1->span); }
@@ -109,20 +83,27 @@ void TypeCheckerError::print_error_message() {
     { print_error_at_span(&file, expr_2->span); }
 
     if (this->type_expr_1)
-    { print_type_expression_type_error(&file, type_expr_1); }
+    { print_error_at_span(&file, type_expr_1->span); }
 
     if (this->type_expr_2)
-    { print_type_expression_type_error(&file, type_expr_2); }
+    { print_error_at_span(&file, type_expr_2->span); }
 }
 
 void BorrowCheckerError::print_error_message() {
-    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
+    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "ERROR :: {}\n", error);
 
     ASSERT(this->use_after_move)
     ASSERT(this->move_of_value)
 
+    fmt::print(stderr, fmt::emphasis::italic | fg(fmt::color::cornflower_blue), "First entered scope here\n");
     print_error_at_span(&file, this->ownership_of_value);
+
+    fmt::print(stderr, fmt::emphasis::italic | fg(fmt::color::cornflower_blue), "Then first moved out of scope here\n");
     print_error_at_span(&file, this->move_of_value->span);
+
+    fmt::print(
+        stderr, fmt::emphasis::italic | fg(fmt::color::cornflower_blue), "Trying to use/move already moved value here\n"
+    );
     print_error_at_span(&file, this->use_after_move->span);
 }
 
@@ -179,7 +160,7 @@ bool ErrorReporter::has_type_check_errors() {
     return !(ErrorReporter::singleton->type_check_errors.empty());
 }
 
-bool has_borrow_check_errors() {
+bool ErrorReporter::has_borrow_check_errors() {
     if (ErrorReporter::singleton == nullptr)
         return false;
 
@@ -203,5 +184,6 @@ u64 ErrorReporter::error_count() {
     if (ErrorReporter::singleton == nullptr)
         return 0;
 
-    return ErrorReporter::singleton->parse_errors.size() + ErrorReporter::singleton->type_check_errors.size();
+    return ErrorReporter::singleton->parse_errors.size() + ErrorReporter::singleton->type_check_errors.size() +
+           ErrorReporter::singleton->borrow_check_errors.size();
 }

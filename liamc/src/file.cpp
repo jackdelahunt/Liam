@@ -1,4 +1,5 @@
 #include "file.h"
+#include "liam.h"
 
 #include <cassert>
 #include <fstream>
@@ -66,8 +67,8 @@ FileData *FileManager::load(std::string *path) {
 
     std::ifstream file;
     file.open(*path);
-    if (!file.is_open())
-    { panic("cannot open file " + *path); }
+
+    ASSERT_MSG(file.is_open(), "All files should be possible to read as this is not user input");
 
     u64 line_count = 0;
     for (i32 i = file.get(); i != EOF; i = file.get())

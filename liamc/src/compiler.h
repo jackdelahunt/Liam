@@ -61,8 +61,8 @@ std::vector<File *> lex_parse(std::filesystem::path path, std::vector<std::strin
     return files;
 }
 
-File type_check(std::vector<File *> *files) {
-    auto file = TypeChecker().type_check(files);
+void type_check(std::vector<File *> *files) {
+    TypeChecker().type_check(files);
 
     if (ErrorReporter::has_type_check_errors())
     {
@@ -74,23 +74,20 @@ File type_check(std::vector<File *> *files) {
             std::to_string(ErrorReporter::singleton->type_check_errors.size()) + ")"
         );
     }
-
-    return file;
 }
 
-void borrow_check(File *typed_file) {
+void borrow_check(std::vector<File *> *files) {
     auto bc = BorrowChecker();
-    bc.borrow_check(typed_file);
+    bc.borrow_check(files);
 
-    // TODO: change to borrow check errors
-    if (ErrorReporter::has_type_check_errors())
+    if (ErrorReporter::has_borrow_check_errors())
     {
         for (auto &error : ErrorReporter::singleton->borrow_check_errors)
         { error.print_error_message(); }
 
         panic(
             "Cannot continue with errors :: count (" +
-            std::to_string(ErrorReporter::singleton->type_check_errors.size()) + ")"
+            std::to_string(ErrorReporter::singleton->borrow_check_errors.size()) + ")"
         );
     }
 }

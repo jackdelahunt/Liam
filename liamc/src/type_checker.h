@@ -39,7 +39,7 @@ struct TypeChecker {
 
     TypeChecker();
 
-    File type_check(std::vector<File *> *files);
+    void type_check(std::vector<File *> *files);
 
     void type_check_fn_decl(FnStatement *statement, SymbolTable *symbol_table);
     void type_check_struct_decl(StructStatement *statement, SymbolTable *symbol_table);
