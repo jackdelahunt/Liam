@@ -303,6 +303,21 @@ void BorrowChecker::borrow_check_propagate_expression(
 }
 
 void BorrowChecker::borrow_check_fn_expression(FnExpression *expression, OwnershipTable *ownership_table) {
+
+    auto ownership_table_copy = ownership_table->copy();
+
+    for (auto [identifier, type] : expression->params)
+    {
+        if (type->type_info->type == TypeInfoType::OWNED_POINTER)
+        {
+            ownership_table_copy.addOwnedValue(
+                identifier.string, OwnershipStatus(OwnershipStatus::SCOPE, type->type_info, identifier.span)
+            );
+        }
+    }
+
+    borrow_check_scope_statement(expression->body, &ownership_table_copy);
+
 }
 
 void BorrowChecker::borrow_check_slice_expression(SliceExpression *expression, OwnershipTable *ownership_table) {
