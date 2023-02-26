@@ -122,13 +122,6 @@ FnExpression::FnExpression(
     this->span        = return_type->span; // FIXME: use a better place to put the span for the fn expression
 }
 
-SliceExpression::SliceExpression(std::vector<Expression *> members, TypeExpression *slice_type) {
-    this->members    = std::move(members);
-    this->slice_type = slice_type;
-    this->span       = {}; // FIXME: another span issue
-    this->type       = ExpressionType::EXPRESSION_SLICE;
-}
-
 std::ostream &TypeExpression::format(std::ostream &os) const {
     os << "()";
     return os;

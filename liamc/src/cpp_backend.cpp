@@ -415,9 +415,6 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_FN:
         return emit_fn_expression(dynamic_cast<FnExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_SLICE:
-        return emit_slice_expression(dynamic_cast<SliceExpression *>(expression));
-        break;
     case ExpressionType::EXPRESSION_SUBSCRIPT:
         return emit_subscript_expression(dynamic_cast<SubscriptExpression *>(expression));
         break;
@@ -730,24 +727,6 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
     return source;
 }
 
-std::string CppBackend::emit_slice_expression(SliceExpression *expression) {
-    std::string source = "LiamInternal::Slice<" + emit_type_expression(expression->slice_type) + ">({";
-
-    int index = 0;
-
-    for (auto expr : expression->members)
-    {
-        source.append(emit_expression(expr));
-        if (index + 1 < expression->members.size())
-        { source.append(", "); }
-        index++;
-    }
-
-    source.append("})");
-
-    return source;
-}
-
 std::string CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
     std::string source = emit_expression(expression->rhs) + "[";
     source.append(emit_expression(expression->param));
@@ -793,9 +772,6 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
 
     if (type_expression->unary_type == UnaryType::OWNED_POINTER)
     { return "LiamInternal::OwnedPtr<" + emit_type_expression(type_expression->type_expression) + ">"; }
-
-    if (type_expression->unary_type == UnaryType::SLICE)
-    { return "LiamInternal::Slice<" + emit_type_expression(type_expression->type_expression) + ">"; }
 
     panic("Cpp backend does not support this op yet...");
     return "";

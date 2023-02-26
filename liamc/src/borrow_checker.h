@@ -64,6 +64,5 @@ struct BorrowChecker {
     void borrow_check_group_expression(GroupExpression *expression, OwnershipTable *ownership_table);
     void borrow_check_propagate_expression(PropagateExpression *expression, OwnershipTable *ownership_table);
     void borrow_check_fn_expression(FnExpression *expression, OwnershipTable *ownership_table);
-    void borrow_check_slice_expression(SliceExpression *expression, OwnershipTable *ownership_table);
     void borrow_check_subscript_expression(SubscriptExpression *expression, OwnershipTable *ownership_table);
 };
