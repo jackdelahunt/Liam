@@ -4,6 +4,7 @@
 
 #include "args.h"
 #include "backends/cpp_backend.h"
+#include "borrow_checker.h"
 #include "compiler.h"
 #include "liam.h"
 #include <functional>
@@ -21,6 +22,10 @@ i32 main(i32 argc, char **argv) {
     TIME_START(type_time);
     auto typed_file = type_check(&files);
     TIME_END(type_time, "Type checking time");
+
+    TIME_START(borrow_checking_time);
+    borrow_check(&typed_file);
+    TIME_END(borrow_checking_time, "Borrow checking time");
 
     TIME_START(code_gen);
     auto code = CppBackend().emit(&typed_file);
