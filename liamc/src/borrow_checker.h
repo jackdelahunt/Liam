@@ -16,7 +16,7 @@ struct OwnershipStatus {
     } owner;
 
     TypeInfo *type_info;
-    Span ownership_of_value; // is always populated
+    Span ownership_of_value;   // is always populated
     Expression *move_of_value; // only populated if the status has changed to move
 
     // cpp is so cringe, this is needed for std::map to work... why?? I dunno

@@ -118,8 +118,8 @@ void TypeCheckerError::print_error_message() {
 void BorrowCheckerError::print_error_message() {
     fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
 
-    assert(this->use_after_move);
-    assert(this->move_of_value);
+    ASSERT(this->use_after_move)
+    ASSERT(this->move_of_value)
 
     print_error_at_span(&file, this->ownership_of_value);
     print_error_at_span(&file, this->move_of_value->span);
@@ -153,15 +153,14 @@ void ErrorReporter::report_type_checker_error(
 }
 
 void ErrorReporter::report_borrow_checker_error(
-        std::string file, Span ownership_of_value,
-        Expression *move_of_value,
-        Expression *use_after_move, std::string message
+    std::string file, Span ownership_of_value, Expression *move_of_value, Expression *use_after_move,
+    std::string message
 ) {
     if (ErrorReporter::singleton == nullptr)
     { ErrorReporter::singleton = new ErrorReporter(); }
 
     ErrorReporter::singleton->borrow_check_errors.push_back(BorrowCheckerError{
-            std::move(file), ownership_of_value, move_of_value, use_after_move, std::move(message)});
+        std::move(file), ownership_of_value, move_of_value, use_after_move, std::move(message)});
 
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
