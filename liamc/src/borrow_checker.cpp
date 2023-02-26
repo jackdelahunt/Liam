@@ -1,9 +1,11 @@
 #include "borrow_checker.h"
 #include "args.h"
+#include "errors.h"
 
-OwnershipStatus::OwnershipStatus(Owner owner, TypeInfo *type_info) {
+OwnershipStatus::OwnershipStatus(Owner owner, TypeInfo *type_info, Span ownership_of_value) {
     this->owner     = owner;
     this->type_info = type_info;
+    this->ownership_of_value = ownership_of_value;
 }
 
 OwnershipTable::OwnershipTable() {
@@ -35,7 +37,11 @@ void BorrowChecker::borrow_check(File *file) {
     OwnershipTable empty = OwnershipTable();
 
     for (auto stmt : file->statements)
-    { borrow_check_statement(stmt, &empty); }
+    {
+        TRY_CALL(
+            borrow_check_statement(stmt, &empty)
+        );
+    }
 }
 
 void BorrowChecker::borrow_check_statement(Statement *statement, OwnershipTable *ownership_table) {
@@ -99,7 +105,11 @@ void BorrowChecker::borrow_check_let_statement(LetStatement *statement, Ownershi
     if (statement->rhs->type_info->type == TypeInfoType::OWNED_POINTER)
     {
         ownership_table->addOwnedValue(
-            statement->identifier.string, OwnershipStatus(OwnershipStatus::SCOPE, statement->rhs->type_info)
+            statement->identifier.string, OwnershipStatus(
+                    OwnershipStatus::SCOPE,
+                    statement->rhs->type_info,
+                    statement->rhs->span
+                    )
         );
     }
 }
@@ -121,7 +131,7 @@ void BorrowChecker::borrow_check_fn_statement(FnStatement *statement, OwnershipT
         if (type->type_info->type == TypeInfoType::OWNED_POINTER)
         {
             ownership_table_copy.addOwnedValue(
-                identifier.string, OwnershipStatus(OwnershipStatus::SCOPE, type->type_info)
+                identifier.string, OwnershipStatus(OwnershipStatus::SCOPE, type->type_info, identifier.span)
             );
         }
     }
@@ -246,24 +256,7 @@ void BorrowChecker::borrow_check_unary_expression(UnaryExpression *expression, O
 void BorrowChecker::borrow_check_call_expression(CallExpression *expression, OwnershipTable *ownership_table) {
     for (auto arg : expression->args)
     {
-        if (arg->type == ExpressionType::EXPRESSION_IDENTIFIER)
-        {
-            auto identifier_expression = dynamic_cast<IdentifierExpression *>(arg);
-            if (ownership_table->ownedValueExistedInScope(identifier_expression->identifier.string))
-            {
-                auto status = ownership_table->getOwnershipStatus(identifier_expression->identifier.string);
-                if (status.owner == OwnershipStatus::MOVED)
-                { std::cout << "Used a moved value in call expression\n"; }
-                else
-                {
-                    std::cout << "moved value\n";
-                    status.owner = OwnershipStatus::MOVED;
-                    ownership_table->setOwnershipStatus(identifier_expression->identifier.string, status);
-                }
-            }
-        }
-        else
-        { borrow_check_expression(arg, ownership_table); }
+        borrow_check_expression(arg, ownership_table);
     }
 }
 

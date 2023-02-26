@@ -21,16 +21,16 @@ std::string build_highlighter(u64 start, u64 length) {
     return source;
 }
 
-void print_expression_type_error(std::string *file, Expression *expression) {
+void print_error_at_span(std::string *file, Span span) {
     auto file_data = FileManager::load(file);
 
     std::string top    = "";
-    std::string middle = file_data->line(expression->span.line);
-    std::string bottom = build_highlighter(expression->span.start, expression->span.end - expression->span.start);
+    std::string middle = file_data->line(span.line);
+    std::string bottom = build_highlighter(span.start, span.end - span.start);
 
-    if (expression->span.line > 1)
+    if (span.line > 1)
     {
-        top = file_data->line(expression->span.line - 1);
+        top = file_data->line(span.line - 1);
         trim(top);
     }
 
@@ -42,7 +42,7 @@ void print_expression_type_error(std::string *file, Expression *expression) {
         "   |   {}\n"
         "   |   {}\n"
         "   |   {}\n",
-        *file, expression->span.line, expression->span.start, top, middle, bottom
+        *file, span.line, span.start, top, middle, bottom
     );
 }
 
@@ -103,16 +103,27 @@ void TypeCheckerError::print_error_message() {
     fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
 
     if (this->expr_1)
-    { print_expression_type_error(&file, expr_1); }
+    { print_error_at_span(&file, expr_1->span); }
 
     if (this->expr_2)
-    { print_expression_type_error(&file, expr_2); }
+    { print_error_at_span(&file, expr_2->span); }
 
     if (this->type_expr_1)
     { print_type_expression_type_error(&file, type_expr_1); }
 
     if (this->type_expr_2)
     { print_type_expression_type_error(&file, type_expr_2); }
+}
+
+void BorrowCheckerError::print_error_message() {
+    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "error {}\n", error);
+
+    assert(this->use_after_move);
+    assert(this->move_of_value);
+
+    print_error_at_span(&file, this->ownership_of_value);
+    print_error_at_span(&file, this->move_of_value->span);
+    print_error_at_span(&file, this->use_after_move->span);
 }
 
 ErrorReporter::ErrorReporter() {
@@ -141,6 +152,20 @@ void ErrorReporter::report_type_checker_error(
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
 
+void ErrorReporter::report_borrow_checker_error(
+        std::string file, Span ownership_of_value,
+        Expression *move_of_value,
+        Expression *use_after_move, std::string message
+) {
+    if (ErrorReporter::singleton == nullptr)
+    { ErrorReporter::singleton = new ErrorReporter(); }
+
+    ErrorReporter::singleton->borrow_check_errors.push_back(BorrowCheckerError{
+            std::move(file), ownership_of_value, move_of_value, use_after_move, std::move(message)});
+
+    ErrorReporter::singleton->error_reported_since_last_check = true;
+}
+
 bool ErrorReporter::has_parse_errors() {
     if (ErrorReporter::singleton == nullptr)
         return false;
@@ -153,6 +178,13 @@ bool ErrorReporter::has_type_check_errors() {
         return false;
 
     return !(ErrorReporter::singleton->type_check_errors.empty());
+}
+
+bool has_borrow_check_errors() {
+    if (ErrorReporter::singleton == nullptr)
+        return false;
+
+    return !(ErrorReporter::singleton->borrow_check_errors.empty());
 }
 
 bool ErrorReporter::has_error_since_last_check() {

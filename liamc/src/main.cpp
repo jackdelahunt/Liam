@@ -12,7 +12,6 @@
 #ifndef TEST
 
 i32 main(i32 argc, char **argv) {
-
     Arguments::New(argc, argv);
 
     TIME_START(l_p_time);
