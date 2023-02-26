@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "borrow_checker.h"
 #include "errors.h"
 #include "lexer.h"
 #include "liam.h"
@@ -75,4 +76,21 @@ File type_check(std::vector<File *> *files) {
     }
 
     return file;
+}
+
+void borrow_check(File *typed_file) {
+    auto bc = BorrowChecker();
+    bc.borrow_check(typed_file);
+
+    // TODO: change to borrow check errors
+    if (ErrorReporter::has_type_check_errors())
+    {
+        for (auto &error : ErrorReporter::singleton->type_check_errors)
+        { error.print_error_message(); }
+
+        panic(
+            "Cannot continue with errors :: count (" +
+            std::to_string(ErrorReporter::singleton->type_check_errors.size()) + ")"
+        );
+    }
 }

@@ -75,8 +75,8 @@ template <typename T> struct OwnedPtr {
     }
 
     ~OwnedPtr() {
-        std::cout << "Delted owned ptr\n";
-        delete this->ptr;
+        if (this->ptr)
+            delete this->ptr;
     }
 };
 
