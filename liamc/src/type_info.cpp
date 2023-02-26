@@ -75,8 +75,13 @@ UnionTypeInfo::UnionTypeInfo(std::vector<TypeInfo *> types) {
     this->type  = TypeInfoType::UNION;
 }
 
-EnumTypeInfo::EnumTypeInfo(std::string identifier, std::vector<std::string> instances) {
-    this->identifier = identifier;
-    this->instances  = instances;
+EnumTypeInfo::EnumTypeInfo(std::vector<EnumMember> members) {
+    this->members  = members;
     this->type       = TypeInfoType::ENUM;
+}
+
+EnumInstanceTypeInfo::EnumInstanceTypeInfo(EnumTypeInfo *enum_type_info, u64 index) {
+    this->enum_type_info = enum_type_info;
+    this->index = index;
+    this->type = TypeInfoType::ENUM_INSTANCE;
 }

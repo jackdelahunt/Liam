@@ -10,6 +10,65 @@
 
 #ifndef TEST
 
+/*
+ * enum Expr {
+ *      Number(i64),
+ *      String,
+ *      Compound(i64, i64, i64)
+ * }
+
+
+namespace ExprMembers {
+    struct Number {
+        i64 __1;
+    };
+
+    struct String {
+    };
+
+    struct Compound {
+        i64 __1;
+        i64 __2;
+        i64 __3;
+    };
+}
+
+struct Expr {
+    u64 index;
+
+    union Members {
+        ExprMembers::Number __Number;
+        ExprMembers::String __String;
+        ExprMembers::Compound __Compound;
+
+    } members;
+};
+ */
+
+/*
+ * let expr := Expr::Number(100);
+ * Expr expr = Expr{0, ExprMembers::Number{100}};
+ */
+
+/*
+ * match e {
+ *      Number(n) => {...},
+ *      String => {...},
+ *      Compound(_, y, _) => {...},
+ *      else => {...}
+ * }
+ *
+ * if(expr.index == 0) { // Number
+    auto n = expr.members.__Number.__1;
+    } else if(expr.index == 1) {// String
+
+    } else if(expr.index == 2) {
+    auto y = expr.members.__Compound.__2;
+    } else {
+
+    }
+ */
+
 i32 main(i32 argc, char **argv) {
 
     TIME_START(total_time);
