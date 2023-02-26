@@ -506,12 +506,13 @@ void TypeChecker::type_check_expression_statement(ExpressionStatement *statement
 }
 
 void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table) {
-    auto instances = std::vector<std::string>(statement->instances.size());
+    for(auto& member : statement->members) {
+        for(auto type : member.members) {
+            TRY_CALL(type_check_type_expression(type, symbol_table));
+        }
+    }
 
-    for (auto &t : statement->instances)
-    { instances.push_back(t.string); }
-
-    symbol_table->add_type(statement->identifier, new EnumTypeInfo(statement->identifier.string, instances));
+    symbol_table->add_type(statement->identifier, new EnumTypeInfo(statement->members));
 }
 
 void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table) {
@@ -1606,12 +1607,12 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
 
         return false;
     }
-    else if (a->type == TypeInfoType::ENUM)
+    else if (a->type == TypeInfoType::ENUM_INSTANCE)
     {
-        auto enum_a = static_cast<EnumTypeInfo *>(a);
-        auto enum_b = static_cast<EnumTypeInfo *>(b);
+        auto enum_a = static_cast<EnumInstanceTypeInfo *>(a);
+        auto enum_b = static_cast<EnumInstanceTypeInfo *>(b);
 
-        return enum_a->identifier == enum_b->identifier;
+        return (enum_a->enum_type_info == enum_b->enum_type_info) && (enum_a->index == enum_b->index);
     }
     else if (a->type == TypeInfoType::FN_EXPRESSION)
     {

@@ -30,6 +30,7 @@ struct TestStatement;
 struct Expression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
+struct EnumMember;
 
 struct File {
     std::vector<Statement *> statements;
@@ -103,6 +104,7 @@ struct Parser {
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
     std::vector<Token> consume_comma_seperated_token_arguments(TokenType closer);
     std::vector<std::tuple<Token, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
+    std::vector<EnumMember> consume_comma_seperated_enum_arguments(TokenType closer);
 
     // this is what CSV is
     std::vector<std::tuple<Token, TypeExpression *>> consume_comma_seperated_params();

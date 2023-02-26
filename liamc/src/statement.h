@@ -30,6 +30,13 @@ enum class StatementType {
     STATEMENT_ALIAS,
 };
 
+struct EnumMember {
+    Token identifier;
+    std::vector<TypeExpression *> members;
+
+    EnumMember(Token identifier, std::vector<TypeExpression *> members);
+};
+
 struct Statement {
     StatementType statement_type;
     File *file = NULL;
@@ -137,9 +144,9 @@ struct BreakStatement : Statement {
 
 struct EnumStatement : Statement {
     Token identifier;
-    std::vector<Token> instances;
+    std::vector<EnumMember> members;
 
-    EnumStatement(File *file, Token identifier, std::vector<Token> instances);
+    EnumStatement(File *file, Token identifier, std::vector<EnumMember> members);
 };
 
 struct ContinueStatement : Statement {

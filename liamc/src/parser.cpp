@@ -313,10 +313,10 @@ EnumStatement *Parser::eval_enum_statement() {
 
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
-    auto instances = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    auto members = TRY_CALL_RET(consume_comma_seperated_enum_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new EnumStatement(file, *identifier, instances);
+    return new EnumStatement(file, *identifier, members);
 }
 
 ContinueStatement *Parser::eval_continue_statement() {
@@ -839,7 +839,7 @@ std::vector<Token> Parser::consume_comma_seperated_token_arguments(TokenType clo
     return args;
 }
 
-// e.g. (int32, ^char, ...)
+// e.g. (i32, ^char, ...)
 std::vector<TypeExpression *> Parser::consume_comma_seperated_types(TokenType closer) {
     auto types    = std::vector<TypeExpression *>();
     bool is_first = true;
@@ -915,4 +915,36 @@ std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_nam
     }
 
     return named_args;
+}
+
+// Null, Number(i64), String(str)
+std::vector<EnumMember> Parser::consume_comma_seperated_enum_arguments(TokenType closer) {
+    auto enum_members    = std::vector<EnumMember>();
+    bool is_first = true;
+    if (!match(closer))
+    {
+        do
+        {
+            if (!is_first)
+                current++; // only iterate current by one when it is not the
+                           // first time
+
+            auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), {});
+            if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
+            {
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), {});
+                auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_PAREN_CLOSE), {});
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), {});
+                enum_members.emplace_back(*identifier, types);
+            } else {
+                enum_members.push_back(EnumMember(*identifier, {}));
+            }
+
+            if (is_first)
+                is_first = false;
+        }
+        while (match(TokenType::TOKEN_COMMA));
+    }
+
+    return enum_members;
 }

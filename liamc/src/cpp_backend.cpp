@@ -71,7 +71,20 @@ std::string CppBackend::emit(std::vector<File *> *files) {
 }
 
 std::string CppBackend::forward_declare_enum(EnumStatement *statement) {
-    return "enum class " + statement->identifier.string + ";\n";
+    std::string source = "";
+
+    // enum struct member namespace forward decl
+    source.append("namespace __" + statement->identifier.string + "Members {\n");
+
+    for(auto& member : statement->members) {
+        source.append("struct " + member.identifier.string + ";\n");
+    }
+
+    source.append("}\n\n");
+
+    // enum (we use struct) forward decl
+    source.append("struct " + statement->identifier.string + ";\n");
+    return source;
 }
 
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
@@ -329,32 +342,48 @@ std::string CppBackend::emit_else_statement(ElseStatement *statement) {
 }
 
 std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
-    std::string source = "enum class ";
+    std::string source = "";
 
-    source.append(statement->identifier.string);
-    source.append(" {\n");
 
-    for (auto &instance : statement->instances)
-    { source.append(instance.string + ",\n"); }
+    /*
+     * namespace __{EnumName}Members {
+     *      struct Member {
+     *          type __1;
+     *          type __2;
+     *      };
+     * }
+     */
 
-    source.append(" };\n");
+    // emit the enums namespace for the members it has
+    // then go on to generate the enum which will
+    // have its members as the structs defined in the namespace
+    source.append("namespace __" + statement->identifier.string + "Members {\n");
 
-    // pretty print
-    source.append("std::ostream& operator<<(std::ostream& os, const " + statement->identifier.string + " &obj) {\n");
+    for(auto& member : statement->members) {
+        source.append("struct " + member.identifier.string + " {\n");
+        for(int i = 0; i < member.members.size(); i++) {
+            source.append(emit_type_expression(member.members[i]) + " __" + std::to_string(i));
+            source.append(";\n");
+        }
 
-    source.append("switch(obj) {\n");
-    for (auto &t : statement->instances)
-    {
-        source.append(fmt::format(
-            "case {}::{}: os << \"{}.{}\"; break;\n", statement->identifier.string, t.string,
-            statement->identifier.string, t.string
-        ));
+        source.append("};\n");
     }
-    source.append("}\n");
+    source.append("}\n\n\n");
 
-    source.append("return os;\n");
-
-    source.append("}\n\n");
+    /*
+     * struct X {
+     *      union Members {
+     *          __{EnumName}Members::Member __Member;
+     *      } members;
+     * };
+     */
+    source.append("struct " + statement->identifier.string + " {\n");
+    source.append("union Members {\n");
+    for(auto& member : statement->members) {
+        source.append("__" + statement->identifier.string + "Members::" + member.identifier.string + " __" + member.identifier.string + ";\n");
+    }
+    source.append("} members;\n");
+    source.append("};\n");
 
     return source;
 }

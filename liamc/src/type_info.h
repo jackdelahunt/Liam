@@ -6,6 +6,7 @@
 struct TypeExpression;
 struct StructTypeInfo;
 struct FnTypeInfo;
+struct EnumMember;
 
 enum class TypeInfoType {
     ANY,
@@ -23,6 +24,7 @@ enum class TypeInfoType {
     GENERIC,
     UNION,
     ENUM,
+    ENUM_INSTANCE
 };
 
 struct TypeInfo {
@@ -119,8 +121,15 @@ struct UnionTypeInfo : TypeInfo {
 };
 
 struct EnumTypeInfo : TypeInfo {
-    std::string identifier;
-    std::vector<std::string> instances;
+    std::vector<EnumMember> members;
 
-    EnumTypeInfo(std::string identifier, std::vector<std::string> instances);
+    EnumTypeInfo(std::vector<EnumMember> members);
+};
+
+struct EnumInstanceTypeInfo : TypeInfo {
+
+    EnumTypeInfo *enum_type_info;
+    u64 index;
+
+    EnumInstanceTypeInfo(EnumTypeInfo *enum_type_info, u64 index);
 };

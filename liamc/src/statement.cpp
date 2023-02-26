@@ -4,6 +4,11 @@
 
 #include "expression.h"
 
+EnumMember::EnumMember(Token identifier, std::vector<TypeExpression *> members) {
+    this->identifier = identifier;
+    this->members = members;
+}
+
 std::ostream &Statement::format(std::ostream &os) const {
     os << "()";
     return os;
@@ -109,10 +114,10 @@ BreakStatement::BreakStatement(File *file) {
     this->statement_type = StatementType::STATEMENT_BREAK;
 }
 
-EnumStatement::EnumStatement(File *file, Token identifier, std::vector<Token> instances) {
+EnumStatement::EnumStatement(File *file, Token identifier, std::vector<EnumMember> members) {
     this->file           = file;
     this->identifier     = identifier;
-    this->instances      = instances;
+    this->members      = members;
     this->statement_type = StatementType::STATEMENT_ENUM;
 }
 
