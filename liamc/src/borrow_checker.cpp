@@ -203,9 +203,6 @@ void BorrowChecker::borrow_check_expression(Expression *expression, OwnershipTab
     case ExpressionType::EXPRESSION_FN:
         borrow_check_fn_expression(dynamic_cast<FnExpression *>(expression), ownership_table);
         break;
-    case ExpressionType::EXPRESSION_SLICE:
-        borrow_check_slice_expression(dynamic_cast<SliceExpression *>(expression), ownership_table);
-        break;
     case ExpressionType::EXPRESSION_SUBSCRIPT:
         borrow_check_subscript_expression(dynamic_cast<SubscriptExpression *>(expression), ownership_table);
         break;
@@ -311,9 +308,6 @@ void BorrowChecker::borrow_check_fn_expression(FnExpression *expression, Ownersh
 
     borrow_check_scope_statement(expression->body, &ownership_table_copy);
 
-}
-
-void BorrowChecker::borrow_check_slice_expression(SliceExpression *expression, OwnershipTable *ownership_table) {
 }
 
 void BorrowChecker::borrow_check_subscript_expression(

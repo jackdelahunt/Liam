@@ -79,7 +79,6 @@ struct TypeChecker {
     void type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table);
     void type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_fn_expression(FnExpression *expression, SymbolTable *symbol_table);
-    void type_check_slice_expression(SliceExpression *expression, SymbolTable *symbol_table);
     void type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table);
 
     void type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table);

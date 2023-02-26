@@ -567,9 +567,6 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_FN:
         return type_check_fn_expression(dynamic_cast<FnExpression *>(expression), symbol_table);
         break;
-    case ExpressionType::EXPRESSION_SLICE:
-        return type_check_slice_expression(dynamic_cast<SliceExpression *>(expression), symbol_table);
-        break;
     case ExpressionType::EXPRESSION_SUBSCRIPT:
         return type_check_subscript_expression(dynamic_cast<SubscriptExpression *>(expression), symbol_table);
         break;
@@ -1289,25 +1286,6 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
     expression->type_info = new FnExpressionTypeInfo(expression->return_type->type_info, param_type_infos);
 }
 
-void TypeChecker::type_check_slice_expression(SliceExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_type_expression(expression->slice_type, symbol_table));
-
-    for (auto member : expression->members)
-    {
-        TRY_CALL(type_check_expression(member, symbol_table));
-        if (!type_match(expression->slice_type->type_info, member->type_info))
-        {
-            ErrorReporter::report_type_checker_error(
-                current_file->path.string(), member, NULL, expression->slice_type, NULL,
-                "Mismatch types in slice, slice type must match expressions passed"
-            );
-            return;
-        }
-    }
-
-    expression->type_info = new SliceTypeInfo(expression->slice_type->type_info);
-}
-
 void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(expression->rhs, symbol_table));
     TRY_CALL(type_check_expression(expression->param, symbol_table));
@@ -1381,13 +1359,6 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
     {
         TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
         type_expression->type_info = new OwnedPointerTypeInfo(type_expression->type_expression->type_info);
-        return;
-    }
-
-    if (type_expression->unary_type == UnaryType::SLICE)
-    {
-        TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
-        type_expression->type_info = new SliceTypeInfo(type_expression->type_expression->type_info);
         return;
     }
 

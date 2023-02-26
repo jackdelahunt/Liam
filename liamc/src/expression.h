@@ -24,13 +24,11 @@ enum class ExpressionType {
     EXPRESSION_PROPAGATE,
     EXPRESSION_ZERO_LITERAL,
     EXPRESSION_FN,
-    EXPRESSION_SLICE,
 };
 
 enum class UnaryType {
     WEAK_POINTER,
     OWNED_POINTER,
-    SLICE
 };
 
 struct Expression {
@@ -158,13 +156,6 @@ struct FnExpression : Expression {
     FnExpression(
         std::vector<std::tuple<Token, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
     );
-};
-
-struct SliceExpression : Expression {
-    std::vector<Expression *> members;
-    TypeExpression *slice_type;
-
-    SliceExpression(std::vector<Expression *> members, TypeExpression *slice_type);
 };
 
 enum class TypeExpressionType {

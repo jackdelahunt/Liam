@@ -84,26 +84,6 @@ template <typename T> struct OwnedPtr {
     }
 };
 
-template <typename T> struct Slice {
-
-    u64 length;
-    const T *data_ptr;
-
-    Slice(std::initializer_list<T> list) {
-        this->length   = list.size();
-        this->data_ptr = data(list);
-    }
-
-    Slice(T *data_ptr, u64 length) {
-        this->length   = length;
-        this->data_ptr = data_ptr;
-    }
-
-    T operator[](int index) {
-        return this->data_ptr[index];
-    }
-};
-
 /*
     str functions, str is declared outside of namespace as it is not interal only
 */
