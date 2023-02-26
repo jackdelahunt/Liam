@@ -160,7 +160,19 @@ void BorrowChecker::borrow_check_if_statement(IfStatement *statement, OwnershipT
 }
 
 void BorrowChecker::borrow_check_else_statement(ElseStatement *statement, OwnershipTable *ownership_table) {
-    borrow_check_scope_statement(statement->body, ownership_table);
+
+    // make sure the else has a body or a if branch but not both
+    ASSERT(statement->body || statement->if_statement);
+    ASSERT(!(statement->body && statement->if_statement));
+
+    if(statement->body) {
+        borrow_check_scope_statement(statement->body, ownership_table);
+    }
+
+    if(statement->if_statement) {
+        borrow_check_if_statement(statement->if_statement, ownership_table);
+    }
+
 }
 
 void BorrowChecker::borrow_check_test_statement(TestStatement *statement, OwnershipTable *ownership_table) {
