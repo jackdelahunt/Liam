@@ -261,8 +261,6 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
         break;
     case StatementType::STATEMENT_ALIAS:
         return type_check_alias_statement(dynamic_cast<AliasStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_TEST:
-        return type_check_test_statement(dynamic_cast<TestStatement *>(statement), symbol_table);
     default:
         panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
     }
@@ -519,24 +517,6 @@ void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTabl
 void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL(type_check_type_expression(statement->type_expression, symbol_table));
     symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
-}
-
-void TypeChecker::type_check_test_statement(TestStatement *statement, SymbolTable *symbol_table) {
-
-    if (!args->test)
-        return; // not a test build no need to type check
-
-    TRY_CALL(type_check_scope_statement(statement->tests, symbol_table));
-
-    for (auto sub_stmt : statement->tests->statements)
-    {
-        if (sub_stmt->statement_type != StatementType::STATEMENT_FN)
-        { panic("Can only declare functions within test statement bodies"); }
-
-        auto fn = (FnStatement *)sub_stmt;
-        if (!fn->params.empty())
-        { panic("Functions cannot have parameters in test bodies"); }
-    }
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {

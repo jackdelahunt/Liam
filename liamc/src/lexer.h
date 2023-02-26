@@ -64,13 +64,12 @@ enum class TokenType {
     TOKEN_CONTINUE,           // continue
     TOKEN_ALIAS,              // alias
     TOKEN_AS,                 // as
-    TOKEN_TEST,               // test
     TOKEN_ZERO,               // zero
     TOKEN_WEAK,               // weak
     TOKEN_MAKE,               // make
 };
 
-extern const char *TokenTypeStrings[55];
+extern const char *TokenTypeStrings[54];
 
 std::string get_token_type_string(TokenType type);
 

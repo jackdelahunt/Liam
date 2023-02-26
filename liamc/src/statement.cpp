@@ -127,9 +127,3 @@ AliasStatement::AliasStatement(File *file, Token identifier, TypeExpression *typ
     this->identifier      = identifier;
     this->statement_type  = StatementType::STATEMENT_ALIAS;
 }
-
-TestStatement::TestStatement(File *file, ScopeStatement *tests) {
-    this->file           = file;
-    this->tests          = tests;
-    this->statement_type = StatementType::STATEMENT_TEST;
-}
