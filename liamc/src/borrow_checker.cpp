@@ -172,7 +172,6 @@ void BorrowChecker::borrow_check_else_statement(ElseStatement *statement, Owners
     if(statement->if_statement) {
         borrow_check_if_statement(statement->if_statement, ownership_table);
     }
-
 }
 
 void BorrowChecker::borrow_check_test_statement(TestStatement *statement, OwnershipTable *ownership_table) {
