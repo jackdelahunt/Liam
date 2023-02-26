@@ -11,7 +11,6 @@ std::string CppBackend::emit(std::vector<File *> *files) {
     auto structs = std::vector<StructStatement *>();
     auto aliases = std::vector<AliasStatement *>();
     auto fns     = std::vector<FnStatement *>();
-    auto tests   = std::vector<TestStatement *>();
     auto others  = std::vector<Statement *>();
 
     for (auto file : *files)
@@ -26,8 +25,6 @@ std::string CppBackend::emit(std::vector<File *> *files) {
             { aliases.push_back(dynamic_cast<AliasStatement *>(stmt)); }
             else if (stmt->statement_type == StatementType::STATEMENT_FN)
             { fns.push_back(dynamic_cast<FnStatement *>(stmt)); }
-            else if (stmt->statement_type == StatementType::STATEMENT_TEST)
-            { tests.push_back(dynamic_cast<TestStatement *>(stmt)); }
             else
             { others.push_back(stmt); }
         }
@@ -51,21 +48,6 @@ std::string CppBackend::emit(std::vector<File *> *files) {
     for (auto stmt : fns)
     { source_generated.append(forward_declare_function(stmt)); }
 
-    if (args->test)
-    {
-        source_generated.append("\n// test function forward declarations\n");
-
-        for (auto stmt : tests)
-        {
-            for (auto sub_stmt : stmt->tests->statements)
-            {
-                // all statements in a scope statement that is in a test statement are gaurneteed to be
-                // function statements
-                source_generated.append(forward_declare_function(static_cast<FnStatement *>(sub_stmt)));
-            }
-        }
-    }
-
     source_generated.append("\n// Source\n");
     // enum body decls
     for (auto stmt : enums)
@@ -83,26 +65,7 @@ std::string CppBackend::emit(std::vector<File *> *files) {
     for (auto stmt : others)
     { source_generated.append(emit_statement(stmt)); }
 
-    if (args->test)
-    {
-        source_generated.append("\nvoid __liam__test__() {\n");
-
-        for (auto stmt : tests)
-        {
-            for (auto fn : stmt->tests->statements)
-            {
-                auto fn_statement = static_cast<FnStatement *>(fn);
-                source_generated.append(fn_statement->identifier.string + "();\n");
-            }
-        }
-
-        source_generated.append("\n}\n");
-    }
-
-    if (args->test)
-    { source_generated.append("int main(int argc, char **argv) { __liam__test__(); return 0; }"); }
-    else
-    { source_generated.append("int main(int argc, char **argv) { __liam__main__(); return 0; }"); }
+    source_generated.append("int main(int argc, char **argv) { __liam__main__(); return 0; }");
 
     return source_generated;
 }
@@ -205,12 +168,6 @@ std::string CppBackend::emit_statement(Statement *statement) {
         break;
     case StatementType::STATEMENT_ALIAS:
         return emit_alias_statement(dynamic_cast<AliasStatement *>(statement));
-        break;
-    case StatementType::STATEMENT_TEST:
-        if (args->test)
-            return emit_test_statement(dynamic_cast<TestStatement *>(statement));
-
-        return "";
         break;
     }
 
@@ -408,15 +365,6 @@ std::string CppBackend::emit_continue_statement(ContinueStatement *statement) {
 
 std::string CppBackend::emit_alias_statement(AliasStatement *statement) {
     return "typedef " + emit_type_expression(statement->type_expression) + " " + statement->identifier.string + ";\n";
-}
-
-std::string CppBackend::emit_test_statement(TestStatement *statement) {
-    std::string source;
-
-    for (auto stmt : statement->tests->statements)
-    { source.append(emit_statement(stmt)); }
-
-    return source;
 }
 
 std::string CppBackend::emit_expression(Expression *expression) {

@@ -60,7 +60,6 @@ struct TypeChecker {
     void type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table);
     void type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table);
     void type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table);
-    void type_check_test_statement(TestStatement *statement, SymbolTable *symbol_table);
 
     void type_check_expression(Expression *expression, SymbolTable *symbol_table);
     void type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table);

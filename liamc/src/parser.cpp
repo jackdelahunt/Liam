@@ -100,9 +100,6 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_ALIAS:
         return eval_alias_statement();
         break;
-    case TokenType::TOKEN_TEST:
-        return eval_test_statement();
-        break;
     default:
         return eval_line_starting_expression();
         break;
@@ -336,13 +333,6 @@ AliasStatement *Parser::eval_alias_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
     return new AliasStatement(file, *identifier, type_expression);
-}
-
-TestStatement *Parser::eval_test_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_TEST), NULL);
-
-    auto tests = TRY_CALL_RET(eval_scope_statement(), NULL);
-    return new TestStatement(file, tests);
 }
 
 Statement *Parser::eval_line_starting_expression() {

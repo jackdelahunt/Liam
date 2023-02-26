@@ -66,7 +66,6 @@ struct Parser {
     EnumStatement *eval_enum_statement();
     ContinueStatement *eval_continue_statement();
     AliasStatement *eval_alias_statement();
-    TestStatement *eval_test_statement();
     Statement *eval_line_starting_expression();
 
     /* normal expressions */

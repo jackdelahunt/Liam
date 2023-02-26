@@ -52,7 +52,6 @@ struct BorrowChecker {
     void borrow_check_for_statement(ForStatement *statement, OwnershipTable *ownership_table);
     void borrow_check_if_statement(IfStatement *statement, OwnershipTable *ownership_table);
     void borrow_check_else_statement(ElseStatement *statement, OwnershipTable *ownership_table);
-    void borrow_check_test_statement(TestStatement *statement, OwnershipTable *ownership_table);
 
     void borrow_check_expression(Expression *expression, OwnershipTable *ownership_table);
     void borrow_check_is_expression(IsExpression *expression, OwnershipTable *ownership_table);

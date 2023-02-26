@@ -75,10 +75,6 @@ void BorrowChecker::borrow_check_statement(Statement *statement, OwnershipTable 
     case StatementType::STATEMENT_IF:
         return borrow_check_if_statement(dynamic_cast<IfStatement *>(statement), ownership_table);
         break;
-    case StatementType::STATEMENT_TEST:
-        if (args->test)
-            return borrow_check_test_statement(dynamic_cast<TestStatement *>(statement), ownership_table);
-        break;
     }
 }
 
@@ -172,9 +168,6 @@ void BorrowChecker::borrow_check_else_statement(ElseStatement *statement, Owners
     if(statement->if_statement) {
         borrow_check_if_statement(statement->if_statement, ownership_table);
     }
-}
-
-void BorrowChecker::borrow_check_test_statement(TestStatement *statement, OwnershipTable *ownership_table) {
 }
 
 void BorrowChecker::borrow_check_expression(Expression *expression, OwnershipTable *ownership_table) {

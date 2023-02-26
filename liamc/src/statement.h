@@ -28,7 +28,6 @@ enum class StatementType {
     STATEMENT_ENUM,
     STATEMENT_CONTINUE,
     STATEMENT_ALIAS,
-    STATEMENT_TEST
 };
 
 struct Statement {
@@ -152,10 +151,4 @@ struct AliasStatement : Statement {
     TypeExpression *type_expression;
 
     AliasStatement(File *file, Token identifier, TypeExpression *type_expression);
-};
-
-struct TestStatement : Statement {
-    ScopeStatement *tests;
-
-    TestStatement(File *file, ScopeStatement *tests);
 };
