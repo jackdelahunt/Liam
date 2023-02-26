@@ -5,79 +5,94 @@
 #include <algorithm>
 #include <string>
 
-std::string CppBackend::emit(File *file) {
+std::string CppBackend::emit(std::vector<File *> *files) {
+
+    auto enums   = std::vector<EnumStatement *>();
+    auto structs = std::vector<StructStatement *>();
+    auto aliases = std::vector<AliasStatement *>();
+    auto fns     = std::vector<FnStatement *>();
+    auto tests   = std::vector<TestStatement *>();
+    auto others  = std::vector<Statement *>();
+
+    for (auto file : *files)
+    {
+        for (auto stmt : file->statements)
+        {
+            if (stmt->statement_type == StatementType::STATEMENT_ENUM)
+            { enums.push_back(dynamic_cast<EnumStatement *>(stmt)); }
+            else if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
+            { structs.push_back(dynamic_cast<StructStatement *>(stmt)); }
+            else if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
+            { aliases.push_back(dynamic_cast<AliasStatement *>(stmt)); }
+            else if (stmt->statement_type == StatementType::STATEMENT_FN)
+            { fns.push_back(dynamic_cast<FnStatement *>(stmt)); }
+            else if (stmt->statement_type == StatementType::STATEMENT_TEST)
+            { tests.push_back(dynamic_cast<TestStatement *>(stmt)); }
+            else
+            { others.push_back(stmt); }
+        }
+    }
+
     auto source_generated = std::string("#include \"lib.h\"\n\n");
 
     source_generated.append("// enum forward declarations\n");
-    for (auto stmt : file->statements)
-    {
-        if (stmt->statement_type == StatementType::STATEMENT_ENUM)
-        { source_generated.append(forward_declare_enum(static_cast<EnumStatement *>(stmt))); }
-    }
+    for (auto stmt : enums)
+    { source_generated.append(forward_declare_enum(stmt)); }
 
     source_generated.append("// struct forward declarations\n");
-    for (auto stmt : file->statements)
-    {
-        if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
-        { source_generated.append(forward_declare_struct(static_cast<StructStatement *>(stmt))); }
-    }
+    for (auto stmt : structs)
+    { source_generated.append(forward_declare_struct(stmt)); }
 
     source_generated.append("// typedefs\n");
-    for (u64 i = 0; i < file->statements.size(); i++)
-    {
-        auto stmt = file->statements[i];
-        if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
-        { source_generated.append(emit_alias_statement(static_cast<AliasStatement *>(stmt))); }
-    }
+    for (auto stmt : aliases)
+    { source_generated.append(emit_alias_statement(stmt)); }
 
     source_generated.append("\n// function forward declarations\n");
-
-    for (auto stmt : file->statements)
-    {
-        if (stmt->statement_type == StatementType::STATEMENT_FN)
-        { source_generated.append(forward_declare_function(static_cast<FnStatement *>(stmt))); }
-    }
+    for (auto stmt : fns)
+    { source_generated.append(forward_declare_function(stmt)); }
 
     if (args->test)
     {
         source_generated.append("\n// test function forward declarations\n");
 
-        for (auto stmt : file->statements)
+        for (auto stmt : tests)
         {
-            if (stmt->statement_type == StatementType::STATEMENT_TEST)
+            for (auto sub_stmt : stmt->tests->statements)
             {
-                auto test_statement = static_cast<TestStatement *>(stmt);
-                for (auto sub_stmt : test_statement->tests->statements)
-                {
-                    // all statements in a scope statement that is in a test statement are gaurneteed to be
-                    // function statements
-                    source_generated.append(forward_declare_function(static_cast<FnStatement *>(sub_stmt)));
-                }
+                // all statements in a scope statement that is in a test statement are gaurneteed to be
+                // function statements
+                source_generated.append(forward_declare_function(static_cast<FnStatement *>(sub_stmt)));
             }
         }
     }
 
     source_generated.append("\n// Source\n");
+    // enum body decls
+    for (auto stmt : enums)
+    { source_generated.append(emit_enum_statement(stmt)); }
 
-    for (auto stmt : file->statements)
-    {
-        if (stmt->statement_type != StatementType::STATEMENT_ALIAS)
-            source_generated.append(emit_statement(stmt));
-    }
+    // struct body decls
+    for (auto stmt : structs)
+    { source_generated.append(emit_struct_statement(stmt)); }
+
+    // fn body decls
+    for (auto stmt : fns)
+    { source_generated.append(emit_fn_statement(stmt)); }
+
+    // anything else
+    for (auto stmt : others)
+    { source_generated.append(emit_statement(stmt)); }
 
     if (args->test)
     {
         source_generated.append("\nvoid __liam__test__() {\n");
 
-        for (auto stmt : file->statements)
+        for (auto stmt : tests)
         {
-            if (stmt->statement_type == StatementType::STATEMENT_TEST)
+            for (auto fn : stmt->tests->statements)
             {
-                for (auto fn : ((TestStatement *)stmt)->tests->statements)
-                {
-                    auto fn_statement = static_cast<FnStatement *>(fn);
-                    source_generated.append(fn_statement->identifier.string + "();\n");
-                }
+                auto fn_statement = static_cast<FnStatement *>(fn);
+                source_generated.append(fn_statement->identifier.string + "();\n");
             }
         }
 

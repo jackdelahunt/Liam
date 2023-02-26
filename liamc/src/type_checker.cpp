@@ -85,9 +85,7 @@ TypeChecker::TypeChecker() {
     current_file           = NULL;
 }
 
-File TypeChecker::type_check(std::vector<File *> *files) {
-    auto typed_file = File("<?>");
-
+void TypeChecker::type_check(std::vector<File *> *files) {
     auto structs = std::vector<StructStatement *>();
     auto aliases = std::vector<AliasStatement *>();
     auto funcs   = std::vector<FnStatement *>();
@@ -122,44 +120,36 @@ File TypeChecker::type_check(std::vector<File *> *files) {
     for (auto stmt : enums)
     {
         current_file = stmt->file;
-        TRY_CALL_RET_WITH(type_check_enum_statement(stmt, &top_level_symbol_table), typed_file);
-        typed_file.statements.push_back(stmt);
+        TRY_CALL(type_check_enum_statement(stmt, &top_level_symbol_table));
     }
 
     // struct identifier pass
     for (auto stmt : structs)
-    { TRY_CALL_RET_WITH(type_check_struct_decl(stmt, &top_level_symbol_table), typed_file); }
+    { TRY_CALL(type_check_struct_decl(stmt, &top_level_symbol_table)); }
 
     // typedefs
     for (auto stmt : aliases)
-    {
-        TRY_CALL_RET_WITH(type_check_alias_statement(stmt, &top_level_symbol_table), typed_file);
-        typed_file.statements.push_back(stmt);
-    }
+    { TRY_CALL(type_check_alias_statement(stmt, &top_level_symbol_table)); }
 
     // struct type pass
     for (auto stmt : structs)
     {
         current_file = stmt->file;
-        TRY_CALL_RET_WITH(type_check_struct_statement(stmt, &top_level_symbol_table, true), typed_file);
-        typed_file.statements.push_back(stmt);
+        TRY_CALL(type_check_struct_statement(stmt, &top_level_symbol_table, true));
     }
 
     // function decl pass
     for (auto stmt : funcs)
     {
         current_file = stmt->file;
-        TRY_CALL_RET_WITH(type_check_fn_decl(stmt, &top_level_symbol_table), typed_file);
+        TRY_CALL(type_check_fn_decl(stmt, &top_level_symbol_table));
     }
 
     for (auto stmt : others)
     {
         current_file = stmt->file;
-        TRY_CALL_RET_WITH(type_check_statement(stmt, &top_level_symbol_table, true), typed_file);
-        typed_file.statements.push_back(stmt);
+        TRY_CALL(type_check_statement(stmt, &top_level_symbol_table, true));
     }
-
-    return typed_file;
 }
 
 StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
@@ -811,7 +801,8 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
 
     if (expression->op.type == TokenType::TOKEN_STAR)
     {
-        if (expression->expression->type_info->type != TypeInfoType::WEAK_POINTER)
+        if (expression->expression->type_info->type != TypeInfoType::WEAK_POINTER &&
+            expression->expression->type_info->type != TypeInfoType::OWNED_POINTER)
         {
             ErrorReporter::report_type_checker_error(
                 current_file->path, expression, NULL, NULL, NULL, "Cannot dereference non-pointer value"

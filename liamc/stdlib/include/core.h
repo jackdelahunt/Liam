@@ -74,9 +74,13 @@ template <typename T> struct OwnedPtr {
         return this->ptr;
     }
 
+    T operator*() {
+        return *(this->ptr);
+    }
+
     ~OwnedPtr() {
         if (this->ptr)
-            delete this->ptr;
+        { delete this->ptr; }
     }
 };
 
