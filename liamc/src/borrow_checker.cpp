@@ -3,8 +3,8 @@
 #include "errors.h"
 
 OwnershipStatus::OwnershipStatus(Owner owner, TypeInfo *type_info, Span ownership_of_value) {
-    this->owner     = owner;
-    this->type_info = type_info;
+    this->owner              = owner;
+    this->type_info          = type_info;
     this->ownership_of_value = ownership_of_value;
 }
 
@@ -37,11 +37,7 @@ void BorrowChecker::borrow_check(File *file) {
     OwnershipTable empty = OwnershipTable();
 
     for (auto stmt : file->statements)
-    {
-        TRY_CALL(
-            borrow_check_statement(stmt, &empty)
-        );
-    }
+    { TRY_CALL(borrow_check_statement(stmt, &empty)); }
 }
 
 void BorrowChecker::borrow_check_statement(Statement *statement, OwnershipTable *ownership_table) {
@@ -105,11 +101,8 @@ void BorrowChecker::borrow_check_let_statement(LetStatement *statement, Ownershi
     if (statement->rhs->type_info->type == TypeInfoType::OWNED_POINTER)
     {
         ownership_table->addOwnedValue(
-            statement->identifier.string, OwnershipStatus(
-                    OwnershipStatus::SCOPE,
-                    statement->rhs->type_info,
-                    statement->rhs->span
-                    )
+            statement->identifier.string,
+            OwnershipStatus(OwnershipStatus::SCOPE, statement->rhs->type_info, statement->rhs->span)
         );
     }
 }
@@ -255,9 +248,7 @@ void BorrowChecker::borrow_check_unary_expression(UnaryExpression *expression, O
 
 void BorrowChecker::borrow_check_call_expression(CallExpression *expression, OwnershipTable *ownership_table) {
     for (auto arg : expression->args)
-    {
-        borrow_check_expression(arg, ownership_table);
-    }
+    { borrow_check_expression(arg, ownership_table); }
 }
 
 void BorrowChecker::borrow_check_identifier_expression(

@@ -51,9 +51,8 @@ struct ErrorReporter {
         TypeExpression *type_expr_2, std::string message
     );
     static void report_borrow_checker_error(
-            std::string file, Span ownership_of_value,
-    Expression *move_of_value,
-    Expression *use_after_move, std::string message
+        std::string file, Span ownership_of_value, Expression *move_of_value, Expression *use_after_move,
+        std::string message
     );
     static bool has_parse_errors();
     static bool has_type_check_errors();
