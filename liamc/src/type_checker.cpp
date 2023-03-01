@@ -116,20 +116,24 @@ void TypeChecker::type_check(std::vector<File *> *files) {
         }
     }
 
-    // enum type pass
+
+    // enum identifier pass
     for (auto stmt : enums)
     {
         current_file = stmt->file;
-        TRY_CALL(type_check_enum_statement(stmt, &top_level_symbol_table));
+        TRY_CALL(type_check_enum_decl(stmt, &top_level_symbol_table));
     }
 
     // struct identifier pass
     for (auto stmt : structs)
     { TRY_CALL(type_check_struct_decl(stmt, &top_level_symbol_table)); }
 
-    // typedefs
-    for (auto stmt : aliases)
-    { TRY_CALL(type_check_alias_statement(stmt, &top_level_symbol_table)); }
+    // enum type pass
+    for (auto stmt : enums)
+    {
+        current_file = stmt->file;
+        TRY_CALL(type_check_enum_statement(stmt, &top_level_symbol_table, true));
+    }
 
     // struct type pass
     for (auto stmt : structs)
@@ -137,6 +141,10 @@ void TypeChecker::type_check(std::vector<File *> *files) {
         current_file = stmt->file;
         TRY_CALL(type_check_struct_statement(stmt, &top_level_symbol_table, true));
     }
+
+    // aliases
+    for (auto stmt : aliases)
+    { TRY_CALL(type_check_alias_statement(stmt, &top_level_symbol_table)); }
 
     // function decl pass
     for (auto stmt : funcs)
@@ -229,6 +237,12 @@ void TypeChecker::type_check_struct_decl(StructStatement *statement, SymbolTable
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
     symbol_table->add_type(statement->identifier, new StructTypeInfo({}, {}, statement->generics.size()));
+}
+
+void TypeChecker::type_check_enum_decl(EnumStatement *statement, SymbolTable *symbol_table) {
+    // this type does exist but the type info has not been type checked yet so just
+    // add it to the table and leave its type info blank until we type check it
+    symbol_table->add_type(statement->identifier, new EnumTypeInfo(std::vector<EnumMember>()));
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table, bool top_level) {
@@ -505,14 +519,28 @@ void TypeChecker::type_check_expression_statement(ExpressionStatement *statement
     TRY_CALL(type_check_expression(statement->expression, symbol_table));
 }
 
-void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table) {
+void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table, bool top_level) {
     for(auto& member : statement->members) {
         for(auto type : member.members) {
             TRY_CALL(type_check_type_expression(type, symbol_table));
         }
     }
 
-    symbol_table->add_type(statement->identifier, new EnumTypeInfo(statement->members));
+    // if this is top level it means this should of already been added to the type table
+    // if so then get the existing type and insert the members type info
+    // else just create a new one and add it to the table
+    if(top_level) {
+        auto [existing_type, failed] = symbol_table->get_type(&statement->identifier);
+        ASSERT_MSG(!failed, "Assuming this enum is forward declared as it us top level");
+
+        ASSERT(existing_type->type == TypeInfoType::ENUM);
+
+        auto type_info = (EnumTypeInfo *)existing_type;
+        type_info->members = statement->members;
+
+    } else {
+        symbol_table->add_type(statement->identifier, new EnumTypeInfo(statement->members));
+    }
 }
 
 void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table) {
@@ -568,8 +596,8 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_FN:
         return type_check_fn_expression(dynamic_cast<FnExpression *>(expression), symbol_table);
         break;
-    case ExpressionType::EXPRESSION_SUBSCRIPT:
-        return type_check_subscript_expression(dynamic_cast<SubscriptExpression *>(expression), symbol_table);
+    case ExpressionType::EXPRESSION_ENUM_INSTANCE:
+        return type_check_enum_instance_expression(dynamic_cast<EnumInstanceExpression *>(expression), symbol_table);
         break;
     default:
         panic("Expression not implemented in type checker");
@@ -956,12 +984,6 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
 void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(expression->lhs, symbol_table));
 
-    if (expression->lhs->type_info->type == TypeInfoType::ENUM)
-    {
-        expression->type_info = expression->lhs->type_info;
-        return;
-    }
-
     TypeInfo *member_type_info       = NULL; // populated every time
     StructTypeInfo *struct_type_info = NULL; // populated every time
     StructInstanceTypeInfo *struct_instance_type_info =
@@ -1011,8 +1033,13 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     else if (expression->lhs->type_info->type == TypeInfoType::STRUCT_INSTANCE)
     {
         struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
-        assert(struct_instance_type_info->struct_type->type == TypeInfoType::STRUCT);
+        ASSERT(struct_instance_type_info->struct_type->type == TypeInfoType::STRUCT);
         struct_type_info = static_cast<StructTypeInfo *>(struct_instance_type_info->struct_type);
+    } else {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression->lhs, NULL, NULL, NULL, "Cannot derive member from non struct type"
+        );
+        return;
     }
 
     // find the type info of the member we are looking for in the struct
@@ -1287,29 +1314,79 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
     expression->type_info = new FnExpressionTypeInfo(expression->return_type->type_info, param_type_infos);
 }
 
-void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->rhs, symbol_table));
-    TRY_CALL(type_check_expression(expression->param, symbol_table));
+void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table) {
 
-    if (expression->param->type_info->type != TypeInfoType::NUMBER)
-    {
+    // make sure the lhs is an expression
+    // we could not verify this before as this comes from the parser lol
+    if(expression->lhs->type != ExpressionType::EXPRESSION_IDENTIFIER) {
         ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->param, NULL, NULL, NULL,
-            "Can only pass number types when subscripting slice type"
+            current_file->path.string(), expression->lhs, NULL, NULL, NULL,
+            "Cannot create enum instance from expression"
         );
         return;
     }
 
-    if (expression->rhs->type_info->type != TypeInfoType::SLICE)
-    {
+    auto enum_identifier = dynamic_cast<IdentifierExpression *>(expression->lhs);
+    TRY_CALL(type_check_identifier_expression(enum_identifier, symbol_table));
+
+    if(enum_identifier->type_info->type != TypeInfoType::ENUM) {
         ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->rhs, NULL, NULL, NULL, "Can only subsript slice types"
+            current_file->path.string(), expression->lhs, NULL, NULL, NULL,
+            "Cannot create enum instance from non enum type"
         );
         return;
     }
 
-    auto slice_type_info  = static_cast<SliceTypeInfo *>(expression->rhs->type_info);
-    expression->type_info = slice_type_info->to;
+    // get the index of the enum member we are trying to create
+    // verify it is in the enum type and get its index
+    auto enum_type_info = (EnumTypeInfo *)enum_identifier->type_info;
+    u64 member_index;
+    bool found = false;
+    for(member_index = 0; member_index < enum_type_info->members.size(); member_index++) {
+        auto member = enum_type_info->members[member_index];
+        if(member.identifier.string == expression->member.string) {
+            found = true;
+            break;
+        }
+    }
+
+    if(!found) {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression->lhs, NULL, NULL, NULL,
+            "No member of enum type with identifier \'" + expression->member.string + "\'"
+        );
+        return;
+    }
+
+    // verify the correct number of arguments passed
+    EnumMember member_to_create = enum_type_info->members[member_index];
+    auto expected_arg_amount = member_to_create.members.size();
+    auto actual_arg_amount_given = expression->arguments.size();
+
+    if(expected_arg_amount != actual_arg_amount_given) {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression->lhs, NULL, NULL, NULL,
+            "Mismatched number of arguments when creating enum instance, expected " + std::to_string(expected_arg_amount) + " got " +
+                std::to_string(actual_arg_amount_given)
+        );
+        return;
+    }
+
+    // type check each arg against the expected type in the enum
+    for(i64 i = 0; i < actual_arg_amount_given; i++) {
+        auto argument = expression->arguments[i];
+        TRY_CALL(type_check_expression(argument, symbol_table));
+        if(!type_match(argument->type_info, member_to_create.members[i]->type_info)) {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression->lhs, argument, NULL, NULL,
+                "Mismatched types in argument when creating enum instance, argument " + std::to_string(i) + " does not match enum member type"
+            );
+            return;
+        }
+    }
+
+    expression->member_index = member_index;
+    expression->type_info = expression->lhs->type_info;
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {
@@ -1607,12 +1684,12 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
 
         return false;
     }
-    else if (a->type == TypeInfoType::ENUM_INSTANCE)
+    else if (a->type == TypeInfoType::ENUM)
     {
-        auto enum_a = static_cast<EnumInstanceTypeInfo *>(a);
-        auto enum_b = static_cast<EnumInstanceTypeInfo *>(b);
+        auto enum_a = static_cast<EnumTypeInfo *>(a);
+        auto enum_b = static_cast<EnumTypeInfo *>(b);
 
-        return (enum_a->enum_type_info == enum_b->enum_type_info) && (enum_a->index == enum_b->index);
+        return enum_a == enum_b;
     }
     else if (a->type == TypeInfoType::FN_EXPRESSION)
     {

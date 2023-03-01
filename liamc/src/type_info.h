@@ -24,7 +24,6 @@ enum class TypeInfoType {
     GENERIC,
     UNION,
     ENUM,
-    ENUM_INSTANCE
 };
 
 struct TypeInfo {
@@ -124,12 +123,4 @@ struct EnumTypeInfo : TypeInfo {
     std::vector<EnumMember> members;
 
     EnumTypeInfo(std::vector<EnumMember> members);
-};
-
-struct EnumInstanceTypeInfo : TypeInfo {
-
-    EnumTypeInfo *enum_type_info;
-    u64 index;
-
-    EnumInstanceTypeInfo(EnumTypeInfo *enum_type_info, u64 index);
 };

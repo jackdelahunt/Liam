@@ -16,7 +16,6 @@ enum class ExpressionType {
     EXPRESSION_BOOL_LITERAL,
     EXPRESSION_IDENTIFIER,
     EXPRESSION_CALL,
-    EXPRESSION_SUBSCRIPT,
     EXPRESSION_GET,
     EXPRESSION_NEW,
     EXPRESSION_GROUP,
@@ -24,6 +23,7 @@ enum class ExpressionType {
     EXPRESSION_PROPAGATE,
     EXPRESSION_ZERO_LITERAL,
     EXPRESSION_FN,
+    EXPRESSION_ENUM_INSTANCE,
 };
 
 enum class UnaryType {
@@ -96,13 +96,6 @@ struct CallExpression : Expression {
     CallExpression(Expression *identifier, std::vector<Expression *> args, std::vector<TypeExpression *> generics);
 };
 
-struct SubscriptExpression : Expression {
-    Expression *rhs;
-    Expression *param;
-
-    SubscriptExpression(Expression *lhs, Expression *param);
-};
-
 struct GetExpression : Expression {
     Expression *lhs;
     Token member;
@@ -156,6 +149,15 @@ struct FnExpression : Expression {
     FnExpression(
         std::vector<std::tuple<Token, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
     );
+};
+
+struct EnumInstanceExpression : Expression {
+    Expression *lhs;
+    Token member;
+    std::vector<Expression *> arguments;
+    u64 member_index; // populated at type checking time
+
+    EnumInstanceExpression(Expression *lhs, Token member, std::vector<Expression *> arguments);
 };
 
 enum class TypeExpressionType {
