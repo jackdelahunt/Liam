@@ -43,6 +43,7 @@ struct TypeChecker {
 
     void type_check_fn_decl(FnStatement *statement, SymbolTable *symbol_table);
     void type_check_struct_decl(StructStatement *statement, SymbolTable *symbol_table);
+    void type_check_enum_decl(EnumStatement *statement, SymbolTable *symbol_table);
 
     void type_check_statement(Statement *statement, SymbolTable *symbol_table, bool top_level = false);
     void type_check_return_statement(ReturnStatement *statement, SymbolTable *symbol_table);
@@ -58,7 +59,7 @@ struct TypeChecker {
     void type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool top_level = false);
     void type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table);
     void type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table);
-    void type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table);
+    void type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table, bool top_level = false);
     void type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table);
 
     void type_check_expression(Expression *expression, SymbolTable *symbol_table);
@@ -79,7 +80,7 @@ struct TypeChecker {
     void type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table);
     void type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_fn_expression(FnExpression *expression, SymbolTable *symbol_table);
-    void type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table);
+    void type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table);
 
     void type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table);

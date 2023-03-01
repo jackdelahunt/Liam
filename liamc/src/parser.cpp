@@ -489,29 +489,6 @@ Expression *Parser::eval_unary() {
         return new UnaryExpression(expr, *op);
     }
 
-    return TRY_CALL_RET(eval_subscript(), NULL);
-}
-
-Expression *Parser::eval_subscript() {
-
-    if (match(TokenType::TOKEN_BRACKET_OPEN))
-    {
-        if (peek(1)->type == TokenType::TOKEN_BRACKET_CLOSE)
-        {
-            // if there is a [] with no expression in between then this is a slice
-            // literal expression so continue the parser along, if there is something
-            // in between the [ something ] then this is a subscript
-            return TRY_CALL_RET(eval_call(), NULL);
-        }
-
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
-        auto param = TRY_CALL_RET(eval_subscript(), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
-        auto expression = TRY_CALL_RET(eval_subscript(), NULL);
-
-        return new SubscriptExpression(expression, param);
-    }
-
     return TRY_CALL_RET(eval_call(), NULL);
 }
 
@@ -543,6 +520,22 @@ Expression *Parser::eval_call() {
             consume_token();
             auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
             expr            = new GetExpression(expr, *identifier);
+        }
+        else if (match(TokenType::TOKEN_COLON))
+        {
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
+
+            auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+            auto args = std::vector<Expression *>();
+
+            if(peek()->type == TokenType::TOKEN_PAREN_OPEN) {
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+                args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+            }
+
+            expr = new EnumInstanceExpression(expr, *identifier, args);
         }
         else
         { break; }
@@ -937,7 +930,7 @@ std::vector<EnumMember> Parser::consume_comma_seperated_enum_arguments(TokenType
                 TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), {});
                 enum_members.emplace_back(*identifier, types);
             } else {
-                enum_members.push_back(EnumMember(*identifier, {}));
+                enum_members.emplace_back(*identifier, std::vector<TypeExpression *>());
             }
 
             if (is_first)

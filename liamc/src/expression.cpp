@@ -60,13 +60,6 @@ CallExpression::CallExpression(
     this->span     = identifier->span;
 }
 
-SubscriptExpression::SubscriptExpression(Expression *lhs, Expression *param) {
-    this->rhs   = lhs;
-    this->param = param;
-    this->type  = ExpressionType::EXPRESSION_SUBSCRIPT;
-    this->span  = lhs->span;
-}
-
 GetExpression::GetExpression(Expression *expression, Token member) {
     this->lhs    = expression;
     this->member = member;
@@ -120,6 +113,14 @@ FnExpression::FnExpression(
     this->body        = body;
     this->type        = ExpressionType::EXPRESSION_FN;
     this->span        = return_type->span; // FIXME: use a better place to put the span for the fn expression
+}
+
+EnumInstanceExpression::EnumInstanceExpression(Expression * lhs, Token member, std::vector<Expression *> arguments) {
+    this->lhs = lhs;
+    this->member = member;
+    this->arguments = std::move(arguments);
+    this->member_index = -1; // yes I am setting a u64 to -1, go cry about it
+    this->type = ExpressionType::EXPRESSION_ENUM_INSTANCE;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {

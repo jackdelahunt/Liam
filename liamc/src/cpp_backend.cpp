@@ -372,12 +372,14 @@ std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
 
     /*
      * struct X {
+     *      u64 index;
      *      union Members {
      *          __{EnumName}Members::Member __Member;
      *      } members;
      * };
      */
     source.append("struct " + statement->identifier.string + " {\n");
+    source.append("u64 index;\n");
     source.append("union Members {\n");
     for(auto& member : statement->members) {
         source.append("__" + statement->identifier.string + "Members::" + member.identifier.string + " __" + member.identifier.string + ";\n");
@@ -444,8 +446,8 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_FN:
         return emit_fn_expression(dynamic_cast<FnExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_SUBSCRIPT:
-        return emit_subscript_expression(dynamic_cast<SubscriptExpression *>(expression));
+    case ExpressionType::EXPRESSION_ENUM_INSTANCE:
+        return emit_enum_instance_expression(dynamic_cast<EnumInstanceExpression *>(expression));
         break;
     default: {
         panic("Cannot emit this expression in cpp backend");
@@ -756,10 +758,31 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
     return source;
 }
 
-std::string CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
-    std::string source = emit_expression(expression->rhs) + "[";
-    source.append(emit_expression(expression->param));
-    source.append("]");
+std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *expression) {
+    std::string source = "";
+
+    /*
+    * let expr := Expr::Number(100);
+    * Expr expr = Expr{.index = 0, .members.__Number = __ExprMembers::Number{100}};
+     */
+
+    std::string enum_type = emit_expression(expression->lhs);
+
+    source.append(enum_type + "{.index = " + std::to_string(expression->member_index) + ", .members.__" + expression->member.string +
+                  " = __" + enum_type + "Members::" + expression->member.string + "{"
+                  );
+
+    int index = 0;
+
+    for (auto expr : expression->arguments)
+    {
+        source.append(emit_expression(expr));
+        if (index + 1 < expression->arguments.size())
+        { source.append(", "); }
+        index++;
+    }
+
+    source.append("}}");
     return source;
 }
 
