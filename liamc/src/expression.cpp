@@ -76,7 +76,7 @@ InstantiateExpression::InstantiateExpression(
     this->named_expressions = named_expressions;
     this->instantiate_type  = instantiate_type;
     this->span              = identifier.span;
-    this->type              = ExpressionType::EXPRESSION_NEW;
+    this->type              = ExpressionType::EXPRESSION_INSTANTIATION;
 }
 
 GroupExpression::GroupExpression(Expression *expression) {
@@ -115,12 +115,12 @@ FnExpression::FnExpression(
     this->span        = return_type->span; // FIXME: use a better place to put the span for the fn expression
 }
 
-EnumInstanceExpression::EnumInstanceExpression(Expression * lhs, Token member, std::vector<Expression *> arguments) {
-    this->lhs = lhs;
-    this->member = member;
-    this->arguments = std::move(arguments);
+EnumInstanceExpression::EnumInstanceExpression(Expression *lhs, Token member, std::vector<Expression *> arguments) {
+    this->lhs          = lhs;
+    this->member       = member;
+    this->arguments    = std::move(arguments);
     this->member_index = -1; // yes I am setting a u64 to -1, go cry about it
-    this->type = ExpressionType::EXPRESSION_ENUM_INSTANCE;
+    this->type         = ExpressionType::EXPRESSION_ENUM_INSTANCE;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {

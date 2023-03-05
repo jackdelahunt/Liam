@@ -116,7 +116,6 @@ void TypeChecker::type_check(std::vector<File *> *files) {
         }
     }
 
-
     // enum identifier pass
     for (auto stmt : enums)
     {
@@ -520,27 +519,27 @@ void TypeChecker::type_check_expression_statement(ExpressionStatement *statement
 }
 
 void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table, bool top_level) {
-    for(auto& member : statement->members) {
-        for(auto type : member.members) {
-            TRY_CALL(type_check_type_expression(type, symbol_table));
-        }
+    for (auto &member : statement->members)
+    {
+        for (auto type : member.members)
+        { TRY_CALL(type_check_type_expression(type, symbol_table)); }
     }
 
     // if this is top level it means this should of already been added to the type table
     // if so then get the existing type and insert the members type info
     // else just create a new one and add it to the table
-    if(top_level) {
+    if (top_level)
+    {
         auto [existing_type, failed] = symbol_table->get_type(&statement->identifier);
         ASSERT_MSG(!failed, "Assuming this enum is forward declared as it us top level");
 
         ASSERT(existing_type->type == TypeInfoType::ENUM);
 
-        auto type_info = (EnumTypeInfo *)existing_type;
+        auto type_info     = (EnumTypeInfo *)existing_type;
         type_info->members = statement->members;
-
-    } else {
-        symbol_table->add_type(statement->identifier, new EnumTypeInfo(statement->members));
     }
+    else
+    { symbol_table->add_type(statement->identifier, new EnumTypeInfo(statement->members)); }
 }
 
 void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table) {
@@ -578,7 +577,7 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_GET:
         return type_check_get_expression(dynamic_cast<GetExpression *>(expression), symbol_table);
         break;
-    case ExpressionType::EXPRESSION_NEW:
+    case ExpressionType::EXPRESSION_INSTANTIATION:
         return type_check_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression), symbol_table);
         break;
     case ExpressionType::EXPRESSION_GROUP:
@@ -1035,7 +1034,9 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
         struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
         ASSERT(struct_instance_type_info->struct_type->type == TypeInfoType::STRUCT);
         struct_type_info = static_cast<StructTypeInfo *>(struct_instance_type_info->struct_type);
-    } else {
+    }
+    else
+    {
         ErrorReporter::report_type_checker_error(
             current_file->path, expression->lhs, NULL, NULL, NULL, "Cannot derive member from non struct type"
         );
@@ -1318,10 +1319,10 @@ void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *ex
 
     // make sure the lhs is an expression
     // we could not verify this before as this comes from the parser lol
-    if(expression->lhs->type != ExpressionType::EXPRESSION_IDENTIFIER) {
+    if (expression->lhs->type != ExpressionType::EXPRESSION_IDENTIFIER)
+    {
         ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->lhs, NULL, NULL, NULL,
-            "Cannot create enum instance from expression"
+            current_file->path.string(), expression->lhs, NULL, NULL, NULL, "Cannot create enum instance from expression"
         );
         return;
     }
@@ -1329,10 +1330,10 @@ void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *ex
     auto enum_identifier = dynamic_cast<IdentifierExpression *>(expression->lhs);
     TRY_CALL(type_check_identifier_expression(enum_identifier, symbol_table));
 
-    if(enum_identifier->type_info->type != TypeInfoType::ENUM) {
+    if (enum_identifier->type_info->type != TypeInfoType::ENUM)
+    {
         ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->lhs, NULL, NULL, NULL,
-            "Cannot create enum instance from non enum type"
+            current_file->path.string(), expression->lhs, NULL, NULL, NULL, "Cannot create enum instance from non enum type"
         );
         return;
     }
@@ -1342,15 +1343,18 @@ void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *ex
     auto enum_type_info = (EnumTypeInfo *)enum_identifier->type_info;
     u64 member_index;
     bool found = false;
-    for(member_index = 0; member_index < enum_type_info->members.size(); member_index++) {
+    for (member_index = 0; member_index < enum_type_info->members.size(); member_index++)
+    {
         auto member = enum_type_info->members[member_index];
-        if(member.identifier.string == expression->member.string) {
+        if (member.identifier.string == expression->member.string)
+        {
             found = true;
             break;
         }
     }
 
-    if(!found) {
+    if (!found)
+    {
         ErrorReporter::report_type_checker_error(
             current_file->path, expression->lhs, NULL, NULL, NULL,
             "No member of enum type with identifier \'" + expression->member.string + "\'"
@@ -1359,34 +1363,38 @@ void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *ex
     }
 
     // verify the correct number of arguments passed
-    EnumMember member_to_create = enum_type_info->members[member_index];
-    auto expected_arg_amount = member_to_create.members.size();
+    EnumMember member_to_create  = enum_type_info->members[member_index];
+    auto expected_arg_amount     = member_to_create.members.size();
     auto actual_arg_amount_given = expression->arguments.size();
 
-    if(expected_arg_amount != actual_arg_amount_given) {
+    if (expected_arg_amount != actual_arg_amount_given)
+    {
         ErrorReporter::report_type_checker_error(
             current_file->path, expression->lhs, NULL, NULL, NULL,
-            "Mismatched number of arguments when creating enum instance, expected " + std::to_string(expected_arg_amount) + " got " +
-                std::to_string(actual_arg_amount_given)
+            "Mismatched number of arguments when creating enum instance, expected " +
+                std::to_string(expected_arg_amount) + " got " + std::to_string(actual_arg_amount_given)
         );
         return;
     }
 
     // type check each arg against the expected type in the enum
-    for(i64 i = 0; i < actual_arg_amount_given; i++) {
+    for (i64 i = 0; i < actual_arg_amount_given; i++)
+    {
         auto argument = expression->arguments[i];
         TRY_CALL(type_check_expression(argument, symbol_table));
-        if(!type_match(argument->type_info, member_to_create.members[i]->type_info)) {
+        if (!type_match(argument->type_info, member_to_create.members[i]->type_info))
+        {
             ErrorReporter::report_type_checker_error(
                 current_file->path, expression->lhs, argument, NULL, NULL,
-                "Mismatched types in argument when creating enum instance, argument " + std::to_string(i) + " does not match enum member type"
+                "Mismatched types in argument when creating enum instance, argument " + std::to_string(i) +
+                    " does not match enum member type"
             );
             return;
         }
     }
 
     expression->member_index = member_index;
-    expression->type_info = expression->lhs->type_info;
+    expression->type_info    = expression->lhs->type_info;
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {

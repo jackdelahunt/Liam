@@ -76,9 +76,8 @@ std::string CppBackend::forward_declare_enum(EnumStatement *statement) {
     // enum struct member namespace forward decl
     source.append("namespace __" + statement->identifier.string + "Members {\n");
 
-    for(auto& member : statement->members) {
-        source.append("struct " + member.identifier.string + ";\n");
-    }
+    for (auto &member : statement->members)
+    { source.append("struct " + member.identifier.string + ";\n"); }
 
     source.append("}\n\n");
 
@@ -344,7 +343,6 @@ std::string CppBackend::emit_else_statement(ElseStatement *statement) {
 std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
     std::string source = "";
 
-
     /*
      * namespace __{EnumName}Members {
      *      struct Member {
@@ -359,9 +357,11 @@ std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
     // have its members as the structs defined in the namespace
     source.append("namespace __" + statement->identifier.string + "Members {\n");
 
-    for(auto& member : statement->members) {
+    for (auto &member : statement->members)
+    {
         source.append("struct " + member.identifier.string + " {\n");
-        for(int i = 0; i < member.members.size(); i++) {
+        for (int i = 0; i < member.members.size(); i++)
+        {
             source.append(emit_type_expression(member.members[i]) + " __" + std::to_string(i));
             source.append(";\n");
         }
@@ -381,8 +381,12 @@ std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
     source.append("struct " + statement->identifier.string + " {\n");
     source.append("u64 index;\n");
     source.append("union Members {\n");
-    for(auto& member : statement->members) {
-        source.append("__" + statement->identifier.string + "Members::" + member.identifier.string + " __" + member.identifier.string + ";\n");
+    for (auto &member : statement->members)
+    {
+        source.append(
+            "__" + statement->identifier.string + "Members::" + member.identifier.string + " __" +
+            member.identifier.string + ";\n"
+        );
     }
     source.append("} members;\n");
     source.append("};\n");
@@ -428,7 +432,7 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_GET:
         return emit_get_expression(dynamic_cast<GetExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_NEW:
+    case ExpressionType::EXPRESSION_INSTANTIATION:
         return emit_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_GROUP:
@@ -762,15 +766,16 @@ std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *ex
     std::string source = "";
 
     /*
-    * let expr := Expr::Number(100);
-    * Expr expr = Expr{.index = 0, .members.__Number = __ExprMembers::Number{100}};
+     * let expr := Expr::Number(100);
+     * Expr expr = Expr{.index = 0, .members.__Number = __ExprMembers::Number{100}};
      */
 
     std::string enum_type = emit_expression(expression->lhs);
 
-    source.append(enum_type + "{.index = " + std::to_string(expression->member_index) + ", .members.__" + expression->member.string +
-                  " = __" + enum_type + "Members::" + expression->member.string + "{"
-                  );
+    source.append(
+        enum_type + "{.index = " + std::to_string(expression->member_index) + ", .members.__" +
+        expression->member.string + " = __" + enum_type + "Members::" + expression->member.string + "{"
+    );
 
     int index = 0;
 

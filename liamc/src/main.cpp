@@ -8,8 +8,6 @@
 #include "liam.h"
 #include <functional>
 
-#ifndef TEST
-
 i32 main(i32 argc, char **argv) {
 
     TIME_START(total_time);
@@ -45,4 +43,3 @@ i32 main(i32 argc, char **argv) {
 
     return 0;
 }
-#endif

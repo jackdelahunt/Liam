@@ -28,6 +28,7 @@ enum class StatementType {
     STATEMENT_ENUM,
     STATEMENT_CONTINUE,
     STATEMENT_ALIAS,
+    STATEMENT_MATCH,
 };
 
 struct EnumMember {
