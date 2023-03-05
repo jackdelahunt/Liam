@@ -161,13 +161,11 @@ void BorrowChecker::borrow_check_else_statement(ElseStatement *statement, Owners
     ASSERT(statement->body || statement->if_statement);
     ASSERT(!(statement->body && statement->if_statement));
 
-    if(statement->body) {
-        borrow_check_scope_statement(statement->body, ownership_table);
-    }
+    if (statement->body)
+    { borrow_check_scope_statement(statement->body, ownership_table); }
 
-    if(statement->if_statement) {
-        borrow_check_if_statement(statement->if_statement, ownership_table);
-    }
+    if (statement->if_statement)
+    { borrow_check_if_statement(statement->if_statement, ownership_table); }
 }
 
 void BorrowChecker::borrow_check_expression(Expression *expression, OwnershipTable *ownership_table) {
@@ -191,7 +189,7 @@ void BorrowChecker::borrow_check_expression(Expression *expression, OwnershipTab
     case ExpressionType::EXPRESSION_GET:
         borrow_check_get_expression(dynamic_cast<GetExpression *>(expression), ownership_table);
         break;
-    case ExpressionType::EXPRESSION_NEW:
+    case ExpressionType::EXPRESSION_INSTANTIATION:
         borrow_check_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression), ownership_table);
         break;
     case ExpressionType::EXPRESSION_GROUP:
@@ -304,5 +302,4 @@ void BorrowChecker::borrow_check_fn_expression(FnExpression *expression, Ownersh
     }
 
     borrow_check_scope_statement(expression->body, &ownership_table_copy);
-
 }

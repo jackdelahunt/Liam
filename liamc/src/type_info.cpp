@@ -76,6 +76,6 @@ UnionTypeInfo::UnionTypeInfo(std::vector<TypeInfo *> types) {
 }
 
 EnumTypeInfo::EnumTypeInfo(std::vector<EnumMember> members) {
-    this->members  = members;
-    this->type       = TypeInfoType::ENUM;
+    this->members = members;
+    this->type    = TypeInfoType::ENUM;
 }

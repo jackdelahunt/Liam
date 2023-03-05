@@ -18,7 +18,6 @@ pub fn build(b: *std.build.Builder) void {
     exe.addCSourceFile("src/liam.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/parser.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/statement.cpp", &[_][]const u8{});
-    exe.addCSourceFile("src/test.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/type_checker.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/type_info.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/utils.cpp", &[_][]const u8{});

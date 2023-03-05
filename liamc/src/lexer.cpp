@@ -30,8 +30,9 @@ const char *TokenTypeStrings[54] = {"int Literal", "string Literal",
                                     "extern",      "|",
                                     "is",          "null",
                                     "enum",        "continue",
-                                    "alias",       "as", "zero",
-                                    "weak",        "make"};
+                                    "alias",       "as",
+                                    "zero",        "weak",
+                                    "make"};
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
     this->type   = type;

@@ -6,7 +6,7 @@
 
 EnumMember::EnumMember(Token identifier, std::vector<TypeExpression *> members) {
     this->identifier = identifier;
-    this->members = members;
+    this->members    = members;
 }
 
 std::ostream &Statement::format(std::ostream &os) const {
@@ -117,7 +117,7 @@ BreakStatement::BreakStatement(File *file) {
 EnumStatement::EnumStatement(File *file, Token identifier, std::vector<EnumMember> members) {
     this->file           = file;
     this->identifier     = identifier;
-    this->members      = members;
+    this->members        = members;
     this->statement_type = StatementType::STATEMENT_ENUM;
 }
 

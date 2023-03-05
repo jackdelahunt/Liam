@@ -481,6 +481,7 @@ Expression *Parser::eval_factor() {
 }
 
 Expression *Parser::eval_unary() {
+
     if (match(TokenType::TOKEN_AT) || match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_NOT))
     {
         auto op   = consume_token();
@@ -527,9 +528,10 @@ Expression *Parser::eval_call() {
             TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
 
             auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-            auto args = std::vector<Expression *>();
+            auto args       = std::vector<Expression *>();
 
-            if(peek()->type == TokenType::TOKEN_PAREN_OPEN) {
+            if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
+            {
                 TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
                 args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
                 TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
@@ -912,8 +914,8 @@ std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_nam
 
 // Null, Number(i64), String(str)
 std::vector<EnumMember> Parser::consume_comma_seperated_enum_arguments(TokenType closer) {
-    auto enum_members    = std::vector<EnumMember>();
-    bool is_first = true;
+    auto enum_members = std::vector<EnumMember>();
+    bool is_first     = true;
     if (!match(closer))
     {
         do
@@ -929,9 +931,9 @@ std::vector<EnumMember> Parser::consume_comma_seperated_enum_arguments(TokenType
                 auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_PAREN_CLOSE), {});
                 TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), {});
                 enum_members.emplace_back(*identifier, types);
-            } else {
-                enum_members.emplace_back(*identifier, std::vector<TypeExpression *>());
             }
+            else
+            { enum_members.emplace_back(*identifier, std::vector<TypeExpression *>()); }
 
             if (is_first)
                 is_first = false;
