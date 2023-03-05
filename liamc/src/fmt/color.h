@@ -672,7 +672,7 @@ template <typename T, typename Char> struct formatter<detail::styled_arg<T>, Cha
 
   **Example**::
 
-    fmt::print("Elapsed time: {s:.2f} seconds",
+    fmt::print("Elapsed time: {0:.2f} seconds",
                fmt::styled(1.23, fmt::fg(fmt::color::green) |
                                  fmt::bg(fmt::color::blue)));
   \endrst

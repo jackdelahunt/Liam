@@ -2,16 +2,11 @@
 
 import "stdlib/basic.liam";
 
-alias Foo as u64 | bool;
-
-struct Person {
-    foo: Foo
-}
+alias Foo as bool;
 
 fn main() void {
-    let p := make Person{foo: false};
-
-    if p.foo is bool as b {
-        println[bool](*b);
+    let foo := false;
+    if !foo {
+        println[str]("0");
     }
 }
