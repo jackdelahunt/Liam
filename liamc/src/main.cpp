@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "args.h"
-#include "backends/cpp_backend.h"
+#include "cpp_backend.h"
 #include "compiler.h"
 #include "liam.h"
 #include <functional>
@@ -11,6 +11,8 @@
 #ifndef TEST
 
 i32 main(i32 argc, char **argv) {
+
+    TIME_START(total_time);
 
     Arguments::New(argc, argv);
 
@@ -38,6 +40,8 @@ i32 main(i32 argc, char **argv) {
 
     out_file << code;
     out_file.close();
+
+    TIME_END(total_time, "Total compile time");
 
     return 0;
 }

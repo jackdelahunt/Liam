@@ -24,3 +24,5 @@ liamc/out.cpp
 *.exe
 liamc/release
 **/Makefile
+**/zig-cache
+**/zig-out

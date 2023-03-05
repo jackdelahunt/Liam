@@ -702,27 +702,26 @@ std::string CppBackend::emit_null_literal_expression(NullLiteralExpression *expr
 
 std::string CppBackend::emit_propagate_expression(PropagateExpression *expression) {
 
-    std::string source = R"(
+    constexpr auto source_template = R"(
 ({{
         //                  vv expression given
         auto __evaluated = ({});
         //                            vv type expression given
         if (auto __temp = std::get_if<{}>(&__evaluated))
-            return *__temp;
+             return *__temp;
 
-        //                              vv type list from else type
+        //                                  vv type list from else type
         auto v = LiamInternal::cast_variant<{}>(__evaluated);
-
         {}
 }})
 )";
 
-    std::string single_type_source = R"(
+    constexpr auto single_type_source = R"(
     //          vv if type list is single then extract type
     std::get<{}>(v);
 )";
 
-    std::string multi_type_source = R"(
+    constexpr auto multi_type_source = R"(
     v;
 )";
 
@@ -743,17 +742,18 @@ std::string CppBackend::emit_propagate_expression(PropagateExpression *expressio
     else
     { type_list = emit_type_expression(expression->otherwise); }
 
+    std::string source;
     if (expression->otherwise->type == TypeExpressionType::TYPE_UNION)
     {
         source = fmt::format(
-            source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
+            source_template, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
             type_list, multi_type_source
         );
     }
     else
     {
         source = fmt::format(
-            source, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
+            source_template, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
             type_list, fmt::format(single_type_source, emit_type_expression(expression->otherwise))
         );
     }
