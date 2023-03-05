@@ -1227,6 +1227,12 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
 
 void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table) {
 
+    ASSERT_MSG(
+        expression->instantiate_type == InstantiateExpression::InstantiateType::NEW ||
+            expression->instantiate_type == InstantiateExpression::InstantiateType::MAKE,
+        "Assuming you can only use make or new, if there are new options this will assert"
+    );
+
     if (expression->expression->type != ExpressionType::EXPRESSION_STRUCT_INSTANCE &&
         expression->expression->type != ExpressionType::EXPRESSION_ENUM_INSTANCE)
     {
@@ -1239,7 +1245,10 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
 
     TRY_CALL(type_check_expression(expression->expression, symbol_table));
 
-    expression->type_info = expression->expression->type_info;
+    if (expression->instantiate_type == InstantiateExpression::InstantiateType::NEW)
+    { expression->type_info = new OwnedPointerTypeInfo(expression->expression->type_info); }
+    else
+    { expression->type_info = expression->expression->type_info; }
 }
 
 void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table) {

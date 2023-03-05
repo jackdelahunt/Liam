@@ -370,12 +370,24 @@ std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
     }
     source.append("}\n\n\n");
 
+    constexpr auto overload_ops_template = R"(
+bool operator==(const {}& other) const {{
+        return this->index == other.index;
+    }}
+
+    bool operator!=(const {}& other) const {{
+        return this->index != other.index;
+    }}
+)";
+
     /*
      * struct X {
      *      u64 index;
      *      union Members {
      *          __{EnumName}Members::Member __Member;
      *      } members;
+     *
+     *      {overload operators}
      * };
      */
     source.append("struct " + statement->identifier.string + " {\n");
@@ -389,6 +401,7 @@ std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
         );
     }
     source.append("} members;\n");
+    source.append(fmt::format(overload_ops_template, statement->identifier.string, statement->identifier.string));
     source.append("};\n");
 
     return source;

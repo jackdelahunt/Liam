@@ -2,6 +2,7 @@
 //B
 //A != B
 //A == A
+//B == B
 
 import "stdlib/basic.liam";
 
@@ -11,20 +12,26 @@ enum Foo {
 }
 
 fn main() void {
-    if Foo.A == Foo.A {
+    if make Foo::A == make Foo::A {
         println[str]("A");
     }
 
-    if Foo.B == Foo.B {
+    if make Foo::B == make Foo::B {
         println[str]("B");
     }
 
-    if Foo.A != Foo.B {
+    if make Foo::A != make Foo::B {
         println[str]("A != B");
     }
 
-    let x := Foo.A;
-    if x == Foo.A {
+    let x := make Foo::A;
+    if x == make Foo::A {
         println[str]("A == A");
+    }
+
+    let y := make Foo::A;
+    y = make Foo::B;
+    if y == make Foo::B {
+        println[str]("B == B");
     }
 }

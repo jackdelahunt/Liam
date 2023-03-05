@@ -5,7 +5,7 @@ import subprocess
 import os
 
 source_dir = os.path.dirname(__file__) + "/liam/"
-compiler_path = os.path.dirname(__file__) + "/../bin/liamc/liamc"
+compiler_path = os.path.dirname(__file__) + "/../zig-out/bin/liamc"
 stdlib_path = os.path.dirname(__file__) + "/../stdlib"
 source_files = [source_dir + f for f in listdir(source_dir) if isfile(join(source_dir, f))]
 
