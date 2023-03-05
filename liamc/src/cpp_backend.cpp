@@ -432,9 +432,6 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_GET:
         return emit_get_expression(dynamic_cast<GetExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_INSTANTIATION:
-        return emit_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
-        break;
     case ExpressionType::EXPRESSION_GROUP:
         return emit_group_expression(dynamic_cast<GroupExpression *>(expression));
         break;
@@ -449,6 +446,12 @@ std::string CppBackend::emit_expression(Expression *expression) {
         break;
     case ExpressionType::EXPRESSION_FN:
         return emit_fn_expression(dynamic_cast<FnExpression *>(expression));
+        break;
+    case ExpressionType::EXPRESSION_INSTANTIATION:
+        return emit_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
+        break;
+    case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
+        return emit_struct_instance_expression(dynamic_cast<StructInstanceExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_ENUM_INSTANCE:
         return emit_enum_instance_expression(dynamic_cast<EnumInstanceExpression *>(expression));
@@ -639,39 +642,6 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     return emit_expression(expression->lhs) + "." + expression->member.string;
 }
 
-std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expression) {
-    auto source = std::string();
-
-    // |          New            |
-    // |            |   Make   ||
-    // |                        |
-    // OwnedPtr(new Foo{x, y, z});
-
-    if (expression->instantiate_type == InstantiateExpression::NEW)
-    { source.append("LiamInternal::OwnedPtr(new "); }
-
-    source.append(expression->identifier.string);
-
-    source.append(emit_cpp_template_params(&expression->generics));
-
-    source.append("{");
-    int index = 0;
-    for (auto [name, expr] : expression->named_expressions)
-    {
-        source.append(emit_expression(expr));
-        if (index + 1 < expression->named_expressions.size())
-        { source.append(", "); }
-        index++;
-    }
-    source.append("}");
-
-    // add the final ) for tbe Owned Ptr constructor
-    if (expression->instantiate_type == InstantiateExpression::NEW)
-    { source.append(")"); }
-
-    return source;
-}
-
 std::string CppBackend::emit_group_expression(GroupExpression *expression) {
     return "(" + emit_expression(expression->expression) + ")";
 }
@@ -762,6 +732,22 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
     return source;
 }
 
+std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expression) {
+    auto source = std::string();
+
+    // OwnedPtr(new {expr});
+    if (expression->instantiate_type == InstantiateExpression::NEW)
+    { source.append("LiamInternal::OwnedPtr(new "); }
+
+    source.append(emit_expression(expression->expression));
+
+    // add the final ) for tbe Owned Ptr constructor
+    if (expression->instantiate_type == InstantiateExpression::NEW)
+    { source.append(")"); }
+
+    return source;
+}
+
 std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *expression) {
     std::string source = "";
 
@@ -770,7 +756,7 @@ std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *ex
      * Expr expr = Expr{.index = 0, .members.__Number = __ExprMembers::Number{100}};
      */
 
-    std::string enum_type = emit_expression(expression->lhs);
+    std::string enum_type = expression->lhs.string;
 
     source.append(
         enum_type + "{.index = " + std::to_string(expression->member_index) + ", .members.__" +
@@ -788,6 +774,27 @@ std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *ex
     }
 
     source.append("}}");
+    return source;
+}
+
+std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression *expression) {
+    std::string source;
+
+    source.append(expression->identifier.string);
+
+    source.append(emit_cpp_template_params(&expression->generics));
+
+    source.append("{");
+    int index = 0;
+    for (auto [name, expr] : expression->named_expressions)
+    {
+        source.append(emit_expression(expr));
+        if (index + 1 < expression->named_expressions.size())
+        { source.append(", "); }
+        index++;
+    }
+    source.append("}");
+
     return source;
 }
 

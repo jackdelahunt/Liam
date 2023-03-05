@@ -85,6 +85,8 @@ struct Parser {
     Expression *eval_primary();
     Expression *eval_fn();
     Expression *eval_instantiate_expression();
+    Expression *eval_enum_instance_expression();
+    Expression *eval_struct_instance_expression();
     Expression *eval_group_expression();
 
     /* return_type expressions */

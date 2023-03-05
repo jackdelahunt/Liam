@@ -41,13 +41,14 @@ struct CppBackend {
     std::string emit_call_expression(CallExpression *expression);
     std::string emit_identifier_expression(IdentifierExpression *expression);
     std::string emit_get_expression(GetExpression *expression);
-    std::string emit_instantiate_expression(InstantiateExpression *expression);
     std::string emit_group_expression(GroupExpression *expression);
     std::string emit_null_literal_expression(NullLiteralExpression *expression);
     std::string emit_propagate_expression(PropagateExpression *expression);
     std::string emit_zero_literal_expression(ZeroLiteralExpression *expression);
     std::string emit_fn_expression(FnExpression *expression);
+    std::string emit_instantiate_expression(InstantiateExpression *expression);
     std::string emit_enum_instance_expression(EnumInstanceExpression *expression);
+    std::string emit_struct_instance_expression(StructInstanceExpression *expression);
 
     std::string emit_type_expression(TypeExpression *type_expression);
     std::string emit_unary_type_expression(UnaryTypeExpression *type_expression);

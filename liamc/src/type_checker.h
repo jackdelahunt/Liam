@@ -74,13 +74,14 @@ struct TypeChecker {
     void type_check_fn_call_expression(CallExpression *expression, SymbolTable *symbol_table);
     void type_check_fn_expression_call_expression(CallExpression *expression, SymbolTable *symbol_table);
     void type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table);
-    void type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table);
     void type_check_group_expression(GroupExpression *expression, SymbolTable *symbol_table);
     void type_check_null_literal_expression(NullLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table);
     void type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_fn_expression(FnExpression *expression, SymbolTable *symbol_table);
+    void type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table);
     void type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table);
+    void type_check_struct_instance_expression(StructInstanceExpression *expression, SymbolTable *symbol_table);
 
     void type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table);
