@@ -276,6 +276,7 @@ void BorrowChecker::borrow_check_get_expression(GetExpression *expression, Owner
 void BorrowChecker::borrow_check_instantiate_expression(
     InstantiateExpression *expression, OwnershipTable *ownership_table
 ) {
+    borrow_check_expression(expression->expression, ownership_table);
 }
 
 void BorrowChecker::borrow_check_group_expression(GroupExpression *expression, OwnershipTable *ownership_table) {

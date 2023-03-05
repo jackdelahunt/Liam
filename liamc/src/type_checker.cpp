@@ -298,7 +298,8 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
         {
             ErrorReporter::report_type_checker_error(
-                current_file->path.string(), statement->rhs, NULL, statement->type, NULL, "Mismatched types in let statement"
+                current_file->path.string(), statement->rhs, NULL, statement->type, NULL,
+                "Mismatched types in let statement"
             );
             return;
         }
@@ -577,9 +578,6 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_GET:
         return type_check_get_expression(dynamic_cast<GetExpression *>(expression), symbol_table);
         break;
-    case ExpressionType::EXPRESSION_INSTANTIATION:
-        return type_check_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression), symbol_table);
-        break;
     case ExpressionType::EXPRESSION_GROUP:
         return type_check_group_expression(dynamic_cast<GroupExpression *>(expression), symbol_table);
         break;
@@ -594,6 +592,14 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         break;
     case ExpressionType::EXPRESSION_FN:
         return type_check_fn_expression(dynamic_cast<FnExpression *>(expression), symbol_table);
+        break;
+    case ExpressionType::EXPRESSION_INSTANTIATION:
+        return type_check_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression), symbol_table);
+        break;
+    case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
+        return type_check_struct_instance_expression(
+            dynamic_cast<StructInstanceExpression *>(expression), symbol_table
+        );
         break;
     case ExpressionType::EXPRESSION_ENUM_INSTANCE:
         return type_check_enum_instance_expression(dynamic_cast<EnumInstanceExpression *>(expression), symbol_table);
@@ -650,7 +656,8 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     if (!type_match(expression->left->type_info, expression->right->type_info))
     {
         ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->left, expression->right, NULL, NULL, "Type mismatch in binary expression"
+            current_file->path.string(), expression->left, expression->right, NULL, NULL,
+            "Type mismatch in binary expression"
         );
         return;
     }
@@ -824,7 +831,8 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
         if (expression->expression->type_info->type != TypeInfoType::BOOLEAN)
         {
             ErrorReporter::report_type_checker_error(
-                current_file->path.string(), expression, NULL, NULL, NULL, "Cannot use unary operator ! on non-boolean type"
+                current_file->path.string(), expression, NULL, NULL, NULL,
+                "Cannot use unary operator ! on non-boolean type"
             );
             return;
         }
@@ -1003,7 +1011,8 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
         else
         {
             ErrorReporter::report_type_checker_error(
-                current_file->path.string(), expression->lhs, NULL, NULL, NULL, "Cannot derive member from non struct type"
+                current_file->path.string(), expression->lhs, NULL, NULL, NULL,
+                "Cannot derive member from non struct type"
             );
             return;
         }
@@ -1022,7 +1031,8 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
         else
         {
             ErrorReporter::report_type_checker_error(
-                current_file->path.string(), expression->lhs, NULL, NULL, NULL, "Cannot derive member from non struct type"
+                current_file->path.string(), expression->lhs, NULL, NULL, NULL,
+                "Cannot derive member from non struct type"
             );
             return;
         }
@@ -1087,7 +1097,235 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     expression->type_info = member_type_info;
 }
 
+void TypeChecker::type_check_group_expression(GroupExpression *expression, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+    expression->type_info = expression->expression->type_info;
+}
+
+void TypeChecker::type_check_null_literal_expression(NullLiteralExpression *expression, SymbolTable *symbol_table) {
+    expression->type_info = new WeakPointerTypeInfo(new AnyTypeInfo());
+}
+
+void TypeChecker::type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+    TRY_CALL(type_check_type_expression(expression->type_expression, symbol_table));
+    TRY_CALL(type_check_type_expression(expression->otherwise, symbol_table));
+
+    if (expression->expression->type_info->type != TypeInfoType::UNION)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path.string(), expression->expression, NULL, NULL, NULL,
+            "Can only use propagation on union types"
+        );
+        return;
+    }
+
+    // find the index of the type expression in the union type if
+    // not there then report an error
+    auto expression_union_type = static_cast<UnionTypeInfo *>(expression->expression->type_info);
+    i64 index                  = -1;
+    for (i64 i = 0; i < expression_union_type->types.size(); i++)
+    {
+        auto t = expression_union_type->types[i];
+        if (type_match(t, expression->type_expression->type_info))
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path.string(), expression->expression, NULL, expression->type_expression, NULL,
+            "Union type does not contain this type"
+        );
+        return;
+    }
+
+    // we konw index in union types of our type, if we remove this type the resulting
+    // type is the return type, if the union with the type removed is a single type
+    // then it is converted to a single type without the union
+    auto remaining_types = std::vector<TypeInfo *>();
+    for (i64 i = 0; i < expression_union_type->types.size(); i++)
+    {
+        if (i != index)
+        { remaining_types.push_back(expression_union_type->types[i]); }
+    }
+
+    if (remaining_types.size() == 1)
+    { expression->type_info = remaining_types[0]; }
+    else
+    { expression->type_info = new UnionTypeInfo(remaining_types); }
+
+    if (!type_match(expression->type_info, expression->otherwise->type_info))
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path.string(), expression->expression, NULL, expression->type_expression,
+            expression->otherwise, "Indicated type does not match final type with the given type removed"
+        );
+        return;
+    }
+}
+
+void TypeChecker::type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table) {
+    expression->type_info = new AnyTypeInfo{TypeInfoType::ANY};
+}
+
+void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable *symbol_table) {
+    auto param_type_infos = std::vector<TypeInfo *>();
+    for (auto &[identifier, expr] : expression->params)
+    {
+        TRY_CALL(type_check_type_expression(expr, symbol_table))
+        param_type_infos.push_back(expr->type_info);
+    }
+
+    TRY_CALL(type_check_type_expression(expression->return_type, symbol_table));
+
+    // copy table and add params and add generic types
+    SymbolTable copied_symbol_table = symbol_table->copy();
+
+    for (auto &[identifier, type_expression] : expression->params)
+    { copied_symbol_table.add_identifier(identifier, type_expression->type_info); }
+
+    // type statements and check return exists if needed
+    TRY_CALL(type_check_scope_statement(expression->body, &copied_symbol_table, false));
+
+    for (auto stmt : expression->body->statements)
+    {
+        if (stmt->statement_type == StatementType::STATEMENT_RETURN)
+        {
+            auto rt = static_cast<ReturnStatement *>(stmt);
+
+            if (expression->return_type->type_info->type == TypeInfoType::VOID)
+            {
+                if (rt->expression != NULL)
+                {
+                    ErrorReporter::report_type_checker_error(
+                        current_file->path.string(), rt->expression, NULL, NULL, NULL,
+                        "found expression in return when return type is void"
+                    );
+                    return;
+                }
+            }
+            else
+            {
+                if (!type_match(expression->return_type->type_info, rt->expression->type_info))
+                {
+                    ErrorReporter::report_type_checker_error(
+                        current_file->path.string(), rt->expression, NULL, expression->return_type, NULL,
+                        "Mismatch types in function, return types do not match"
+                    );
+                    return;
+                }
+            }
+        }
+    }
+
+    expression->type_info = new FnExpressionTypeInfo(expression->return_type->type_info, param_type_infos);
+}
+
 void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table) {
+
+    if (expression->expression->type != ExpressionType::EXPRESSION_STRUCT_INSTANCE &&
+        expression->expression->type != ExpressionType::EXPRESSION_ENUM_INSTANCE)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path.string(), expression, expression->expression, NULL, NULL,
+            "Cannot instantiate non-struct or non-enum type"
+        );
+        return;
+    }
+
+    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+
+    expression->type_info = expression->expression->type_info;
+}
+
+void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table) {
+
+    auto [type_info, fail] = symbol_table->get_type(&expression->lhs);
+    if (fail)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path.string(), expression, expression, NULL, NULL,
+            fmt::format("No enum type \"{}\" declared", expression->lhs.string)
+        );
+        return;
+    }
+
+    EnumTypeInfo *enum_type_info = (EnumTypeInfo *)type_info;
+    ASSERT(enum_type_info);
+
+    if (enum_type_info->type != TypeInfoType::ENUM)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path.string(), expression, NULL, NULL, NULL, "Cannot create enum instance from non enum type"
+        );
+        return;
+    }
+
+    // get the index of the enum member we are trying to create
+    // verify it is in the enum type and get its index
+    u64 member_index;
+    bool found = false;
+    for (member_index = 0; member_index < enum_type_info->members.size(); member_index++)
+    {
+        auto member = enum_type_info->members[member_index];
+        if (member.identifier.string == expression->member.string)
+        {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression, NULL, NULL, NULL,
+            "No member of enum type with identifier \'" + expression->member.string + "\'"
+        );
+        return;
+    }
+
+    // verify the correct number of arguments passed
+    EnumMember member_to_create  = enum_type_info->members[member_index];
+    auto expected_arg_amount     = member_to_create.members.size();
+    auto actual_arg_amount_given = expression->arguments.size();
+
+    if (expected_arg_amount != actual_arg_amount_given)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path, expression, NULL, NULL, NULL,
+            "Mismatched number of arguments when creating enum instance, expected " +
+                std::to_string(expected_arg_amount) + " got " + std::to_string(actual_arg_amount_given)
+        );
+        return;
+    }
+
+    // type check each arg against the expected type in the enum
+    for (i64 i = 0; i < actual_arg_amount_given; i++)
+    {
+        auto argument = expression->arguments[i];
+        TRY_CALL(type_check_expression(argument, symbol_table));
+        if (!type_match(argument->type_info, member_to_create.members[i]->type_info))
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path, expression, argument, NULL, NULL,
+                "Mismatched types in argument when creating enum instance, argument " + std::to_string(i) +
+                    " does not match enum member type"
+            );
+            return;
+        }
+    }
+
+    expression->member_index = member_index;
+    expression->type_info    = enum_type_info;
+}
+
+void TypeChecker::type_check_struct_instance_expression(
+    StructInstanceExpression *expression, SymbolTable *symbol_table
+) {
     // check its type
     if (!symbol_table->type_table.count(expression->identifier.string) > 0)
     {
@@ -1182,219 +1420,6 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
     { expression->type_info = new StructInstanceTypeInfo(struct_type_info, generic_type_infos); }
     else
     { expression->type_info = struct_type_info; }
-
-    // if this is a new instantiation then wrap the already determined type in a owned pointer
-    if (expression->instantiate_type == InstantiateExpression::NEW)
-    { expression->type_info = new OwnedPointerTypeInfo(expression->type_info); }
-}
-
-void TypeChecker::type_check_group_expression(GroupExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->expression, symbol_table));
-    expression->type_info = expression->expression->type_info;
-}
-
-void TypeChecker::type_check_null_literal_expression(NullLiteralExpression *expression, SymbolTable *symbol_table) {
-    expression->type_info = new WeakPointerTypeInfo(new AnyTypeInfo());
-}
-
-void TypeChecker::type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->expression, symbol_table));
-    TRY_CALL(type_check_type_expression(expression->type_expression, symbol_table));
-    TRY_CALL(type_check_type_expression(expression->otherwise, symbol_table));
-
-    if (expression->expression->type_info->type != TypeInfoType::UNION)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->expression, NULL, NULL, NULL, "Can only use propagation on union types"
-        );
-        return;
-    }
-
-    // find the index of the type expression in the union type if
-    // not there then report an error
-    auto expression_union_type = static_cast<UnionTypeInfo *>(expression->expression->type_info);
-    i64 index                  = -1;
-    for (i64 i = 0; i < expression_union_type->types.size(); i++)
-    {
-        auto t = expression_union_type->types[i];
-        if (type_match(t, expression->type_expression->type_info))
-        {
-            index = i;
-            break;
-        }
-    }
-
-    if (index == -1)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->expression, NULL, expression->type_expression, NULL,
-            "Union type does not contain this type"
-        );
-        return;
-    }
-
-    // we konw index in union types of our type, if we remove this type the resulting
-    // type is the return type, if the union with the type removed is a single type
-    // then it is converted to a single type without the union
-    auto remaining_types = std::vector<TypeInfo *>();
-    for (i64 i = 0; i < expression_union_type->types.size(); i++)
-    {
-        if (i != index)
-        { remaining_types.push_back(expression_union_type->types[i]); }
-    }
-
-    if (remaining_types.size() == 1)
-    { expression->type_info = remaining_types[0]; }
-    else
-    { expression->type_info = new UnionTypeInfo(remaining_types); }
-
-    if (!type_match(expression->type_info, expression->otherwise->type_info))
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->expression, NULL, expression->type_expression, expression->otherwise,
-            "Indicated type does not match final type with the given type removed"
-        );
-        return;
-    }
-}
-
-void TypeChecker::type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table) {
-    expression->type_info = new AnyTypeInfo{TypeInfoType::ANY};
-}
-
-void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable *symbol_table) {
-    auto param_type_infos = std::vector<TypeInfo *>();
-    for (auto &[identifier, expr] : expression->params)
-    {
-        TRY_CALL(type_check_type_expression(expr, symbol_table))
-        param_type_infos.push_back(expr->type_info);
-    }
-
-    TRY_CALL(type_check_type_expression(expression->return_type, symbol_table));
-
-    // copy table and add params and add generic types
-    SymbolTable copied_symbol_table = symbol_table->copy();
-
-    for (auto &[identifier, type_expression] : expression->params)
-    { copied_symbol_table.add_identifier(identifier, type_expression->type_info); }
-
-    // type statements and check return exists if needed
-    TRY_CALL(type_check_scope_statement(expression->body, &copied_symbol_table, false));
-
-    for (auto stmt : expression->body->statements)
-    {
-        if (stmt->statement_type == StatementType::STATEMENT_RETURN)
-        {
-            auto rt = static_cast<ReturnStatement *>(stmt);
-
-            if (expression->return_type->type_info->type == TypeInfoType::VOID)
-            {
-                if (rt->expression != NULL)
-                {
-                    ErrorReporter::report_type_checker_error(
-                        current_file->path.string(), rt->expression, NULL, NULL, NULL,
-                        "found expression in return when return type is void"
-                    );
-                    return;
-                }
-            }
-            else
-            {
-                if (!type_match(expression->return_type->type_info, rt->expression->type_info))
-                {
-                    ErrorReporter::report_type_checker_error(
-                        current_file->path.string(), rt->expression, NULL, expression->return_type, NULL,
-                        "Mismatch types in function, return types do not match"
-                    );
-                    return;
-                }
-            }
-        }
-    }
-
-    expression->type_info = new FnExpressionTypeInfo(expression->return_type->type_info, param_type_infos);
-}
-
-void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table) {
-
-    // make sure the lhs is an expression
-    // we could not verify this before as this comes from the parser lol
-    if (expression->lhs->type != ExpressionType::EXPRESSION_IDENTIFIER)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->lhs, NULL, NULL, NULL, "Cannot create enum instance from expression"
-        );
-        return;
-    }
-
-    auto enum_identifier = dynamic_cast<IdentifierExpression *>(expression->lhs);
-    TRY_CALL(type_check_identifier_expression(enum_identifier, symbol_table));
-
-    if (enum_identifier->type_info->type != TypeInfoType::ENUM)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->lhs, NULL, NULL, NULL, "Cannot create enum instance from non enum type"
-        );
-        return;
-    }
-
-    // get the index of the enum member we are trying to create
-    // verify it is in the enum type and get its index
-    auto enum_type_info = (EnumTypeInfo *)enum_identifier->type_info;
-    u64 member_index;
-    bool found = false;
-    for (member_index = 0; member_index < enum_type_info->members.size(); member_index++)
-    {
-        auto member = enum_type_info->members[member_index];
-        if (member.identifier.string == expression->member.string)
-        {
-            found = true;
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path, expression->lhs, NULL, NULL, NULL,
-            "No member of enum type with identifier \'" + expression->member.string + "\'"
-        );
-        return;
-    }
-
-    // verify the correct number of arguments passed
-    EnumMember member_to_create  = enum_type_info->members[member_index];
-    auto expected_arg_amount     = member_to_create.members.size();
-    auto actual_arg_amount_given = expression->arguments.size();
-
-    if (expected_arg_amount != actual_arg_amount_given)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path, expression->lhs, NULL, NULL, NULL,
-            "Mismatched number of arguments when creating enum instance, expected " +
-                std::to_string(expected_arg_amount) + " got " + std::to_string(actual_arg_amount_given)
-        );
-        return;
-    }
-
-    // type check each arg against the expected type in the enum
-    for (i64 i = 0; i < actual_arg_amount_given; i++)
-    {
-        auto argument = expression->arguments[i];
-        TRY_CALL(type_check_expression(argument, symbol_table));
-        if (!type_match(argument->type_info, member_to_create.members[i]->type_info))
-        {
-            ErrorReporter::report_type_checker_error(
-                current_file->path, expression->lhs, argument, NULL, NULL,
-                "Mismatched types in argument when creating enum instance, argument " + std::to_string(i) +
-                    " does not match enum member type"
-            );
-            return;
-        }
-    }
-
-    expression->member_index = member_index;
-    expression->type_info    = expression->lhs->type_info;
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {

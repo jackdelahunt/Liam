@@ -22,8 +22,9 @@ enum class ExpressionType {
     EXPRESSION_PROPAGATE,
     EXPRESSION_ZERO_LITERAL,
     EXPRESSION_FN,
+    EXPRESSION_INSTANTIATION,
+    EXPRESSION_STRUCT_INSTANCE,
     EXPRESSION_ENUM_INSTANCE,
-    EXPRESSION_INSTANTIATION
 };
 
 enum class UnaryType {
@@ -103,22 +104,6 @@ struct GetExpression : Expression {
     GetExpression(Expression *expression, Token member);
 };
 
-struct InstantiateExpression : Expression {
-    Token identifier;
-    std::vector<TypeExpression *> generics;
-    std::vector<std::tuple<Token, Expression *>> named_expressions;
-
-    enum InstantiateType {
-        MAKE,
-        NEW
-    } instantiate_type;
-
-    InstantiateExpression(
-        Token identifier, std::vector<TypeExpression *> generics,
-        std::vector<std::tuple<Token, Expression *>> named_expressions, InstantiateType instantiate_type
-    );
-};
-
 struct GroupExpression : Expression {
     Expression *expression;
 
@@ -151,13 +136,36 @@ struct FnExpression : Expression {
     );
 };
 
+struct InstantiateExpression : Expression {
+
+    enum InstantiateType {
+        MAKE,
+        NEW
+    } instantiate_type;
+
+    Expression *expression;
+
+    InstantiateExpression(InstantiateType instantiate_type, Expression *expression);
+};
+
+struct StructInstanceExpression : Expression {
+    Token identifier;
+    std::vector<TypeExpression *> generics;
+    std::vector<std::tuple<Token, Expression *>> named_expressions;
+
+    StructInstanceExpression(
+        Token identifier, std::vector<TypeExpression *> generics,
+        std::vector<std::tuple<Token, Expression *>> named_expressions
+    );
+};
+
 struct EnumInstanceExpression : Expression {
-    Expression *lhs;
+    Token lhs;
     Token member;
     std::vector<Expression *> arguments;
     u64 member_index; // populated at type checking time
 
-    EnumInstanceExpression(Expression *lhs, Token member, std::vector<Expression *> arguments);
+    EnumInstanceExpression(Token lhs, Token member, std::vector<Expression *> arguments);
 };
 
 enum class TypeExpressionType {

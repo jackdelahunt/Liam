@@ -522,23 +522,6 @@ Expression *Parser::eval_call() {
             auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
             expr            = new GetExpression(expr, *identifier);
         }
-        else if (match(TokenType::TOKEN_COLON))
-        {
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
-
-            auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-            auto args       = std::vector<Expression *>();
-
-            if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
-            {
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
-                args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
-            }
-
-            expr = new EnumInstanceExpression(expr, *identifier, args);
-        }
         else
         { break; }
     }
@@ -588,6 +571,7 @@ Expression *Parser::eval_fn() {
 Expression *Parser::eval_instantiate_expression() {
 
     InstantiateExpression::InstantiateType instantiate_type;
+    Expression *expression = NULL;
 
     if (peek()->type == TokenType::TOKEN_NEW)
     {
@@ -600,6 +584,35 @@ Expression *Parser::eval_instantiate_expression() {
         instantiate_type = InstantiateExpression::MAKE;
     }
 
+    if (peek(1)->type == TokenType::TOKEN_COLON)
+    { expression = eval_enum_instance_expression(); }
+    else
+    { expression = eval_struct_instance_expression(); }
+
+    return new InstantiateExpression(instantiate_type, expression);
+}
+
+Expression *Parser::eval_enum_instance_expression() {
+
+    auto lhs = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
+
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    auto args       = std::vector<Expression *>();
+
+    if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
+    {
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+        args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    }
+
+    return new EnumInstanceExpression(*lhs, *identifier, args);
+}
+
+Expression *Parser::eval_struct_instance_expression() {
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<TypeExpression *>();
@@ -616,7 +629,7 @@ Expression *Parser::eval_instantiate_expression() {
     auto named_expressions = TRY_CALL_RET(consume_comma_seperated_named_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new InstantiateExpression(*identifier, generics, named_expressions, instantiate_type);
+    return new StructInstanceExpression(*identifier, generics, named_expressions);
 }
 
 Expression *Parser::eval_group_expression() {
