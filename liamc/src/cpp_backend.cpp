@@ -645,8 +645,7 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     if (expression->type_info->type == TypeInfoType::FN)
     { return "__" + expression->member.string; }
 
-    if (expression->lhs->type_info->type == TypeInfoType::WEAK_POINTER ||
-        expression->lhs->type_info->type == TypeInfoType::OWNED_POINTER)
+    if (expression->lhs->type_info->type == TypeInfoType::WEAK_POINTER) 
     { return emit_expression(expression->lhs) + "->" + expression->member.string; }
 
     if (expression->lhs->type_info->type == TypeInfoType::ENUM)
