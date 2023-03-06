@@ -15,7 +15,7 @@ SymbolTable::SymbolTable() {
     this->type_table         = std::map<std::string, TypeInfo *>();
     this->identifier_table   = std::map<std::string, TypeInfo *>();
 
-    builtin_type_table["void"] = new VoidTypeInfo{TypeInfoType::VOID};
+    builtin_type_table["void"] = new VoidTypeInfo();
     builtin_type_table["bool"] = new BoolTypeInfo();
     builtin_type_table["str"]  = new StrTypeInfo();
 

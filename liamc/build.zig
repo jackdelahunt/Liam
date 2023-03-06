@@ -7,7 +7,7 @@ pub fn build(b: *std.build.Builder) void {
     const mode = b.standardReleaseOptions();
 
     // liam
-    exe.addCSourceFile("src/main.cpp", &[_][]const u8{"-std=c++20"});
+    exe.addCSourceFile("src/main.cpp", &[_][]const u8{"-std=c++17"});
     exe.addCSourceFile("src/args.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/borrow_checker.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/cpp_backend.cpp", &[_][]const u8{});
