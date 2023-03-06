@@ -1,5 +1,9 @@
 #include "type_info.h"
 
+VoidTypeInfo::VoidTypeInfo() {
+    this->type = TypeInfoType::VOID; 
+}
+
 NumberTypeInfo::NumberTypeInfo(size_t size, NumberType number_type) {
     this->size        = size;
     this->number_type = number_type;

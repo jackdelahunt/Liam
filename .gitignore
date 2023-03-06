@@ -25,3 +25,4 @@ liamc/out.cpp
 liamc/release
 **/zig-cache
 **/zig-out
+**/compile_flags.txt

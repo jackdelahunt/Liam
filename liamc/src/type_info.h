@@ -32,7 +32,9 @@ struct TypeInfo {
 
 struct AnyTypeInfo : TypeInfo {};
 
-struct VoidTypeInfo : TypeInfo {};
+struct VoidTypeInfo : TypeInfo {
+    VoidTypeInfo();
+};
 
 struct NumberTypeInfo : TypeInfo {
     size_t size;
