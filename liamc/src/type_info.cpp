@@ -14,9 +14,9 @@ BoolTypeInfo::BoolTypeInfo() {
     this->type = TypeInfoType::BOOLEAN;
 }
 
-WeakPointerTypeInfo::WeakPointerTypeInfo(TypeInfo *to) {
+PointerTypeInfo::PointerTypeInfo(TypeInfo *to) {
     this->to   = to;
-    this->type = TypeInfoType::WEAK_POINTER;
+    this->type = TypeInfoType::POINTER;
 }
 
 StrTypeInfo::StrTypeInfo() {
