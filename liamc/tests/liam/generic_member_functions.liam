@@ -12,7 +12,7 @@ fn (Foo[T]) change_foo[T](t: T) void {
 }
 
 fn main() void {
-    let foo := make Foo[i64]{foo: 100};
+    let foo := new Foo[i64]{foo: 100};
     foo.change_foo[i64](200);
     println[i64](foo.foo);
     foo.change_foo[i64](100);

@@ -19,7 +19,7 @@ fn (Foo) change_foo(n: i64) void {
 }
 
 fn main() void {
-    let foo := make Foo{foo: 100};
+    let foo := new Foo{foo: 100};
     foo.print_foo();
     foo.print_foo();
     foo.change_foo(100);

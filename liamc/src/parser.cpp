@@ -540,7 +540,7 @@ Expression *Parser::eval_primary() {
         return new BoolLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_IDENTIFIER)
         return new IdentifierExpression(*consume_token());
-    else if (type == TokenType::TOKEN_NEW || type == TokenType::TOKEN_MAKE)
+    else if (type == TokenType::TOKEN_NEW)
         return eval_instantiate_expression();
     else if (type == TokenType::TOKEN_PAREN_OPEN)
         return eval_group_expression();
@@ -570,26 +570,16 @@ Expression *Parser::eval_fn() {
 
 Expression *Parser::eval_instantiate_expression() {
 
-    InstantiateExpression::InstantiateType instantiate_type;
     Expression *expression = NULL;
 
-    if (peek()->type == TokenType::TOKEN_NEW)
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
-        instantiate_type = InstantiateExpression::NEW;
-    }
-    else
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_MAKE), NULL);
-        instantiate_type = InstantiateExpression::MAKE;
-    }
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
 
     if (peek(1)->type == TokenType::TOKEN_COLON)
     { expression = eval_enum_instance_expression(); }
     else
     { expression = eval_struct_instance_expression(); }
 
-    return new InstantiateExpression(instantiate_type, expression);
+    return new InstantiateExpression(expression);
 }
 
 Expression *Parser::eval_enum_instance_expression() {

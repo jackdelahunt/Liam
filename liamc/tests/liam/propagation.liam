@@ -25,7 +25,7 @@ fn maybe_error(n: u64) u64 | Error {
         return n;
     }
 
-    return make Error {
+    return new Error {
         message: "Oh no an error occured"
     };
 }
