@@ -25,7 +25,7 @@ u64 FileData::index_at(u32 line, u32 character) {
 
 std::string FileData::line(u64 line) {
 
-    assert(line > 0);
+    ASSERT(line > 0);
 
     auto start = index_at(line, 1);
     auto end   = start;

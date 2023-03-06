@@ -106,6 +106,7 @@ FnExpression::FnExpression(
 InstantiateExpression::InstantiateExpression(InstantiateType instantiate_type, Expression *expression) {
     this->instantiate_type = instantiate_type;
     this->expression       = expression;
+    this->span             = expression->span;
     this->type             = ExpressionType::EXPRESSION_INSTANTIATION;
 }
 
@@ -116,6 +117,7 @@ StructInstanceExpression::StructInstanceExpression(
     this->identifier        = identifier;
     this->generics          = generics;
     this->named_expressions = named_expressions;
+    this->span              = identifier.span;
     this->type              = ExpressionType::EXPRESSION_STRUCT_INSTANCE;
 }
 
@@ -124,6 +126,7 @@ EnumInstanceExpression::EnumInstanceExpression(Token lhs, Token member, std::vec
     this->member       = member;
     this->arguments    = std::move(arguments);
     this->member_index = -1; // yes I am setting a u64 to -1, lulul
+    this->span         = lhs.span;
     this->type         = ExpressionType::EXPRESSION_ENUM_INSTANCE;
 }
 
