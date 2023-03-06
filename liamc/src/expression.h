@@ -136,15 +136,9 @@ struct FnExpression : Expression {
 };
 
 struct InstantiateExpression : Expression {
-
-    enum InstantiateType {
-        MAKE,
-        NEW
-    } instantiate_type;
-
     Expression *expression;
 
-    InstantiateExpression(InstantiateType instantiate_type, Expression *expression);
+    InstantiateExpression(Expression *expression);
 };
 
 struct StructInstanceExpression : Expression {

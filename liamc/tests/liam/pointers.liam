@@ -17,7 +17,7 @@ fn main() void {
     println[i64](*y);
 
     let s := "this is a string";
-    let p := make Pointers{s: s, s_ptr: @s};
+    let p := new Pointers{s: s, s_ptr: @s};
     println[str](s);
 
     // auto pointer dereference

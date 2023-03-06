@@ -103,8 +103,7 @@ FnExpression::FnExpression(
     this->span        = return_type->span; // FIXME: use a better place to put the span for the fn expression
 }
 
-InstantiateExpression::InstantiateExpression(InstantiateType instantiate_type, Expression *expression) {
-    this->instantiate_type = instantiate_type;
+InstantiateExpression::InstantiateExpression(Expression *expression) {
     this->expression       = expression;
     this->span             = expression->span;
     this->type             = ExpressionType::EXPRESSION_INSTANTIATION;

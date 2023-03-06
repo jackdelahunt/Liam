@@ -16,13 +16,13 @@ struct People {
 }
 
 fn main() void {
-    let p: Person = make Person{name: "jack", age: 21};
+    let p: Person = new Person{name: "jack", age: 21};
     println[str](p.name);
     println[i64](p.age);
 
-    let people: People = make People {
-        one: make Person {name: "liam", age: 25},
-        two: make Person {name: "mace window", age: 28}
+    let people: People = new People {
+        one: new Person {name: "liam", age: 25},
+        two: new Person {name: "mace window", age: 28}
     };
 
     println[str](people.one.name);

@@ -12,26 +12,26 @@ enum Foo {
 }
 
 fn main() void {
-    if make Foo::A == make Foo::A {
+    if new Foo::A == new Foo::A {
         println[str]("A");
     }
 
-    if make Foo::B == make Foo::B {
+    if new Foo::B == new Foo::B {
         println[str]("B");
     }
 
-    if make Foo::A != make Foo::B {
+    if new Foo::A != new Foo::B {
         println[str]("A != B");
     }
 
-    let x := make Foo::A;
-    if x == make Foo::A {
+    let x := new Foo::A;
+    if x == new Foo::A {
         println[str]("A == A");
     }
 
-    let y := make Foo::A;
-    y = make Foo::B;
-    if y == make Foo::B {
+    let y := new Foo::A;
+    y = new Foo::B;
+    if y == new Foo::B {
         println[str]("B == B");
     }
 }
