@@ -65,11 +65,10 @@ enum class TokenType {
     TOKEN_ALIAS,              // alias
     TOKEN_AS,                 // as
     TOKEN_ZERO,               // zero
-    TOKEN_WEAK,               // weak
     TOKEN_MAKE,               // make
 };
 
-extern const char *TokenTypeStrings[54];
+extern const char *TokenTypeStrings[53];
 
 std::string get_token_type_string(TokenType type);
 

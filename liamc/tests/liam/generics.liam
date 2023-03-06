@@ -8,14 +8,14 @@ import "stdlib/basic.liam";
 
 struct Vector[T] {
     x: T,
-    y: ^weak T
+    y: ^T
 }
 
 fn vec[T](v: Vector[T]) void {
 
 }
 
-fn generic_func[T, E](t: T, e: ^weak E) ^weak E {
+fn generic_func[T, E](t: T, e: ^E) ^E {
     return e;
 }
 

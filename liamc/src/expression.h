@@ -28,8 +28,7 @@ enum class ExpressionType {
 };
 
 enum class UnaryType {
-    WEAK_POINTER,
-    OWNED_POINTER,
+    POINTER,
 };
 
 struct Expression {
