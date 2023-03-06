@@ -746,17 +746,7 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
 
 std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expression) {
     auto source = std::string();
-
-    // OwnedPtr(new {expr});
-    if (expression->instantiate_type == InstantiateExpression::NEW)
-    { source.append("LiamInternal::OwnedPtr(new "); }
-
     source.append(emit_expression(expression->expression));
-
-    // add the final ) for tbe Owned Ptr constructor
-    if (expression->instantiate_type == InstantiateExpression::NEW)
-    { source.append(")"); }
-
     return source;
 }
 
@@ -843,11 +833,8 @@ std::string CppBackend::emit_union_type_expression(UnionTypeExpression *type_exp
 
 std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
 
-    if (type_expression->unary_type == UnaryType::WEAK_POINTER)
+    if (type_expression->unary_type == UnaryType::POINTER)
     { return emit_type_expression(type_expression->type_expression) + "*"; }
-
-    if (type_expression->unary_type == UnaryType::OWNED_POINTER)
-    { return "LiamInternal::OwnedPtr<" + emit_type_expression(type_expression->type_expression) + ">"; }
 
     panic("Cpp backend does not support this op yet...");
     return "";

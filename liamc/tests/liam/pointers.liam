@@ -7,7 +7,7 @@ import "stdlib/basic.liam";
 
 struct Pointers {
     s: str,
-    s_ptr: ^weak str
+    s_ptr: ^str
 }
 
 fn main() void {

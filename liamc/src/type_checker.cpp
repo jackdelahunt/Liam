@@ -1444,7 +1444,7 @@ void TypeChecker::type_check_union_type_expression(UnionTypeExpression *type_exp
 }
 
 void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table) {
-    if (type_expression->unary_type == UnaryType::WEAK_POINTER)
+    if (type_expression->unary_type == UnaryType::POINTER)
     {
         TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
         type_expression->type_info = new PointerTypeInfo(type_expression->type_expression->type_info);
