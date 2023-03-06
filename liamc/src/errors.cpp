@@ -89,24 +89,6 @@ void TypeCheckerError::print_error_message() {
     { print_error_at_span(&file, type_expr_2->span); }
 }
 
-void BorrowCheckerError::print_error_message() {
-    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "ERROR :: {}\n", error);
-
-    ASSERT(this->use_after_move)
-    ASSERT(this->move_of_value)
-
-    fmt::print(stderr, fmt::emphasis::italic | fg(fmt::color::cornflower_blue), "First entered scope here\n");
-    print_error_at_span(&file, this->ownership_of_value);
-
-    fmt::print(stderr, fmt::emphasis::italic | fg(fmt::color::cornflower_blue), "Then first moved out of scope here\n");
-    print_error_at_span(&file, this->move_of_value->span);
-
-    fmt::print(
-        stderr, fmt::emphasis::italic | fg(fmt::color::cornflower_blue), "Trying to use/move already moved value here\n"
-    );
-    print_error_at_span(&file, this->use_after_move->span);
-}
-
 ErrorReporter::ErrorReporter() {
     parse_errors      = std::vector<ParserError>();
     type_check_errors = std::vector<TypeCheckerError>();
@@ -133,19 +115,6 @@ void ErrorReporter::report_type_checker_error(
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
 
-void ErrorReporter::report_borrow_checker_error(
-    std::string file, Span ownership_of_value, Expression *move_of_value, Expression *use_after_move,
-    std::string message
-) {
-    if (ErrorReporter::singleton == nullptr)
-    { ErrorReporter::singleton = new ErrorReporter(); }
-
-    ErrorReporter::singleton->borrow_check_errors.push_back(BorrowCheckerError{
-        std::move(file), ownership_of_value, move_of_value, use_after_move, std::move(message)});
-
-    ErrorReporter::singleton->error_reported_since_last_check = true;
-}
-
 bool ErrorReporter::has_parse_errors() {
     if (ErrorReporter::singleton == nullptr)
         return false;
@@ -158,13 +127,6 @@ bool ErrorReporter::has_type_check_errors() {
         return false;
 
     return !(ErrorReporter::singleton->type_check_errors.empty());
-}
-
-bool ErrorReporter::has_borrow_check_errors() {
-    if (ErrorReporter::singleton == nullptr)
-        return false;
-
-    return !(ErrorReporter::singleton->borrow_check_errors.empty());
 }
 
 bool ErrorReporter::has_error_since_last_check() {
@@ -184,6 +146,5 @@ u64 ErrorReporter::error_count() {
     if (ErrorReporter::singleton == nullptr)
         return 0;
 
-    return ErrorReporter::singleton->parse_errors.size() + ErrorReporter::singleton->type_check_errors.size() +
-           ErrorReporter::singleton->borrow_check_errors.size();
+    return ErrorReporter::singleton->parse_errors.size() + ErrorReporter::singleton->type_check_errors.size();
 }

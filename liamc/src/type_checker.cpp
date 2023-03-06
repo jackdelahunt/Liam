@@ -7,6 +7,7 @@
 #include "fmt/core.h"
 #include "liam.h"
 #include "parser.h"
+#include "type_info.h"
 #include "utils.h"
 #include <tuple>
 
@@ -813,8 +814,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
 
     if (expression->op.type == TokenType::TOKEN_STAR)
     {
-        if (expression->expression->type_info->type != TypeInfoType::WEAK_POINTER &&
-            expression->expression->type_info->type != TypeInfoType::OWNED_POINTER)
+        if (expression->expression->type_info->type != TypeInfoType::WEAK_POINTER)
         {
             ErrorReporter::report_type_checker_error(
                 current_file->path.string(), expression, NULL, NULL, NULL, "Cannot dereference non-pointer value"
@@ -822,7 +822,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
             return;
         }
 
-        expression->type_info = static_cast<WeakPointerTypeInfo *>(expression->expression->type_info)->to;
+        expression->type_info = ((WeakPointerTypeInfo *)expression->expression->type_info)->to;
         return;
     }
 
@@ -996,30 +996,9 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     StructInstanceTypeInfo *struct_instance_type_info =
         NULL; // populated when the lhs is a struct instance and we need to use generics
 
-    // TODO: weak and owned pointer are done the exact same, try and clean this up
     if (expression->lhs->type_info->type == TypeInfoType::WEAK_POINTER)
     {
         auto ptr_type_info = static_cast<WeakPointerTypeInfo *>(expression->lhs->type_info);
-
-        if (ptr_type_info->to->type == TypeInfoType::STRUCT)
-        { struct_type_info = (StructTypeInfo *)ptr_type_info->to; }
-        else if (ptr_type_info->to->type == TypeInfoType::STRUCT_INSTANCE)
-        {
-            struct_instance_type_info = (StructInstanceTypeInfo *)(ptr_type_info->to);
-            struct_type_info          = (StructTypeInfo *)struct_instance_type_info->struct_type;
-        }
-        else
-        {
-            ErrorReporter::report_type_checker_error(
-                current_file->path.string(), expression->lhs, NULL, NULL, NULL,
-                "Cannot derive member from non struct type"
-            );
-            return;
-        }
-    }
-    else if (expression->lhs->type_info->type == TypeInfoType::OWNED_POINTER)
-    {
-        auto ptr_type_info = static_cast<OwnedPointerTypeInfo *>(expression->lhs->type_info);
 
         if (ptr_type_info->to->type == TypeInfoType::STRUCT)
         { struct_type_info = (StructTypeInfo *)ptr_type_info->to; }
@@ -1245,10 +1224,7 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
 
     TRY_CALL(type_check_expression(expression->expression, symbol_table));
 
-    if (expression->instantiate_type == InstantiateExpression::InstantiateType::NEW)
-    { expression->type_info = new OwnedPointerTypeInfo(expression->expression->type_info); }
-    else
-    { expression->type_info = expression->expression->type_info; }
+    expression->type_info = expression->expression->type_info;
 }
 
 void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table) {
@@ -1475,13 +1451,6 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
         return;
     }
 
-    if (type_expression->unary_type == UnaryType::OWNED_POINTER)
-    {
-        TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
-        type_expression->type_info = new OwnedPointerTypeInfo(type_expression->type_expression->type_info);
-        return;
-    }
-
     panic("Internal :: Cannot type check this operator yet...");
 }
 
@@ -1544,12 +1513,6 @@ TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vecto
     {
         auto pointer_type_info = static_cast<WeakPointerTypeInfo *>(type_info);
         return new WeakPointerTypeInfo(create_type_from_generics(pointer_type_info->to, generic_params));
-    }
-
-    if (type_info->type == TypeInfoType::OWNED_POINTER)
-    {
-        auto pointer_type_info = static_cast<OwnedPointerTypeInfo *>(type_info);
-        return new OwnedPointerTypeInfo(create_type_from_generics(pointer_type_info->to, generic_params));
     }
 
     if (type_info->type == TypeInfoType::GENERIC)
@@ -1663,13 +1626,6 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
     {
         auto ptr_a = static_cast<WeakPointerTypeInfo *>(a);
         auto ptr_b = static_cast<WeakPointerTypeInfo *>(b);
-
-        return type_match(ptr_a->to, ptr_b->to);
-    }
-    else if (a->type == TypeInfoType::OWNED_POINTER)
-    {
-        auto ptr_a = static_cast<OwnedPointerTypeInfo *>(a);
-        auto ptr_b = static_cast<OwnedPointerTypeInfo *>(b);
 
         return type_match(ptr_a->to, ptr_b->to);
     }

@@ -19,16 +19,6 @@ WeakPointerTypeInfo::WeakPointerTypeInfo(TypeInfo *to) {
     this->type = TypeInfoType::WEAK_POINTER;
 }
 
-OwnedPointerTypeInfo::OwnedPointerTypeInfo(TypeInfo *to) {
-    this->to   = to;
-    this->type = TypeInfoType::OWNED_POINTER;
-}
-
-SliceTypeInfo::SliceTypeInfo(TypeInfo *to) {
-    this->to   = to;
-    this->type = TypeInfoType::SLICE;
-}
-
 StrTypeInfo::StrTypeInfo() {
     this->type = TypeInfoType::STRING;
 }

@@ -19,7 +19,6 @@ enum class TypeInfoType {
     STRUCT,
     STRUCT_INSTANCE,
     WEAK_POINTER,
-    OWNED_POINTER,
     SLICE,
     GENERIC,
     UNION,
@@ -51,17 +50,6 @@ struct WeakPointerTypeInfo : TypeInfo {
     TypeInfo *to;
 
     WeakPointerTypeInfo(TypeInfo *to);
-};
-
-struct OwnedPointerTypeInfo : TypeInfo {
-    TypeInfo *to;
-
-    OwnedPointerTypeInfo(TypeInfo *to);
-};
-
-struct SliceTypeInfo : TypeInfo {
-    TypeInfo *to;
-    SliceTypeInfo(TypeInfo *to);
 };
 
 struct StrTypeInfo : TypeInfo {
