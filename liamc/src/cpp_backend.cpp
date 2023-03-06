@@ -615,7 +615,7 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
 
         // because we can call members of a type T on ^T sometimes we do not need to add
         // a & as it is already a pointer, if it is not a pointer then add the &
-        if (get_expression->lhs->type_info->type != TypeInfoType::WEAK_POINTER)
+        if (get_expression->lhs->type_info->type != TypeInfoType::POINTER)
         { source.append("&"); }
 
         source.append(emit_expression(get_expression->lhs));
@@ -645,7 +645,7 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     if (expression->type_info->type == TypeInfoType::FN)
     { return "__" + expression->member.string; }
 
-    if (expression->lhs->type_info->type == TypeInfoType::WEAK_POINTER) 
+    if (expression->lhs->type_info->type == TypeInfoType::POINTER) 
     { return emit_expression(expression->lhs) + "->" + expression->member.string; }
 
     if (expression->lhs->type_info->type == TypeInfoType::ENUM)

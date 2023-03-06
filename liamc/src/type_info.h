@@ -18,7 +18,7 @@ enum class TypeInfoType {
     FN_EXPRESSION,
     STRUCT,
     STRUCT_INSTANCE,
-    WEAK_POINTER,
+    POINTER,
     SLICE,
     GENERIC,
     UNION,
@@ -46,10 +46,10 @@ struct BoolTypeInfo : TypeInfo {
     BoolTypeInfo();
 };
 
-struct WeakPointerTypeInfo : TypeInfo {
+struct PointerTypeInfo : TypeInfo {
     TypeInfo *to;
 
-    WeakPointerTypeInfo(TypeInfo *to);
+    PointerTypeInfo(TypeInfo *to);
 };
 
 struct StrTypeInfo : TypeInfo {
