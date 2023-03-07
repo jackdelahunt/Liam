@@ -29,6 +29,7 @@ enum class ExpressionType {
 
 enum class UnaryType {
     POINTER,
+    POINTER_SLICE
 };
 
 struct Expression {

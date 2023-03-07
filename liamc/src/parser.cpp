@@ -662,6 +662,16 @@ TypeExpression *Parser::eval_type_union() {
 
 TypeExpression *Parser::eval_type_unary() {
 
+    // ^..
+    if(match(TokenType::TOKEN_HAT) && peek(1)->type == TokenType::TOKEN_DOT && peek(2)->type == TokenType::TOKEN_DOT) {
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_HAT), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_DOT), NULL); 
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_DOT), NULL);  
+    
+         auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
+        return new UnaryTypeExpression(UnaryType::POINTER_SLICE, type_expression);
+    }
+
     // ^
     if (match(TokenType::TOKEN_HAT))
     {
