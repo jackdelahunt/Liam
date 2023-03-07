@@ -13,14 +13,14 @@ struct Pointers {
 fn main() void {
     let x := 100;
     let y := @x;
-    println[i64](x);
-    println[i64](*y);
+    println::<i64>(x);
+    println::<i64>(*y);
 
     let s := "this is a string";
     let p := new Pointers{s: s, s_ptr: @s};
-    println[str](s);
+    println::<str>(s);
 
     // auto pointer dereference
     let ptr := @p;
-    println[str](*ptr.s_ptr);
+    println::<str>(*ptr.s_ptr);
 }

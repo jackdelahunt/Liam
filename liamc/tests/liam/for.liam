@@ -11,15 +11,15 @@ import "stdlib/basic.liam";
 
 fn main() void {
     for let i := 0u64; i < 2u64; i = i + 1u64; {
-        println[u64](i);
+        println::<u64>(i);
     }
 
     for let i := 10i64; i < 17; i = i + 2; {
-        println[i64](i);
+        println::<i64>(i);
     }
  
     for let i: u64 = init(); compare(i); i = add(i); {
-        println[u64](i);
+        println::<u64>(i);
     }
 }
 

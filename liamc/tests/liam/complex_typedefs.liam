@@ -16,7 +16,7 @@ fn main() void {
     let l := get_literal();
 
     if l is StringLiteral as sl {
-        println[str](sl.s);
+        println::<str>(sl.s);
     }
 }
 

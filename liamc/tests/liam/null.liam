@@ -9,14 +9,14 @@ fn main() void {
     let x : ^i64 = null;
 
     x = @y;
-    println[i64](*x);
+    println::<i64>(*x);
 
     x = null;
     if x == null {
-        println[str]("x is null");
+        println::<str>("x is null");
     }
 
     if null == x {
-        println[str]("null is x");
+        println::<str>("null is x");
     }
 }

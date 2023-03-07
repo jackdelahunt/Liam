@@ -14,29 +14,29 @@ fn main() void {
     let x: i64 | str = 100;
 
     if x is i64 as n {
-        println[i64](*n);
+        println::<i64>(*n);
     }
 
     x = "this is a string";
     if x is str as s {
-        println[str](*s);
+        println::<str>(*s);
     }
 
     let s := new Struct{data: 100u64};
     if s.data is u64 as n {
-        println[u64](*n);
+        println::<u64>(*n);
     }
 
     let t: Struct | u64 = new Struct{data: false};
     if t is Struct as c {
         if c.data is bool as b {
-            println[bool](*b);
+            println::<bool>(*b);
         }
     }
 
     let n_o_s := num_or_string(false);
     if n_o_s is str as c {
-        println[str](*c);
+        println::<str>(*c);
     }
 }
 

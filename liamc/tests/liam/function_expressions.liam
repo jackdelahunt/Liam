@@ -9,7 +9,7 @@ fn main() void {
         return n * m;
     };
 
-    println[i64](multiply(10, 20));
-    println[i64](multiply(10, 30));
-    println[i64](multiply(10, 40));
+    println::<i64>(multiply(10, 20));
+    println::<i64>(multiply(10, 30));
+    println::<i64>(multiply(10, 40));
 }

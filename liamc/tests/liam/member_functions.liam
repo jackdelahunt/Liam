@@ -10,12 +10,12 @@ struct Foo {
 }
 
 fn (Foo) print_foo() void {
-    println[i64](self.foo);
+    println::<i64>(self.foo);
 }
 
 fn (Foo) change_foo(n: i64) void {
     self.foo = self.foo + n;
-    println[i64](self.foo);
+    println::<i64>(self.foo);
 }
 
 fn main() void {

@@ -13,25 +13,25 @@ enum Foo {
 
 fn main() void {
     if new Foo::A == new Foo::A {
-        println[str]("A");
+        println::<str>("A");
     }
 
     if new Foo::B == new Foo::B {
-        println[str]("B");
+        println::<str>("B");
     }
 
     if new Foo::A != new Foo::B {
-        println[str]("A != B");
+        println::<str>("A != B");
     }
 
     let x := new Foo::A;
     if x == new Foo::A {
-        println[str]("A == A");
+        println::<str>("A == A");
     }
 
     let y := new Foo::A;
     y = new Foo::B;
     if y == new Foo::B {
-        println[str]("B == B");
+        println::<str>("B == B");
     }
 }

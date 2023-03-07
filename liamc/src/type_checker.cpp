@@ -645,9 +645,7 @@ void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable
     }
 
     expression->type_info = symbol_table->builtin_type_table["bool"];
-    symbol_table->add_identifier(
-        expression->identifier, new PointerTypeInfo(expression->type_expression->type_info)
-    );
+    symbol_table->add_identifier(expression->identifier, new PointerTypeInfo(expression->type_expression->type_info));
 }
 
 void TypeChecker::type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table) {
@@ -1566,9 +1564,8 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
             return contains;
         }
 
-        if(type_coerce(a, b)) {
-            return true;
-        }
+        if (type_coerce(a, b))
+        { return true; }
 
         if (a->type != TypeInfoType::ANY && b->type != TypeInfoType::ANY)
         { return false; }
@@ -1713,7 +1710,8 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
 
         return true;
     }
-    else if (a->type == TypeInfoType::POINTER_SLICE) {
+    else if (a->type == TypeInfoType::POINTER_SLICE)
+    {
         auto ptr_a = static_cast<PointerSliceTypeInfo *>(a);
         auto ptr_b = static_cast<PointerSliceTypeInfo *>(b);
 
@@ -1753,8 +1751,6 @@ bool type_coerce(TypeInfo *a, TypeInfo *b) {
         if (b_ptr->to->type == TypeInfoType::ANY)
             return true; // if b is a null ptr then it can coerce to a null
     }
-
-
 
     return false;
 }

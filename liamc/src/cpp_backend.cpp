@@ -645,7 +645,7 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     if (expression->type_info->type == TypeInfoType::FN)
     { return "__" + expression->member.string; }
 
-    if (expression->lhs->type_info->type == TypeInfoType::POINTER) 
+    if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     { return emit_expression(expression->lhs) + "->" + expression->member.string; }
 
     if (expression->lhs->type_info->type == TypeInfoType::ENUM)
@@ -835,10 +835,10 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
 
     if (type_expression->unary_type == UnaryType::POINTER)
     { return emit_type_expression(type_expression->type_expression) + "*"; }
-    
+
     if (type_expression->unary_type == UnaryType::POINTER_SLICE)
     { return emit_type_expression(type_expression->type_expression) + "*"; }
- 
+
     panic("Cpp backend does not support this op yet...");
     return "";
 }

@@ -5,7 +5,7 @@
 import "stdlib/basic.liam";
 
 fn main() void {
-    println[str]("Hello");
-    println[i64](100);
-    println[bool](false);
+    println::<str>("Hello");
+    println::<i64>(100);
+    println::<bool>(false);
 }
