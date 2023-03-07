@@ -104,9 +104,9 @@ FnExpression::FnExpression(
 }
 
 InstantiateExpression::InstantiateExpression(Expression *expression) {
-    this->expression       = expression;
-    this->span             = expression->span;
-    this->type             = ExpressionType::EXPRESSION_INSTANTIATION;
+    this->expression = expression;
+    this->span       = expression->span;
+    this->type       = ExpressionType::EXPRESSION_INSTANTIATION;
 }
 
 StructInstanceExpression::StructInstanceExpression(

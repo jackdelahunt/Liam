@@ -1,5 +1,5 @@
 // io
-extern fn println[T](t: T) void;
+extern fn println<T>(t: T) void;
 
 // core
 extern fn len(string: str) u64;

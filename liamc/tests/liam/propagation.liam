@@ -10,12 +10,12 @@ struct Error {
 fn main() u64 {
 
     let err := maybe_error(9u64) return u64 else Error;
-    println[str](err.message);
+    println::<str>(err.message);
 
     let x := give_me_union() return u64 else bool | str;
     
     if x is bool as b {
-        println[bool](*b);
+        println::<bool>(*b);
     }
 }
 

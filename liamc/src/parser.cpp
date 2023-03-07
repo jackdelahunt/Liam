@@ -163,11 +163,11 @@ FnStatement *Parser::eval_fn_statement(bool is_extern) {
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<Token>();
-    if (peek()->type == TokenType::TOKEN_BRACKET_OPEN)
+    if (peek()->type == TokenType::TOKEN_LESS)
     {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
-        auto types = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_BRACKET_CLOSE), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
+        auto types = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_GREATER), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
 
         generics = types;
     }
@@ -197,12 +197,12 @@ StructStatement *Parser::eval_struct_statement(bool is_extern) {
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<Token>();
-    if (peek()->type == TokenType::TOKEN_BRACKET_OPEN)
+    if (peek()->type == TokenType::TOKEN_LESS)
     {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
 
-        auto types = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_BRACKET_CLOSE), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        auto types = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_GREATER), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
         generics = types;
     }
 
@@ -498,14 +498,16 @@ Expression *Parser::eval_call() {
 
     while (true)
     {
-        if (match(TokenType::TOKEN_PAREN_OPEN) || match(TokenType::TOKEN_BRACKET_OPEN))
+        if (match(TokenType::TOKEN_PAREN_OPEN) || match(TokenType::TOKEN_COLON))
         {
             auto generics = std::vector<TypeExpression *>();
-            if (peek()->type == TokenType::TOKEN_BRACKET_OPEN)
+            if (peek()->type == TokenType::TOKEN_COLON)
             {
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
-                auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_BRACKET_CLOSE), NULL);
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
+                auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_GREATER), NULL);
+                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
 
                 generics = types;
             }
@@ -606,11 +608,11 @@ Expression *Parser::eval_struct_instance_expression() {
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<TypeExpression *>();
-    if (peek()->type == TokenType::TOKEN_BRACKET_OPEN)
+    if (peek()->type == TokenType::TOKEN_LESS)
     {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
-        auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_BRACKET_CLOSE), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
+        auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_GREATER), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
 
         generics = types;
     }
@@ -663,12 +665,13 @@ TypeExpression *Parser::eval_type_union() {
 TypeExpression *Parser::eval_type_unary() {
 
     // ^..
-    if(match(TokenType::TOKEN_HAT) && peek(1)->type == TokenType::TOKEN_DOT && peek(2)->type == TokenType::TOKEN_DOT) {
+    if (match(TokenType::TOKEN_HAT) && peek(1)->type == TokenType::TOKEN_DOT && peek(2)->type == TokenType::TOKEN_DOT)
+    {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_HAT), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_DOT), NULL); 
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_DOT), NULL);  
-    
-         auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_DOT), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_DOT), NULL);
+
+        auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
         return new UnaryTypeExpression(UnaryType::POINTER_SLICE, type_expression);
     }
 
@@ -687,11 +690,11 @@ TypeExpression *Parser::eval_type_unary() {
 TypeExpression *Parser::eval_type_specified_generics() {
     auto primary = TRY_CALL_RET(eval_type_primary(), NULL);
 
-    if (match(TokenType::TOKEN_BRACKET_OPEN))
+    if (match(TokenType::TOKEN_LESS))
     {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
-        auto generics = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_BRACKET_CLOSE), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
+        auto generics = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_GREATER), NULL);
+        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
 
         return new SpecifiedGenericsTypeExpression(primary, generics);
     }

@@ -8,19 +8,19 @@ import "stdlib/basic.liam";
 fn main() void {
 
     if true {
-        println[str]("true");
+        println::<str>("true");
     }
 
     if false {
 
     } else {
-        println[str]("else");
+        println::<str>("else");
     }
 
     if false {
 
     } else if true {
-        println[str]("else if");
+        println::<str>("else if");
     }
 
     if false
@@ -32,7 +32,7 @@ fn main() void {
 
     }
     else {
-        println[str]("else");
+        println::<str>("else");
     }
 
 }

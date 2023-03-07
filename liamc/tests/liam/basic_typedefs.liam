@@ -7,6 +7,6 @@ alias Foo as bool;
 fn main() void {
     let foo := false;
     if !foo {
-        println[str]("0");
+        println::<str>("0");
     }
 }

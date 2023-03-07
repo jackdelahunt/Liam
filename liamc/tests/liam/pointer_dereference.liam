@@ -9,7 +9,7 @@ struct Foo {
 }
 
 fn (Foo) foo() void {
-    println[i64](self.n);
+    println::<i64>(self.n);
 }
 
 fn main() void {
@@ -18,5 +18,5 @@ fn main() void {
 
     let ptr := @foo;
     ptr.foo();
-    println[i64](ptr.n);
+    println::<i64>(ptr.n);
 }

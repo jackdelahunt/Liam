@@ -16,12 +16,12 @@ fn main() void {
     let w := 200f64;
 
 
-    println[i64](x + y);
-    println[i64](x * y);
-    println[i64](x - y);
-    println[i64](x / y);
-    println[i64](x % y);
-    println[i64](x == y);
+    println::<i64>(x + y);
+    println::<i64>(x * y);
+    println::<i64>(x - y);
+    println::<i64>(x / y);
+    println::<i64>(x % y);
+    println::<i64>(x == y);
 
-    println[f64](z / w);
+    println::<f64>(z / w);
 }
