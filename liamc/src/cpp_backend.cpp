@@ -835,7 +835,10 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
 
     if (type_expression->unary_type == UnaryType::POINTER)
     { return emit_type_expression(type_expression->type_expression) + "*"; }
-
+    
+    if (type_expression->unary_type == UnaryType::POINTER_SLICE)
+    { return emit_type_expression(type_expression->type_expression) + "*"; }
+ 
     panic("Cpp backend does not support this op yet...");
     return "";
 }

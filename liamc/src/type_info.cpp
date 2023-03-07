@@ -19,6 +19,11 @@ PointerTypeInfo::PointerTypeInfo(TypeInfo *to) {
     this->type = TypeInfoType::POINTER;
 }
 
+PointerSliceTypeInfo::PointerSliceTypeInfo(TypeInfo *to) {
+    this->to   = to;
+    this->type = TypeInfoType::POINTER_SLICE;
+}
+
 StrTypeInfo::StrTypeInfo() {
     this->type = TypeInfoType::STRING;
 }

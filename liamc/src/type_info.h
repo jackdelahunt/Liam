@@ -19,6 +19,7 @@ enum class TypeInfoType {
     STRUCT,
     STRUCT_INSTANCE,
     POINTER,
+    POINTER_SLICE,
     SLICE,
     GENERIC,
     UNION,
@@ -50,6 +51,12 @@ struct PointerTypeInfo : TypeInfo {
     TypeInfo *to;
 
     PointerTypeInfo(TypeInfo *to);
+};
+
+struct PointerSliceTypeInfo : TypeInfo {
+    TypeInfo *to;
+
+    PointerSliceTypeInfo(TypeInfo *to);
 };
 
 struct StrTypeInfo : TypeInfo {

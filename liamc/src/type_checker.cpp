@@ -1445,6 +1445,13 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
         return;
     }
 
+    if (type_expression->unary_type == UnaryType::POINTER_SLICE)
+    {
+        TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
+        type_expression->type_info = new PointerSliceTypeInfo(type_expression->type_expression->type_info);
+        return;
+    }
+
     panic("Internal :: Cannot type check this operator yet...");
 }
 
@@ -1534,8 +1541,8 @@ TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vecto
 }
 
 bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
-    if (a->type == TypeInfoType::ANY && b->type == TypeInfoType::ANY)
-    { panic("cannot match types that are both any, will be fixed xx"); }
+
+    ASSERT_MSG(!(a->type == TypeInfoType::ANY && b->type == TypeInfoType::ANY), "Cannot compare 2 any types");
 
     if (a->type == TypeInfoType::GENERIC)
         return true; // TODO: this might be a bug not checking b but not sure what to do here...
@@ -1557,6 +1564,10 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
             }
 
             return contains;
+        }
+
+        if(type_coerce(a, b)) {
+            return true;
         }
 
         if (a->type != TypeInfoType::ANY && b->type != TypeInfoType::ANY)
@@ -1702,6 +1713,12 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
 
         return true;
     }
+    else if (a->type == TypeInfoType::POINTER_SLICE) {
+        auto ptr_a = static_cast<PointerSliceTypeInfo *>(a);
+        auto ptr_b = static_cast<PointerSliceTypeInfo *>(b);
+
+        return type_match(ptr_a->to, ptr_b->to);
+    }
 
     panic("Cannot type check this type info");
     return false;
@@ -1728,6 +1745,16 @@ bool type_coerce(TypeInfo *a, TypeInfo *b) {
         if (b_ptr->to->type == TypeInfoType::ANY)
             return true; // if b is a null ptr then it can coerce
     }
+
+    if (a->type == TypeInfoType::POINTER_SLICE && b->type == TypeInfoType::POINTER)
+    {
+        auto b_ptr = static_cast<PointerTypeInfo *>(b);
+
+        if (b_ptr->to->type == TypeInfoType::ANY)
+            return true; // if b is a null ptr then it can coerce to a null
+    }
+
+
 
     return false;
 }
