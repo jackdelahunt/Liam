@@ -51,12 +51,12 @@ void ParserError::print_error_message() {
     auto file_data = FileManager::load(&file);
 
     std::string top    = "";
-    std::string middle = file_data->line(line);
-    std::string bottom = build_highlighter(character, 1);
+    std::string middle = file_data->line(this->line);
+    std::string bottom = build_highlighter(this->character, 1);
 
-    if (line > 0)
+    if (this->line > 1)
     {
-        top = file_data->line(line - 1);
+        top = file_data->line(this->line - 1);
         rtrim(top);
     }
 
@@ -69,7 +69,7 @@ void ParserError::print_error_message() {
         "   |   {}\n"
         "   |   {}\n"
         "   |   {}\n",
-        file, line, character, top, middle, bottom
+        file, this->line, this->character, top, middle, bottom
     );
 }
 

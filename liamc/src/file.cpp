@@ -5,27 +5,33 @@
 #include <fstream>
 
 u64 FileData::index_at(u32 line, u32 character) {
-    character--;
-    line--;
 
-    u64 current_line = 0;
-    u64 index        = 0;
+    ASSERT(line > 0);
+    ASSERT(character > 0);
 
-    while (current_line != line)
-    {
-        if (data.at(index) == '\n')
+    u32 current_line = 1;
+    u32 current_char = 1;
+    for(i64 i = 0; i < this->data.size(); i++) {
+
+        if(current_line == line && current_char == character) {
+            return i;
+        }
+       
+        if(this->data.at(i) == '\n') {
             current_line++;
-
-        index++;
+            current_char = 0;
+        } else {
+            current_char++;
+        }
     }
 
-    assert(index + character < data.size());
-    return index + character;
+    ASSERT_MSG(0, "Could not find line and character in file data");
 }
 
 std::string FileData::line(u64 line) {
 
     ASSERT(line > 0);
+    ASSERT(line <= this->line_count);
 
     auto start = index_at(line, 1);
     auto end   = start;

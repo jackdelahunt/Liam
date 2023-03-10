@@ -132,7 +132,7 @@ ScopeStatement *Parser::eval_scope_statement() {
     else if (closing_brace_index < 0)
     {
         ErrorReporter::report_parser_error(
-            path.string(), open_brace->span.start, open_brace->span.start, "No closing brace for scope found"
+            path.string(), open_brace->span.line, open_brace->span.start, "No closing brace for scope found"
         );
         return NULL;
     }
@@ -782,8 +782,7 @@ Token *Parser::consume_token_of_type(TokenType type) {
         ErrorReporter::report_parser_error(
             path.string(), t_ptr->span.line, t_ptr->span.start,
             fmt::format(
-                "Expected '{}' got '{}' at({}:{})", TokenTypeStrings[(int)type], t_ptr->string, t_ptr->span.line,
-                t_ptr->span.start
+                "Expected '{}' got '{}'", TokenTypeStrings[(int)type], t_ptr->string
             )
         );
         return NULL;

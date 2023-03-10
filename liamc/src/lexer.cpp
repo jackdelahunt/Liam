@@ -36,6 +36,12 @@ const char *TokenTypeStrings[52] = {
 };
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
+
+    // we use the index of where the token is in the file
+    // so lines and characters start at 1
+    ASSERT(line > 0);
+    ASSERT(start > 0);
+
     this->type   = type;
     this->string = string;
     this->span   = Span{.line = line, .start = start, .end = (u32)(start + string.length())};
@@ -56,7 +62,7 @@ Lexer::Lexer(std::filesystem::path path) {
     tokens            = std::vector<Token>();
     current           = 0;
     current_line      = 1;
-    current_character = 0;
+    current_character = 1;
     this->path        = path;
 }
 
@@ -64,7 +70,7 @@ void Lexer::lex() {
     auto as_string = path.string();
     auto chars     = &FileManager::load(&as_string)->data;
 
-    for (; current < chars->size(); next_char())
+    for (; this->current < chars->size(); next_char())
     {
         char c = chars->at(current);
         switch (c)
