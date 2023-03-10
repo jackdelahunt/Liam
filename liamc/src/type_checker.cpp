@@ -320,7 +320,7 @@ void TypeChecker::type_check_scope_statement(
     SymbolTable possible_copy;
     if (copy_symbol_table)
     {
-        possible_copy       = *symbol_table;
+        possible_copy       = *scopes_symbol_table;
         scopes_symbol_table = &possible_copy;
     }
 

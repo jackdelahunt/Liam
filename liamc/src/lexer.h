@@ -72,6 +72,8 @@ extern const char *TokenTypeStrings[52];
 std::string get_token_type_string(TokenType type);
 
 struct Span {
+    // lines start from 0 always
+    // start which is the starting character of the span start from 0
     u32 line;
     u32 start;
     u32 end;
