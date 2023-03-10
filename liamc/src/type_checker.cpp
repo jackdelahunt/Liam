@@ -12,9 +12,9 @@
 #include <tuple>
 
 SymbolTable::SymbolTable() {
-    this->builtin_type_table = std::map<std::string, TypeInfo *>();
-    this->type_table         = std::map<std::string, TypeInfo *>();
-    this->identifier_table   = std::map<std::string, TypeInfo *>();
+    this->builtin_type_table = std::unordered_map<std::string, TypeInfo *>();
+    this->type_table         = std::unordered_map<std::string, TypeInfo *>();
+    this->identifier_table   = std::unordered_map<std::string, TypeInfo *>();
 
     builtin_type_table["void"] = new VoidTypeInfo();
     builtin_type_table["bool"] = new BoolTypeInfo();
@@ -320,7 +320,7 @@ void TypeChecker::type_check_scope_statement(
     SymbolTable possible_copy;
     if (copy_symbol_table)
     {
-        possible_copy       = *scopes_symbol_table;
+        possible_copy       = scopes_symbol_table->copy();
         scopes_symbol_table = &possible_copy;
     }
 
