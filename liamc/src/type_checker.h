@@ -20,9 +20,9 @@ struct Expression;
 struct File;
 
 struct SymbolTable {
-    std::map<std::string, TypeInfo *> builtin_type_table; // u64 string...
-    std::map<std::string, TypeInfo *> type_table;         // structs
-    std::map<std::string, TypeInfo *> identifier_table;   // variables or funcs
+    std::unordered_map<std::string, TypeInfo *> builtin_type_table; // u64 string...
+    std::unordered_map<std::string, TypeInfo *> type_table;         // structs
+    std::unordered_map<std::string, TypeInfo *> identifier_table;   // variables or funcs
 
     SymbolTable();
 
