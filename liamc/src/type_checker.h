@@ -64,7 +64,6 @@ struct TypeChecker {
 
     void type_check_expression(Expression *expression, SymbolTable *symbol_table);
     void type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table);
-    void type_check_is_expression(IsExpression *expression, SymbolTable *symbol_table);
     void type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table);
     void type_check_string_literal_expression(StringLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_number_literal_expression(NumberLiteralExpression *expression, SymbolTable *symbol_table);
@@ -76,7 +75,6 @@ struct TypeChecker {
     void type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table);
     void type_check_group_expression(GroupExpression *expression, SymbolTable *symbol_table);
     void type_check_null_literal_expression(NullLiteralExpression *expression, SymbolTable *symbol_table);
-    void type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table);
     void type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_fn_expression(FnExpression *expression, SymbolTable *symbol_table);
     void type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table);
@@ -84,7 +82,6 @@ struct TypeChecker {
     void type_check_struct_instance_expression(StructInstanceExpression *expression, SymbolTable *symbol_table);
 
     void type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table);
-    void type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table);
     void type_check_specified_generics_type_expression(
         SpecifiedGenericsTypeExpression *type_expression, SymbolTable *symbol_table

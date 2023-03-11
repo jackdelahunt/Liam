@@ -22,7 +22,6 @@ enum class TypeInfoType {
     POINTER_SLICE,
     SLICE,
     GENERIC,
-    UNION,
     ENUM,
 };
 
@@ -108,12 +107,6 @@ struct GenericTypeInfo : TypeInfo {
     u64 id;
 
     GenericTypeInfo(u64 id);
-};
-
-struct UnionTypeInfo : TypeInfo {
-    std::vector<TypeInfo *> types;
-
-    UnionTypeInfo(std::vector<TypeInfo *> types);
 };
 
 struct EnumTypeInfo : TypeInfo {

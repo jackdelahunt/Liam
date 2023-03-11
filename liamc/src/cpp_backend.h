@@ -32,7 +32,6 @@ struct CppBackend {
     std::string emit_alias_statement(AliasStatement *statement);
 
     std::string emit_expression(Expression *expression);
-    std::string emit_is_expression(IsExpression *expression);
     std::string emit_binary_expression(BinaryExpression *expression);
     std::string emit_string_literal_expression(StringLiteralExpression *expression);
     std::string emit_bool_literal_expression(BoolLiteralExpression *expression);
@@ -43,7 +42,6 @@ struct CppBackend {
     std::string emit_get_expression(GetExpression *expression);
     std::string emit_group_expression(GroupExpression *expression);
     std::string emit_null_literal_expression(NullLiteralExpression *expression);
-    std::string emit_propagate_expression(PropagateExpression *expression);
     std::string emit_zero_literal_expression(ZeroLiteralExpression *expression);
     std::string emit_fn_expression(FnExpression *expression);
     std::string emit_instantiate_expression(InstantiateExpression *expression);
@@ -52,7 +50,6 @@ struct CppBackend {
 
     std::string emit_type_expression(TypeExpression *type_expression);
     std::string emit_unary_type_expression(UnaryTypeExpression *type_expression);
-    std::string emit_union_type_expression(UnionTypeExpression *type_expression);
     std::string emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression);
     std::string emit_fn_type_expression(FnTypeExpression *type_expression);
     std::string emit_identifier_type_expression(IdentifierTypeExpression *type_expression);

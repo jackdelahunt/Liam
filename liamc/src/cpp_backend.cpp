@@ -436,9 +436,6 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_BINARY:
         return emit_binary_expression(dynamic_cast<BinaryExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_IS:
-        return emit_is_expression(dynamic_cast<IsExpression *>(expression));
-        break;
     case ExpressionType::EXPRESSION_UNARY:
         return emit_unary_expression(dynamic_cast<UnaryExpression *>(expression));
         break;
@@ -450,9 +447,6 @@ std::string CppBackend::emit_expression(Expression *expression) {
         break;
     case ExpressionType::EXPRESSION_NULL_LITERAL:
         return emit_null_literal_expression(dynamic_cast<NullLiteralExpression *>(expression));
-        break;
-    case ExpressionType::EXPRESSION_PROPAGATE:
-        return emit_propagate_expression(dynamic_cast<PropagateExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_ZERO_LITERAL:
         return emit_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression));
@@ -474,17 +468,6 @@ std::string CppBackend::emit_expression(Expression *expression) {
         return "";
     }
     }
-}
-
-std::string CppBackend::emit_is_expression(IsExpression *expression) {
-    auto source = std::string();
-
-    source.append("auto " + expression->identifier.string + " = ");
-    source.append("std::get_if<" + emit_type_expression(expression->type_expression) + ">(");
-    source.append("&" + emit_expression(expression->expression));
-    source.append(")");
-
-    return source;
 }
 
 std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
@@ -662,67 +645,6 @@ std::string CppBackend::emit_null_literal_expression(NullLiteralExpression *expr
     return "nullptr";
 }
 
-std::string CppBackend::emit_propagate_expression(PropagateExpression *expression) {
-
-    constexpr auto source_template = R"(
-({{
-        //                  vv expression given
-        auto __evaluated = ({});
-        //                            vv type expression given
-        if (auto __temp = std::get_if<{}>(&__evaluated))
-             return *__temp;
-
-        //                                  vv type list from else type
-        auto v = LiamInternal::cast_variant<{}>(__evaluated);
-        {}
-}})
-)";
-
-    constexpr auto single_type_source = R"(
-    //          vv if type list is single then extract type
-    std::get<{}>(v);
-)";
-
-    constexpr auto multi_type_source = R"(
-    v;
-)";
-
-    std::string type_list;
-    if (expression->otherwise->type == TypeExpressionType::TYPE_UNION)
-    {
-        auto union_expression = static_cast<UnionTypeExpression *>(expression->otherwise);
-
-        // if the type expression is a union type expression then the type
-        // needed is a comma seperated list of the types in the union
-        for (u64 i = 0; i < union_expression->type_expressions.size(); i++)
-        {
-            type_list.append(emit_type_expression(union_expression->type_expressions[i]));
-            if (i + 1 < union_expression->type_expressions.size())
-            { type_list.append(", "); }
-        }
-    }
-    else
-    { type_list = emit_type_expression(expression->otherwise); }
-
-    std::string source;
-    if (expression->otherwise->type == TypeExpressionType::TYPE_UNION)
-    {
-        source = fmt::format(
-            source_template, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
-            type_list, multi_type_source
-        );
-    }
-    else
-    {
-        source = fmt::format(
-            source_template, emit_expression(expression->expression), emit_type_expression(expression->type_expression),
-            type_list, fmt::format(single_type_source, emit_type_expression(expression->otherwise))
-        );
-    }
-
-    return source;
-}
-
 std::string CppBackend::emit_zero_literal_expression(ZeroLiteralExpression *expression) {
     return "{}";
 }
@@ -803,9 +725,6 @@ std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression
 std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
-    case TypeExpressionType::TYPE_UNION:
-        return emit_union_type_expression(dynamic_cast<UnionTypeExpression *>(type_expression));
-        break;
     case TypeExpressionType::TYPE_IDENTIFIER:
         return emit_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression));
         break;
@@ -823,12 +742,6 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
         panic("Cpp back end does not support this type expression");
         return "";
     }
-}
-
-std::string CppBackend::emit_union_type_expression(UnionTypeExpression *type_expression) {
-    std::string source = "std::variant";
-    source.append(emit_cpp_template_params(&type_expression->type_expressions));
-    return source;
 }
 
 std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {

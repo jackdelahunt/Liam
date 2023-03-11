@@ -6,7 +6,7 @@
 #include "liam.h"
 #include "utils.h"
 
-const char *TokenTypeStrings[52] = {
+const char *TokenTypeStrings[51] = {
     "int Literal", "string Literal",
     "identifier",  "let",
     "fn",          "(",
@@ -28,8 +28,7 @@ const char *TokenTypeStrings[52] = {
     "!=",          "!",
     "<",           ">",
     ">=",          "<=",
-    "extern",      "|",
-    "is",          "null",
+    "extern",      "null",
     "enum",        "continue",
     "alias",       "as",
     "zero",
@@ -168,9 +167,6 @@ void Lexer::lex() {
             }
             tokens.emplace_back(Token(TokenType::TOKEN_GREATER, ">", current_line, current_character));
             break;
-        case '|':
-            tokens.emplace_back(Token(TokenType::TOKEN_BAR, "|", current_line, current_character));
-            break;
         case '!':
             if (peek(chars) == '=')
             {
@@ -280,12 +276,6 @@ void Lexer::lex() {
             if (word == "extern")
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_EXTERN, word, current_line, word_start));
-                continue;
-            }
-
-            if (word == "is")
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_IS, word, current_line, word_start));
                 continue;
             }
 

@@ -567,9 +567,6 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_IDENTIFIER:
         return type_check_identifier_expression(dynamic_cast<IdentifierExpression *>(expression), symbol_table);
         break;
-    case ExpressionType::EXPRESSION_IS:
-        return type_check_is_expression(dynamic_cast<IsExpression *>(expression), symbol_table);
-        break;
     case ExpressionType::EXPRESSION_BINARY:
         return type_check_binary_expression(dynamic_cast<BinaryExpression *>(expression), symbol_table);
         break;
@@ -584,9 +581,6 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         break;
     case ExpressionType::EXPRESSION_NULL_LITERAL:
         return type_check_null_literal_expression(dynamic_cast<NullLiteralExpression *>(expression), symbol_table);
-        break;
-    case ExpressionType::EXPRESSION_PROPAGATE:
-        return type_check_propagation_expression(dynamic_cast<PropagateExpression *>(expression), symbol_table);
         break;
     case ExpressionType::EXPRESSION_ZERO_LITERAL:
         return type_check_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression), symbol_table);
@@ -608,44 +602,6 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     default:
         panic("Expression not implemented in type checker");
     }
-}
-
-void TypeChecker::type_check_is_expression(IsExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->expression, symbol_table));
-    TRY_CALL(type_check_type_expression(expression->type_expression, symbol_table));
-
-    if (expression->expression->type_info->type != TypeInfoType::UNION)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->expression, NULL, NULL, NULL,
-            "Cannot use non-type-union type in is expression"
-        );
-        return;
-    }
-
-    // check if the type expression given is valid for this type union
-    auto union_type_info = (UnionTypeInfo *)expression->expression->type_info;
-    bool match           = false;
-    for (auto t : union_type_info->types)
-    {
-        if (type_match(t, expression->type_expression->type_info))
-        {
-            match = true;
-            break;
-        }
-    }
-
-    if (!match)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->expression, NULL, expression->type_expression, NULL,
-            "Type must be a valid sub type of the type union"
-        );
-        return;
-    }
-
-    expression->type_info = symbol_table->builtin_type_table["bool"];
-    symbol_table->add_identifier(expression->identifier, new PointerTypeInfo(expression->type_expression->type_info));
 }
 
 void TypeChecker::type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table) {
@@ -1083,68 +1039,6 @@ void TypeChecker::type_check_null_literal_expression(NullLiteralExpression *expr
     expression->type_info = new PointerTypeInfo(new AnyTypeInfo());
 }
 
-void TypeChecker::type_check_propagation_expression(PropagateExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->expression, symbol_table));
-    TRY_CALL(type_check_type_expression(expression->type_expression, symbol_table));
-    TRY_CALL(type_check_type_expression(expression->otherwise, symbol_table));
-
-    if (expression->expression->type_info->type != TypeInfoType::UNION)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->expression, NULL, NULL, NULL,
-            "Can only use propagation on union types"
-        );
-        return;
-    }
-
-    // find the index of the type expression in the union type if
-    // not there then report an error
-    auto expression_union_type = static_cast<UnionTypeInfo *>(expression->expression->type_info);
-    i64 index                  = -1;
-    for (i64 i = 0; i < expression_union_type->types.size(); i++)
-    {
-        auto t = expression_union_type->types[i];
-        if (type_match(t, expression->type_expression->type_info))
-        {
-            index = i;
-            break;
-        }
-    }
-
-    if (index == -1)
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->expression, NULL, expression->type_expression, NULL,
-            "Union type does not contain this type"
-        );
-        return;
-    }
-
-    // we konw index in union types of our type, if we remove this type the resulting
-    // type is the return type, if the union with the type removed is a single type
-    // then it is converted to a single type without the union
-    auto remaining_types = std::vector<TypeInfo *>();
-    for (i64 i = 0; i < expression_union_type->types.size(); i++)
-    {
-        if (i != index)
-        { remaining_types.push_back(expression_union_type->types[i]); }
-    }
-
-    if (remaining_types.size() == 1)
-    { expression->type_info = remaining_types[0]; }
-    else
-    { expression->type_info = new UnionTypeInfo(remaining_types); }
-
-    if (!type_match(expression->type_info, expression->otherwise->type_info))
-    {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression->expression, NULL, expression->type_expression,
-            expression->otherwise, "Indicated type does not match final type with the given type removed"
-        );
-        return;
-    }
-}
-
 void TypeChecker::type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table) {
     expression->type_info = new AnyTypeInfo{TypeInfoType::ANY};
 }
@@ -1405,9 +1299,6 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
     case TypeExpressionType::TYPE_IDENTIFIER:
         type_check_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression), symbol_table);
         break;
-    case TypeExpressionType::TYPE_UNION:
-        type_check_union_type_expression(dynamic_cast<UnionTypeExpression *>(type_expression), symbol_table);
-        break;
     case TypeExpressionType::TYPE_UNARY:
         type_check_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression), symbol_table);
         break;
@@ -1422,17 +1313,6 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
     default:
         panic("Not implemented for type checker");
     }
-}
-
-void TypeChecker::type_check_union_type_expression(UnionTypeExpression *type_expression, SymbolTable *symbol_table) {
-    auto sub_types = std::vector<TypeInfo *>();
-    for (auto sub_type_expression : type_expression->type_expressions)
-    {
-        TRY_CALL(type_check_type_expression(sub_type_expression, symbol_table));
-        sub_types.push_back(sub_type_expression->type_info);
-    }
-
-    type_expression->type_info = new UnionTypeInfo(sub_types);
 }
 
 void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table) {
@@ -1547,23 +1427,6 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
 
     if (a->type != b->type)
     {
-        if (a->type == TypeInfoType::UNION)
-        {
-            bool contains = false;
-            auto union_a  = static_cast<UnionTypeInfo *>(a);
-
-            for (auto type_info : union_a->types)
-            {
-                if (type_match(type_info, b))
-                {
-                    contains = true;
-                    break;
-                }
-            }
-
-            return contains;
-        }
-
         if (type_coerce(a, b))
         { return true; }
 
@@ -1645,44 +1508,6 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
         }
 
         return true;
-    }
-    else if (a->type == TypeInfoType::UNION)
-    {
-        // unions can get tricky sometimes
-        // you can either try and match the unions through each
-        // of the members
-        // or you may want to use a as a member of the b union
-        auto union_a = static_cast<UnionTypeInfo *>(a);
-        auto union_b = static_cast<UnionTypeInfo *>(b);
-
-        // of the size matches then try and match all the types of
-        // the union if the members of the union do not match then
-        // try and match as an instance
-        if (union_a->types.size() == union_b->types.size())
-        {
-            bool match = true;
-            for (int i = 0; i < union_a->types.size(); i++)
-            {
-                if (!type_match(union_a->types.at(i), union_b->types.at(i)))
-                {
-                    match = false;
-                    break;
-                }
-            }
-
-            if (match)
-                return true;
-        }
-
-        // if we are here then they are not the same union
-        // now try and see if a is a type of b
-        for (int i = 0; i < union_b->types.size(); i++)
-        {
-            if (type_match(union_a, union_b->types.at(i)))
-            { return true; }
-        }
-
-        return false;
     }
     else if (a->type == TypeInfoType::ENUM)
     {

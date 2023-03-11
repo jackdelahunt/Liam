@@ -353,13 +353,12 @@ Statement *Parser::eval_line_starting_expression() {
 
 /*
  *  === expression precedence === (lower is more precedence)
- *  is
- *  ?
  *  or
  *  and
  *  == !=
  *  < > >= <=
  *  + -
+ *  ?
  *  * / %
  *  @ * !
  *  call() slice[0]
@@ -367,38 +366,7 @@ Statement *Parser::eval_line_starting_expression() {
  */
 
 Expression *Parser::eval_expression() {
-    return eval_is();
-}
-
-Expression *Parser::eval_is() {
-    auto expr = TRY_CALL_RET(eval_propagation(), NULL);
-
-    if (match(TokenType::TOKEN_IS))
-    {
-        consume_token();
-        auto type = TRY_CALL_RET(eval_type_expression(), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_AS), NULL);
-        auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-
-        expr = new IsExpression(expr, type, *identifier);
-    }
-
-    return expr;
-}
-
-Expression *Parser::eval_propagation() {
-    auto expr = TRY_CALL_RET(eval_or(), NULL);
-
-    if (match(TokenType::TOKEN_RETURN))
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_RETURN), NULL);
-        auto type = TRY_CALL_RET(eval_type_expression(), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ELSE), NULL);
-        auto otherwise = TRY_CALL_RET(eval_type_expression(), NULL);
-        expr           = new PropagateExpression(expr, type, otherwise);
-    }
-
-    return expr;
+    return eval_or();
 }
 
 Expression *Parser::eval_or() {
@@ -638,28 +606,7 @@ Expression *Parser::eval_group_expression() {
  * identifier
  */
 TypeExpression *Parser::eval_type_expression() {
-    return eval_type_union();
-}
-
-TypeExpression *Parser::eval_type_union() {
-    auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
-
-    // there is a bar then this is a union type else return normal type
-    if (match(TokenType::TOKEN_BAR))
-    {
-        auto expressions = std::vector<TypeExpression *>();
-        expressions.push_back(type_expression);
-        while (match(TokenType::TOKEN_BAR))
-        {
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BAR), NULL);
-            auto next_expression = TRY_CALL_RET(eval_type_unary(), NULL);
-            expressions.push_back(next_expression);
-        }
-
-        return new UnionTypeExpression(expressions);
-    }
-
-    return type_expression;
+    return eval_type_unary();
 }
 
 TypeExpression *Parser::eval_type_unary() {
@@ -781,9 +728,7 @@ Token *Parser::consume_token_of_type(TokenType type) {
     {
         ErrorReporter::report_parser_error(
             path.string(), t_ptr->span.line, t_ptr->span.start,
-            fmt::format(
-                "Expected '{}' got '{}'", TokenTypeStrings[(int)type], t_ptr->string
-            )
+            fmt::format("Expected '{}' got '{}'", TokenTypeStrings[(int)type], t_ptr->string)
         );
         return NULL;
     }
