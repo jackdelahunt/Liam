@@ -69,11 +69,6 @@ GenericTypeInfo::GenericTypeInfo(u64 id) {
     this->type = TypeInfoType::GENERIC;
 }
 
-UnionTypeInfo::UnionTypeInfo(std::vector<TypeInfo *> types) {
-    this->types = types;
-    this->type  = TypeInfoType::UNION;
-}
-
 EnumTypeInfo::EnumTypeInfo(std::vector<EnumMember> members) {
     this->members = members;
     this->type    = TypeInfoType::ENUM;

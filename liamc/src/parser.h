@@ -71,8 +71,6 @@ struct Parser {
 
     /* normal expressions */
     Expression *eval_expression();
-    Expression *eval_is();
-    Expression *eval_propagation();
     Expression *eval_or();
     Expression *eval_and();
     Expression *eval_equality();
@@ -91,7 +89,6 @@ struct Parser {
 
     /* return_type expressions */
     TypeExpression *eval_type_expression();
-    TypeExpression *eval_type_union();
     TypeExpression *eval_type_unary();
     TypeExpression *eval_type_specified_generics();
     TypeExpression *eval_type_primary();

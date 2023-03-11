@@ -8,7 +8,6 @@ struct ScopeStatement;
 struct TypeInfo;
 
 enum class ExpressionType {
-    EXPRESSION_IS,
     EXPRESSION_BINARY,
     EXPRESSION_UNARY,
     EXPRESSION_NUMBER_LITERAL,
@@ -19,7 +18,6 @@ enum class ExpressionType {
     EXPRESSION_GET,
     EXPRESSION_GROUP,
     EXPRESSION_NULL_LITERAL,
-    EXPRESSION_PROPAGATE,
     EXPRESSION_ZERO_LITERAL,
     EXPRESSION_FN,
     EXPRESSION_INSTANTIATION,
@@ -40,14 +38,6 @@ struct Expression {
 };
 
 std::ostream &operator<<(std::ostream &os, const Expression &expression);
-
-struct IsExpression : Expression {
-    Expression *expression;
-    TypeExpression *type_expression;
-    Token identifier;
-
-    IsExpression(Expression *expression, TypeExpression *type_expression, Token identifier);
-};
 
 struct BinaryExpression : Expression {
     Expression *left;
@@ -114,14 +104,6 @@ struct NullLiteralExpression : Expression {
     NullLiteralExpression(Token token);
 };
 
-struct PropagateExpression : Expression {
-    Expression *expression;
-    TypeExpression *type_expression;
-    TypeExpression *otherwise;
-
-    PropagateExpression(Expression *expression, TypeExpression *type_expression, TypeExpression *otherwise);
-};
-
 struct ZeroLiteralExpression : Expression {
     ZeroLiteralExpression(Token token);
 };
@@ -165,7 +147,6 @@ struct EnumInstanceExpression : Expression {
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_UNARY,
-    TYPE_UNION,
     TYPE_SPECIFIED_GENERICS,
     TYPE_FN,
 };
@@ -188,12 +169,6 @@ struct UnaryTypeExpression : TypeExpression {
     TypeExpression *type_expression;
 
     UnaryTypeExpression(UnaryType unary_type, TypeExpression *type_expression);
-};
-
-struct UnionTypeExpression : TypeExpression {
-    std::vector<TypeExpression *> type_expressions;
-
-    UnionTypeExpression(std::vector<TypeExpression *> type_expressions);
 };
 
 struct SpecifiedGenericsTypeExpression : TypeExpression {

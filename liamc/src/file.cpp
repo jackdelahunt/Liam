@@ -11,18 +11,19 @@ u64 FileData::index_at(u32 line, u32 character) {
 
     u32 current_line = 1;
     u32 current_char = 1;
-    for(i64 i = 0; i < this->data.size(); i++) {
+    for (i64 i = 0; i < this->data.size(); i++)
+    {
 
-        if(current_line == line && current_char == character) {
-            return i;
-        }
-       
-        if(this->data.at(i) == '\n') {
+        if (current_line == line && current_char == character)
+        { return i; }
+
+        if (this->data.at(i) == '\n')
+        {
             current_line++;
             current_char = 0;
-        } else {
-            current_char++;
         }
+        else
+        { current_char++; }
     }
 
     ASSERT_MSG(0, "Could not find line and character in file data");

@@ -5,13 +5,6 @@ std::ostream &Expression::format(std::ostream &os) const {
     return os;
 }
 
-IsExpression::IsExpression(Expression *expression, TypeExpression *type_expression, Token identifier) {
-    this->expression      = expression;
-    this->type_expression = type_expression;
-    this->identifier      = identifier;
-    this->type            = ExpressionType::EXPRESSION_IS;
-}
-
 BinaryExpression::BinaryExpression(Expression *left, Token op, Expression *right) {
     this->left  = left;
     this->op    = op;
@@ -78,16 +71,6 @@ NullLiteralExpression::NullLiteralExpression(Token token) {
     this->span = token.span;
 }
 
-PropagateExpression::PropagateExpression(
-    Expression *expression, TypeExpression *type_expression, TypeExpression *otherwise
-) {
-    this->expression      = expression;
-    this->type_expression = type_expression;
-    this->type            = ExpressionType::EXPRESSION_PROPAGATE;
-    this->span            = expression->span;
-    this->otherwise       = otherwise;
-}
-
 ZeroLiteralExpression::ZeroLiteralExpression(Token token) {
     this->type = ExpressionType::EXPRESSION_ZERO_LITERAL;
     this->span = token.span;
@@ -149,14 +132,6 @@ UnaryTypeExpression::UnaryTypeExpression(UnaryType unary_type, TypeExpression *t
     this->type_expression = type_expression;
     this->type            = TypeExpressionType::TYPE_UNARY;
     this->span            = type_expression->span;
-}
-
-UnionTypeExpression::UnionTypeExpression(std::vector<TypeExpression *> type_expressions) {
-    this->type_expressions = type_expressions;
-    this->type             = TypeExpressionType::TYPE_UNION;
-    this->span             = Span{
-        type_expressions.at(0)->span.line, type_expressions.at(0)->span.start,
-        type_expressions.at(type_expressions.size() - 1)->span.end};
 }
 
 SpecifiedGenericsTypeExpression::SpecifiedGenericsTypeExpression(
