@@ -71,12 +71,13 @@ void Lexer::lex() {
 
     for (; this->current < chars->size(); next_char())
     {
+
         char c = chars->at(current);
         switch (c)
         {
         case '\n':
             current_line++;
-            current_character = 0;
+            current_character = 1;
             break;
         case ' ':
         case '\r':
