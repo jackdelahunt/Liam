@@ -28,6 +28,7 @@ struct SymbolTable {
 
     void add_type(Token type, TypeInfo *type_info);
     void add_identifier(Token identifier, TypeInfo *type_info);
+    void add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info);
     std::tuple<TypeInfo *, bool> get_type(Token *identifier);
     std::tuple<TypeInfo *, bool> get_type(std::string identifier);
     SymbolTable copy();

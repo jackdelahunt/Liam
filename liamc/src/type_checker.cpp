@@ -51,12 +51,21 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     if (identifier_table.count(identifier.string) > 0)
     {
         panic(
-            "Duplcate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.span.line) +
+            "Duplicate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.span.line) +
             "," + std::to_string(identifier.span.start) + ")"
         );
     }
 
     identifier_table[identifier.string] = type_info;
+}
+
+void SymbolTable::add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info) {
+    if (identifier_table.count(identifier) > 0)
+    {
+        panic("Duplicate creation of identifier: " + identifier);
+    }
+
+    identifier_table[identifier] = type_info;
 }
 
 std::tuple<TypeInfo *, bool> SymbolTable::get_type(Token *identifier) {
@@ -368,7 +377,7 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
         }
         // we should always be able to find the fn type info in the struct as it is
         // already been type checked if this does not happen then something has gone very wrong
-        assert(statement->parent_type != NULL);
+        ASSERT(statement->parent_type != NULL);
     }
 
     // params and get type expressions
@@ -384,9 +393,7 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
 
     if (statement->parent_type != NULL)
     {
-        copied_symbol_table.add_identifier(
-            Token(TokenType::TOKEN_IDENTIFIER, "self", 0, 0), new PointerTypeInfo(statement->parent_type->type_info)
-        );
+        copied_symbol_table.add_compiler_generated_identifier("self", new PointerTypeInfo(statement->parent_type->type_info));
     }
 
     for (auto &[identifier, type_info] : args)
