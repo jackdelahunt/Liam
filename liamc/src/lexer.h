@@ -92,7 +92,7 @@ bool is_delim(char c);
 
 struct Lexer {
     std::vector<Token> tokens;
-    i32 current;
+    i32 current_index;
     i32 current_line;
     i32 current_character;
     std::filesystem::path path;

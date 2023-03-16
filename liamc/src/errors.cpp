@@ -11,6 +11,9 @@
 ErrorReporter *ErrorReporter::singleton = NULL;
 
 std::string build_highlighter(u64 start, u64 length) {
+
+    ASSERT_MSG(start > 0, "Character location should always start at 1");
+
     auto source = std::string();
     for (int i = 0; i < start - 1; i++)
     { source.append(" "); }
@@ -51,12 +54,12 @@ void ParserError::print_error_message() {
     auto file_data = FileManager::load(&file);
 
     std::string top    = "";
-    std::string middle = file_data->line(this->line);
-    std::string bottom = build_highlighter(this->character, 1);
+    std::string middle = file_data->line(this->span.line);
+    std::string bottom = build_highlighter(this->span.start, this->span.end - this->span.start);
 
-    if (this->line > 1)
+    if (this->span.line > 1)
     {
-        top = file_data->line(this->line - 1);
+        top = file_data->line(this->span.line - 1);
         rtrim(top);
     }
 
@@ -69,7 +72,7 @@ void ParserError::print_error_message() {
         "   |   {}\n"
         "   |   {}\n"
         "   |   {}\n",
-        file, this->line, this->character, top, middle, bottom
+        file, this->span.line, this->span.start, top, middle, bottom
     );
 }
 
@@ -94,11 +97,11 @@ ErrorReporter::ErrorReporter() {
     type_check_errors = std::vector<TypeCheckerError>();
 }
 
-void ErrorReporter::report_parser_error(std::string file, u32 line, u32 character, std::string message) {
+void ErrorReporter::report_parser_error(std::string file, Span span, std::string message) {
     if (ErrorReporter::singleton == nullptr)
     { ErrorReporter::singleton = new ErrorReporter(); }
 
-    ErrorReporter::singleton->parse_errors.push_back(ParserError{std::move(file), line, character, std::move(message)});
+    ErrorReporter::singleton->parse_errors.push_back(ParserError{std::move(file), span, std::move(message)});
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
 

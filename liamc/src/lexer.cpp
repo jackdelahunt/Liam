@@ -59,7 +59,7 @@ bool is_delim(char c) {
 
 Lexer::Lexer(std::filesystem::path path) {
     tokens            = std::vector<Token>();
-    current           = 0;
+    current_index     = 0;
     current_line      = 1;
     current_character = 1;
     this->path        = path;
@@ -69,15 +69,20 @@ void Lexer::lex() {
     auto as_string = path.string();
     auto chars     = &FileManager::load(&as_string)->data;
 
-    for (; this->current < chars->size(); next_char())
+    for (; this->current_index < chars->size(); next_char())
     {
 
-        char c = chars->at(current);
+        char c = chars->at(this->current_index);
         switch (c)
         {
         case '\n':
-            current_line++;
-            current_character = 1;
+            this->current_line++;
+
+            // while all character locations start at 1, we need to set this to 0
+            // because when we break from the switch and go to the next iteration
+            // it will iterate the current_character by 1 setting it back to the
+            // desired starting point
+            this->current_character = 0;
             break;
         case ' ':
         case '\r':
@@ -95,7 +100,7 @@ void Lexer::lex() {
         case '/':
             if (peek(chars) == '/')
             {
-                while (current < chars->size() && chars->at(current) != '\n')
+                while (this->current_index < chars->size() && chars->at(this->current_index) != '\n')
                 { next_char(); }
                 current_line++;
                 break;
@@ -182,16 +187,16 @@ void Lexer::lex() {
             std::string str = std::string();
 
             next_char();
-            while (current < chars->size() && chars->at(current) != '"')
+            while (current_index < chars->size() && chars->at(current_index) != '"')
             {
                 // skip back slash and accept next char
-                if (chars->at(current) == '\\')
+                if (chars->at(current_index) == '\\')
                 {
-                    str.append(std::string(1, chars->at(current)));
+                    str.append(std::string(1, chars->at(current_index)));
                     next_char();
                 }
 
-                str.append(std::string(1, chars->at(current)));
+                str.append(std::string(1, chars->at(current_index)));
                 next_char();
             }
             tokens.emplace_back(TokenType::TOKEN_STRING_LITERAL, str, current_line, start);
@@ -335,7 +340,7 @@ void Lexer::lex() {
                 // TODO:
                 // if this word is a number then it might have got stuck on a .
                 // this means the word is actually shorter than the actual number
-                // to stop this we revert the current location and read until we
+                // to stop this we revert the current_index location and read until we
                 // find a delimiter but not including . or -
 
                 tokens.emplace_back(Token(TokenType::TOKEN_NUMBER_LITERAL, word, current_line, word_start));
@@ -351,24 +356,24 @@ void Lexer::lex() {
 }
 
 void Lexer::next_char() {
-    current++;
-    current_character++;
+    this->current_index++;
+    this->current_character++;
 }
 
 char Lexer::peek(std::vector<char> *chars) {
-    return chars->at(current + 1);
+    return chars->at(this->current_index + 1);
 }
 
 std::string Lexer::get_word(std::vector<char> *chars) {
     std::string word = std::string();
-    while (current < chars->size() && !is_delim(chars->at(current)))
+    while (this->current_index < chars->size() && !is_delim(chars->at(this->current_index)))
     {
-        word.append(1, chars->at(current));
+        word.append(1, chars->at(this->current_index));
         next_char();
     }
 
-    current--;           // it will be iterated once after this
-    current_character--; // it will be iterated once after this
+    this->current_index--; // it will be iterated once after this
+    current_character--;   // it will be iterated once after this
 
     return word;
 }
