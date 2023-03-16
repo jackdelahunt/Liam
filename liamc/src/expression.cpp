@@ -47,7 +47,7 @@ BoolLiteralExpression::BoolLiteralExpression(Token value) {
 IdentifierExpression::IdentifierExpression(const Token identifier) {
     this->identifier = identifier;
     this->type       = ExpressionType::EXPRESSION_IDENTIFIER;
-    this->span       = Span{.line = identifier.span.line, .start = identifier.span.start, .end = identifier.span.end};
+    this->span       = identifier.span;
 }
 
 CallExpression::CallExpression(

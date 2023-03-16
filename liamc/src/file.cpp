@@ -20,7 +20,7 @@ u64 FileData::index_at(u32 line, u32 character) {
         if (this->data.at(i) == '\n')
         {
             current_line++;
-            current_char = 0;
+            current_char = 1;
         }
         else
         { current_char++; }

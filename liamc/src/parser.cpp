@@ -131,9 +131,7 @@ ScopeStatement *Parser::eval_scope_statement() {
     }
     else if (closing_brace_index < 0)
     {
-        ErrorReporter::report_parser_error(
-            path.string(), open_brace->span.line, open_brace->span.start, "No closing brace for scope found"
-        );
+        ErrorReporter::report_parser_error(path.string(), open_brace->span, "No closing brace for scope found");
         return NULL;
     }
 
@@ -739,7 +737,7 @@ Token *Parser::consume_token_of_type(TokenType type) {
     {
         auto last_token = tokens.at(tokens.size() - 1);
         ErrorReporter::report_parser_error(
-            path.string(), last_token.span.line, last_token.span.start,
+            path.string(), last_token.span,
             fmt::format("Expected '{}' but got unexpected end of file", TokenTypeStrings[(int)type])
         );
         return NULL;
@@ -749,7 +747,7 @@ Token *Parser::consume_token_of_type(TokenType type) {
     if (t_ptr->type != type)
     {
         ErrorReporter::report_parser_error(
-            path.string(), t_ptr->span.line, t_ptr->span.start,
+            path.string(), t_ptr->span,
             fmt::format("Expected '{}' got '{}'", TokenTypeStrings[(int)type], t_ptr->string)
         );
         return NULL;
