@@ -458,10 +458,10 @@ Expression *Parser::eval_unary() {
         return new UnaryExpression(expr, *op);
     }
 
-    return TRY_CALL_RET(eval_call(), NULL);
+    return TRY_CALL_RET(eval_postfix(), NULL);
 }
 
-Expression *Parser::eval_call() {
+Expression *Parser::eval_postfix() {
     auto expr = TRY_CALL_RET(eval_primary(), NULL);
 
     while (true)
@@ -492,6 +492,14 @@ Expression *Parser::eval_call() {
             auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
             expr            = new GetExpression(expr, *identifier);
         }
+        else if (match(TokenType::TOKEN_BRACKET_OPEN))
+        {
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+            auto subscript_by = TRY_CALL_RET(eval_postfix(), NULL);
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+
+            expr = new SubscriptExpression(expr, subscript_by);
+        }
         else
         { break; }
     }
@@ -511,7 +519,7 @@ Expression *Parser::eval_primary() {
     else if (type == TokenType::TOKEN_IDENTIFIER)
         return new IdentifierExpression(*consume_token());
     else if (type == TokenType::TOKEN_NEW)
-        return eval_instantiate_expression();
+        return TRY_CALL_RET(eval_instantiate_expression(), NULL);
     else if (type == TokenType::TOKEN_PAREN_OPEN)
         return eval_group_expression();
     else if (type == TokenType::TOKEN_NULL)
@@ -520,6 +528,8 @@ Expression *Parser::eval_primary() {
         return new ZeroLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_FN)
         return TRY_CALL_RET(eval_fn(), NULL);
+    else if (type == TokenType::TOKEN_BRACKET_OPEN)
+        return TRY_CALL_RET(eval_slice_literal(), NULL);
 
     return new Expression(); // empty expression found -- like when a
                              // return has no expression
@@ -538,16 +548,28 @@ Expression *Parser::eval_fn() {
     return new FnExpression(params, type, body);
 }
 
-Expression *Parser::eval_instantiate_expression() {
+Expression *Parser::eval_slice_literal() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
 
+    auto type = TRY_CALL_RET(eval_type_expression(), NULL);
+
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+    auto expressions = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
+
+    return new SliceLiteralExpression(type, expressions);
+}
+
+Expression *Parser::eval_instantiate_expression() {
     Expression *expression = NULL;
 
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
 
     if (peek(1)->type == TokenType::TOKEN_COLON)
-    { expression = eval_enum_instance_expression(); }
+    { expression = TRY_CALL_RET(eval_enum_instance_expression(), NULL); }
     else
-    { expression = eval_struct_instance_expression(); }
+    { expression = TRY_CALL_RET(eval_struct_instance_expression(), NULL); }
 
     return new InstantiateExpression(expression);
 }

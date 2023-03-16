@@ -10,6 +10,7 @@ struct TypeInfo;
 enum class ExpressionType {
     EXPRESSION_BINARY,
     EXPRESSION_UNARY,
+    EXPRESSION_SUBSCRIPT,
     EXPRESSION_NUMBER_LITERAL,
     EXPRESSION_STRING_LITERAL,
     EXPRESSION_BOOL_LITERAL,
@@ -20,6 +21,7 @@ enum class ExpressionType {
     EXPRESSION_NULL_LITERAL,
     EXPRESSION_ZERO_LITERAL,
     EXPRESSION_FN,
+    EXPRESSION_SLICE_LITERAL,
     EXPRESSION_INSTANTIATION,
     EXPRESSION_STRUCT_INSTANCE,
     EXPRESSION_ENUM_INSTANCE,
@@ -52,6 +54,13 @@ struct UnaryExpression : Expression {
     Expression *expression;
 
     UnaryExpression(Expression *expression, Token op);
+};
+
+struct SubscriptExpression : Expression {
+    Expression *lhs;
+    Expression *expression;
+
+    SubscriptExpression(Expression *lhs, Expression *expression);
 };
 
 struct NumberLiteralExpression : Expression {
@@ -116,6 +125,13 @@ struct FnExpression : Expression {
     FnExpression(
         std::vector<std::tuple<Token, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
     );
+};
+
+struct SliceLiteralExpression : Expression {
+    TypeExpression *type_expression;
+    std::vector<Expression *> expressions;
+
+    SliceLiteralExpression(TypeExpression *type_expression, std::vector<Expression *> expressions);
 };
 
 struct InstantiateExpression : Expression {

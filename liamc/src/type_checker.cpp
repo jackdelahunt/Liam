@@ -20,19 +20,19 @@ SymbolTable::SymbolTable() {
     builtin_type_table["bool"] = new BoolTypeInfo();
     builtin_type_table["str"]  = new StrTypeInfo();
 
-    builtin_type_table["u8"] = new NumberTypeInfo(8, UNSIGNED);
-    builtin_type_table["i8"] = new NumberTypeInfo(8, SIGNED);
+    builtin_type_table["u8"] = new NumberTypeInfo(8, NumberType::UNSIGNED);
+    builtin_type_table["i8"] = new NumberTypeInfo(8, NumberType::SIGNED);
 
-    builtin_type_table["u16"] = new NumberTypeInfo(16, UNSIGNED);
-    builtin_type_table["i16"] = new NumberTypeInfo(16, SIGNED);
+    builtin_type_table["u16"] = new NumberTypeInfo(16, NumberType::UNSIGNED);
+    builtin_type_table["i16"] = new NumberTypeInfo(16, NumberType::SIGNED);
 
-    builtin_type_table["u32"] = new NumberTypeInfo(32, UNSIGNED);
-    builtin_type_table["i32"] = new NumberTypeInfo(32, SIGNED);
-    builtin_type_table["f32"] = new NumberTypeInfo(32, FLOAT);
+    builtin_type_table["u32"] = new NumberTypeInfo(32, NumberType::UNSIGNED);
+    builtin_type_table["i32"] = new NumberTypeInfo(32, NumberType::SIGNED);
+    builtin_type_table["f32"] = new NumberTypeInfo(32, NumberType::FLOAT);
 
-    builtin_type_table["u64"] = new NumberTypeInfo(64, UNSIGNED);
-    builtin_type_table["i64"] = new NumberTypeInfo(64, SIGNED);
-    builtin_type_table["f64"] = new NumberTypeInfo(64, FLOAT);
+    builtin_type_table["u64"] = new NumberTypeInfo(64, NumberType::UNSIGNED);
+    builtin_type_table["i64"] = new NumberTypeInfo(64, NumberType::SIGNED);
+    builtin_type_table["f64"] = new NumberTypeInfo(64, NumberType::FLOAT);
 }
 
 void SymbolTable::add_type(Token type, TypeInfo *type_info) {
@@ -61,9 +61,7 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
 
 void SymbolTable::add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info) {
     if (identifier_table.count(identifier) > 0)
-    {
-        panic("Duplicate creation of identifier: " + identifier);
-    }
+    { panic("Duplicate creation of identifier: " + identifier); }
 
     identifier_table[identifier] = type_info;
 }
@@ -393,7 +391,9 @@ void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *s
 
     if (statement->parent_type != NULL)
     {
-        copied_symbol_table.add_compiler_generated_identifier("self", new PointerTypeInfo(statement->parent_type->type_info));
+        copied_symbol_table.add_compiler_generated_identifier(
+            "self", new PointerTypeInfo(statement->parent_type->type_info)
+        );
     }
 
     for (auto &[identifier, type_info] : args)
@@ -580,6 +580,9 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_UNARY:
         return type_check_unary_expression(dynamic_cast<UnaryExpression *>(expression), symbol_table);
         break;
+    case ExpressionType::EXPRESSION_SUBSCRIPT:
+        return type_check_subscript_expression(dynamic_cast<SubscriptExpression *>(expression), symbol_table);
+        break;
     case ExpressionType::EXPRESSION_GET:
         return type_check_get_expression(dynamic_cast<GetExpression *>(expression), symbol_table);
         break;
@@ -594,6 +597,9 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         break;
     case ExpressionType::EXPRESSION_FN:
         return type_check_fn_expression(dynamic_cast<FnExpression *>(expression), symbol_table);
+        break;
+    case ExpressionType::EXPRESSION_SLICE_LITERAL:
+        return type_check_slice_literal_expression(dynamic_cast<SliceLiteralExpression *>(expression), symbol_table);
         break;
     case ExpressionType::EXPRESSION_INSTANTIATION:
         return type_check_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression), symbol_table);
@@ -698,7 +704,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         return;
     }
 
-    if (type != FLOAT && number != (i64)number)
+    if (type != NumberType::FLOAT && number != (i64)number)
     {
         ErrorReporter::report_type_checker_error(
             current_file->path.string(), expression, NULL, NULL, NULL, "Cannot use decimal point on non float types"
@@ -710,7 +716,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
 
     switch (type)
     {
-    case UNSIGNED: {
+    case NumberType::UNSIGNED: {
 
         if (number < 0)
         {
@@ -730,7 +736,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         { expression->type_info = symbol_table->builtin_type_table["u64"]; }
     }
     break;
-    case SIGNED: {
+    case NumberType::SIGNED: {
 
         if (size == 8)
         { expression->type_info = symbol_table->builtin_type_table["i8"]; }
@@ -742,7 +748,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         { expression->type_info = symbol_table->builtin_type_table["i64"]; }
     }
     break;
-    case FLOAT: {
+    case NumberType::FLOAT: {
         if (size == 8 || size == 16)
         {
             ErrorReporter::report_type_checker_error(
@@ -803,6 +809,44 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
     }
 
     panic("Internal :: Unrecognised unary operator");
+}
+
+void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_expression(expression->lhs, symbol_table));
+    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+
+    if (expression->lhs->type_info->type != TypeInfoType::POINTER_SLICE)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path.string(), expression->lhs, NULL, NULL, NULL,
+            "Trying to subscript on non-pointer slice type"
+        );
+
+        return;
+    }
+
+    if (expression->expression->type_info->type != TypeInfoType::NUMBER)
+    {
+        ErrorReporter::report_type_checker_error(
+            current_file->path.string(), expression->expression, NULL, NULL, NULL,
+            "Trying to subscript with a non-number type"
+        );
+
+        return;
+    }
+    else
+    {
+        NumberTypeInfo *number_type_info = static_cast<NumberTypeInfo *>(expression->expression->type_info);
+        if (number_type_info->number_type == NumberType::FLOAT)
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path.string(), expression->expression, NULL, NULL, NULL,
+                "Trying to subscript with a float type, can only use signed or unsigned numbers"
+            );
+        }
+    }
+
+    expression->type_info = static_cast<PointerSliceTypeInfo *>(expression->lhs->type_info)->to;
 }
 
 void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
@@ -1103,6 +1147,26 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
     expression->type_info = new FnExpressionTypeInfo(expression->return_type->type_info, param_type_infos);
 }
 
+void TypeChecker::type_check_slice_literal_expression(SliceLiteralExpression *expression, SymbolTable *symbol_table) {
+    TRY_CALL(type_check_type_expression(expression->type_expression, symbol_table));
+
+    for (auto passed_expression : expression->expressions)
+    {
+        TRY_CALL(type_check_expression(passed_expression, symbol_table));
+
+        if (!type_match(expression->type_expression->type_info, passed_expression->type_info))
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path.string(), passed_expression, NULL, expression->type_expression, NULL,
+                "Mismatched types in slice literal expression, expression in slice literal must match type given"
+            );
+            return;
+        }
+    }
+
+    expression->type_info = new PointerSliceTypeInfo(expression->type_expression->type_info);
+}
+
 void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table) {
 
     if (expression->expression->type != ExpressionType::EXPRESSION_STRUCT_INSTANCE &&
@@ -1399,6 +1463,12 @@ TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vecto
     {
         auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
         return new PointerTypeInfo(create_type_from_generics(pointer_type_info->to, generic_params));
+    }
+
+    if (type_info->type == TypeInfoType::POINTER_SLICE)
+    {
+        auto pointer_type_info = static_cast<PointerSliceTypeInfo *>(type_info);
+        return new PointerSliceTypeInfo(create_type_from_generics(pointer_type_info->to, generic_params));
     }
 
     if (type_info->type == TypeInfoType::GENERIC)

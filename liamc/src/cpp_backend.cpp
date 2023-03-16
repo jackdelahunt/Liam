@@ -295,9 +295,27 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
 
 std::string CppBackend::emit_assigment_statement(AssigmentStatement *statement) {
     auto source = std::string();
-    source.append(emit_expression(statement->lhs));
-    source.append(" = ");
-    source.append(emit_expression(statement->assigned_to->expression));
+
+    // because the result of subscripting a pointer slice is a rValue with the
+    // .subscript method we need to override how we assign the value by calling
+    // the .set method on it, else do the normal assignment
+    if (statement->lhs->type == ExpressionType::EXPRESSION_SUBSCRIPT)
+    {
+        auto subscript_expression = dynamic_cast<SubscriptExpression *>(statement->lhs);
+        source.append(emit_expression(subscript_expression->lhs));
+        source.append(".set(");
+        source.append(emit_expression(subscript_expression->expression));
+        source.append(", ");
+        source.append(emit_expression(statement->assigned_to->expression));
+        source.append(")");
+    }
+    else
+    {
+        source.append(emit_expression(statement->lhs));
+        source.append(" = ");
+        source.append(emit_expression(statement->assigned_to->expression));
+    }
+
     source.append(";\n");
     return source;
 }
@@ -439,6 +457,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_UNARY:
         return emit_unary_expression(dynamic_cast<UnaryExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_SUBSCRIPT:
+        return emit_subscript_expression(dynamic_cast<SubscriptExpression *>(expression));
+        break;
     case ExpressionType::EXPRESSION_GET:
         return emit_get_expression(dynamic_cast<GetExpression *>(expression));
         break;
@@ -453,6 +474,9 @@ std::string CppBackend::emit_expression(Expression *expression) {
         break;
     case ExpressionType::EXPRESSION_FN:
         return emit_fn_expression(dynamic_cast<FnExpression *>(expression));
+        break;
+    case ExpressionType::EXPRESSION_SLICE_LITERAL:
+        return emit_slice_literal_expression(dynamic_cast<SliceLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_INSTANTIATION:
         return emit_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
@@ -537,11 +561,11 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
 
     std::string func_call = "LiamInternal::__";
 
-    if (number_type->number_type == UNSIGNED)
+    if (number_type->number_type == NumberType::UNSIGNED)
     { func_call.append("u"); }
-    else if (number_type->number_type == SIGNED)
+    else if (number_type->number_type == NumberType::SIGNED)
     { func_call.append("i"); }
-    else if (number_type->number_type == FLOAT)
+    else if (number_type->number_type == NumberType::FLOAT)
     { func_call.append("f"); }
 
     if (number_type->size == 8)
@@ -568,6 +592,17 @@ std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {
 
     panic("Got a unrecognized operand in cpp backend");
     return "";
+}
+
+std::string CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
+    std::string source;
+
+    source.append(emit_expression(expression->lhs));
+    source.append(".subscript(");
+    source.append(emit_expression(expression->expression));
+    source.append(")");
+
+    return source;
 }
 
 std::string CppBackend::emit_call_expression(CallExpression *expression) {
@@ -666,6 +701,29 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
     return source;
 }
 
+std::string CppBackend::emit_slice_literal_expression(SliceLiteralExpression *expression) {
+    std::string source;
+    // LiamInternal::PointerSlice<T>{.ptr = (T[size]){...}, .size = size}
+    auto type_expression_source = emit_type_expression(expression->type_expression);
+    source.append("LiamInternal::PointerSlice<");
+    source.append(type_expression_source);
+    source.append(">{.ptr = (" + type_expression_source + "[" + std::to_string(expression->expressions.size()) + "]){");
+
+    int index = 0;
+
+    for (auto expr : expression->expressions)
+    {
+        source.append(emit_expression(expr));
+        if (index + 1 < expression->expressions.size())
+        { source.append(", "); }
+        index++;
+    }
+
+    source.append("}, .size = " + std::to_string(expression->expressions.size()) + "}");
+
+    return source;
+}
+
 std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expression) {
     auto source = std::string();
     source.append(emit_expression(expression->expression));
@@ -750,7 +808,7 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
     { return emit_type_expression(type_expression->type_expression) + "*"; }
 
     if (type_expression->unary_type == UnaryType::POINTER_SLICE)
-    { return emit_type_expression(type_expression->type_expression) + "*"; }
+    { return "LiamInternal::PointerSlice<" + emit_type_expression(type_expression->type_expression) + ">"; }
 
     panic("Cpp backend does not support this op yet...");
     return "";

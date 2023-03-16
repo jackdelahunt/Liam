@@ -9,7 +9,7 @@ bool is_digit(char c) {
 std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal) {
 
 #define BAD_PARSE                                                                                                      \
-    { 0, UNSIGNED, -1 }
+    { 0, NumberType::UNSIGNED, -1 }
 
     int literal_end = 0;
     while (literal_end < literal.size() &&
@@ -35,7 +35,7 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     else
     {
         auto n = std::stod(literal_string);
-        return {n, SIGNED, 64};
+        return {n, NumberType::SIGNED, 64};
     }
 
     int size;
@@ -48,11 +48,11 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     NumberType type;
 
     if (type_string == "u")
-    { type = UNSIGNED; }
+    { type = NumberType::UNSIGNED; }
     else if (type_string == "f")
-    { type = FLOAT; }
+    { type = NumberType::FLOAT; }
     else if (type_string == "i")
-    { type = SIGNED; }
+    { type = NumberType::SIGNED; }
     else
     { return BAD_PARSE; }
 
