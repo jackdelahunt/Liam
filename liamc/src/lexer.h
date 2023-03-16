@@ -7,7 +7,7 @@
 
 #include "liam.h"
 
-enum NumberType {
+enum class NumberType {
     UNSIGNED,
     SIGNED,
     FLOAT

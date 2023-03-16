@@ -8,33 +8,13 @@
             "type": "lldb",
             "request": "launch",
             "name": "Code",
-            "program": "${workspaceFolder}/bin/liamc/liamc",
+            "program": "${workspaceFolder}/zig-out/bin/liamc",
             "args": [
-                "--in=Code/main.liam",
-                "--emit=Code/out.cpp", 
-                "--include=runtime",
+                "--in=main.liam",
                 "--stdlib=stdlib",
-                "--out=Code/out.exe",
                 "--time", 
-                "--debug"
             ],
             "cwd": "${workspaceFolder}"
         },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Selfhost",
-            "program": "${workspaceFolder}/bin/liamc/liamc",
-            "args": [
-                "--in=selfhost/main.liam",
-                "--emit=bin/liamc/out.cpp", 
-                "--include=runtime",
-                "--stdlib=stdlib",
-                "--out=bin/liamc/out.exe",
-                "--time", 
-                "--debug"
-            ],
-            "cwd": "${workspaceFolder}"
-        }
     ]
 }

@@ -19,6 +19,13 @@ UnaryExpression::UnaryExpression(Expression *expression, Token op) {
     this->span       = Span{.line = expression->span.line, .start = op.span.start, .end = expression->span.end};
 }
 
+SubscriptExpression::SubscriptExpression(Expression *lhs, Expression *expression) {
+    this->expression = expression;
+    this->lhs        = lhs;
+    this->span       = lhs->span;
+    this->type       = ExpressionType::EXPRESSION_SUBSCRIPT;
+}
+
 NumberLiteralExpression::NumberLiteralExpression(Token token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_NUMBER_LITERAL;
@@ -84,6 +91,13 @@ FnExpression::FnExpression(
     this->body        = body;
     this->type        = ExpressionType::EXPRESSION_FN;
     this->span        = return_type->span; // FIXME: use a better place to put the span for the fn expression
+}
+
+SliceLiteralExpression::SliceLiteralExpression(TypeExpression *type_expression, std::vector<Expression *> expressions) {
+    this->type_expression = type_expression;
+    this->expressions     = expressions;
+    this->type            = ExpressionType::EXPRESSION_SLICE_LITERAL;
+    this->span            = type_expression->span;
 }
 
 InstantiateExpression::InstantiateExpression(Expression *expression) {

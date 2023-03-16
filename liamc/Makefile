@@ -6,7 +6,7 @@ release:
 	@zig build -Drelease-fast
 
 build:
-	@zig build
+	@zig build -Drelease-safe
 
 run: build
 	@./zig-out/bin/liamc --stdlib="stdlib" --in="main.liam" -t

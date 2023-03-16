@@ -1,6 +1,6 @@
 #pragma once
-#include <stdlib.cpp>
-#include <stdlib.h>
+#include "liam_stdlib.cpp"
+#include "liam_stdlib.h"
 
 #include "core.cpp"
 #include "core.h"
