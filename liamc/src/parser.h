@@ -81,6 +81,7 @@ struct Parser {
     Expression *eval_subscript();
     Expression *eval_postfix();
     Expression *eval_primary();
+    Expression *eval_string_literal();
     Expression *eval_fn();
     Expression *eval_slice_literal();
     Expression *eval_instantiate_expression();

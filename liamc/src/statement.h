@@ -5,6 +5,7 @@
 #include "parser.h"
 
 struct Expression;
+struct StringLiteralExpression;
 struct Token;
 struct File;
 struct TypeExpression;
@@ -95,16 +96,10 @@ struct AssigmentStatement : Statement {
     AssigmentStatement(File *file, Expression *lhs, ExpressionStatement *assigned_to);
 };
 
-struct InsertStatement : Statement {
-    Expression *byte_code;
-
-    InsertStatement(File *file, Expression *byte_code);
-};
-
 struct ImportStatement : Statement {
-    Expression *path;
+    StringLiteralExpression *path;
 
-    ImportStatement(File *file, Expression *path);
+    ImportStatement(File *file, StringLiteralExpression *path);
 };
 
 struct ForStatement : Statement {

@@ -238,9 +238,12 @@ BreakStatement *Parser::eval_break_statement() {
 
 ImportStatement *Parser::eval_import_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IMPORT), NULL);
-    auto import_path = TRY_CALL_RET(eval_expression_statement(), NULL);
+    auto import_path = dynamic_cast<StringLiteralExpression *>(TRY_CALL_RET(eval_string_literal(), NULL));
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
-    return new ImportStatement(file, import_path->expression);
+    ASSERT_MSG(import_path != NULL, "Even though it is returning a expression we always assume it is a StringLiteral");
+
+    return new ImportStatement(file, import_path);
 }
 
 ForStatement *Parser::eval_for_statement() {
@@ -511,7 +514,7 @@ Expression *Parser::eval_primary() {
     if (type == TokenType::TOKEN_NUMBER_LITERAL)
         return new NumberLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_STRING_LITERAL)
-        return new StringLiteralExpression(*consume_token());
+        return TRY_CALL_RET(eval_string_literal(), NULL);
     else if (type == TokenType::TOKEN_TRUE || type == TokenType::TOKEN_FALSE)
         return new BoolLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_IDENTIFIER)
@@ -531,6 +534,11 @@ Expression *Parser::eval_primary() {
 
     return new Expression(); // empty expression found -- like when a
                              // return has no expression
+}
+
+Expression *Parser::eval_string_literal() {
+    auto literal = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_STRING_LITERAL), NULL);
+    return new StringLiteralExpression(*literal);
 }
 
 Expression *Parser::eval_fn() {
