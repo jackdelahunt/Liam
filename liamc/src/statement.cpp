@@ -66,13 +66,7 @@ ScopeStatement::ScopeStatement(File *file, std::vector<Statement *> statements) 
     this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 
-InsertStatement::InsertStatement(File *file, Expression *byte_code) {
-    this->file           = file;
-    this->byte_code      = byte_code;
-    this->statement_type = StatementType::STATEMENT_INSERT;
-}
-
-ImportStatement::ImportStatement(File *file, Expression *path) {
+ImportStatement::ImportStatement(File *file, StringLiteralExpression *path) {
     this->file           = file;
     this->path           = path;
     this->statement_type = StatementType::STATEMENT_IMPORT;

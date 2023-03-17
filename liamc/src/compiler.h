@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "errors.h"
@@ -9,41 +10,32 @@
 #include "parser.h"
 #include "type_checker.h"
 
-std::vector<File *> lex_parse(std::filesystem::path path, std::vector<std::string> *imports = NULL) {
+std::vector<File *> lex_parse(std::filesystem::path path) {
 
-    auto files = std::vector<File *>();
+    std::vector<std::string> import_path_queue = {path.string()};
+    auto files                                 = std::vector<File *>();
+    auto imported_paths                        = std::unordered_map<std::string, int>();
 
-    auto lexer = Lexer(path);
-    lexer.lex();
-    auto parser = Parser(path, lexer.tokens);
-    parser.parse();
-
-    files.emplace_back(parser.file);
-
-    if (imports == NULL)
-    { // if this is the top level call
-        imports = new std::vector<std::string>();
-    }
-
-    imports->emplace_back(path.string());
-
-    for (auto &import_path : parser.file->imports)
+    while (import_path_queue.size() > 0)
     {
-        bool already_declared = false;
-        for (u64 i = 0; i < imports->size(); i++)
+        std::string current_import_path = import_path_queue.at(import_path_queue.size() - 1);
+        import_path_queue.pop_back();
+
+        auto lexer = Lexer(current_import_path);
+        lexer.lex();
+        auto parser = Parser(current_import_path, lexer.tokens);
+        parser.parse();
+
+        files.emplace_back(parser.file);
+
+        for (auto import : parser.file->imports)
         {
-            if (import_path == imports->at(i))
+            if (!imported_paths.contains(import))
             {
-                already_declared = true;
-                continue;
+                imported_paths[import] = 420;
+                import_path_queue.push_back(import);
             }
         }
-
-        if (already_declared)
-            continue;
-
-        auto imported = lex_parse(import_path, imports);
-        files.insert(files.end(), imported.begin(), imported.end());
     }
 
     if (ErrorReporter::has_parse_errors())
