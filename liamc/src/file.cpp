@@ -78,12 +78,26 @@ FileData *FileManager::load(std::string *path) {
     ASSERT_MSG(file.is_open(), "All files should be possible to read as this is not user input");
 
     u64 line_count = 0;
-    for (i32 i = file.get(); i != EOF; i = file.get())
-    {
-        if ((char)i == '\n')
-        { line_count++; }
 
-        vec.push_back((char)i);
+    // this looks werid but it is for making sure we have the correct number
+    // of lines counted. We check if we can get the first character, if it is
+    // not EOF then we add it and we say there is a line count of 1. Then
+    // we continue the process of loading the fiile. If we just counted all the
+    // \n then we would miss the first line
+    int first_character = file.get();
+    if (first_character != EOF)
+    {
+        line_count++;
+        vec.push_back((char)first_character);
+
+        for (i32 i = file.get(); i != EOF; i = file.get())
+        {
+            char c = (char)i;
+            if (c == '\n')
+            { line_count++; }
+
+            vec.push_back(c);
+        }
     }
 
     file.close();
