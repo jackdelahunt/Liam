@@ -10,61 +10,25 @@
 
 ErrorReporter *ErrorReporter::singleton = NULL;
 
-std::string build_highlighter(u64 start, u64 length) {
-
-    ASSERT_MSG(start > 0, "Character location should always start at 1");
-
-    auto source = std::string();
-    for (int i = 0; i < start - 1; i++)
-    { source.append(" "); }
-
-    for (int i = 0; i < length; i++)
-    { source.append("^"); }
-
-    return source;
-}
-
 void ParserError::print_error_message() {
-
-    auto file_data = FileManager::load(&file);
-
-    std::string top    = "";
-    std::string middle = file_data->line(this->span.line);
-    std::string bottom = build_highlighter(this->span.start, this->span.end - this->span.start);
-
-    if (this->span.line > 1)
-    {
-        top = file_data->line(this->span.line - 1);
-        rtrim(top);
-    }
-
-    rtrim(middle);
-
-    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "ERROR :: {}\n", error);
-    fmt::print(
-        stderr,
-        "--> {}:{}:{}\n"
-        "   |   {}\n"
-        "   |   {}\n"
-        "   |   {}\n",
-        file, this->span.line, this->span.start, top, middle, bottom
-    );
+    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Parsing ERROR :: {}\n", error);
+    write_error_annotation_at_span(&this->file, this->span);
 }
 
 void TypeCheckerError::print_error_message() {
     fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Type checking ERROR :: {}\n", error);
 
     if (this->expr_1)
-    { print_error_at_span(&file, expr_1->span); }
+    { write_error_annotation_at_span(&file, expr_1->span); }
 
     if (this->expr_2)
-    { print_error_at_span(&file, expr_2->span); }
+    { write_error_annotation_at_span(&file, expr_2->span); }
 
     if (this->type_expr_1)
-    { print_error_at_span(&file, type_expr_1->span); }
+    { write_error_annotation_at_span(&file, type_expr_1->span); }
 
     if (this->type_expr_2)
-    { print_error_at_span(&file, type_expr_2->span); }
+    { write_error_annotation_at_span(&file, type_expr_2->span); }
 }
 
 ErrorReporter::ErrorReporter() {
@@ -127,7 +91,7 @@ u64 ErrorReporter::error_count() {
     return ErrorReporter::singleton->parse_errors.size() + ErrorReporter::singleton->type_check_errors.size();
 }
 
-void print_error_at_span(std::string *file, Span span) {
+void write_error_annotation_at_span(std::string *file, Span span) {
     auto file_data = FileManager::load(file);
 
     std::string top    = "";
@@ -150,4 +114,18 @@ void print_error_at_span(std::string *file, Span span) {
         "   |   {}\n",
         *file, span.line, span.start, top, middle, bottom
     );
+}
+
+std::string build_highlighter(u64 start, u64 length) {
+
+    ASSERT_MSG(start > 0, "Character location should always start at 1");
+
+    auto source = std::string();
+    for (int i = 0; i < start - 1; i++)
+    { source.append(" "); }
+
+    for (int i = 0; i < length; i++)
+    { source.append("^"); }
+
+    return source;
 }
