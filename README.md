@@ -26,22 +26,22 @@ Liam is a strongly typed compiled language intended for performance comparable t
 ```rust
 import "stdlib/basic.liam";
 
-struct Person[T] {
+struct Person<T> {
     name: str,
     data: T
 }
 
 fn main() void {
-    let p: Person[s64] = new Person[s64]{
+    let p: Person<i64> = new Person<i64>{
         name: "liam",
         data: 12
     };
 
-    print[str](p.name);
-    print[str]("\n");
+    print::<str>(p.name);
+    print::<str>("\n");
 
     for let i := 0; i < p.data; i = i + 1; {
-        print[s64](i);
+        print::<i64>(i);
     }
 }
 ```
