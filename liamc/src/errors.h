@@ -44,4 +44,5 @@ struct ErrorReporter {
     static u64 error_count();
 };
 
-void print_error_at_span(std::string *file, Span span);
+void write_error_annotation_at_span(std::string *file, Span span);
+std::string build_highlighter(u64 start, u64 length);
