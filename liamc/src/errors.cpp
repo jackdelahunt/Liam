@@ -24,31 +24,6 @@ std::string build_highlighter(u64 start, u64 length) {
     return source;
 }
 
-void print_error_at_span(std::string *file, Span span) {
-    auto file_data = FileManager::load(file);
-
-    std::string top    = "";
-    std::string middle = file_data->line(span.line);
-    std::string bottom = build_highlighter(span.start, span.end - span.start);
-
-    if (span.line > 1)
-    {
-        top = file_data->line(span.line - 1);
-        trim(top);
-    }
-
-    rtrim(middle);
-
-    fmt::print(
-        stderr,
-        "--> {}:{}:{}\n"
-        "   |   {}\n"
-        "   |   {}\n"
-        "   |   {}\n",
-        *file, span.line, span.start, top, middle, bottom
-    );
-}
-
 void ParserError::print_error_message() {
 
     auto file_data = FileManager::load(&file);
@@ -77,7 +52,7 @@ void ParserError::print_error_message() {
 }
 
 void TypeCheckerError::print_error_message() {
-    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "ERROR :: {}\n", error);
+    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Type checking ERROR :: {}\n", error);
 
     if (this->expr_1)
     { print_error_at_span(&file, expr_1->span); }
@@ -150,4 +125,29 @@ u64 ErrorReporter::error_count() {
         return 0;
 
     return ErrorReporter::singleton->parse_errors.size() + ErrorReporter::singleton->type_check_errors.size();
+}
+
+void print_error_at_span(std::string *file, Span span) {
+    auto file_data = FileManager::load(file);
+
+    std::string top    = "";
+    std::string middle = file_data->line(span.line);
+    std::string bottom = build_highlighter(span.start, span.end - span.start);
+
+    if (span.line > 1)
+    {
+        top = file_data->line(span.line - 1);
+        trim(top);
+    }
+
+    rtrim(middle);
+
+    fmt::print(
+        stderr,
+        "--> {}:{}:{}\n"
+        "   |   {}\n"
+        "   |   {}\n"
+        "   |   {}\n",
+        *file, span.line, span.start, top, middle, bottom
+    );
 }

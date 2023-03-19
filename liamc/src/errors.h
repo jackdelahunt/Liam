@@ -43,3 +43,5 @@ struct ErrorReporter {
     static bool has_error_since_last_check();
     static u64 error_count();
 };
+
+void print_error_at_span(std::string *file, Span span);
