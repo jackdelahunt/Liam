@@ -33,7 +33,11 @@ struct IdentifierTypeExpression;
 struct EnumMember;
 
 struct File {
-    std::vector<Statement *> statements;
+    std::vector<ImportStatement *> top_level_import_statements;
+    std::vector<StructStatement *> top_level_struct_statements;
+    std::vector<AliasStatement *> top_level_alias_statements;
+    std::vector<FnStatement *> top_level_fn_statements;
+    std::vector<EnumStatement *> top_level_enum_statements;
     std::vector<std::string> imports;
     std::filesystem::path path;
 
@@ -52,6 +56,7 @@ struct Parser {
 
     /* statements */
     Statement *eval_statement();
+    Statement *eval_top_level_statement();
     LetStatement *eval_let_statement();
     ScopeStatement *eval_scope_statement();
     StructStatement *eval_struct_statement(bool is_extern = false);

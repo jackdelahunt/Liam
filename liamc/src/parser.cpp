@@ -10,7 +10,12 @@
 #include "utils.h"
 
 File::File(std::filesystem::path path) {
-    statements = std::vector<Statement *>();
+    this->top_level_import_statements = std::vector<ImportStatement *>();
+    this->top_level_struct_statements = std::vector<StructStatement *>();
+    this->top_level_alias_statements  = std::vector<AliasStatement *>();
+    this->top_level_fn_statements     = std::vector<FnStatement *>();
+    this->top_level_enum_statements   = std::vector<EnumStatement *>();
+
     imports    = std::vector<std::string>();
     this->path = std::move(path);
 }
@@ -28,24 +33,40 @@ void Parser::parse() {
     {
 
         auto errors_before = ErrorReporter::error_count();
-        auto stmt          = eval_statement();
+        auto stmt          = eval_top_level_statement();
         if (ErrorReporter::error_count() > errors_before)
             continue;
 
-        if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
+        if (stmt->statement_type == StatementType::STATEMENT_FN)
+        {
+            auto fn_stmt = dynamic_cast<FnStatement *>(stmt);
+            file->top_level_fn_statements.push_back(fn_stmt);
+        }
+        else if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
+        {
+            auto alias_stmt = dynamic_cast<AliasStatement *>(stmt);
+            file->top_level_alias_statements.push_back(alias_stmt);
+        }
+        else if (stmt->statement_type == StatementType::STATEMENT_ENUM)
+        {
+            auto enum_stmt = dynamic_cast<EnumStatement *>(stmt);
+            file->top_level_enum_statements.push_back(enum_stmt);
+        }
+        else if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
+        {
+            auto struct_stmt = dynamic_cast<StructStatement *>(stmt);
+            file->top_level_struct_statements.push_back(struct_stmt);
+        }
+        else if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
         {
             auto import_stmt = dynamic_cast<ImportStatement *>(stmt);
-
-            if (import_stmt->path->type != ExpressionType::EXPRESSION_STRING_LITERAL)
-            { panic("Import requires string literal"); }
-
-            auto import_path_expr = dynamic_cast<StringLiteralExpression *>(import_stmt->path);
+            file->top_level_import_statements.push_back(import_stmt);
 
             std::string final_path;
-            auto import_path = std::filesystem::path(import_path_expr->token.string);
+            auto import_path = std::filesystem::path(import_stmt->path->token.string);
 
             if (import_path.is_absolute())
-            { final_path = import_path_expr->token.string; }
+            { final_path = import_path; }
             else if (import_path.string().rfind("stdlib/", 0) == 0)
             {
                 final_path =
@@ -57,7 +78,11 @@ void Parser::parse() {
             file->imports.emplace_back(final_path);
         }
         else
-        { file->statements.push_back(stmt); }
+        {
+            ASSERT_MSG(
+                0, "Can only get the above statements from eval_top_level_statment, so this should never trigger"
+            );
+        }
     }
 }
 
@@ -67,20 +92,11 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_LET:
         return eval_let_statement();
         break;
-    case TokenType::TOKEN_FN:
-        return eval_fn_statement();
-        break;
-    case TokenType::TOKEN_STRUCT:
-        return eval_struct_statement();
-        break;
     case TokenType::TOKEN_RETURN:
         return eval_return_statement();
         break;
     case TokenType::TOKEN_BREAK:
         return eval_break_statement();
-        break;
-    case TokenType::TOKEN_IMPORT:
-        return eval_import_statement();
         break;
     case TokenType::TOKEN_FOR:
         return eval_for_statement();
@@ -88,21 +104,46 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_IF:
         return eval_if_statement();
         break;
+    case TokenType::TOKEN_CONTINUE:
+        return eval_continue_statement();
+        break;
+    case TokenType::TOKEN_FN:
+    case TokenType::TOKEN_STRUCT:
+    case TokenType::TOKEN_IMPORT:
+    case TokenType::TOKEN_ENUM:
+    case TokenType::TOKEN_ALIAS:
     case TokenType::TOKEN_EXTERN:
-        return eval_extern_statement();
+        panic("cannot use in another statement");
+    default:
+        return eval_line_starting_expression();
+        break;
+    }
+}
+
+Statement *Parser::eval_top_level_statement() {
+    switch (peek()->type)
+    {
+    case TokenType::TOKEN_FN:
+        return eval_fn_statement();
+        break;
+    case TokenType::TOKEN_STRUCT:
+        return eval_struct_statement();
+        break;
+    case TokenType::TOKEN_IMPORT:
+        return eval_import_statement();
         break;
     case TokenType::TOKEN_ENUM:
         return eval_enum_statement();
         break;
-    case TokenType::TOKEN_CONTINUE:
-        return eval_continue_statement();
-        break;
     case TokenType::TOKEN_ALIAS:
         return eval_alias_statement();
         break;
-    default:
-        return eval_line_starting_expression();
+    case TokenType::TOKEN_EXTERN:
+        return eval_extern_statement();
         break;
+
+    default:
+        panic("cannot parser at top level");
     }
 }
 
