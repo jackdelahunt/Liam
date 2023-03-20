@@ -94,76 +94,52 @@ TypeChecker::TypeChecker() {
 }
 
 void TypeChecker::type_check(std::vector<File *> *files) {
-    auto structs = std::vector<StructStatement *>();
-    auto aliases = std::vector<AliasStatement *>();
-    auto funcs   = std::vector<FnStatement *>();
-    auto enums   = std::vector<EnumStatement *>();
-    auto others  = std::vector<Statement *>();
-
     for (auto file : *files)
     {
-        for (auto stmt : file->statements)
+        // enum identifier pass
+        for (auto stmt : file->top_level_enum_statements)
         {
-            if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
-            { structs.push_back(dynamic_cast<StructStatement *>(stmt)); }
-            else if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
-            {
-                // adds the type to the symbol table but keeps
-                // it around to code gen it
-                aliases.push_back(dynamic_cast<AliasStatement *>(stmt));
-            }
-            else if (stmt->statement_type == StatementType::STATEMENT_ENUM)
-            { enums.push_back(dynamic_cast<EnumStatement *>(stmt)); }
-            else if (stmt->statement_type == StatementType::STATEMENT_FN)
-            {
-                funcs.push_back(dynamic_cast<FnStatement *>(stmt));
-                others.push_back(stmt);
-            }
-            else
-            { others.push_back(stmt); }
+            current_file = stmt->file;
+            TRY_CALL(type_check_enum_decl(stmt, &top_level_symbol_table));
+        }
+
+        // struct identifier pass
+        for (auto stmt : file->top_level_struct_statements)
+        { TRY_CALL(type_check_struct_decl(stmt, &top_level_symbol_table)); }
+
+        // aliases
+        for (auto stmt : file->top_level_alias_statements)
+        { TRY_CALL(type_check_alias_statement(stmt, &top_level_symbol_table)); }
+
+        // enum type pass
+        for (auto stmt : file->top_level_enum_statements)
+        {
+            current_file = stmt->file;
+            TRY_CALL(type_check_enum_statement(stmt, &top_level_symbol_table));
+        }
+
+        // struct type pass
+        for (auto stmt : file->top_level_struct_statements)
+        {
+            current_file = stmt->file;
+            TRY_CALL(type_check_struct_statement(stmt, &top_level_symbol_table));
+        }
+
+        // function decl pass
+        for (auto stmt : file->top_level_fn_statements)
+        {
+            current_file = stmt->file;
+            TRY_CALL(type_check_fn_decl(stmt, &top_level_symbol_table));
         }
     }
 
-    // enum identifier pass
-    for (auto stmt : enums)
-    {
-        current_file = stmt->file;
-        TRY_CALL(type_check_enum_decl(stmt, &top_level_symbol_table));
-    }
-
-    // struct identifier pass
-    for (auto stmt : structs)
-    { TRY_CALL(type_check_struct_decl(stmt, &top_level_symbol_table)); }
-
-    // enum type pass
-    for (auto stmt : enums)
-    {
-        current_file = stmt->file;
-        TRY_CALL(type_check_enum_statement(stmt, &top_level_symbol_table, true));
-    }
-
-    // struct type pass
-    for (auto stmt : structs)
-    {
-        current_file = stmt->file;
-        TRY_CALL(type_check_struct_statement(stmt, &top_level_symbol_table, true));
-    }
-
-    // aliases
-    for (auto stmt : aliases)
-    { TRY_CALL(type_check_alias_statement(stmt, &top_level_symbol_table)); }
-
-    // function decl pass
-    for (auto stmt : funcs)
-    {
-        current_file = stmt->file;
-        TRY_CALL(type_check_fn_decl(stmt, &top_level_symbol_table));
-    }
-
-    for (auto stmt : others)
-    {
-        current_file = stmt->file;
-        TRY_CALL(type_check_statement(stmt, &top_level_symbol_table, true));
+    for(auto file: *files) {
+        // function body pass
+        for (auto stmt : file->top_level_fn_statements)
+        {
+            current_file = stmt->file;
+            TRY_CALL(type_check_fn_statement(stmt, &top_level_symbol_table));
+        }
     }
 }
 
@@ -187,7 +163,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     auto generic_type_infos = std::vector<TypeInfo *>();
     if (!statement->generics.empty())
     {
-        // FIXME: find a way to not use new here
+        // TODO: find a way to not use new here
         SymbolTable *copy = new SymbolTable();
         *copy             = *symbol_table;
         for (u64 i = 0; i < statement->generics.size(); i++)
@@ -252,22 +228,13 @@ void TypeChecker::type_check_enum_decl(EnumStatement *statement, SymbolTable *sy
     symbol_table->add_type(statement->identifier, new EnumTypeInfo(std::vector<EnumMember>()));
 }
 
-void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table, bool top_level) {
+void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
     switch (statement->statement_type)
     {
     case StatementType::STATEMENT_RETURN:
         return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement), symbol_table);
     case StatementType::STATEMENT_BREAK:
         return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_FN:
-        return type_check_fn_statement(dynamic_cast<FnStatement *>(statement), symbol_table, top_level);
-    case StatementType::STATEMENT_STRUCT:
-        // if it is a top level struct it means it is already defined in the symbol table
-        // by the first and second pass, this stage is the thrid pass which means we would
-        // be re-declaring the struct
-        if (!top_level)
-            return type_check_struct_statement(dynamic_cast<StructStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_ASSIGNMENT:
         return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement), symbol_table);
     case StatementType::STATEMENT_EXPRESSION:
@@ -280,10 +247,16 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
         return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table);
     case StatementType::STATEMENT_CONTINUE:
         break;
+    case StatementType::STATEMENT_STRUCT:
+    case StatementType::STATEMENT_ENUM:
+    case StatementType::STATEMENT_IMPORT:
     case StatementType::STATEMENT_ALIAS:
-        return type_check_alias_statement(dynamic_cast<AliasStatement *>(statement), symbol_table);
+    case StatementType::STATEMENT_FN:
+        ASSERT_MSG(0, "These should of already been type checked in the first pass");
     default:
-        panic("Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type));
+        ASSERT_MSG(
+            0, "Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type)
+        );
     }
 }
 
@@ -335,15 +308,9 @@ void TypeChecker::type_check_scope_statement(
     { TRY_CALL(type_check_statement(stmt, scopes_symbol_table)); }
 }
 
-void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table, bool top_level) {
+void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table) {
     if (statement->is_extern)
         return;
-
-    // fn decl is called at all top level function statements, this means if
-    // this statement is a top level statement there is no need to repeat
-    // but if it is not then do the function decl
-    if (!top_level)
-    { type_check_fn_decl(statement, symbol_table); }
 
     // getting the already existing type info for the function is done in 2 ways
     // 1. looking into the symbol table of the current scope (normal function)
@@ -477,7 +444,7 @@ void TypeChecker::type_check_else_statement(ElseStatement *statement, SymbolTabl
     { TRY_CALL(type_check_scope_statement(statement->body, symbol_table)); }
 }
 
-void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table, bool top_level) {
+void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table) {
 
     SymbolTable sub_symbol_table_copy = symbol_table->copy();
 
@@ -491,22 +458,10 @@ void TypeChecker::type_check_struct_statement(StructStatement *statement, Symbol
         members_type_info.emplace_back(member.string, expr->type_info);
     }
 
-    // if this is a top level struct it means its identifier is already in the symbol table from the first pass
-    // and we are currently in the second pass, if so then just added the type info to the structs already
-    // existing identifier in the table instead of added a new one
-    if (top_level)
-    {
-        // this struct has not been fully typed until now just add to the type that already exists in the
-        // type table
-        StructTypeInfo *sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
-        sti->members        = members_type_info;
-    }
-    else
-    {
-        symbol_table->add_identifier(
-            statement->identifier, new StructTypeInfo({}, members_type_info, statement->generics.size())
-        );
-    }
+    // this struct has not been fully typed until now just add to the type that already exists in the
+    // type table
+    StructTypeInfo *sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
+    sti->members        = members_type_info;
 }
 
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table) {
@@ -527,28 +482,21 @@ void TypeChecker::type_check_expression_statement(ExpressionStatement *statement
     TRY_CALL(type_check_expression(statement->expression, symbol_table));
 }
 
-void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table, bool top_level) {
+void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table) {
     for (auto &member : statement->members)
     {
         for (auto type : member.members)
         { TRY_CALL(type_check_type_expression(type, symbol_table)); }
     }
 
-    // if this is top level it means this should of already been added to the type table
-    // if so then get the existing type and insert the members type info
-    // else just create a new one and add it to the table
-    if (top_level)
-    {
-        auto [existing_type, failed] = symbol_table->get_type(&statement->identifier);
-        ASSERT_MSG(!failed, "Assuming this enum is forward declared as it us top level");
+    // get the existing type and insert the members type info
+    auto [existing_type, failed] = symbol_table->get_type(&statement->identifier);
+    ASSERT_MSG(!failed, "Assuming this enum is forward declared as it us top level");
 
-        ASSERT(existing_type->type == TypeInfoType::ENUM);
+    ASSERT(existing_type->type == TypeInfoType::ENUM);
 
-        auto type_info     = (EnumTypeInfo *)existing_type;
-        type_info->members = statement->members;
-    }
-    else
-    { symbol_table->add_type(statement->identifier, new EnumTypeInfo(statement->members)); }
+    auto type_info     = (EnumTypeInfo *)existing_type;
+    type_info->members = statement->members;
 }
 
 void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table) {

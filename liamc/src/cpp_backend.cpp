@@ -7,65 +7,37 @@
 
 std::string CppBackend::emit(std::vector<File *> *files) {
 
-    auto enums   = std::vector<EnumStatement *>();
-    auto structs = std::vector<StructStatement *>();
-    auto aliases = std::vector<AliasStatement *>();
-    auto fns     = std::vector<FnStatement *>();
-    auto others  = std::vector<Statement *>();
-
+    std::string source_generated = "#include \"lib.h\"\n\n";
     for (auto file : *files)
     {
-        for (auto stmt : file->statements)
-        {
-            if (stmt->statement_type == StatementType::STATEMENT_ENUM)
-            { enums.push_back(dynamic_cast<EnumStatement *>(stmt)); }
-            else if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
-            { structs.push_back(dynamic_cast<StructStatement *>(stmt)); }
-            else if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
-            { aliases.push_back(dynamic_cast<AliasStatement *>(stmt)); }
-            else if (stmt->statement_type == StatementType::STATEMENT_FN)
-            { fns.push_back(dynamic_cast<FnStatement *>(stmt)); }
-            else
-            { others.push_back(stmt); }
-        }
+        for (auto stmt : file->top_level_enum_statements)
+        { source_generated.append(forward_declare_enum(stmt)); }
+
+        for (auto stmt : file->top_level_struct_statements)
+        { source_generated.append(forward_declare_struct(stmt)); }
+
+        for (auto stmt : file->top_level_alias_statements)
+        { source_generated.append(emit_alias_statement(stmt)); }
+
+        for (auto stmt : file->top_level_fn_statements)
+        { source_generated.append(forward_declare_function(stmt)); }
+
+        // enum body decls
+        for (auto stmt : file->top_level_enum_statements)
+        { source_generated.append(emit_enum_statement(stmt)); }
+
+        // struct body decls
+        for (auto stmt : file->top_level_struct_statements)
+        { source_generated.append(emit_struct_statement(stmt)); }
     }
 
-    auto source_generated = std::string("#include \"lib.h\"\n\n");
+    for(auto file: *files) {
+         // fn body decls
+        for (auto stmt : file->top_level_fn_statements)
+        { source_generated.append(emit_fn_statement(stmt)); }
+    }
 
-    source_generated.append("// enum forward declarations\n");
-    for (auto stmt : enums)
-    { source_generated.append(forward_declare_enum(stmt)); }
-
-    source_generated.append("// struct forward declarations\n");
-    for (auto stmt : structs)
-    { source_generated.append(forward_declare_struct(stmt)); }
-
-    source_generated.append("// typedefs\n");
-    for (auto stmt : aliases)
-    { source_generated.append(emit_alias_statement(stmt)); }
-
-    source_generated.append("\n// function forward declarations\n");
-    for (auto stmt : fns)
-    { source_generated.append(forward_declare_function(stmt)); }
-
-    source_generated.append("\n// Source\n");
-    // enum body decls
-    for (auto stmt : enums)
-    { source_generated.append(emit_enum_statement(stmt)); }
-
-    // struct body decls
-    for (auto stmt : structs)
-    { source_generated.append(emit_struct_statement(stmt)); }
-
-    // fn body decls
-    for (auto stmt : fns)
-    { source_generated.append(emit_fn_statement(stmt)); }
-
-    // anything else
-    for (auto stmt : others)
-    { source_generated.append(emit_statement(stmt)); }
-
-    source_generated.append("int main(int argc, char **argv) { __liam__main__(); return 0; }");
+    source_generated.append("\nint main(int argc, char **argv) { __liam__main__(); return 0; }\n\n\n // GOODBYE");
 
     return source_generated;
 }
