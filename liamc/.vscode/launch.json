@@ -10,7 +10,7 @@
             "name": "Code",
             "program": "${workspaceFolder}/zig-out/bin/liamc",
             "args": [
-                "--in=main.liam",
+                "--in=program/main.liam",
                 "--stdlib=stdlib",
                 "--time", 
             ],

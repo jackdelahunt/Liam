@@ -4,7 +4,6 @@
 
 #include "args.h"
 #include "compiler.h"
-#include "cpp_backend.h"
 #include "liam.h"
 #include <functional>
 
@@ -15,16 +14,16 @@ i32 main(i32 argc, char **argv) {
     Arguments::New(argc, argv);
 
     TIME_START(l_p_time);
-    auto files = lex_parse(std::filesystem::absolute(args->in_path));
+    auto modules = lex_parse(std::filesystem::absolute(args->in_path));
     TIME_END(l_p_time, "Lex and parsing time");
 
     TIME_START(type_time);
-    type_check(&files);
+    type_check(&modules);
     TIME_END(type_time, "Type checking time");
 
-    TIME_START(code_gen);
-    auto code = CppBackend().emit(&files);
-    TIME_END(code_gen, "Code generation time");
+    TIME_START(code_gen_time);
+    auto code = code_gen(&modules);
+    TIME_END(code_gen_time, "Code generation time");
 
     if (args->emit)
     { std::cout << code << "\n"; }

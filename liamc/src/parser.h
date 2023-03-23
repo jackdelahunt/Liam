@@ -38,19 +38,18 @@ struct File {
     std::vector<AliasStatement *> top_level_alias_statements;
     std::vector<FnStatement *> top_level_fn_statements;
     std::vector<EnumStatement *> top_level_enum_statements;
-    std::vector<std::string> imports;
     std::filesystem::path path;
 
     File(std::filesystem::path path);
 };
 
 struct Parser {
-    std::vector<Token> tokens;
+    std::vector<Token> *tokens;
     i32 current;
     std::filesystem::path path;
     File *file;
 
-    Parser(std::filesystem::path path, std::vector<Token> &tokens);
+    Parser(std::filesystem::path path, std::vector<Token> *tokens);
 
     void parse();
 

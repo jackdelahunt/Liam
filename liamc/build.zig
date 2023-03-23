@@ -9,6 +9,7 @@ pub fn build(b: *std.build.Builder) void {
     // liam
     exe.addCSourceFile("src/main.cpp", &[_][]const u8{"-std=c++20", "-g", "-O0"});
     exe.addCSourceFile("src/args.cpp", &[_][]const u8{});
+    exe.addCSourceFile("src/module.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/cpp_backend.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/errors.cpp", &[_][]const u8{});
     exe.addCSourceFile("src/expression.cpp", &[_][]const u8{});

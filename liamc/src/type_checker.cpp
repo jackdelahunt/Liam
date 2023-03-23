@@ -93,8 +93,10 @@ TypeChecker::TypeChecker() {
     current_file           = NULL;
 }
 
-void TypeChecker::type_check(std::vector<File *> *files) {
-    for (auto file : *files)
+void TypeChecker::type_check(std::vector<Module *> *modules) {
+
+    auto using_module = modules->at(0);
+    for (auto file : using_module->files)
     {
         // enum identifier pass
         for (auto stmt : file->top_level_enum_statements)
@@ -133,7 +135,7 @@ void TypeChecker::type_check(std::vector<File *> *files) {
         }
     }
 
-    for(auto file: *files) {
+    for(auto file: using_module->files) {
         // function body pass
         for (auto stmt : file->top_level_fn_statements)
         {
