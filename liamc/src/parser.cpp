@@ -16,11 +16,10 @@ File::File(std::filesystem::path path) {
     this->top_level_fn_statements     = std::vector<FnStatement *>();
     this->top_level_enum_statements   = std::vector<EnumStatement *>();
 
-    imports    = std::vector<std::string>();
     this->path = std::move(path);
 }
 
-Parser::Parser(std::filesystem::path path, std::vector<Token> &tokens) {
+Parser::Parser(std::filesystem::path path, std::vector<Token> *tokens) {
     this->tokens  = tokens;
     this->current = 0;
     this->path    = absolute(std::filesystem::path(path));
@@ -29,7 +28,7 @@ Parser::Parser(std::filesystem::path path, std::vector<Token> &tokens) {
 
 void Parser::parse() {
     this->file = new File(path);
-    while (current < tokens.size())
+    while (current < this->tokens->size())
     {
 
         auto errors_before = ErrorReporter::error_count();
@@ -61,21 +60,6 @@ void Parser::parse() {
         {
             auto import_stmt = dynamic_cast<ImportStatement *>(stmt);
             file->top_level_import_statements.push_back(import_stmt);
-
-            std::string final_path;
-            auto import_path = std::filesystem::path(import_stmt->path->token.string);
-
-            if (import_path.is_absolute())
-            { final_path = import_path; }
-            else if (import_path.string().rfind("stdlib/", 0) == 0)
-            {
-                final_path =
-                    absolute(std::filesystem::path(args->stdlib)).string() + "/" + import_path.filename().string();
-            }
-            else
-            { final_path = this->path.parent_path().string() + "/" + import_path.string(); }
-
-            file->imports.emplace_back(final_path);
         }
         else
         {
@@ -742,15 +726,15 @@ i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
     i32 current_index = from;
     i32 balance       = 0;
 
-    while (current_index < tokens.size())
+    while (current_index < this->tokens->size())
     {
-        if (tokens.at(current_index).type == push)
+        if (this->tokens->at(current_index).type == push)
         {
             balance++;
             if (balance == 0)
                 return current_index;
         }
-        if (tokens.at(current_index).type == pull)
+        if (this->tokens->at(current_index).type == pull)
         {
             balance--;
             if (balance == 0)
@@ -764,27 +748,27 @@ i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
 }
 
 bool Parser::match(TokenType type) {
-    if (tokens.size() > 0)
+    if (this->tokens->size() > 0)
         return peek()->type == type;
 
     return false;
 }
 
 Token *Parser::peek(i32 offset) {
-    return &tokens.at(current + offset);
+    return &this->tokens->at(current + offset);
 }
 
 Token *Parser::consume_token() {
-    if (current >= tokens.size())
+    if (current >= this->tokens->size())
         panic("No more tokens to consume");
 
-    return &tokens.at(current++);
+    return &this->tokens->at(current++);
 }
 
 Token *Parser::consume_token_of_type(TokenType type) {
-    if (current >= tokens.size())
+    if (current >= this->tokens->size())
     {
-        auto last_token = tokens.at(tokens.size() - 1);
+        auto last_token = this->tokens->at(this->tokens->size() - 1);
         ErrorReporter::report_parser_error(
             path.string(), last_token.span,
             fmt::format("Expected '{}' but got unexpected end of file", TokenTypeStrings[(int)type])
@@ -792,7 +776,7 @@ Token *Parser::consume_token_of_type(TokenType type) {
         return NULL;
     }
 
-    auto t_ptr = &tokens.at(current++);
+    auto t_ptr = &this->tokens->at(current++);
     if (t_ptr->type != type)
     {
         ErrorReporter::report_parser_error(

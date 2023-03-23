@@ -9,7 +9,7 @@ build:
 	@zig build -Drelease-safe
 
 run: build
-	@./zig-out/bin/liamc --stdlib="stdlib" --in="main.liam" -t
+	@./zig-out/bin/liamc --stdlib="stdlib" --in="program/main.liam" -t
 	@clang++ -I "stdlib/include"  -std=c++20 -o out.exe out.cpp
 	@./out.exe
 

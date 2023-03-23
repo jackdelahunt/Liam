@@ -2,6 +2,7 @@
 #include <map>
 
 #include "parser.h"
+#include "module.h"
 #include "type_info.h"
 
 struct Statement;
@@ -40,7 +41,7 @@ struct TypeChecker {
 
     TypeChecker();
 
-    void type_check(std::vector<File *> *files);
+    void type_check(std::vector<Module *> *modules);
 
     void type_check_fn_decl(FnStatement *statement, SymbolTable *symbol_table);
     void type_check_struct_decl(StructStatement *statement, SymbolTable *symbol_table);
