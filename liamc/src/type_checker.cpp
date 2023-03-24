@@ -11,40 +11,23 @@
 #include "utils.h"
 #include <tuple>
 
-SymbolTable::SymbolTable() {
-    this->builtin_type_table = std::unordered_map<std::string, TypeInfo *>();
-    this->type_table         = std::unordered_map<std::string, TypeInfo *>();
-    this->identifier_table   = std::unordered_map<std::string, TypeInfo *>();
-
-    builtin_type_table["void"] = new VoidTypeInfo();
-    builtin_type_table["bool"] = new BoolTypeInfo();
-    builtin_type_table["str"]  = new StrTypeInfo();
-
-    builtin_type_table["u8"] = new NumberTypeInfo(8, NumberType::UNSIGNED);
-    builtin_type_table["i8"] = new NumberTypeInfo(8, NumberType::SIGNED);
-
-    builtin_type_table["u16"] = new NumberTypeInfo(16, NumberType::UNSIGNED);
-    builtin_type_table["i16"] = new NumberTypeInfo(16, NumberType::SIGNED);
-
-    builtin_type_table["u32"] = new NumberTypeInfo(32, NumberType::UNSIGNED);
-    builtin_type_table["i32"] = new NumberTypeInfo(32, NumberType::SIGNED);
-    builtin_type_table["f32"] = new NumberTypeInfo(32, NumberType::FLOAT);
-
-    builtin_type_table["u64"] = new NumberTypeInfo(64, NumberType::UNSIGNED);
-    builtin_type_table["i64"] = new NumberTypeInfo(64, NumberType::SIGNED);
-    builtin_type_table["f64"] = new NumberTypeInfo(64, NumberType::FLOAT);
+SymbolTable::SymbolTable(Module *current_module, File *current_file) {
+    this->current_file     = current_file;
+    this->current_module   = current_module;
+    this->local_type_table = std::unordered_map<std::string, TypeInfo *>();
+    this->identifier_table = std::unordered_map<std::string, TypeInfo *>();
 }
 
-void SymbolTable::add_type(Token type, TypeInfo *type_info) {
-    if (type_table.count(type.string) > 0)
+void SymbolTable::add_local_type(Token token, TypeInfo *type_info) {
+    if (this->local_type_table.count(token.string) > 0)
     {
         panic(
-            "Duplcate creation of type: " + type.string + " at (" + std::to_string(type.span.line) + "," +
-            std::to_string(type.span.start) + ")"
+            "Duplcate creation of type: " + token.string + " at (" + std::to_string(token.span.line) + "," +
+            std::to_string(token.span.start) + ")"
         );
     }
 
-    type_table[type.string] = type_info;
+    this->local_type_table[token.string] = type_info;
 }
 
 void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
@@ -71,14 +54,21 @@ std::tuple<TypeInfo *, bool> SymbolTable::get_type(Token *identifier) {
 }
 
 std::tuple<TypeInfo *, bool> SymbolTable::get_type(std::string identifier) {
-    if (builtin_type_table.count(identifier) > 0)
-    { return {builtin_type_table[identifier], false}; }
+    ASSERT(this->current_module);
+    if (this->current_module->builtin_type_table.count(identifier) > 0)
+    { return {this->current_module->builtin_type_table[identifier], false}; }
 
-    if (identifier_table.count(identifier) > 0)
-    { return {identifier_table[identifier], false}; }
+    if (this->current_module->top_level_type_table.count(identifier) > 0)
+    { return {this->current_module->top_level_type_table[identifier], false}; }
 
-    if (type_table.count(identifier) > 0)
-    { return {type_table[identifier], false}; }
+    if (this->current_module->top_level_function_table.count(identifier) > 0)
+    { return {this->current_module->top_level_function_table[identifier], false}; }
+
+    if (this->identifier_table.count(identifier) > 0)
+    { return {this->identifier_table[identifier], false}; }
+
+    if (this->local_type_table.count(identifier) > 0)
+    { return {this->local_type_table[identifier], false}; }
 
     return {nullptr, true};
 }
@@ -89,58 +79,66 @@ SymbolTable SymbolTable::copy() {
 }
 
 TypeChecker::TypeChecker() {
-    top_level_symbol_table = SymbolTable();
-    current_file           = NULL;
+    current_file   = NULL;
+    current_module = NULL;
 }
 
 void TypeChecker::type_check(std::vector<Module *> *modules) {
 
-    auto using_module = modules->at(0);
-    for (auto file : using_module->files)
+    // add symbols for structs, enums and aliass for each module
+    for (auto module : *modules)
     {
-        // enum identifier pass
-        for (auto stmt : file->top_level_enum_statements)
+        this->current_module = module;
+        for (auto file : module->files)
         {
-            current_file = stmt->file;
-            TRY_CALL(type_check_enum_decl(stmt, &top_level_symbol_table));
-        }
 
-        // struct identifier pass
-        for (auto stmt : file->top_level_struct_statements)
-        { TRY_CALL(type_check_struct_decl(stmt, &top_level_symbol_table)); }
+            this->current_file = file;
 
-        // aliases
-        for (auto stmt : file->top_level_alias_statements)
-        { TRY_CALL(type_check_alias_statement(stmt, &top_level_symbol_table)); }
+            for (auto stmt : file->top_level_enum_statements)
+            { TRY_CALL(type_check_enum_decl(stmt)); }
 
-        // enum type pass
-        for (auto stmt : file->top_level_enum_statements)
-        {
-            current_file = stmt->file;
-            TRY_CALL(type_check_enum_statement(stmt, &top_level_symbol_table));
-        }
+            for (auto stmt : file->top_level_struct_statements)
+            { TRY_CALL(type_check_struct_decl(stmt)); }
 
-        // struct type pass
-        for (auto stmt : file->top_level_struct_statements)
-        {
-            current_file = stmt->file;
-            TRY_CALL(type_check_struct_statement(stmt, &top_level_symbol_table));
-        }
-
-        // function decl pass
-        for (auto stmt : file->top_level_fn_statements)
-        {
-            current_file = stmt->file;
-            TRY_CALL(type_check_fn_decl(stmt, &top_level_symbol_table));
+            for (auto stmt : file->top_level_alias_statements)
+            {}
         }
     }
 
-    for(auto file: using_module->files) {
-        // function body pass
-        for (auto stmt : file->top_level_fn_statements)
+    // do imports for the modules
+
+    for (auto module : *modules)
+    {
+        this->current_module = module;
+        for (auto file : module->files)
         {
-            current_file = stmt->file;
-            TRY_CALL(type_check_fn_statement(stmt, &top_level_symbol_table));
+
+            this->current_file = file;
+
+            for (auto stmt : file->top_level_fn_statements)
+            { TRY_CALL(type_check_fn_decl(stmt)); }
+
+            for (auto stmt : file->top_level_enum_statements)
+            { TRY_CALL(type_check_enum_statement_full(stmt)); }
+
+            for (auto stmt : file->top_level_struct_statements)
+            { TRY_CALL(type_check_struct_statement_full(stmt)); }
+
+            for (auto stmt : file->top_level_alias_statements)
+            {}
+        }
+    }
+
+    for (auto module : *modules)
+    {
+        this->current_module = module;
+        for (auto file : module->files)
+        {
+
+            this->current_file = file;
+
+            for (auto stmt : file->top_level_fn_statements)
+            { TRY_CALL(type_check_fn_statement_full(stmt)); }
         }
     }
 }
@@ -159,39 +157,34 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
     return parent_type_info;
 }
 
-void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol_table) {
-    SymbolTable *symbol_table_in_use = symbol_table;
+void TypeChecker::type_check_fn_decl(FnStatement *statement) {
+    SymbolTable symbol_table = SymbolTable(current_module, current_file);
 
     auto generic_type_infos = std::vector<TypeInfo *>();
     if (!statement->generics.empty())
     {
-        // TODO: find a way to not use new here
-        SymbolTable *copy = new SymbolTable();
-        *copy             = *symbol_table;
         for (u64 i = 0; i < statement->generics.size(); i++)
         {
             auto generic_type = new GenericTypeInfo(i);
-            copy->add_type(statement->generics[i], generic_type);
+            symbol_table.add_local_type(statement->generics[i], generic_type);
             generic_type_infos.push_back(generic_type);
         }
-
-        symbol_table_in_use = copy;
     }
 
     auto param_type_infos = std::vector<TypeInfo *>();
     for (auto &[identifier, expr] : statement->params)
     {
-        TRY_CALL(type_check_type_expression(expr, symbol_table_in_use))
+        TRY_CALL(type_check_type_expression(expr, &symbol_table))
         param_type_infos.push_back(expr->type_info);
     }
 
-    TRY_CALL(type_check_type_expression(statement->return_type, symbol_table_in_use));
+    TRY_CALL(type_check_type_expression(statement->return_type, &symbol_table));
 
     // this function is a part of a struct so it needs to be added to the struct type info
     // of the parent if it has no parent type then it is apart of the parent symbol table
     if (statement->parent_type != NULL)
     {
-        TRY_CALL(type_check_type_expression(statement->parent_type, symbol_table_in_use));
+        TRY_CALL(type_check_type_expression(statement->parent_type, &symbol_table));
 
         auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
         if (parent_type_info == NULL)
@@ -212,22 +205,22 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement, SymbolTable *symbol
     }
 
     // add this fn decl to parent symbol table
-    symbol_table->add_identifier(
+    current_module->add_function(
         statement->identifier,
         new FnTypeInfo(NULL, statement->return_type->type_info, generic_type_infos, param_type_infos)
     );
 }
 
-void TypeChecker::type_check_struct_decl(StructStatement *statement, SymbolTable *symbol_table) {
+void TypeChecker::type_check_struct_decl(StructStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
-    symbol_table->add_type(statement->identifier, new StructTypeInfo({}, {}, statement->generics.size()));
+    this->current_module->add_type(statement->identifier, new StructTypeInfo({}, {}, statement->generics.size()));
 }
 
-void TypeChecker::type_check_enum_decl(EnumStatement *statement, SymbolTable *symbol_table) {
+void TypeChecker::type_check_enum_decl(EnumStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
-    symbol_table->add_type(statement->identifier, new EnumTypeInfo(std::vector<EnumMember>()));
+    this->current_module->add_type(statement->identifier, new EnumTypeInfo(std::vector<EnumMember>()));
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
@@ -260,6 +253,140 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
             0, "Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type)
         );
     }
+}
+
+void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
+
+    if (statement->is_extern)
+        return;
+
+    SymbolTable symbol_table = SymbolTable(current_module, current_file);
+
+    // getting the already existing type info for the function is done in 2 ways
+    // 1. looking into the symbol table of the current scope (normal function)
+    // 2. looking into the member functions of a type (member function)
+    FnTypeInfo *fn_type_info = NULL;
+
+    if (statement->parent_type == NULL)
+    {
+        fn_type_info =
+            static_cast<FnTypeInfo *>(current_module->top_level_function_table[statement->identifier.string]);
+        ASSERT(fn_type_info);
+    }
+    else
+    {
+
+        auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
+        if (parent_type_info == NULL)
+        {
+            ErrorReporter::report_type_checker_error(
+                current_file->path.string(), NULL, NULL, statement->parent_type, NULL,
+                "Member functions can only be used on struct types"
+            );
+            return;
+        }
+
+        for (auto [identifier, type_info] : parent_type_info->member_functions)
+        {
+            if (identifier == statement->identifier.string)
+            {
+                fn_type_info = type_info;
+                break;
+            }
+        }
+        // we should always be able to find the fn type info in the struct as it is
+        // already been type checked if this does not happen then something has gone very wrong
+        ASSERT(statement->parent_type != NULL);
+    }
+
+    // params and get type expressions
+    auto args = std::vector<std::tuple<Token, TypeInfo *>>();
+    for (int i = 0; i < fn_type_info->args.size(); i++)
+    {
+        auto &[identifier, expr] = statement->params.at(i);
+        args.push_back({identifier, fn_type_info->args.at(i)});
+    }
+
+    if (statement->parent_type != NULL)
+    { symbol_table.add_compiler_generated_identifier("self", new PointerTypeInfo(statement->parent_type->type_info)); }
+
+    for (auto &[identifier, type_info] : args)
+    { symbol_table.add_identifier(identifier, type_info); }
+
+    for (u64 i = 0; i < statement->generics.size(); i++)
+    { symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i]); }
+
+    // type statements and check return exists if needed
+    TRY_CALL(type_check_scope_statement(statement->body, &symbol_table, false));
+    for (auto stmt : statement->body->statements)
+    {
+        if (stmt->statement_type == StatementType::STATEMENT_RETURN)
+        {
+            auto rt = static_cast<ReturnStatement *>(stmt);
+
+            if (fn_type_info->return_type->type == TypeInfoType::VOID)
+            {
+                if (rt->expression != NULL)
+                {
+                    ErrorReporter::report_type_checker_error(
+                        current_file->path.string(), rt->expression, NULL, NULL, NULL,
+                        "found expression in return when return type is void"
+                    );
+                    return;
+                }
+            }
+            else
+            {
+                if (!type_match(fn_type_info->return_type, rt->expression->type_info))
+                {
+                    ErrorReporter::report_type_checker_error(
+                        current_file->path.string(), rt->expression, NULL, statement->return_type, NULL,
+                        "Mismatch types in function, return types do not match"
+                    );
+                    return;
+                }
+            }
+        }
+    }
+}
+
+void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
+
+    SymbolTable symbol_table = SymbolTable(current_module, current_file);
+
+    for (u64 i = 0; i < statement->generics.size(); i++)
+    { symbol_table.add_local_type(statement->generics[i], new GenericTypeInfo(i)); }
+
+    auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
+    for (auto &[member, expr] : statement->members)
+    {
+        TRY_CALL(type_check_type_expression(expr, &symbol_table));
+        members_type_info.emplace_back(member.string, expr->type_info);
+    }
+
+    // this struct has not been fully typed until now just add to the type that already exists in the
+    // type table
+    StructTypeInfo *sti = (StructTypeInfo *)this->current_module->top_level_type_table[statement->identifier.string];
+    sti->members        = members_type_info;
+}
+
+void TypeChecker::type_check_enum_statement_full(EnumStatement *statement) {
+
+    SymbolTable symbol_table = SymbolTable(current_module, current_file);
+    for (auto &member : statement->members)
+    {
+        for (auto type : member.members)
+        { TRY_CALL(type_check_type_expression(type, &symbol_table)); }
+    }
+
+    // get the existing type and insert the members type info
+    auto [existing_type, failed] = current_module->get_type(&statement->identifier);
+    ASSERT_MSG(!failed, "Assuming this enum is forward declared");
+
+    ASSERT(existing_type->type == TypeInfoType::ENUM);
+
+    auto type_info     = (EnumTypeInfo *)existing_type;
+    type_info->members = statement->members;
 }
 
 void TypeChecker::type_check_return_statement(ReturnStatement *statement, SymbolTable *symbol_table) {
@@ -310,101 +437,6 @@ void TypeChecker::type_check_scope_statement(
     { TRY_CALL(type_check_statement(stmt, scopes_symbol_table)); }
 }
 
-void TypeChecker::type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table) {
-    if (statement->is_extern)
-        return;
-
-    // getting the already existing type info for the function is done in 2 ways
-    // 1. looking into the symbol table of the current scope (normal function)
-    // 2. looking into the member functions of a type (member function)
-    FnTypeInfo *fn_type_info = NULL;
-
-    if (statement->parent_type == NULL)
-    { fn_type_info = static_cast<FnTypeInfo *>(symbol_table->identifier_table[statement->identifier.string]); }
-    else
-    {
-
-        auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
-        if (parent_type_info == NULL)
-        {
-            ErrorReporter::report_type_checker_error(
-                current_file->path.string(), NULL, NULL, statement->parent_type, NULL,
-                "Member functions can only be used on struct types"
-            );
-            return;
-        }
-
-        for (auto [identifier, type_info] : parent_type_info->member_functions)
-        {
-            if (identifier == statement->identifier.string)
-            {
-                fn_type_info = type_info;
-                break;
-            }
-        }
-        // we should always be able to find the fn type info in the struct as it is
-        // already been type checked if this does not happen then something has gone very wrong
-        ASSERT(statement->parent_type != NULL);
-    }
-
-    // params and get type expressions
-    auto args = std::vector<std::tuple<Token, TypeInfo *>>();
-    for (int i = 0; i < fn_type_info->args.size(); i++)
-    {
-        auto &[identifier, expr] = statement->params.at(i);
-        args.push_back({identifier, fn_type_info->args.at(i)});
-    }
-
-    // copy table and add params and add generic types
-    SymbolTable copied_symbol_table = symbol_table->copy();
-
-    if (statement->parent_type != NULL)
-    {
-        copied_symbol_table.add_compiler_generated_identifier(
-            "self", new PointerTypeInfo(statement->parent_type->type_info)
-        );
-    }
-
-    for (auto &[identifier, type_info] : args)
-    { copied_symbol_table.add_identifier(identifier, type_info); }
-
-    for (u64 i = 0; i < statement->generics.size(); i++)
-    { copied_symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i]); }
-
-    // type statements and check return exists if needed
-    TRY_CALL(type_check_scope_statement(statement->body, &copied_symbol_table, false));
-    for (auto stmt : statement->body->statements)
-    {
-        if (stmt->statement_type == StatementType::STATEMENT_RETURN)
-        {
-            auto rt = static_cast<ReturnStatement *>(stmt);
-
-            if (fn_type_info->return_type->type == TypeInfoType::VOID)
-            {
-                if (rt->expression != NULL)
-                {
-                    ErrorReporter::report_type_checker_error(
-                        current_file->path.string(), rt->expression, NULL, NULL, NULL,
-                        "found expression in return when return type is void"
-                    );
-                    return;
-                }
-            }
-            else
-            {
-                if (!type_match(fn_type_info->return_type, rt->expression->type_info))
-                {
-                    ErrorReporter::report_type_checker_error(
-                        current_file->path.string(), rt->expression, NULL, statement->return_type, NULL,
-                        "Mismatch types in function, return types do not match"
-                    );
-                    return;
-                }
-            }
-        }
-    }
-}
-
 void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     auto table_copy = *symbol_table;
     TRY_CALL(type_check_statement(statement->assign, &table_copy));
@@ -424,7 +456,7 @@ void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *s
 
     TRY_CALL(type_check_expression(statement->expression, &copy));
 
-    if (!type_match(statement->expression->type_info, symbol_table->builtin_type_table["bool"]))
+    if (!type_match(statement->expression->type_info, this->current_module->builtin_type_table["bool"]))
     { panic("If statement must be passed a bool"); }
 
     TRY_CALL(type_check_scope_statement(statement->body, &copy));
@@ -446,26 +478,6 @@ void TypeChecker::type_check_else_statement(ElseStatement *statement, SymbolTabl
     { TRY_CALL(type_check_scope_statement(statement->body, symbol_table)); }
 }
 
-void TypeChecker::type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table) {
-
-    SymbolTable sub_symbol_table_copy = symbol_table->copy();
-
-    for (u64 i = 0; i < statement->generics.size(); i++)
-    { sub_symbol_table_copy.add_type(statement->generics[i], new GenericTypeInfo(i)); }
-
-    auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
-    for (auto &[member, expr] : statement->members)
-    {
-        TRY_CALL(type_check_type_expression(expr, &sub_symbol_table_copy));
-        members_type_info.emplace_back(member.string, expr->type_info);
-    }
-
-    // this struct has not been fully typed until now just add to the type that already exists in the
-    // type table
-    StructTypeInfo *sti = (StructTypeInfo *)symbol_table->type_table[statement->identifier.string];
-    sti->members        = members_type_info;
-}
-
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(statement->lhs, symbol_table));
     TRY_CALL(type_check_expression(statement->assigned_to->expression, symbol_table));
@@ -484,26 +496,10 @@ void TypeChecker::type_check_expression_statement(ExpressionStatement *statement
     TRY_CALL(type_check_expression(statement->expression, symbol_table));
 }
 
-void TypeChecker::type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table) {
-    for (auto &member : statement->members)
-    {
-        for (auto type : member.members)
-        { TRY_CALL(type_check_type_expression(type, symbol_table)); }
-    }
-
-    // get the existing type and insert the members type info
-    auto [existing_type, failed] = symbol_table->get_type(&statement->identifier);
-    ASSERT_MSG(!failed, "Assuming this enum is forward declared as it us top level");
-
-    ASSERT(existing_type->type == TypeInfoType::ENUM);
-
-    auto type_info     = (EnumTypeInfo *)existing_type;
-    type_info->members = statement->members;
-}
-
-void TypeChecker::type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_type_expression(statement->type_expression, symbol_table));
-    symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
+void TypeChecker::type_check_alias_decl(AliasStatement *statement) {
+    // TODO: fix aliases
+    // TRY_CALL(type_check_type_expression(statement->type_expression, symbol_table));
+    // symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {
@@ -595,7 +591,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
             return;
         }
 
-        info = symbol_table->builtin_type_table["bool"];
+        info = this->current_module->builtin_type_table["bool"];
     }
 
     // math ops - numbers -> numbers
@@ -626,12 +622,12 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
             );
             return;
         }
-        info = symbol_table->builtin_type_table["bool"];
+        info = this->current_module->builtin_type_table["bool"];
     }
 
     // compare - any -> bool
     if (expression->op.type == TokenType::TOKEN_EQUAL || expression->op.type == TokenType::TOKEN_NOT_EQUAL)
-    { info = symbol_table->builtin_type_table["bool"]; }
+    { info = this->current_module->builtin_type_table["bool"]; }
 
     assert(info != NULL);
 
@@ -639,7 +635,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
 }
 
 void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *expression, SymbolTable *symbol_table) {
-    expression->type_info = symbol_table->builtin_type_table["str"];
+    expression->type_info = this->current_module->builtin_type_table["str"];
 }
 
 void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *expression, SymbolTable *symbol_table) {
@@ -677,25 +673,25 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         }
 
         if (size == 8)
-        { expression->type_info = symbol_table->builtin_type_table["u8"]; }
+        { expression->type_info = this->current_module->builtin_type_table["u8"]; }
         else if (size == 16)
-        { expression->type_info = symbol_table->builtin_type_table["u16"]; }
+        { expression->type_info = this->current_module->builtin_type_table["u16"]; }
         else if (size == 32)
-        { expression->type_info = symbol_table->builtin_type_table["u32"]; }
+        { expression->type_info = this->current_module->builtin_type_table["u32"]; }
         else if (size == 64)
-        { expression->type_info = symbol_table->builtin_type_table["u64"]; }
+        { expression->type_info = this->current_module->builtin_type_table["u64"]; }
     }
     break;
     case NumberType::SIGNED: {
 
         if (size == 8)
-        { expression->type_info = symbol_table->builtin_type_table["i8"]; }
+        { expression->type_info = this->current_module->builtin_type_table["i8"]; }
         else if (size == 16)
-        { expression->type_info = symbol_table->builtin_type_table["i16"]; }
+        { expression->type_info = this->current_module->builtin_type_table["i16"]; }
         else if (size == 32)
-        { expression->type_info = symbol_table->builtin_type_table["i32"]; }
+        { expression->type_info = this->current_module->builtin_type_table["i32"]; }
         else if (size == 64)
-        { expression->type_info = symbol_table->builtin_type_table["i64"]; }
+        { expression->type_info = this->current_module->builtin_type_table["i64"]; }
     }
     break;
     case NumberType::FLOAT: {
@@ -708,9 +704,9 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
             return;
         }
         else if (size == 32)
-        { expression->type_info = symbol_table->builtin_type_table["f32"]; }
+        { expression->type_info = this->current_module->builtin_type_table["f32"]; }
         else if (size == 64)
-        { expression->type_info = symbol_table->builtin_type_table["f64"]; }
+        { expression->type_info = this->current_module->builtin_type_table["f64"]; }
     }
     break;
     }
@@ -925,12 +921,12 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
     TypeInfo *type_info;
 
-    if (symbol_table->builtin_type_table.count(expression->identifier.string) > 0)
-    { type_info = symbol_table->builtin_type_table[expression->identifier.string]; }
-    else if (symbol_table->type_table.count(expression->identifier.string) > 0)
-    { type_info = symbol_table->type_table[expression->identifier.string]; }
-    else if (symbol_table->identifier_table.count(expression->identifier.string) > 0)
-    { type_info = symbol_table->identifier_table[expression->identifier.string]; }
+    if (this->current_module->builtin_type_table.count(expression->identifier.string) > 0)
+    { type_info = this->current_module->builtin_type_table[expression->identifier.string]; }
+    else if (this->current_module->top_level_type_table.count(expression->identifier.string) > 0)
+    { type_info = this->current_module->top_level_type_table[expression->identifier.string]; }
+    else if (symbol_table->local_type_table.count(expression->identifier.string) > 0)
+    { type_info = symbol_table->local_type_table[expression->identifier.string]; }
     else
     {
         ErrorReporter::report_type_checker_error(
@@ -1219,7 +1215,9 @@ void TypeChecker::type_check_struct_instance_expression(
     StructInstanceExpression *expression, SymbolTable *symbol_table
 ) {
     // check its type
-    if (!symbol_table->type_table.count(expression->identifier.string) > 0)
+
+    auto [type_info, failed] = symbol_table->get_type(expression->identifier.string);
+    if (failed)
     {
         ErrorReporter::report_type_checker_error(
             current_file->path.string(), expression, NULL, NULL, NULL, "Unrecognised type in new expression"
@@ -1228,7 +1226,7 @@ void TypeChecker::type_check_struct_instance_expression(
     }
 
     // check it's a struct
-    if (symbol_table->type_table[expression->identifier.string]->type != TypeInfoType::STRUCT)
+    if (type_info->type != TypeInfoType::STRUCT)
     {
         ErrorReporter::report_type_checker_error(
             current_file->path.string(), expression, NULL, NULL, NULL, "Can only use struct types in new expression"
@@ -1236,7 +1234,7 @@ void TypeChecker::type_check_struct_instance_expression(
         return;
     }
 
-    auto struct_type_info = static_cast<StructTypeInfo *>(symbol_table->type_table[expression->identifier.string]);
+    auto struct_type_info = static_cast<StructTypeInfo *>(type_info);
 
     // collect members from new constructor
     auto calling_args_type_infos = std::vector<std::tuple<std::string, TypeInfo *>>();

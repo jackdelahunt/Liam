@@ -1,8 +1,8 @@
 #pragma once
 #include <map>
 
-#include "parser.h"
 #include "module.h"
+#include "parser.h"
 #include "type_info.h"
 
 struct Statement;
@@ -21,13 +21,16 @@ struct Expression;
 struct File;
 
 struct SymbolTable {
-    std::unordered_map<std::string, TypeInfo *> builtin_type_table; // u64 string...
-    std::unordered_map<std::string, TypeInfo *> type_table;         // structs
-    std::unordered_map<std::string, TypeInfo *> identifier_table;   // variables or funcs
+    Module *current_module = NULL;
+    File *current_file     = NULL;
 
-    SymbolTable();
+    std::unordered_map<std::string, TypeInfo *> local_type_table; // structs
+    std::unordered_map<std::string, TypeInfo *> identifier_table; // variables or funcs
 
-    void add_type(Token type, TypeInfo *type_info);
+    SymbolTable(Module *current_module, File *current_file);
+    SymbolTable() = default;
+
+    void add_local_type(Token type, TypeInfo *type_info);
     void add_identifier(Token identifier, TypeInfo *type_info);
     void add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info);
     std::tuple<TypeInfo *, bool> get_type(Token *identifier);
@@ -36,16 +39,20 @@ struct SymbolTable {
 };
 
 struct TypeChecker {
-    SymbolTable top_level_symbol_table;
     File *current_file;
+    Module *current_module;
 
     TypeChecker();
 
     void type_check(std::vector<Module *> *modules);
 
-    void type_check_fn_decl(FnStatement *statement, SymbolTable *symbol_table);
-    void type_check_struct_decl(StructStatement *statement, SymbolTable *symbol_table);
-    void type_check_enum_decl(EnumStatement *statement, SymbolTable *symbol_table);
+    void type_check_fn_decl(FnStatement *statement);
+    void type_check_struct_decl(StructStatement *statement);
+    void type_check_enum_decl(EnumStatement *statement);
+    void type_check_alias_decl(AliasStatement *statement);
+    void type_check_fn_statement_full(FnStatement *statement);
+    void type_check_struct_statement_full(StructStatement *statement);
+    void type_check_enum_statement_full(EnumStatement *statement);
 
     void type_check_statement(Statement *statement, SymbolTable *symbol_table);
     void type_check_return_statement(ReturnStatement *statement, SymbolTable *symbol_table);
@@ -54,15 +61,11 @@ struct TypeChecker {
     void type_check_scope_statement(
         ScopeStatement *statement, SymbolTable *symbol_table, bool copy_symbol_table = true
     );
-    void type_check_fn_statement(FnStatement *statement, SymbolTable *symbol_table);
     void type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table);
     void type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table);
     void type_check_else_statement(ElseStatement *statement, SymbolTable *symbol_table);
-    void type_check_struct_statement(StructStatement *statement, SymbolTable *symbol_table);
     void type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table);
     void type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table);
-    void type_check_enum_statement(EnumStatement *statement, SymbolTable *symbol_table);
-    void type_check_alias_statement(AliasStatement *statement, SymbolTable *symbol_table);
 
     void type_check_expression(Expression *expression, SymbolTable *symbol_table);
     void type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table);

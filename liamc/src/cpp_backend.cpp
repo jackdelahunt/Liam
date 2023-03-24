@@ -31,8 +31,9 @@ std::string CppBackend::emit(std::vector<File *> *files) {
         { source_generated.append(emit_struct_statement(stmt)); }
     }
 
-    for(auto file: *files) {
-         // fn body decls
+    for (auto file : *files)
+    {
+        // fn body decls
         for (auto stmt : file->top_level_fn_statements)
         { source_generated.append(emit_fn_statement(stmt)); }
     }
