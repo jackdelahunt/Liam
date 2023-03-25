@@ -10,6 +10,8 @@
 #include "utils.h"
 
 File::File(std::filesystem::path path) {
+    this->imported_function_table     = std::unordered_map<std::string, TypeInfo *>();
+    this->imported_type_table         = std::unordered_map<std::string, TypeInfo *>();
     this->top_level_import_statements = std::vector<ImportStatement *>();
     this->top_level_struct_statements = std::vector<StructStatement *>();
     this->top_level_alias_statements  = std::vector<AliasStatement *>();
