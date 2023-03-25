@@ -2,12 +2,14 @@
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 #include <vector>
 
 #include "expression.h"
 #include "lexer.h"
 #include "liam.h"
 #include "statement.h"
+#include "type_info.h"
 
 struct Statement;
 struct LetStatement;
@@ -31,8 +33,13 @@ struct Expression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
 struct EnumMember;
+struct TypeInfo;
 
 struct File {
+
+    std::unordered_map<std::string, TypeInfo *> imported_type_table;     // import defined types
+    std::unordered_map<std::string, TypeInfo *> imported_function_table; // import defined functions
+
     std::vector<ImportStatement *> top_level_import_statements;
     std::vector<StructStatement *> top_level_struct_statements;
     std::vector<AliasStatement *> top_level_alias_statements;

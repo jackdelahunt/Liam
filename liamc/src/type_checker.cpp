@@ -55,6 +55,14 @@ std::tuple<TypeInfo *, bool> SymbolTable::get_type(Token *identifier) {
 
 std::tuple<TypeInfo *, bool> SymbolTable::get_type(std::string identifier) {
     ASSERT(this->current_module);
+    ASSERT(this->current_file);
+
+    if (this->current_file->imported_function_table.count(identifier) > 0)
+    { return {this->current_file->imported_function_table[identifier], false}; }
+
+    if (this->current_file->imported_type_table.count(identifier) > 0)
+    { return {this->current_file->imported_type_table[identifier], false}; }
+
     if (this->current_module->builtin_type_table.count(identifier) > 0)
     { return {this->current_module->builtin_type_table[identifier], false}; }
 
@@ -95,18 +103,48 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
             this->current_file = file;
 
             for (auto stmt : file->top_level_enum_statements)
-            { TRY_CALL(type_check_enum_decl(stmt)); }
+            { TRY_CALL(type_check_enum_symbol(stmt)); }
 
             for (auto stmt : file->top_level_struct_statements)
-            { TRY_CALL(type_check_struct_decl(stmt)); }
+            { TRY_CALL(type_check_struct_symbol(stmt)); }
+
+            for (auto stmt : file->top_level_fn_statements)
+            { TRY_CALL(type_check_fn_symbol(stmt)); }
 
             for (auto stmt : file->top_level_alias_statements)
             {}
         }
     }
 
-    // do imports for the modules
+    // resolve the imorpts to include all needed symbols
+    for (auto module : *modules)
+    {
+        for (auto file : module->files)
+        {
 
+            for (auto import_stmt : file->top_level_import_statements)
+            {
+                auto import_path_relative_to_module = module->path;
+                import_path_relative_to_module.append(import_stmt->path->token.string);
+                auto import_path_absolute = std::filesystem::absolute(import_path_relative_to_module);
+
+                for (auto other_module : *modules)
+                {
+                    if (other_module->path == import_path_absolute)
+                    {
+                        for (auto k_v : other_module->top_level_type_table)
+                        { file->imported_type_table[k_v.first] = k_v.second; }
+
+                        for (auto k_v : other_module->top_level_function_table)
+                        { file->imported_function_table[k_v.first] = k_v.second; }
+                    }
+                }
+            }
+        }
+    }
+
+    // type check the bodys of each struct, enum and alias
+    // to fill in their type infos
     for (auto module : *modules)
     {
         this->current_module = module;
@@ -114,9 +152,6 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
         {
 
             this->current_file = file;
-
-            for (auto stmt : file->top_level_fn_statements)
-            { TRY_CALL(type_check_fn_decl(stmt)); }
 
             for (auto stmt : file->top_level_enum_statements)
             { TRY_CALL(type_check_enum_statement_full(stmt)); }
@@ -129,6 +164,22 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
         }
     }
 
+    // fill in the type info of each function as now
+    // we have all of the required symbols and their
+    // type infos resolved
+    for (auto module : *modules)
+    {
+        this->current_module = module;
+        for (auto file : module->files)
+        {
+            this->current_file = file;
+
+            for (auto stmt : file->top_level_fn_statements)
+            { TRY_CALL(type_check_fn_decl(stmt)); }
+        }
+    }
+
+    // finally do the function body pass
     for (auto module : *modules)
     {
         this->current_module = module;
@@ -155,6 +206,28 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
     }
 
     return parent_type_info;
+}
+
+void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
+    this->current_module->add_function(statement->identifier, new FnTypeInfo(NULL, NULL, {}, {}));
+}
+
+void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
+    // this type does exist but the type info has not been type checked yet so just
+    // add it to the table and leave its type info blank until we type check it
+    this->current_module->add_type(statement->identifier, new StructTypeInfo({}, {}, statement->generics.size()));
+}
+
+void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
+    // this type does exist but the type info has not been type checked yet so just
+    // add it to the table and leave its type info blank until we type check it
+    this->current_module->add_type(statement->identifier, new EnumTypeInfo(std::vector<EnumMember>()));
+}
+
+void TypeChecker::type_check_alias_symbol(AliasStatement *statement) {
+    // TODO: fix aliases
+    // TRY_CALL(type_check_type_expression(statement->type_expression, symbol_table));
+    // symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
@@ -205,54 +278,8 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     }
 
     // add this fn decl to parent symbol table
-    current_module->add_function(
-        statement->identifier,
-        new FnTypeInfo(NULL, statement->return_type->type_info, generic_type_infos, param_type_infos)
-    );
-}
-
-void TypeChecker::type_check_struct_decl(StructStatement *statement) {
-    // this type does exist but the type info has not been type checked yet so just
-    // add it to the table and leave its type info blank until we type check it
-    this->current_module->add_type(statement->identifier, new StructTypeInfo({}, {}, statement->generics.size()));
-}
-
-void TypeChecker::type_check_enum_decl(EnumStatement *statement) {
-    // this type does exist but the type info has not been type checked yet so just
-    // add it to the table and leave its type info blank until we type check it
-    this->current_module->add_type(statement->identifier, new EnumTypeInfo(std::vector<EnumMember>()));
-}
-
-void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
-    switch (statement->statement_type)
-    {
-    case StatementType::STATEMENT_RETURN:
-        return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_BREAK:
-        return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_ASSIGNMENT:
-        return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_EXPRESSION:
-        return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_LET:
-        return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_FOR:
-        return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_IF:
-        return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table);
-    case StatementType::STATEMENT_CONTINUE:
-        break;
-    case StatementType::STATEMENT_STRUCT:
-    case StatementType::STATEMENT_ENUM:
-    case StatementType::STATEMENT_IMPORT:
-    case StatementType::STATEMENT_ALIAS:
-    case StatementType::STATEMENT_FN:
-        ASSERT_MSG(0, "These should of already been type checked in the first pass");
-    default:
-        ASSERT_MSG(
-            0, "Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type)
-        );
-    }
+    auto current_type_info = (FnTypeInfo *)current_module->top_level_function_table[statement->identifier.string];
+    *current_type_info     = FnTypeInfo(NULL, statement->return_type->type_info, generic_type_infos, param_type_infos);
 }
 
 void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
@@ -389,6 +416,38 @@ void TypeChecker::type_check_enum_statement_full(EnumStatement *statement) {
     type_info->members = statement->members;
 }
 
+void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
+    switch (statement->statement_type)
+    {
+    case StatementType::STATEMENT_RETURN:
+        return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement), symbol_table);
+    case StatementType::STATEMENT_BREAK:
+        return type_check_break_statement(dynamic_cast<BreakStatement *>(statement), symbol_table);
+    case StatementType::STATEMENT_ASSIGNMENT:
+        return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement), symbol_table);
+    case StatementType::STATEMENT_EXPRESSION:
+        return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement), symbol_table);
+    case StatementType::STATEMENT_LET:
+        return type_check_let_statement(dynamic_cast<LetStatement *>(statement), symbol_table);
+    case StatementType::STATEMENT_FOR:
+        return type_check_for_statement(dynamic_cast<ForStatement *>(statement), symbol_table);
+    case StatementType::STATEMENT_IF:
+        return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table);
+    case StatementType::STATEMENT_CONTINUE:
+        break;
+    case StatementType::STATEMENT_STRUCT:
+    case StatementType::STATEMENT_ENUM:
+    case StatementType::STATEMENT_IMPORT:
+    case StatementType::STATEMENT_ALIAS:
+    case StatementType::STATEMENT_FN:
+        ASSERT_MSG(0, "These should of already been type checked in the first pass");
+    default:
+        ASSERT_MSG(
+            0, "Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type)
+        );
+    }
+}
+
 void TypeChecker::type_check_return_statement(ReturnStatement *statement, SymbolTable *symbol_table) {
     if (statement->expression)
         TRY_CALL(type_check_expression(statement->expression, symbol_table));
@@ -494,12 +553,6 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
 
 void TypeChecker::type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL(type_check_expression(statement->expression, symbol_table));
-}
-
-void TypeChecker::type_check_alias_decl(AliasStatement *statement) {
-    // TODO: fix aliases
-    // TRY_CALL(type_check_type_expression(statement->type_expression, symbol_table));
-    // symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {
@@ -919,15 +972,9 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
 }
 
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
-    TypeInfo *type_info;
+    auto [type_info, failed] = symbol_table->get_type(&expression->identifier);
 
-    if (this->current_module->builtin_type_table.count(expression->identifier.string) > 0)
-    { type_info = this->current_module->builtin_type_table[expression->identifier.string]; }
-    else if (this->current_module->top_level_type_table.count(expression->identifier.string) > 0)
-    { type_info = this->current_module->top_level_type_table[expression->identifier.string]; }
-    else if (symbol_table->local_type_table.count(expression->identifier.string) > 0)
-    { type_info = symbol_table->local_type_table[expression->identifier.string]; }
-    else
+    if (failed)
     {
         ErrorReporter::report_type_checker_error(
             current_file->path.string(), expression, NULL, NULL, NULL,
