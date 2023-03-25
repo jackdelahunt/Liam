@@ -9,7 +9,7 @@
 
 struct CppBackend {
     CppBackend() = default;
-    std::string emit(std::vector<File *> *files);
+    std::string emit(std::vector<Module *> *modules);
 
     std::string forward_declare_enum(EnumStatement *statement);
     std::string forward_declare_struct(StructStatement *statement);

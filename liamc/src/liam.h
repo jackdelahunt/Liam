@@ -53,22 +53,14 @@ void panic(const std::string &msg);
 #define WIN(value)                                                                                                     \
     { value, false }
 
-// call a func and if there is an error return with void
+// call a func and if there is an error return else get the value from the function
 #define TRY_CALL(func)                                                                                                 \
-    {                                                                                                                  \
-        auto __start = ErrorReporter::error_count();                                                                   \
-        func;                                                                                                          \
-        if (ErrorReporter::error_count() > __start)                                                                    \
-        { return; }                                                                                                    \
-    }
-
-// call a func and if there is an error return with a given value
-#define TRY_CALL_RET_WITH(func, ret)                                                                                   \
     ({                                                                                                                 \
         auto __start = ErrorReporter::error_count();                                                                   \
-        func;                                                                                                          \
+        auto __v     = func;                                                                                         \
         if (ErrorReporter::error_count() > __start)                                                                    \
-        { return ret; }                                                                                                \
+        { return; }                                                                                                    \
+        __v;                                                                                                           \
     })
 
 // call a func and if there is an error return with a given value
@@ -80,6 +72,24 @@ void panic(const std::string &msg);
         if (ErrorReporter::error_count() > __start)                                                                    \
         { return ret; }                                                                                                \
         __v;                                                                                                           \
+    })
+
+// call a void func and if there is an error return
+#define TRY_CALL_VOID(func)                                                                                            \
+    {                                                                                                                  \
+        auto __start = ErrorReporter::error_count();                                                                   \
+        func;                                                                                                          \
+        if (ErrorReporter::error_count() > __start)                                                                    \
+        { return; }                                                                                                    \
+    }
+
+// call a func and if there is an error return with a given value from the function
+#define TRY_CALL_RET_VOID(func, ret)                                                                                   \
+    ({                                                                                                                 \
+        auto __start = ErrorReporter::error_count();                                                                   \
+        func;                                                                                                          \
+        if (ErrorReporter::error_count() > __start)                                                                    \
+        { return ret; }                                                                                                \
     })
 
 #ifdef USE_ASSERTS

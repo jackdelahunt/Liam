@@ -103,13 +103,13 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
             this->current_file = file;
 
             for (auto stmt : file->top_level_enum_statements)
-            { TRY_CALL(type_check_enum_symbol(stmt)); }
+            { TRY_CALL_VOID(type_check_enum_symbol(stmt)); }
 
             for (auto stmt : file->top_level_struct_statements)
-            { TRY_CALL(type_check_struct_symbol(stmt)); }
+            { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
 
             for (auto stmt : file->top_level_fn_statements)
-            { TRY_CALL(type_check_fn_symbol(stmt)); }
+            { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
 
             for (auto stmt : file->top_level_alias_statements)
             {}
@@ -154,10 +154,10 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
             this->current_file = file;
 
             for (auto stmt : file->top_level_enum_statements)
-            { TRY_CALL(type_check_enum_statement_full(stmt)); }
+            { TRY_CALL_VOID(type_check_enum_statement_full(stmt)); }
 
             for (auto stmt : file->top_level_struct_statements)
-            { TRY_CALL(type_check_struct_statement_full(stmt)); }
+            { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
 
             for (auto stmt : file->top_level_alias_statements)
             {}
@@ -175,7 +175,7 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
             this->current_file = file;
 
             for (auto stmt : file->top_level_fn_statements)
-            { TRY_CALL(type_check_fn_decl(stmt)); }
+            { TRY_CALL_VOID(type_check_fn_decl(stmt)); }
         }
     }
 
@@ -189,7 +189,7 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
             this->current_file = file;
 
             for (auto stmt : file->top_level_fn_statements)
-            { TRY_CALL(type_check_fn_statement_full(stmt)); }
+            { TRY_CALL_VOID(type_check_fn_statement_full(stmt)); }
         }
     }
 }
@@ -226,7 +226,7 @@ void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
 
 void TypeChecker::type_check_alias_symbol(AliasStatement *statement) {
     // TODO: fix aliases
-    // TRY_CALL(type_check_type_expression(statement->type_expression, symbol_table));
+    // TRY_CALL_VOID(type_check_type_expression(statement->type_expression, symbol_table));
     // symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
 }
 
@@ -247,17 +247,17 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     auto param_type_infos = std::vector<TypeInfo *>();
     for (auto &[identifier, expr] : statement->params)
     {
-        TRY_CALL(type_check_type_expression(expr, &symbol_table))
+        TRY_CALL_VOID(type_check_type_expression(expr, &symbol_table))
         param_type_infos.push_back(expr->type_info);
     }
 
-    TRY_CALL(type_check_type_expression(statement->return_type, &symbol_table));
+    TRY_CALL_VOID(type_check_type_expression(statement->return_type, &symbol_table));
 
     // this function is a part of a struct so it needs to be added to the struct type info
     // of the parent if it has no parent type then it is apart of the parent symbol table
     if (statement->parent_type != NULL)
     {
-        TRY_CALL(type_check_type_expression(statement->parent_type, &symbol_table));
+        TRY_CALL_VOID(type_check_type_expression(statement->parent_type, &symbol_table));
 
         auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
         if (parent_type_info == NULL)
@@ -344,7 +344,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     { symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i]); }
 
     // type statements and check return exists if needed
-    TRY_CALL(type_check_scope_statement(statement->body, &symbol_table, false));
+    TRY_CALL_VOID(type_check_scope_statement(statement->body, &symbol_table, false));
     for (auto stmt : statement->body->statements)
     {
         if (stmt->statement_type == StatementType::STATEMENT_RETURN)
@@ -387,7 +387,7 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
     auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
     for (auto &[member, expr] : statement->members)
     {
-        TRY_CALL(type_check_type_expression(expr, &symbol_table));
+        TRY_CALL_VOID(type_check_type_expression(expr, &symbol_table));
         members_type_info.emplace_back(member.string, expr->type_info);
     }
 
@@ -403,7 +403,7 @@ void TypeChecker::type_check_enum_statement_full(EnumStatement *statement) {
     for (auto &member : statement->members)
     {
         for (auto type : member.members)
-        { TRY_CALL(type_check_type_expression(type, &symbol_table)); }
+        { TRY_CALL_VOID(type_check_type_expression(type, &symbol_table)); }
     }
 
     // get the existing type and insert the members type info
@@ -450,20 +450,20 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
 
 void TypeChecker::type_check_return_statement(ReturnStatement *statement, SymbolTable *symbol_table) {
     if (statement->expression)
-        TRY_CALL(type_check_expression(statement->expression, symbol_table));
+        TRY_CALL_VOID(type_check_expression(statement->expression, symbol_table));
 }
 
 void TypeChecker::type_check_break_statement(BreakStatement *statement, SymbolTable *symbol_table) {
 }
 
 void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(statement->rhs, symbol_table));
+    TRY_CALL_VOID(type_check_expression(statement->rhs, symbol_table));
 
     // if let type is there type match both and set var type
     // to the let type... else just set it to the rhs
     if (statement->type)
     {
-        TRY_CALL(type_check_type_expression(statement->type, symbol_table));
+        TRY_CALL_VOID(type_check_type_expression(statement->type, symbol_table));
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
         {
             ErrorReporter::report_type_checker_error(
@@ -493,19 +493,19 @@ void TypeChecker::type_check_scope_statement(
     }
 
     for (auto stmt : statement->statements)
-    { TRY_CALL(type_check_statement(stmt, scopes_symbol_table)); }
+    { TRY_CALL_VOID(type_check_statement(stmt, scopes_symbol_table)); }
 }
 
 void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
     auto table_copy = *symbol_table;
-    TRY_CALL(type_check_statement(statement->assign, &table_copy));
-    TRY_CALL(type_check_expression(statement->condition, &table_copy));
-    TRY_CALL(type_check_statement(statement->update, &table_copy));
+    TRY_CALL_VOID(type_check_statement(statement->assign, &table_copy));
+    TRY_CALL_VOID(type_check_expression(statement->condition, &table_copy));
+    TRY_CALL_VOID(type_check_statement(statement->update, &table_copy));
 
     if (statement->condition->type_info->type != TypeInfoType::BOOLEAN)
     { panic("Second statement in for loop needs to evaluate to a bool"); }
 
-    TRY_CALL(type_check_scope_statement(statement->body, &table_copy, false));
+    TRY_CALL_VOID(type_check_scope_statement(statement->body, &table_copy, false));
 }
 
 void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table) {
@@ -513,33 +513,33 @@ void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *s
     // scope like with the is expression
     auto copy = symbol_table->copy();
 
-    TRY_CALL(type_check_expression(statement->expression, &copy));
+    TRY_CALL_VOID(type_check_expression(statement->expression, &copy));
 
     if (!type_match(statement->expression->type_info, this->current_module->builtin_type_table["bool"]))
     { panic("If statement must be passed a bool"); }
 
-    TRY_CALL(type_check_scope_statement(statement->body, &copy));
+    TRY_CALL_VOID(type_check_scope_statement(statement->body, &copy));
 
     if (statement->else_statement)
     {
         // might not have else statement
         // not using symbol table copy either as symbols
         // should not leak to sub statements
-        TRY_CALL(type_check_else_statement(statement->else_statement, symbol_table));
+        TRY_CALL_VOID(type_check_else_statement(statement->else_statement, symbol_table));
     }
 }
 
 void TypeChecker::type_check_else_statement(ElseStatement *statement, SymbolTable *symbol_table) {
     if (statement->if_statement)
-    { TRY_CALL(type_check_if_statement(statement->if_statement, symbol_table)); }
+    { TRY_CALL_VOID(type_check_if_statement(statement->if_statement, symbol_table)); }
 
     if (statement->body)
-    { TRY_CALL(type_check_scope_statement(statement->body, symbol_table)); }
+    { TRY_CALL_VOID(type_check_scope_statement(statement->body, symbol_table)); }
 }
 
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(statement->lhs, symbol_table));
-    TRY_CALL(type_check_expression(statement->assigned_to->expression, symbol_table));
+    TRY_CALL_VOID(type_check_expression(statement->lhs, symbol_table));
+    TRY_CALL_VOID(type_check_expression(statement->assigned_to->expression, symbol_table));
 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info))
     {
@@ -552,7 +552,7 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
 }
 
 void TypeChecker::type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(statement->expression, symbol_table));
+    TRY_CALL_VOID(type_check_expression(statement->expression, symbol_table));
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {
@@ -617,8 +617,8 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
 }
 
 void TypeChecker::type_check_binary_expression(BinaryExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->left, symbol_table));
-    TRY_CALL(type_check_expression(expression->right, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->left, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->right, symbol_table));
 
     if (!type_match(expression->left->type_info, expression->right->type_info))
     {
@@ -770,7 +770,7 @@ void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expr
 }
 
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->expression, symbol_table));
 
     if (expression->op.type == TokenType::TOKEN_AT)
     {
@@ -811,8 +811,8 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
 }
 
 void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->lhs, symbol_table));
-    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->lhs, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->expression, symbol_table));
 
     if (expression->lhs->type_info->type != TypeInfoType::POINTER_SLICE)
     {
@@ -850,18 +850,18 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
 
 void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
 
-    TRY_CALL(type_check_expression(expression->callee, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->callee, symbol_table));
     auto callee_expression = expression->callee;
 
     if (expression->callee->type_info->type == TypeInfoType::FN)
     {
-        TRY_CALL(type_check_fn_call_expression(expression, symbol_table));
+        TRY_CALL_VOID(type_check_fn_call_expression(expression, symbol_table));
         return;
     }
 
     if (expression->callee->type_info->type == TypeInfoType::FN_EXPRESSION)
     {
-        TRY_CALL(type_check_fn_expression_call_expression(expression, symbol_table));
+        TRY_CALL_VOID(type_check_fn_expression_call_expression(expression, symbol_table));
         return;
     }
 
@@ -877,7 +877,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
     auto arg_type_infos = std::vector<TypeInfo *>();
     for (auto arg : expression->args)
     {
-        TRY_CALL(type_check_expression(arg, symbol_table));
+        TRY_CALL_VOID(type_check_expression(arg, symbol_table));
         arg_type_infos.push_back(arg->type_info);
     }
 
@@ -919,7 +919,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
     }
 
     for (u64 i = 0; i < expression->generics.size(); i++)
-    { TRY_CALL(type_check_type_expression(expression->generics.at(i), symbol_table)); }
+    { TRY_CALL_VOID(type_check_type_expression(expression->generics.at(i), symbol_table)); }
 
     expression->type_info = create_type_from_generics(fn_type_info->return_type, &expression->generics);
 }
@@ -930,7 +930,7 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
     auto arg_type_infos = std::vector<TypeInfo *>();
     for (auto arg : expression->args)
     {
-        TRY_CALL(type_check_expression(arg, symbol_table));
+        TRY_CALL_VOID(type_check_expression(arg, symbol_table));
         arg_type_infos.push_back(arg->type_info);
     }
 
@@ -987,7 +987,7 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
 }
 
 void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->lhs, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->lhs, symbol_table));
 
     TypeInfo *member_type_info       = NULL; // populated every time
     StructTypeInfo *struct_type_info = NULL; // populated every time
@@ -1075,7 +1075,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
 }
 
 void TypeChecker::type_check_group_expression(GroupExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->expression, symbol_table));
     expression->type_info = expression->expression->type_info;
 }
 
@@ -1091,11 +1091,11 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
     auto param_type_infos = std::vector<TypeInfo *>();
     for (auto &[identifier, expr] : expression->params)
     {
-        TRY_CALL(type_check_type_expression(expr, symbol_table))
+        TRY_CALL_VOID(type_check_type_expression(expr, symbol_table))
         param_type_infos.push_back(expr->type_info);
     }
 
-    TRY_CALL(type_check_type_expression(expression->return_type, symbol_table));
+    TRY_CALL_VOID(type_check_type_expression(expression->return_type, symbol_table));
 
     // copy table and add params and add generic types
     SymbolTable copied_symbol_table = symbol_table->copy();
@@ -1104,7 +1104,7 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
     { copied_symbol_table.add_identifier(identifier, type_expression->type_info); }
 
     // type statements and check return exists if needed
-    TRY_CALL(type_check_scope_statement(expression->body, &copied_symbol_table, false));
+    TRY_CALL_VOID(type_check_scope_statement(expression->body, &copied_symbol_table, false));
 
     for (auto stmt : expression->body->statements)
     {
@@ -1141,11 +1141,11 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
 }
 
 void TypeChecker::type_check_slice_literal_expression(SliceLiteralExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL(type_check_type_expression(expression->type_expression, symbol_table));
+    TRY_CALL_VOID(type_check_type_expression(expression->type_expression, symbol_table));
 
     for (auto passed_expression : expression->expressions)
     {
-        TRY_CALL(type_check_expression(passed_expression, symbol_table));
+        TRY_CALL_VOID(type_check_expression(passed_expression, symbol_table));
 
         if (!type_match(expression->type_expression->type_info, passed_expression->type_info))
         {
@@ -1172,7 +1172,7 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
         return;
     }
 
-    TRY_CALL(type_check_expression(expression->expression, symbol_table));
+    TRY_CALL_VOID(type_check_expression(expression->expression, symbol_table));
 
     expression->type_info = expression->expression->type_info;
 }
@@ -1242,7 +1242,7 @@ void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *ex
     for (i64 i = 0; i < actual_arg_amount_given; i++)
     {
         auto argument = expression->arguments[i];
-        TRY_CALL(type_check_expression(argument, symbol_table));
+        TRY_CALL_VOID(type_check_expression(argument, symbol_table));
         if (!type_match(argument->type_info, member_to_create.members[i]->type_info))
         {
             ErrorReporter::report_type_checker_error(
@@ -1287,7 +1287,7 @@ void TypeChecker::type_check_struct_instance_expression(
     auto calling_args_type_infos = std::vector<std::tuple<std::string, TypeInfo *>>();
     for (auto [name, expr] : expression->named_expressions)
     {
-        TRY_CALL(type_check_expression(expr, symbol_table));
+        TRY_CALL_VOID(type_check_expression(expr, symbol_table));
         calling_args_type_infos.emplace_back(name.string, expr->type_info);
     }
 
@@ -1295,7 +1295,7 @@ void TypeChecker::type_check_struct_instance_expression(
     auto generic_type_infos = std::vector<TypeInfo *>();
     for (auto type_expr : expression->generics)
     {
-        TRY_CALL(type_check_type_expression(type_expr, symbol_table));
+        TRY_CALL_VOID(type_check_type_expression(type_expr, symbol_table));
         generic_type_infos.push_back(type_expr->type_info);
     }
 
@@ -1384,14 +1384,14 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
 void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_expression, SymbolTable *symbol_table) {
     if (type_expression->unary_type == UnaryType::POINTER)
     {
-        TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
+        TRY_CALL_VOID(type_check_type_expression(type_expression->type_expression, symbol_table));
         type_expression->type_info = new PointerTypeInfo(type_expression->type_expression->type_info);
         return;
     }
 
     if (type_expression->unary_type == UnaryType::POINTER_SLICE)
     {
-        TRY_CALL(type_check_type_expression(type_expression->type_expression, symbol_table));
+        TRY_CALL_VOID(type_check_type_expression(type_expression->type_expression, symbol_table));
         type_expression->type_info = new PointerSliceTypeInfo(type_expression->type_expression->type_info);
         return;
     }
@@ -1402,7 +1402,7 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
 void TypeChecker::type_check_specified_generics_type_expression(
     SpecifiedGenericsTypeExpression *type_expression, SymbolTable *symbol_table
 ) {
-    TRY_CALL(type_check_type_expression(type_expression->struct_type, symbol_table));
+    TRY_CALL_VOID(type_check_type_expression(type_expression->struct_type, symbol_table));
     if (type_expression->struct_type->type_info->type != TypeInfoType::STRUCT)
     {
         ErrorReporter::report_type_checker_error(
@@ -1417,7 +1417,7 @@ void TypeChecker::type_check_specified_generics_type_expression(
     auto generic_types = std::vector<TypeInfo *>();
     for (u64 i = 0; i < type_expression->generics.size(); i++)
     {
-        TRY_CALL(type_check_type_expression(type_expression->generics.at(i), symbol_table));
+        TRY_CALL_VOID(type_check_type_expression(type_expression->generics.at(i), symbol_table));
         generic_types.push_back(type_expression->generics.at(i)->type_info);
     }
 
@@ -1428,11 +1428,11 @@ void TypeChecker::type_check_fn_type_expression(FnTypeExpression *type_expressio
     auto param_type_infos = std::vector<TypeInfo *>();
     for (auto type : type_expression->params)
     {
-        TRY_CALL(type_check_type_expression(type, symbol_table))
+        TRY_CALL_VOID(type_check_type_expression(type, symbol_table))
         param_type_infos.push_back(type->type_info);
     }
 
-    TRY_CALL(type_check_type_expression(type_expression->return_type, symbol_table));
+    TRY_CALL_VOID(type_check_type_expression(type_expression->return_type, symbol_table));
 
     type_expression->type_info = new FnExpressionTypeInfo(type_expression->return_type->type_info, param_type_infos);
 }

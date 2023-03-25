@@ -34,7 +34,7 @@ void Parser::parse() {
     {
 
         auto errors_before = ErrorReporter::error_count();
-        auto stmt          = eval_top_level_statement();
+        auto stmt          = TRY_CALL(eval_top_level_statement());
         if (ErrorReporter::error_count() > errors_before)
             continue;
 

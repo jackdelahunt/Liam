@@ -111,9 +111,5 @@ void type_check(std::vector<Module *> *modules) {
 }
 
 std::string code_gen(std::vector<Module *> *modules) {
-
-    ASSERT(modules->size() > 0);
-
-    auto root_module = modules->at(0);
-    return CppBackend().emit(&root_module->files);
+    return CppBackend().emit(modules);
 }

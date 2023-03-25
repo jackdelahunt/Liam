@@ -5,37 +5,43 @@
 #include <algorithm>
 #include <string>
 
-std::string CppBackend::emit(std::vector<File *> *files) {
+std::string CppBackend::emit(std::vector<Module *> *modules) {
 
     std::string source_generated = "#include \"lib.h\"\n\n";
-    for (auto file : *files)
+    for (auto module : *modules)
     {
-        for (auto stmt : file->top_level_enum_statements)
-        { source_generated.append(forward_declare_enum(stmt)); }
+        for (auto file : module->files)
+        {
+            for (auto stmt : file->top_level_enum_statements)
+            { source_generated.append(forward_declare_enum(stmt)); }
 
-        for (auto stmt : file->top_level_struct_statements)
-        { source_generated.append(forward_declare_struct(stmt)); }
+            for (auto stmt : file->top_level_struct_statements)
+            { source_generated.append(forward_declare_struct(stmt)); }
 
-        for (auto stmt : file->top_level_alias_statements)
-        { source_generated.append(emit_alias_statement(stmt)); }
+            for (auto stmt : file->top_level_alias_statements)
+            { source_generated.append(emit_alias_statement(stmt)); }
 
-        for (auto stmt : file->top_level_fn_statements)
-        { source_generated.append(forward_declare_function(stmt)); }
+            for (auto stmt : file->top_level_fn_statements)
+            { source_generated.append(forward_declare_function(stmt)); }
 
-        // enum body decls
-        for (auto stmt : file->top_level_enum_statements)
-        { source_generated.append(emit_enum_statement(stmt)); }
+            // enum body decls
+            for (auto stmt : file->top_level_enum_statements)
+            { source_generated.append(emit_enum_statement(stmt)); }
 
-        // struct body decls
-        for (auto stmt : file->top_level_struct_statements)
-        { source_generated.append(emit_struct_statement(stmt)); }
+            // struct body decls
+            for (auto stmt : file->top_level_struct_statements)
+            { source_generated.append(emit_struct_statement(stmt)); }
+        }
     }
 
-    for (auto file : *files)
+    for (auto module : *modules)
     {
-        // fn body decls
-        for (auto stmt : file->top_level_fn_statements)
-        { source_generated.append(emit_fn_statement(stmt)); }
+        for (auto file : module->files)
+        {
+            // fn body decls
+            for (auto stmt : file->top_level_fn_statements)
+            { source_generated.append(emit_fn_statement(stmt)); }
+        }
     }
 
     source_generated.append("\nint main(int argc, char **argv) { __liam__main__(); return 0; }\n\n\n // GOODBYE");
