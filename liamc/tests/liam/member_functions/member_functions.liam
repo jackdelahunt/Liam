@@ -3,7 +3,7 @@
 //200
 //300
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 struct Foo {
     foo: i64

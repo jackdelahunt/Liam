@@ -6,7 +6,7 @@
 //0
 //0.5
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 fn main() void {
     let x := 100;

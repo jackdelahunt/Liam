@@ -2,7 +2,7 @@
 //x is null
 //null is x
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 fn main() void {
     let y := 100;

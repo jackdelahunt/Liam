@@ -229,7 +229,10 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
 void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
-    this->current_module->add_type(statement->identifier, new EnumTypeInfo(this->current_module->module_id, this->current_file->file_id, std::vector<EnumMember>()));
+    this->current_module->add_type(
+        statement->identifier,
+        new EnumTypeInfo(this->current_module->module_id, this->current_file->file_id, std::vector<EnumMember>())
+    );
 }
 
 void TypeChecker::type_check_alias_symbol(AliasStatement *statement) {
@@ -426,10 +429,10 @@ void TypeChecker::type_check_enum_statement_full(EnumStatement *statement) {
 
     ASSERT(existing_type->type == TypeInfoType::ENUM);
 
-    auto type_info     = (EnumTypeInfo *)existing_type;
-    type_info->members = statement->members;
+    auto type_info       = (EnumTypeInfo *)existing_type;
+    type_info->members   = statement->members;
     type_info->module_id = this->current_module->module_id;
-    type_info->file_id = this->current_file->file_id;
+    type_info->file_id   = this->current_file->file_id;
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {

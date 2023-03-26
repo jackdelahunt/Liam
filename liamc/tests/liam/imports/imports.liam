@@ -1,12 +1,12 @@
 //100
 
 // multiple imports should work < :
-import "other/import_me.liam";
-import "stdlib/basic.liam";
-import "stdlib/basic.liam";
-import "stdlib/basic.liam";
-import "stdlib/basic.liam";
-import "stdlib/basic.liam";
+import "../other";
+import "../../stdlib";
+import "../../stdlib";
+import "../../stdlib";
+import "../../stdlib";
+import "../../stdlib";
 
 fn main() void {
     hello("Hello");

@@ -1,0 +1,25 @@
+//100
+//100
+//100
+
+import "../../stdlib";
+
+struct Foo {
+    n: i64
+}
+
+// fn (Foo) foo() void {
+//     println::<i64>(self.n);
+// }
+
+fn main() void {
+    // TODO: make this test past
+    let foo := new Foo{n: 100};
+    // foo.foo();
+
+    // let ptr := @foo;
+    // ptr.foo();
+    println::<i64>(foo.n);
+    println::<i64>(foo.n);
+    println::<i64>(foo.n);
+}

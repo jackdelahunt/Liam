@@ -73,10 +73,9 @@ GenericTypeInfo::GenericTypeInfo(u64 id) {
     this->type = TypeInfoType::GENERIC;
 }
 
-EnumTypeInfo::EnumTypeInfo(u16 module_id,
-    u16 file_id, std::vector<EnumMember> members) {
-        this->module_id = module_id;
-        this->file_id = file_id;
-    this->members = members;
-    this->type    = TypeInfoType::ENUM;
+EnumTypeInfo::EnumTypeInfo(u16 module_id, u16 file_id, std::vector<EnumMember> members) {
+    this->module_id = module_id;
+    this->file_id   = file_id;
+    this->members   = members;
+    this->type      = TypeInfoType::ENUM;
 }

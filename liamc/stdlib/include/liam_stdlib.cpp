@@ -1,5 +1,6 @@
 #include "liam_stdlib.h"
 
+namespace stdlib {
 u64 str_len(const str &s) {
     return s.length;
 }
@@ -16,3 +17,4 @@ str char_at(str s, u64 index) {
     { __panic(LiamInternal::make_str("Panic :: out of range char_at")); }
     return str{.chars = &s.chars[index], .length = 1};
 }
+}; // namespace stdlib

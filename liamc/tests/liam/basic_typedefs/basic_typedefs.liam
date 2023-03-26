@@ -1,6 +1,6 @@
 //0
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 alias Foo as bool;
 

@@ -4,7 +4,7 @@
 //0
 //
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 struct Vector<T> {
     x: T,

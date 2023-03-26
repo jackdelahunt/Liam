@@ -121,6 +121,5 @@ struct EnumTypeInfo : TypeInfo {
 
     std::vector<EnumMember> members;
 
-    EnumTypeInfo(u16 module_id,
-    u16 file_id, std::vector<EnumMember> members);
+    EnumTypeInfo(u16 module_id, u16 file_id, std::vector<EnumMember> members);
 };

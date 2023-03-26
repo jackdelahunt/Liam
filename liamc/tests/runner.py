@@ -1,5 +1,5 @@
 from os import listdir
-from os.path import isfile, join
+from os.path import isdir, join, isfile, basename
 import sys
 import subprocess
 import os
@@ -7,7 +7,18 @@ import os
 source_dir = os.path.dirname(__file__) + "/liam/"
 compiler_path = os.path.dirname(__file__) + "/../zig-out/bin/liamc"
 stdlib_path = os.path.dirname(__file__) + "/../stdlib"
-source_files = [source_dir + f for f in listdir(source_dir) if isfile(join(source_dir, f))]
+core_path = os.path.dirname(__file__) + "/../core"
+
+source_files = []
+test_dirs = [source_dir + f for f in listdir(source_dir) if isdir(join(source_dir, f))]
+for test_dir in test_dirs:
+    test_dir_name = os.path.basename(test_dir)
+    sub_files = [test_dir + "/" + f for f in listdir(test_dir) if isfile(join(test_dir, f))]
+    
+    for sub_file in sub_files:
+        file_name_with_extention = os.path.basename(sub_file)
+        if test_dir_name + ".liam" == file_name_with_extention:
+            source_files.append("/" + test_dir_name + "/" + test_dir_name + ".liam")
 
 failed_tests_count = 0
 tests_count = len(source_files)
@@ -16,17 +27,18 @@ for i, file_path in enumerate(source_files):
 
     file_name_for_output = os.path.basename(file_path)
 
+
     lines = []
-    source = open(file_path).readlines()
+    source = open(os.path.dirname(__file__) + "/liam" + file_path).readlines()
     for line in source:
         if line.startswith("//"):
             lines.append(line.strip("\n/"))
         else:
-            break
+            break  
 
     compile_output = subprocess.run([
         compiler_path,
-        "--in", file_path,
+        "--in", "liam" + file_path,
         "--out", "out.cpp",
         "--stdlib", stdlib_path
     ], capture_output=True)
@@ -39,6 +51,7 @@ for i, file_path in enumerate(source_files):
     clang_output = subprocess.run([
         "clang++",
         "-I", f"{stdlib_path}/include",
+        "-I", core_path,
         "-std=c++20",
         "-o", "out.exe",
         "out.cpp"

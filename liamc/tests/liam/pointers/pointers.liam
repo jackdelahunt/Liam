@@ -3,7 +3,7 @@
 //this is a string
 //this is a string
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 struct Pointers {
     s: str,
