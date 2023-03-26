@@ -9,7 +9,7 @@ std::string CppBackend::emit(std::vector<Module *> *modules) {
 
     this->modules = modules;
 
-    std::string source_generated = "#include \"lib.h\"\n\n";
+    std::string source_generated = "#include <lib.h>\n\n";
     for (auto module : *modules)
     {
         this->current_module = module;
@@ -759,7 +759,7 @@ std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *ex
 
     if (this->current_module->module_id != enum_type_info->module_id)
     {
-        Module *module_of_fn = this->modules->at(enum_type_info->module_id);
+        Module *module_of_fn       = this->modules->at(enum_type_info->module_id);
         possible_namespace_prepand = module_of_fn->name + "::";
         source.append(possible_namespace_prepand);
     }
@@ -768,7 +768,8 @@ std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *ex
 
     source.append(
         enum_type + "{.index = " + std::to_string(expression->member_index) + ", .members.__" +
-        expression->member.string + " = " + possible_namespace_prepand +  "__" + enum_type + "Members::" + expression->member.string + "{"
+        expression->member.string + " = " + possible_namespace_prepand + "__" + enum_type +
+        "Members::" + expression->member.string + "{"
     );
 
     int index = 0;

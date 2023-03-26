@@ -2,7 +2,7 @@
 //300
 //400
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 fn main() void {
     let multiply := fn (n: i64, m: i64) i64 {

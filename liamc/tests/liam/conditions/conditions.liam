@@ -11,7 +11,7 @@
 //90 >= 80
 
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 fn main() void {
     if true {

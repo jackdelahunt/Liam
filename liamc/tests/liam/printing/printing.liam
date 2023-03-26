@@ -2,7 +2,7 @@
 //100
 //0
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 fn main() void {
     println::<str>("Hello");

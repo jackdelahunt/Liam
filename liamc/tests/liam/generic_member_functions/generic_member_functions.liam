@@ -1,7 +1,7 @@
 //200
 //100
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 struct Foo<T> {
     foo: T

@@ -63,3 +63,5 @@ template <typename T> struct PointerSlice {
 str make_str(char *chars, uint64_t length);
 str make_str(const char *c_str);
 } // namespace LiamInternal
+
+#include "core.cpp"

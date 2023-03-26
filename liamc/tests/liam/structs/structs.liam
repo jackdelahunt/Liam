@@ -3,7 +3,7 @@
 //liam
 //28
 
-import "stdlib/basic.liam";
+import "../../stdlib";
 
 struct Person {
     name: str,
