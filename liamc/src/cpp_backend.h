@@ -8,6 +8,9 @@
 #include "type_checker.h"
 
 struct CppBackend {
+    Module *current_module = NULL;
+    File *current_file     = NULL;
+    std::vector<Module *> *modules;
     CppBackend() = default;
     std::string emit(std::vector<Module *> *modules);
 

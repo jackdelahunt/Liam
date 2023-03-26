@@ -36,6 +36,7 @@ struct EnumMember;
 struct TypeInfo;
 
 struct File {
+    u16 file_id = 0;
 
     std::unordered_map<std::string, TypeInfo *> imported_type_table;     // import defined types
     std::unordered_map<std::string, TypeInfo *> imported_function_table; // import defined functions
