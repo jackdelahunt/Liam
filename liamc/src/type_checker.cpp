@@ -209,19 +209,27 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
 }
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
-    this->current_module->add_function(statement->identifier, new FnTypeInfo(NULL, NULL, {}, {}));
+    this->current_module->add_function(
+        statement->identifier,
+        new FnTypeInfo(this->current_module->module_id, this->current_file->file_id, NULL, NULL, {}, {})
+    );
 }
 
 void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
-    this->current_module->add_type(statement->identifier, new StructTypeInfo({}, {}, statement->generics.size()));
+    this->current_module->add_type(
+        statement->identifier,
+        new StructTypeInfo(
+            this->current_module->module_id, this->current_file->file_id, {}, {}, statement->generics.size()
+        )
+    );
 }
 
 void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
-    this->current_module->add_type(statement->identifier, new EnumTypeInfo(std::vector<EnumMember>()));
+    this->current_module->add_type(statement->identifier, new EnumTypeInfo(this->current_module->module_id, this->current_file->file_id, std::vector<EnumMember>()));
 }
 
 void TypeChecker::type_check_alias_symbol(AliasStatement *statement) {
@@ -271,7 +279,10 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
 
         parent_type_info->member_functions.push_back(
             {statement->identifier.string,
-             new FnTypeInfo(parent_type_info, statement->return_type->type_info, generic_type_infos, param_type_infos)}
+             new FnTypeInfo(
+                 this->current_module->module_id, this->current_file->file_id, parent_type_info,
+                 statement->return_type->type_info, generic_type_infos, param_type_infos
+             )}
         );
 
         return;
@@ -279,7 +290,10 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
 
     // add this fn decl to parent symbol table
     auto current_type_info = (FnTypeInfo *)current_module->top_level_function_table[statement->identifier.string];
-    *current_type_info     = FnTypeInfo(NULL, statement->return_type->type_info, generic_type_infos, param_type_infos);
+    *current_type_info     = FnTypeInfo(
+            this->current_module->module_id, this->current_file->file_id, NULL, statement->return_type->type_info,
+            generic_type_infos, param_type_infos
+        );
 }
 
 void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
@@ -414,6 +428,8 @@ void TypeChecker::type_check_enum_statement_full(EnumStatement *statement) {
 
     auto type_info     = (EnumTypeInfo *)existing_type;
     type_info->members = statement->members;
+    type_info->module_id = this->current_module->module_id;
+    type_info->file_id = this->current_file->file_id;
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
@@ -1281,7 +1297,7 @@ void TypeChecker::type_check_struct_instance_expression(
         return;
     }
 
-    auto struct_type_info = static_cast<StructTypeInfo *>(type_info);
+    auto struct_type_info = (StructTypeInfo *)type_info;
 
     // collect members from new constructor
     auto calling_args_type_infos = std::vector<std::tuple<std::string, TypeInfo *>>();

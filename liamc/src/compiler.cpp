@@ -1,7 +1,10 @@
 #include "compiler.h"
 
-Module *create_lex_and_parse_module_from_path(std::string module_name, std::filesystem::path module_path) {
-    auto files = std::vector<File *>();
+Module *create_lex_and_parse_module_from_path(
+    u16 module_id, std::string module_name, std::filesystem::path module_path
+) {
+    auto files          = std::vector<File *>();
+    u16 file_id_counter = 0;
 
     for (auto &direcotry_item : std::filesystem::directory_iterator(module_path))
     {
@@ -21,7 +24,9 @@ Module *create_lex_and_parse_module_from_path(std::string module_name, std::file
         Parser parser = Parser(file_path, &lexer.tokens);
         parser.parse();
 
-        files.push_back(parser.file);
+        auto created_file     = parser.file;
+        created_file->file_id = file_id_counter;
+        files.push_back(created_file);
     }
 
     if (ErrorReporter::has_parse_errors())
@@ -35,7 +40,7 @@ Module *create_lex_and_parse_module_from_path(std::string module_name, std::file
         );
     }
 
-    return new Module(module_name, module_path, files);
+    return new Module(module_id, module_name, module_path, files);
 }
 
 std::vector<Module *> lex_parse(std::filesystem::path starting_import_path) {
@@ -53,6 +58,8 @@ std::vector<Module *> lex_parse(std::filesystem::path starting_import_path) {
     // needs to be created or skipped as it moght already exist
     auto already_imported_module_paths = std::unordered_map<std::string, int>();
 
+    u16 module_id_counter = 0;
+
     while (module_import_path_queue.size() > 0)
     {
         auto current_module_path = module_import_path_queue.at(module_import_path_queue.size() - 1);
@@ -67,8 +74,10 @@ std::vector<Module *> lex_parse(std::filesystem::path starting_import_path) {
         else
         { module_name = current_module_path.stem(); }
 
-        auto created_module = create_lex_and_parse_module_from_path(module_name, current_module_path);
+        auto created_module =
+            create_lex_and_parse_module_from_path(module_id_counter, module_name, current_module_path);
         modules.push_back(created_module);
+        module_id_counter++;
 
         // checking each import in every file and getting the absolute path
         // of that imported module, checking if it has been created already

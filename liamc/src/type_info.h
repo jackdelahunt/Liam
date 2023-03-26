@@ -67,12 +67,15 @@ struct TypeTypeInfo : TypeInfo {
 };
 
 struct StructTypeInfo : TypeInfo {
+    u16 module_id;
+    u16 file_id;
+
     std::vector<std::tuple<std::string, FnTypeInfo *>> member_functions;
     std::vector<std::tuple<std::string, TypeInfo *>> members;
     u64 generic_count;
 
     StructTypeInfo(
-        std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+        u16 module_id, u16 file_id, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
         std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
     );
 };
@@ -85,14 +88,17 @@ struct StructInstanceTypeInfo : TypeInfo {
 };
 
 struct FnTypeInfo : TypeInfo {
+    u16 module_id;
+    u16 file_id;
+
     StructTypeInfo *parent_type;
     TypeInfo *return_type;
     std::vector<TypeInfo *> generic_type_infos;
     std::vector<TypeInfo *> args;
 
     FnTypeInfo(
-        StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
-        std::vector<TypeInfo *> args
+        u16 module_id, u16 file_id, StructTypeInfo *parentType, TypeInfo *returnType,
+        std::vector<TypeInfo *> genericTypeInfos, std::vector<TypeInfo *> args
     );
 };
 
@@ -110,7 +116,11 @@ struct GenericTypeInfo : TypeInfo {
 };
 
 struct EnumTypeInfo : TypeInfo {
+    u16 module_id;
+    u16 file_id;
+
     std::vector<EnumMember> members;
 
-    EnumTypeInfo(std::vector<EnumMember> members);
+    EnumTypeInfo(u16 module_id,
+    u16 file_id, std::vector<EnumMember> members);
 };

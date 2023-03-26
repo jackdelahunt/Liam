@@ -7,44 +7,62 @@
 
 std::string CppBackend::emit(std::vector<Module *> *modules) {
 
+    this->modules = modules;
+
     std::string source_generated = "#include \"lib.h\"\n\n";
     for (auto module : *modules)
     {
+        this->current_module = module;
+        source_generated.append("namespace " + module->name + " { // forward declarations \n");
         for (auto file : module->files)
         {
+            this->current_file = current_file;
             for (auto stmt : file->top_level_enum_statements)
             { source_generated.append(forward_declare_enum(stmt)); }
 
             for (auto stmt : file->top_level_struct_statements)
             { source_generated.append(forward_declare_struct(stmt)); }
 
-            for (auto stmt : file->top_level_alias_statements)
-            { source_generated.append(emit_alias_statement(stmt)); }
-
             for (auto stmt : file->top_level_fn_statements)
             { source_generated.append(forward_declare_function(stmt)); }
-
-            // enum body decls
-            for (auto stmt : file->top_level_enum_statements)
-            { source_generated.append(emit_enum_statement(stmt)); }
-
-            // struct body decls
-            for (auto stmt : file->top_level_struct_statements)
-            { source_generated.append(emit_struct_statement(stmt)); }
         }
+        source_generated.append("};\n\n");
     }
 
     for (auto module : *modules)
     {
+        this->current_module = module;
+        source_generated.append("namespace " + module->name + " { // type bodys \n");
         for (auto file : module->files)
         {
+            this->current_file = file;
+            for (auto stmt : file->top_level_alias_statements)
+            { source_generated.append(emit_alias_statement(stmt)); }
+
+            for (auto stmt : file->top_level_enum_statements)
+            { source_generated.append(emit_enum_statement(stmt)); }
+
+            for (auto stmt : file->top_level_struct_statements)
+            { source_generated.append(emit_struct_statement(stmt)); }
+        }
+        source_generated.append("};\n\n");
+    }
+
+    for (auto module : *modules)
+    {
+        this->current_module = module;
+        source_generated.append("namespace " + module->name + " { // function implementations \n");
+        for (auto file : module->files)
+        {
+            this->current_file = file;
             // fn body decls
             for (auto stmt : file->top_level_fn_statements)
             { source_generated.append(emit_fn_statement(stmt)); }
         }
+        source_generated.append("};\n\n");
     }
 
-    source_generated.append("\nint main(int argc, char **argv) { __liam__main__(); return 0; }\n\n\n // GOODBYE");
+    source_generated.append("\nint main(int argc, char **argv) { root::__liam__main__(); return 0; }\n\n\n // GOODBYE");
 
     return source_generated;
 }
@@ -633,11 +651,27 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
 }
 
 std::string CppBackend::emit_identifier_expression(IdentifierExpression *expression) {
-    return expression->identifier.string;
+    std::string source;
+
+    // if the identifier being used is defined in another module
+    // then we need to prepend it with a module_name::
+    if (expression->type_info->type == TypeInfoType::FN)
+    {
+        auto fn_type_info = (FnTypeInfo *)expression->type_info;
+        if (this->current_module->module_id != fn_type_info->module_id)
+        {
+            Module *module_of_fn = this->modules->at(fn_type_info->module_id);
+            source.append(module_of_fn->name + "::");
+        }
+    }
+
+    source.append(expression->identifier.string);
+    return source;
 }
 
 std::string CppBackend::emit_get_expression(GetExpression *expression) {
 
+    // TODO: verify this code makes sense I am re-reading it and I dont know how it works
     // to stop conflicts with member functions we emit __func for the get expression
     if (expression->type_info->type == TypeInfoType::FN)
     { return "__" + expression->member.string; }
@@ -717,11 +751,24 @@ std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *ex
      * Expr expr = Expr{.index = 0, .members.__Number = __ExprMembers::Number{100}};
      */
 
+    // if the struct is in another module we need to prepend the identifier with a
+    // module_name::
+    ASSERT(expression->type_info->type == TypeInfoType::ENUM);
+    EnumTypeInfo *enum_type_info = (EnumTypeInfo *)expression->type_info;
+    std::string possible_namespace_prepand;
+
+    if (this->current_module->module_id != enum_type_info->module_id)
+    {
+        Module *module_of_fn = this->modules->at(enum_type_info->module_id);
+        possible_namespace_prepand = module_of_fn->name + "::";
+        source.append(possible_namespace_prepand);
+    }
+
     std::string enum_type = expression->lhs.string;
 
     source.append(
         enum_type + "{.index = " + std::to_string(expression->member_index) + ", .members.__" +
-        expression->member.string + " = __" + enum_type + "Members::" + expression->member.string + "{"
+        expression->member.string + " = " + possible_namespace_prepand +  "__" + enum_type + "Members::" + expression->member.string + "{"
     );
 
     int index = 0;
@@ -740,6 +787,24 @@ std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *ex
 
 std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression *expression) {
     std::string source;
+
+    // if the struct is in another module we need to prepend the identifier with a
+    // module_name::
+    StructTypeInfo *struct_type_info = NULL;
+
+    if (expression->type_info->type == TypeInfoType::STRUCT)
+    { struct_type_info = (StructTypeInfo *)expression->type_info; }
+    else
+    {
+        ASSERT(expression->type_info->type == TypeInfoType::STRUCT_INSTANCE);
+        struct_type_info = ((StructInstanceTypeInfo *)expression->type_info)->struct_type;
+    }
+
+    if (this->current_module->module_id != struct_type_info->module_id)
+    {
+        Module *module_of_fn = this->modules->at(struct_type_info->module_id);
+        source.append(module_of_fn->name + "::");
+    }
 
     source.append(expression->identifier.string);
 

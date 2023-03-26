@@ -32,9 +32,11 @@ TypeTypeInfo::TypeTypeInfo() {
 }
 
 StructTypeInfo::StructTypeInfo(
-    std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+    u16 module_id, u16 file_id, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
     std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
 ) {
+    this->module_id        = module_id;
+    this->file_id          = file_id;
     this->member_functions = memberFunctions;
     this->members          = members;
     this->generic_count    = genericCount;
@@ -48,9 +50,11 @@ StructInstanceTypeInfo::StructInstanceTypeInfo(StructTypeInfo *structType, std::
 }
 
 FnTypeInfo::FnTypeInfo(
-    StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
-    std::vector<TypeInfo *> args
+    u16 module_id, u16 file_id, StructTypeInfo *parentType, TypeInfo *returnType,
+    std::vector<TypeInfo *> genericTypeInfos, std::vector<TypeInfo *> args
 ) {
+    this->module_id          = module_id;
+    this->file_id            = file_id;
     this->parent_type        = parentType;
     this->return_type        = returnType;
     this->generic_type_infos = genericTypeInfos;
@@ -69,7 +73,10 @@ GenericTypeInfo::GenericTypeInfo(u64 id) {
     this->type = TypeInfoType::GENERIC;
 }
 
-EnumTypeInfo::EnumTypeInfo(std::vector<EnumMember> members) {
+EnumTypeInfo::EnumTypeInfo(u16 module_id,
+    u16 file_id, std::vector<EnumMember> members) {
+        this->module_id = module_id;
+        this->file_id = file_id;
     this->members = members;
     this->type    = TypeInfoType::ENUM;
 }

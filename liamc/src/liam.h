@@ -57,7 +57,7 @@ void panic(const std::string &msg);
 #define TRY_CALL(func)                                                                                                 \
     ({                                                                                                                 \
         auto __start = ErrorReporter::error_count();                                                                   \
-        auto __v     = func;                                                                                         \
+        auto __v     = func;                                                                                           \
         if (ErrorReporter::error_count() > __start)                                                                    \
         { return; }                                                                                                    \
         __v;                                                                                                           \

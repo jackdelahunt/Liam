@@ -1,9 +1,10 @@
 #include "module.h"
 
-Module::Module(std::string name, std::filesystem::path path, std::vector<File *> files) {
-    this->name  = name;
-    this->path  = path;
-    this->files = files;
+Module::Module(u16 module_id, std::string name, std::filesystem::path path, std::vector<File *> files) {
+    this->module_id = module_id;
+    this->name      = name;
+    this->path      = path;
+    this->files     = files;
 
     this->builtin_type_table   = std::unordered_map<std::string, TypeInfo *>();
     this->top_level_type_table = std::unordered_map<std::string, TypeInfo *>();
