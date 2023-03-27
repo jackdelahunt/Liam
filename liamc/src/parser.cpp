@@ -98,8 +98,14 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_IMPORT:
     case TokenType::TOKEN_ENUM:
     case TokenType::TOKEN_ALIAS:
-    case TokenType::TOKEN_EXTERN:
-        panic("cannot use in another statement");
+    case TokenType::TOKEN_EXTERN: {
+        auto token = *consume_token();
+        ErrorReporter::report_parser_error(
+            path.string(), token.span,
+            fmt::format("Cannot declare top level statement '{}' in a function", TokenTypeStrings[(int)token.type])
+        );
+        return NULL;
+    }
     default:
         return eval_line_starting_expression();
         break;
