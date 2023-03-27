@@ -102,7 +102,7 @@ Statement *Parser::eval_statement() {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
             path.string(), token.span,
-            fmt::format("Cannot declare top level statement '{}' in a function", TokenTypeStrings[(int)token.type])
+            fmt::format("Cannot declare top level statement '{}' in a function", token.string)
         );
         return NULL;
     }
@@ -139,7 +139,7 @@ Statement *Parser::eval_top_level_statement() {
         ErrorReporter::report_parser_error(
             path.string(), token.span,
             fmt::format(
-                "Unexpected token used to declare new statement at top level '{}'", TokenTypeStrings[(int)token.type]
+                "Unexpected token used to declare new statement at top level '{}'", token.string
             )
         );
         return NULL;
