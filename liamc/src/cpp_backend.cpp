@@ -9,7 +9,7 @@ std::string CppBackend::emit(std::vector<Module *> *modules) {
 
     this->modules = modules;
 
-    std::string source_generated = "#include <lib.h>\n\n";
+    std::string source_generated = "#include <core.h>\n#include<liam_stdlib.h>\n\n";
     for (auto module : *modules)
     {
         this->current_module = module;

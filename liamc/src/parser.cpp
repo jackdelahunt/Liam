@@ -128,8 +128,14 @@ Statement *Parser::eval_top_level_statement() {
         return eval_extern_statement();
         break;
 
-    default:
-        panic("cannot parser at top level");
+    default: {
+        auto token = *consume_token();
+        ErrorReporter::report_parser_error(
+            path.string(), token.span,
+            fmt::format("Unexpected token used to declare new statement at top level '{}'", TokenTypeStrings[(int)token.type])
+        );
+        return NULL;
+    }
     }
 }
 
