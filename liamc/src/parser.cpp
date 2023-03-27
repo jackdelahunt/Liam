@@ -138,7 +138,9 @@ Statement *Parser::eval_top_level_statement() {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
             path.string(), token.span,
-            fmt::format("Unexpected token used to declare new statement at top level '{}'", TokenTypeStrings[(int)token.type])
+            fmt::format(
+                "Unexpected token used to declare new statement at top level '{}'", TokenTypeStrings[(int)token.type]
+            )
         );
         return NULL;
     }
@@ -164,11 +166,12 @@ ScopeStatement *Parser::eval_scope_statement() {
     auto open_brace = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
     i32 closing_brace_index =
         find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, current - 1);
-    if (closing_brace_index == current + 1)
-    { // if this scope is empty
-        current++;
-    }
-    else if (closing_brace_index < 0)
+    // if (closing_brace_index == current + 1)
+    // { // if this scope is empty
+    //     current++;
+    // }
+    // else
+    if (closing_brace_index < 0)
     {
         ErrorReporter::report_parser_error(path.string(), open_brace->span, "No closing brace for scope found");
         return NULL;
@@ -570,6 +573,15 @@ Expression *Parser::eval_primary() {
         return TRY_CALL_RET(eval_fn(), NULL);
     else if (type == TokenType::TOKEN_BRACKET_OPEN)
         return TRY_CALL_RET(eval_slice_literal(), NULL);
+    else
+    {
+        auto token = *consume_token();
+        ErrorReporter::report_parser_error(
+            path.string(), token.span,
+            fmt::format("Unexpected token when parsing expression '{}'", TokenTypeStrings[(int)token.type])
+        );
+        return NULL;
+    }
 
     return new Expression(); // empty expression found -- like when a
                              // return has no expression
