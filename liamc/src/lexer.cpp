@@ -67,12 +67,16 @@ Lexer::Lexer(std::filesystem::path path) {
 
 void Lexer::lex() {
     auto as_string = path.string();
-    auto chars     = &FileManager::load(&as_string)->data;
+    auto file_data     = FileManager::load(&as_string);
+    char *chars = file_data->data;
+    u64 data_length = file_data->data_length;
 
-    for (; this->current_index < chars->size(); next_char())
+    ASSERT(chars);
+
+    for (; this->current_index < data_length; next_char())
     {
 
-        char c = chars->at(this->current_index);
+        char c = chars[this->current_index];
         switch (c)
         {
         case '\n':
@@ -98,9 +102,9 @@ void Lexer::lex() {
             tokens.emplace_back(TokenType::TOKEN_STAR, "*", current_line, current_character);
             break;
         case '/':
-            if (peek(chars) == '/')
+            if (peek(file_data) == '/')
             {
-                while (this->current_index < chars->size() && chars->at(this->current_index) != '\n')
+                while (this->current_index < data_length && chars[this->current_index] != '\n')
                 { next_char(); }
                 current_line++;
                 break;
@@ -111,7 +115,7 @@ void Lexer::lex() {
             tokens.emplace_back(TokenType::TOKEN_MOD, "%", current_line, current_character);
             break;
         case '=':
-            if (peek(chars) == '=')
+            if (peek(file_data) == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_EQUAL, "==", current_line, current_character);
@@ -156,7 +160,7 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
             break;
         case '<':
-            if (peek(chars) == '=')
+            if (peek(file_data) == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_LESS_EQUAL, "<=", current_line, current_character);
@@ -165,7 +169,7 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_LESS, "<", current_line, current_character));
             break;
         case '>':
-            if (peek(chars) == '=')
+            if (peek(file_data) == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_GREATER_EQUAL, ">=", current_line, current_character);
@@ -174,7 +178,7 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_GREATER, ">", current_line, current_character));
             break;
         case '!':
-            if (peek(chars) == '=')
+            if (peek(file_data) == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_NOT_EQUAL, "!=", current_line, current_character);
@@ -187,16 +191,16 @@ void Lexer::lex() {
             std::string str = std::string();
 
             next_char();
-            while (current_index < chars->size() && chars->at(current_index) != '"')
+            while (current_index < data_length && chars[current_index] != '"')
             {
                 // skip back slash and accept next char
-                if (chars->at(current_index) == '\\')
+                if (chars[current_index] == '\\')
                 {
-                    str.append(std::string(1, chars->at(current_index)));
+                    str.append(std::string(1, chars[current_index]));
                     next_char();
                 }
 
-                str.append(std::string(1, chars->at(current_index)));
+                str.append(std::string(1, chars[current_index]));
                 next_char();
             }
             tokens.emplace_back(TokenType::TOKEN_STRING_LITERAL, str, current_line, start);
@@ -204,7 +208,7 @@ void Lexer::lex() {
         break;
         default:
             i32 word_start = current_character;
-            auto word      = get_word(chars);
+            auto word      = get_word(file_data);
 
             // check keywords
             if (word == "let")
@@ -360,15 +364,15 @@ void Lexer::next_char() {
     this->current_character++;
 }
 
-char Lexer::peek(std::vector<char> *chars) {
-    return chars->at(this->current_index + 1);
+char Lexer::peek(FileData *file_data) {
+    return file_data->data[this->current_index + 1];
 }
 
-std::string Lexer::get_word(std::vector<char> *chars) {
+std::string Lexer::get_word(FileData *file_data) {
     std::string word = std::string();
-    while (this->current_index < chars->size() && !is_delim(chars->at(this->current_index)))
+    while (this->current_index < file_data->data_length && !is_delim(file_data->data[this->current_index]))
     {
-        word.append(1, chars->at(this->current_index));
+        word.append(1, file_data->data[this->current_index]);
         next_char();
     }
 

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "liam.h"
+#include "file.h"   
 
 enum class NumberType {
     UNSIGNED,
@@ -101,6 +102,6 @@ struct Lexer {
 
     void lex();
     void next_char();
-    char peek(std::vector<char> *chars);
-    std::string get_word(std::vector<char> *chars);
+    char peek(FileData *file_data);
+    std::string get_word(FileData *file_data);
 };

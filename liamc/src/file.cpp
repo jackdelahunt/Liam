@@ -11,13 +11,13 @@ u64 FileData::index_at(u32 line, u32 character) {
 
     u32 current_line = 1;
     u32 current_char = 1;
-    for (i64 i = 0; i < this->data.size(); i++)
+    for (i64 i = 0; i < this->data_length; i++)
     {
 
         if (current_line == line && current_char == character)
         { return i; }
 
-        if (this->data.at(i) == '\n')
+        if (this->data[i] == '\n')
         {
             current_line++;
             current_char = 1;
@@ -33,29 +33,30 @@ std::string FileData::line(u64 line) {
 
     ASSERT(line > 0);
     ASSERT(line <= this->line_count);
+    ASSERT(this->data);
 
     auto start = index_at(line, 1);
     auto end   = start;
     std::string s;
 
-    s.push_back(data.at(end));
+    s.push_back(this->data[end]);
     end++;
 
     if (s != "\n")
     {
         while (true)
         {
-            if (end >= data.size())
+            if (end >= this->data_length)
                 break;
-            if (data.at(end) == '\n')
+            if (this->data[end] == '\n')
                 break;
 
-            s.push_back(data.at(end));
+            s.push_back(this->data[end]);
             end++;
         }
         // add new line
-        if (end < data.size())
-            s.push_back(data.at(end));
+        if (end < this->data_length)
+            s.push_back(this->data[end]);
     }
 
     return s;
@@ -70,12 +71,20 @@ FileData *FileManager::load(std::string *path) {
     if (FileManager::singleton->files.count(*path) > 0)
     { return &FileManager::singleton->files[*path]; }
 
-    auto vec = std::vector<char>();
+    u64 file_size_in_bytes = 0;
+
+    {
+        std::ifstream file_binary_read(*path, std::ios::binary);
+        file_binary_read.seekg(0, std::ios::end);
+        file_size_in_bytes = file_binary_read.tellg();
+    }
 
     std::ifstream file;
     file.open(*path);
-
     ASSERT_MSG(file.is_open(), "All files should be possible to read as this is not user input");
+
+
+    char *data = (char *)malloc(sizeof(char) * file_size_in_bytes);
 
     u64 line_count = 0;
 
@@ -88,20 +97,23 @@ FileData *FileManager::load(std::string *path) {
     if (first_character != EOF)
     {
         line_count++;
-        vec.push_back((char)first_character);
+//        vec->push_back((char)first_character);
+        data[0] = (char)first_character;
 
+        int index = 1;
         for (i32 i = file.get(); i != EOF; i = file.get())
         {
             char c = (char)i;
             if (c == '\n')
             { line_count++; }
 
-            vec.push_back(c);
+            data[index] = c;
+            index++;
         }
     }
 
     file.close();
 
-    FileManager::singleton->files[*path] = FileData{.data = vec, .line_count = line_count};
+    FileManager::singleton->files[*path] = FileData{.data = data, .data_length = file_size_in_bytes, .line_count = line_count};
     return &FileManager::singleton->files[*path];
 }
