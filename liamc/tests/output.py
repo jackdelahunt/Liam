@@ -8,7 +8,7 @@ print(main_code)
 
 body_code = ""
 
-for i in range(20):
+for i in range(90000):
     body_code = f"""
     let n_1_{i} := {i};
     let s_1_{i} := \"{i}\";
@@ -22,7 +22,7 @@ for i in range(20):
     {body_code}
     """
 
-for i in range(10000):
+for i in range(10):
     function_code = f"""fn add_{i}(a: i64, b: i64, c: i64, d: bool, e: str) void {{
         {body_code}
     }}"""

@@ -672,7 +672,7 @@ std::string CppBackend::emit_identifier_expression(IdentifierExpression *express
 std::string CppBackend::emit_get_expression(GetExpression *expression) {
 
     // TODO: verify this code makes sense I am re-reading it and I dont know how it works
-    // to stop conflicts with member functions we emit __func for the get expression
+    // to stop conflicts with members functions we emit __func for the get expression
     if (expression->type_info->type == TypeInfoType::FN)
     { return "__" + expression->member.string; }
 

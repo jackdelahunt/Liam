@@ -7,7 +7,8 @@
 #include "liam.h"
 
 struct FileData {
-    std::vector<char> data;
+    char *data;
+    u64 data_length;
     u64 line_count;
 
     u64 index_at(u32 line, u32 character);

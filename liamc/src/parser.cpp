@@ -260,12 +260,10 @@ ReturnStatement *Parser::eval_return_statement() {
 
     if (peek()->type != TokenType::TOKEN_SEMI_COLON)
     {
-        auto expression_statement = TRY_CALL_RET(eval_expression_statement(), NULL);
-
-        expression = expression_statement->expression;
+        expression = TRY_CALL_RET(eval_expression(), NULL);
     }
-    else
-    { TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL); }
+    
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
     return new ReturnStatement(file, expression);
 }
