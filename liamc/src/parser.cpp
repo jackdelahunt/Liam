@@ -138,9 +138,7 @@ Statement *Parser::eval_top_level_statement() {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
             path.string(), token.span,
-            fmt::format(
-                "Unexpected token used to declare new statement at top level '{}'", token.string
-            )
+            fmt::format("Unexpected token used to declare new statement at top level '{}'", token.string)
         );
         return NULL;
     }
@@ -259,10 +257,8 @@ ReturnStatement *Parser::eval_return_statement() {
     Expression *expression = NULL;
 
     if (peek()->type != TokenType::TOKEN_SEMI_COLON)
-    {
-        expression = TRY_CALL_RET(eval_expression(), NULL);
-    }
-    
+    { expression = TRY_CALL_RET(eval_expression(), NULL); }
+
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
     return new ReturnStatement(file, expression);

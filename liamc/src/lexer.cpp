@@ -67,23 +67,20 @@ Lexer::Lexer(std::filesystem::path path) {
 
 // used to compare against keywords below
 // this showed a ~30% faster time then std::string::operator==
-template<std::size_t N>
-bool compare_string(const std::string& s, char const (&literal)[N])
-{
-  return s.size() == N - 1 && std::memcmp(s.data(), literal, N-1) == 0;
+template <std::size_t N> bool compare_string(const std::string &s, char const (&literal)[N]) {
+    return s.size() == N - 1 && std::memcmp(s.data(), literal, N - 1) == 0;
 }
 
 void Lexer::lex() {
-    auto as_string = path.string();
-    auto file_data     = FileManager::load(&as_string);
-    char *chars = file_data->data;
+    auto as_string  = path.string();
+    auto file_data  = FileManager::load(&as_string);
+    char *chars     = file_data->data;
     u64 data_length = file_data->data_length;
 
     // pre allocate some of the token vector
     u64 token_vec_start_size = data_length * 0.45;
-    if(token_vec_start_size > this->tokens.capacity()) {
-        this->tokens.reserve(token_vec_start_size);
-    }
+    if (token_vec_start_size > this->tokens.capacity())
+    { this->tokens.reserve(token_vec_start_size); }
 
     ASSERT(chars);
 

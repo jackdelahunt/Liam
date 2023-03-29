@@ -83,7 +83,6 @@ FileData *FileManager::load(std::string *path) {
     file.open(*path);
     ASSERT_MSG(file.is_open(), "All files should be possible to read as this is not user input");
 
-
     char *data = (char *)malloc(sizeof(char) * file_size_in_bytes);
 
     u64 line_count = 0;
@@ -97,7 +96,7 @@ FileData *FileManager::load(std::string *path) {
     if (first_character != EOF)
     {
         line_count++;
-//        vec->push_back((char)first_character);
+        //        vec->push_back((char)first_character);
         data[0] = (char)first_character;
 
         int index = 1;
@@ -114,6 +113,14 @@ FileData *FileManager::load(std::string *path) {
 
     file.close();
 
-    FileManager::singleton->files[*path] = FileData{.data = data, .data_length = file_size_in_bytes, .line_count = line_count};
+    FileManager::singleton->files[*path] =
+        FileData{.data = data, .data_length = file_size_in_bytes, .line_count = line_count};
     return &FileManager::singleton->files[*path];
+}
+
+std::map<std::string, FileData> *FileManager::get_files() {
+    if (FileManager::singleton == NULL)
+    { singleton = new FileManager(); }
+
+    return &FileManager::singleton->files;
 }

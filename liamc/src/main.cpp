@@ -1,11 +1,12 @@
 #include <chrono>
 #include <filesystem>
+#include <functional>
 #include <iostream>
 
 #include "args.h"
 #include "compiler.h"
+#include "file.h"
 #include "liam.h"
-#include <functional>
 
 i32 main(i32 argc, char **argv) {
 
@@ -35,6 +36,21 @@ i32 main(i32 argc, char **argv) {
     out_file.close();
 
     TIME_END(total_time, "Total compile time");
+
+    if (args->time)
+    {
+        u64 total_line_count = 0;
+        for (auto file_name_to_file_data : *FileManager::get_files())
+        { total_line_count += file_name_to_file_data.second.line_count; }
+
+        u64 total_time_in_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                             std::chrono::high_resolution_clock::now() - total_time
+        )
+                                             .count();
+
+        std::cout << "Total line count :: " << total_line_count
+                  << " :: lines/S :: " << (f64)total_line_count / ((f64)total_time_in_milliseconds / 1000.0) << "\n";
+    }
 
     return 0;
 }
