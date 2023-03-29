@@ -65,11 +65,25 @@ Lexer::Lexer(std::filesystem::path path) {
     this->path        = path;
 }
 
+// used to compare against keywords below
+// this showed a ~30% faster time then std::string::operator==
+template<std::size_t N>
+bool compare_string(const std::string& s, char const (&literal)[N])
+{
+  return s.size() == N - 1 && std::memcmp(s.data(), literal, N-1) == 0;
+}
+
 void Lexer::lex() {
     auto as_string = path.string();
     auto file_data     = FileManager::load(&as_string);
     char *chars = file_data->data;
     u64 data_length = file_data->data_length;
+
+    // pre allocate some of the token vector
+    u64 token_vec_start_size = data_length * 0.50;
+    if(token_vec_start_size > this->tokens.capacity()) {
+        this->tokens.reserve(token_vec_start_size);
+    }
 
     ASSERT(chars);
 
@@ -211,127 +225,127 @@ void Lexer::lex() {
             auto word      = get_word(file_data);
 
             // check keywords
-            if (word == "let")
+            if (compare_string(word, "let"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_LET, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "fn")
+            if (compare_string(word, "fn"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_FN, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "return")
+            if (compare_string(word, "return"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_RETURN, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "struct")
+            if (compare_string(word, "struct"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_STRUCT, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "new")
+            if (compare_string(word, "new"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_NEW, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "continue")
+            if (compare_string(word, "continue"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_CONTINUE, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "import")
+            if (compare_string(word, "import"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_IMPORT, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "for")
+            if (compare_string(word, "for"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_FOR, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "if")
+            if (compare_string(word, "if"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_IF, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "else")
+            if (compare_string(word, "else"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_ELSE, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "and")
+            if (compare_string(word, "and"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_AND, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "or")
+            if (compare_string(word, "or"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_OR, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "extern")
+            if (compare_string(word, "extern"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_EXTERN, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "enum")
+            if (compare_string(word, "enum"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_ENUM, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "true")
+            if (compare_string(word, "true"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_TRUE, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "false")
+            if (compare_string(word, "false"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_FALSE, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "null")
+            if (compare_string(word, "null"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_NULL, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "alias")
+            if (compare_string(word, "alias"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_ALIAS, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "as")
+            if (compare_string(word, "as"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_AS, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "zero")
+            if (compare_string(word, "zero"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_ZERO, word, current_line, word_start));
                 continue;
             }
 
-            if (word == "break")
+            if (compare_string(word, "break"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_BREAK, word, current_line, word_start));
                 continue;
