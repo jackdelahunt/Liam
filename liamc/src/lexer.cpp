@@ -80,7 +80,7 @@ void Lexer::lex() {
     u64 data_length = file_data->data_length;
 
     // pre allocate some of the token vector
-    u64 token_vec_start_size = data_length * 0.50;
+    u64 token_vec_start_size = data_length * 0.45;
     if(token_vec_start_size > this->tokens.capacity()) {
         this->tokens.reserve(token_vec_start_size);
     }
