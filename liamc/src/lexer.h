@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "file.h"
 #include "liam.h"
-#include "file.h"   
 
 enum class NumberType {
     UNSIGNED,

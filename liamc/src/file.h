@@ -20,4 +20,5 @@ struct FileManager {
     std::map<std::string, FileData> files;
 
     static FileData *load(std::string *path);
+    static std::map<std::string, FileData> *get_files();
 };
