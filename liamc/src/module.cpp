@@ -25,6 +25,13 @@ Module::Module(u16 module_id, std::string name, std::filesystem::path path, std:
     this->builtin_type_table["f64"]  = new NumberTypeInfo(64, NumberType::FLOAT);
 }
 
+TypeInfo *Module::get_type_if_exists(Token identifier) {
+    if (this->top_level_type_table.count(identifier.string) > 0)
+    { return this->top_level_type_table[identifier.string]; }
+
+    return NULL;
+}
+
 void Module::add_type(Token token, TypeInfo *type_info) {
     if (this->top_level_type_table.count(token.string) > 0)
     {

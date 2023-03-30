@@ -19,16 +19,19 @@ void TypeCheckerError::print_error_message() {
     fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Type checking ERROR :: {}\n", error);
 
     if (this->expr_1)
-    { write_error_annotation_at_span(&file, expr_1->span); }
+    { write_error_annotation_at_span(&file, this->expr_1->span); }
 
     if (this->expr_2)
-    { write_error_annotation_at_span(&file, expr_2->span); }
+    { write_error_annotation_at_span(&file, this->expr_2->span); }
 
     if (this->type_expr_1)
-    { write_error_annotation_at_span(&file, type_expr_1->span); }
+    { write_error_annotation_at_span(&file, this->type_expr_1->span); }
 
     if (this->type_expr_2)
-    { write_error_annotation_at_span(&file, type_expr_2->span); }
+    { write_error_annotation_at_span(&file, this->type_expr_2->span); }
+
+    for (auto &token : this->related_tokens)
+    { write_error_annotation_at_span(&file, token.span); }
 }
 
 ErrorReporter::ErrorReporter() {
@@ -46,13 +49,19 @@ void ErrorReporter::report_parser_error(std::string file, Span span, std::string
 
 void ErrorReporter::report_type_checker_error(
     std::string file, Expression *expr_1, Expression *expr_2, TypeExpression *type_expr_1, TypeExpression *type_expr_2,
-    std::string message
+    std::vector<Token> related_tokens, std::string message
 ) {
     if (ErrorReporter::singleton == nullptr)
     { ErrorReporter::singleton = new ErrorReporter(); }
 
     ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
-        std::move(file), expr_1, expr_2, type_expr_1, type_expr_2, std::move(message)});
+        .file           = std::move(file),
+        .expr_1         = expr_1,
+        .expr_2         = expr_2,
+        .type_expr_1    = type_expr_1,
+        .type_expr_2    = type_expr_2,
+        .related_tokens = std::move(related_tokens),
+        .error          = std::move(message)});
 
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
