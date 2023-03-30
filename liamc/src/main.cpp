@@ -49,7 +49,7 @@ i32 main(i32 argc, char **argv) {
                                              .count();
 
         std::cout << "Total line count :: " << total_line_count
-                  << " :: lines/S :: " << (f64)total_line_count / ((f64)total_time_in_milliseconds / 1000.0) << "\n";
+                  << " :: LOC/s :: " << (f64)total_line_count / ((f64)total_time_in_milliseconds / 1000.0) << "\n";
     }
 
     return 0;
