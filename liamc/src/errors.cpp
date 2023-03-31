@@ -15,6 +15,50 @@ void ParserError::print_error_message() {
     write_error_annotation_at_span(&this->file, this->span);
 }
 
+TypeCheckerError TypeCheckerError::make(std::string file) {
+    auto error = TypeCheckerError{
+        .file = std::move(file), 
+        .expr_1 = NULL,
+        .expr_2 = NULL,
+        .type_expr_1 = NULL,
+        .type_expr_2 = NULL,
+        .related_tokens = std::vector<Token>(),
+        .error = ""
+    };
+
+    return error;
+}
+
+TypeCheckerError &TypeCheckerError::expression_1(Expression *expression) {
+    this->expr_1 = expression;
+    return *this;
+}
+
+TypeCheckerError &TypeCheckerError::expression_2(Expression *expression) {
+    this->expr_2 = expression;
+    return *this;
+}
+
+TypeCheckerError &TypeCheckerError::type_expression_1(TypeExpression *type_expression) {
+    this->type_expr_1 = type_expression;
+    return *this;
+}
+
+TypeCheckerError &TypeCheckerError::type_expression_2(TypeExpression *type_expression) {
+    this->type_expr_2 = type_expression;
+    return *this;
+}
+
+TypeCheckerError &TypeCheckerError::related_token(Token token) {
+    this->related_tokens.push_back(token);
+    return *this;
+}
+
+TypeCheckerError &TypeCheckerError::message(std::string message) {
+    this->error = std::move(message);
+    return *this;
+}
+
 void TypeCheckerError::print_error_message() {
     fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Type checking ERROR :: {}\n", error);
 
@@ -63,6 +107,14 @@ void ErrorReporter::report_type_checker_error(
         .related_tokens = std::move(related_tokens),
         .error          = std::move(message)});
 
+    ErrorReporter::singleton->error_reported_since_last_check = true;
+}
+
+void ErrorReporter::report_type_checker_error(TypeCheckerError error) {
+    if (ErrorReporter::singleton == nullptr)
+    { ErrorReporter::singleton = new ErrorReporter(); }
+
+    ErrorReporter::singleton->type_check_errors.push_back(error);
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
 
