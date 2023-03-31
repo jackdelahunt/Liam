@@ -16,8 +16,7 @@ const char *TokenTypeStrings[51] = {
     "/",           "%",
     "=",           ";",
     ",",           ":",
-    "return",      "^",
-    "@",           "struct",
+    "return",      "^",           "struct",
     ".",           "new",
     "break",       "import",
     "[",           "]",
@@ -31,7 +30,7 @@ const char *TokenTypeStrings[51] = {
     "extern",      "null",
     "enum",        "continue",
     "alias",       "as",
-    "zero",
+    "zero", "&"
 };
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
@@ -53,8 +52,8 @@ std::ostream &operator<<(std::ostream &os, const Token &token) {
 
 bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' ||
-           c == '=' || c == '+' || c == '^' || c == '@' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
-           c == '<' || c == '>' || c == '|' || c == '-' || c == '/' || c == '%' || c == '?';
+           c == '=' || c == '+' || c == '^' || c == '&' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
+           c == '<' || c == '>' || c == '|' || c == '-' || c == '/' || c == '%';
 }
 
 Lexer::Lexer(std::filesystem::path path) {
@@ -164,8 +163,8 @@ void Lexer::lex() {
         case '^':
             tokens.emplace_back(Token(TokenType::TOKEN_HAT, "^", current_line, current_character));
             break;
-        case '@':
-            tokens.emplace_back(Token(TokenType::TOKEN_AT, "@", current_line, current_character));
+        case '&':
+            tokens.emplace_back(Token(TokenType::TOKEN_AMPERSAND, "&", current_line, current_character));
             break;
         case '.':
             tokens.emplace_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
