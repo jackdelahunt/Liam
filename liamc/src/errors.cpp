@@ -17,44 +17,43 @@ void ParserError::print_error_message() {
 
 TypeCheckerError TypeCheckerError::make(std::string file) {
     auto error = TypeCheckerError{
-        .file = std::move(file), 
-        .expr_1 = NULL,
-        .expr_2 = NULL,
-        .type_expr_1 = NULL,
-        .type_expr_2 = NULL,
+        .file           = std::move(file),
+        .expr_1         = NULL,
+        .expr_2         = NULL,
+        .type_expr_1    = NULL,
+        .type_expr_2    = NULL,
         .related_tokens = std::vector<Token>(),
-        .error = ""
-    };
+        .error          = ""};
 
     return error;
 }
 
-TypeCheckerError &TypeCheckerError::expression_1(Expression *expression) {
+TypeCheckerError &TypeCheckerError::set_expr_1(Expression *expression) {
     this->expr_1 = expression;
     return *this;
 }
 
-TypeCheckerError &TypeCheckerError::expression_2(Expression *expression) {
+TypeCheckerError &TypeCheckerError::set_expr_2(Expression *expression) {
     this->expr_2 = expression;
     return *this;
 }
 
-TypeCheckerError &TypeCheckerError::type_expression_1(TypeExpression *type_expression) {
+TypeCheckerError &TypeCheckerError::set_type_expr_1(TypeExpression *type_expression) {
     this->type_expr_1 = type_expression;
     return *this;
 }
 
-TypeCheckerError &TypeCheckerError::type_expression_2(TypeExpression *type_expression) {
+TypeCheckerError &TypeCheckerError::set_type_expr_2(TypeExpression *type_expression) {
     this->type_expr_2 = type_expression;
     return *this;
 }
 
-TypeCheckerError &TypeCheckerError::related_token(Token token) {
+TypeCheckerError &TypeCheckerError::add_related_token(Token token) {
     this->related_tokens.push_back(token);
     return *this;
 }
 
-TypeCheckerError &TypeCheckerError::message(std::string message) {
+TypeCheckerError &TypeCheckerError::set_message(std::string message) {
     this->error = std::move(message);
     return *this;
 }
