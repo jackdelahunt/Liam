@@ -133,9 +133,7 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
                     if (other_module->path == import_path_absolute)
                     {
                         for (auto k_v : other_module->top_level_type_table)
-                        {
-                            file->imported_type_table[k_v.first] = k_v.second;
-                        }
+                        { file->imported_type_table[k_v.first] = k_v.second; }
 
                         for (auto k_v : other_module->top_level_function_table)
                         { file->imported_function_table[k_v.first] = k_v.second; }
@@ -223,10 +221,12 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
 
     if (this->current_module->get_type_if_exists(statement->identifier) != NULL)
     {
-        ErrorReporter::report_type_checker_error(
-            current_file->path.string(), NULL, NULL, NULL, NULL, {statement->identifier},
-            "Re-declaration of type \"" + statement->identifier.string + "\""
-        );
+
+        TypeCheckerError error =
+            TypeCheckerError::make(current_file->path.string()).related_token(statement->identifier)
+            .message("Re-declaration of type \"" + statement->identifier.string + "\"");
+
+        ErrorReporter::report_type_checker_error(error);
         return;
     }
 
@@ -285,10 +285,9 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
         if (parent_type_info == NULL)
         {
-            ErrorReporter::report_type_checker_error(
-                current_file->path.string(), NULL, NULL, statement->parent_type, NULL, {},
-                "Member functions can only be used on struct types"
-            );
+            TypeCheckerError error = TypeCheckerError::make(current_file->path.string()).type_expression_1(statement->parent_type).message("Member functions can only be used on struct types");
+
+            ErrorReporter::report_type_checker_error(error);
             return;
         }
 
@@ -335,10 +334,9 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
         auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
         if (parent_type_info == NULL)
         {
-            ErrorReporter::report_type_checker_error(
-                current_file->path.string(), NULL, NULL, statement->parent_type, NULL, {},
-                "Member functions can only be used on struct types"
-            );
+            TypeCheckerError error = TypeCheckerError::make(current_file->path.string()).type_expression_1(statement->parent_type).message("Member functions can only be used on struct types");
+
+            ErrorReporter::report_type_checker_error(error);
             return;
         }
 
@@ -384,10 +382,9 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
             {
                 if (rt->expression != NULL)
                 {
-                    ErrorReporter::report_type_checker_error(
-                        current_file->path.string(), rt->expression, NULL, NULL, NULL, {},
-                        "found expression in return when return type is void"
-                    );
+                    TypeCheckerError error = TypeCheckerError::make(current_file->path.string()).expression_1(rt->expression).message("found expression in return when return type is void");
+
+                    ErrorReporter::report_type_checker_error(error);
                     return;
                 }
             }

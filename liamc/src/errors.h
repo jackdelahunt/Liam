@@ -23,6 +23,14 @@ struct TypeCheckerError {
     std::vector<Token> related_tokens;
     std::string error;
 
+    static TypeCheckerError make(std::string file);
+    TypeCheckerError &expression_1(Expression *expression);
+    TypeCheckerError &expression_2(Expression *expression);
+    TypeCheckerError &type_expression_1(TypeExpression *type_expression);
+    TypeCheckerError &type_expression_2(TypeExpression *type_expression);
+    TypeCheckerError &related_token(Token token);
+    TypeCheckerError &message(std::string message);
+
     void print_error_message();
 };
 
@@ -39,6 +47,7 @@ struct ErrorReporter {
         std::string file, Expression *expr_1, Expression *expr_2, TypeExpression *type_expr_1,
         TypeExpression *type_expr_2, std::vector<Token> related_tokens, std::string message
     );
+    static void report_type_checker_error(TypeCheckerError error);
     static bool has_parse_errors();
     static bool has_type_check_errors();
     static bool has_error_since_last_check();
