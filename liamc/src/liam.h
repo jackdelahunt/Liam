@@ -23,6 +23,10 @@ typedef double f64;
 
 void panic(const std::string &msg);
 
+#define BIT_SET(mask, bit) (mask & bit == bit)
+
+#define SET_BIT(mask, bit) mask |= bit
+
 #define TIME_START(name) auto name = std::chrono::high_resolution_clock::now();
 
 #define TIME_END(name, message)                                                                                        \

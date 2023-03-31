@@ -356,7 +356,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
 
 void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 
-    if (statement->is_extern)
+    if (BIT_SET(statement->tag_flags, TAG_EXTERN))
         return;
 
     SymbolTable symbol_table = SymbolTable(current_module, current_file);

@@ -29,7 +29,7 @@ LetStatement::LetStatement(File *file, Token identifier, Expression *expression,
 
 FnStatement::FnStatement(
     File *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
-    TypeExpression *type, ScopeStatement *body, bool is_extern
+    TypeExpression *type, ScopeStatement *body, u8 tag_flags
 ) {
     this->file           = file;
     this->parent_type    = parent_type;
@@ -38,7 +38,7 @@ FnStatement::FnStatement(
     this->return_type    = type;
     this->params         = params;
     this->body           = body;
-    this->is_extern      = is_extern;
+    this->tag_flags      = tag_flags;
     this->statement_type = StatementType::STATEMENT_FN;
 }
 

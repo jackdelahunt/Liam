@@ -96,7 +96,7 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement) {
 }
 
 std::string CppBackend::forward_declare_function(FnStatement *statement) {
-    if (statement->is_extern)
+    if (BIT_SET(statement->tag_flags, TAG_EXTERN))
         return "";
 
     std::string source = "";
@@ -217,7 +217,7 @@ std::string CppBackend::emit_scope_statement(ScopeStatement *statement) {
 }
 
 std::string CppBackend::emit_fn_statement(FnStatement *statement) {
-    if (statement->is_extern)
+    if (BIT_SET(statement->tag_flags, TAG_EXTERN))
         return "";
 
     auto source = std::string();

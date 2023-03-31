@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include <set>
 #include <tuple>
 #include <utility>
 
@@ -217,15 +218,17 @@ FnStatement *Parser::eval_fn_statement(bool is_extern) {
 
     auto type = TRY_CALL_RET(eval_type_expression(), NULL);
 
-    if (is_extern)
+    u8 tag_mask = TRY_CALL_RET(consume_tags(), NULL);
+
+    if (BIT_SET(tag_mask, TAG_EXTERN))
     {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-        return new FnStatement(file, parent_type, *identifier, generics, params, type, NULL, true);
+        return new FnStatement(file, parent_type, *identifier, generics, params, type, NULL, tag_mask);
     }
     else
     {
         auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-        return new FnStatement(file, parent_type, *identifier, generics, params, type, body, false);
+        return new FnStatement(file, parent_type, *identifier, generics, params, type, body, tag_mask);
     }
 }
 
@@ -791,7 +794,7 @@ Token *Parser::consume_token_of_type(TokenType type) {
         auto last_token = this->tokens->at(this->tokens->size() - 1);
         ErrorReporter::report_parser_error(
             path.string(), last_token.span,
-            fmt::format("Expected '{}' but got unexpected end of file", TokenTypeStrings[(int)type])
+            fmt::format("Expected '{}' but got unexpected end of file", last_token.string)
         );
         return NULL;
     }
@@ -916,7 +919,7 @@ std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_nam
         do
         {
             if (!is_first)
-                current++; // only iterate current by one when it is not the
+                this->current++; // only iterate current by one when it is not the
             // first time
 
             auto name = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), {});
@@ -965,4 +968,36 @@ std::vector<EnumMember> Parser::consume_comma_seperated_enum_arguments(TokenType
     }
 
     return enum_members;
+}
+
+u8 Parser::consume_tags() {
+    u8 flag_mask = 0;
+
+    // consume possible tage
+    while (peek()->type == TokenType::TOKEN_TAG)
+    {
+        Token tag = *TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_TAG), NULL);
+
+        if (compare_string(tag.string, "@extern"))
+        {
+            if (BIT_SET(flag_mask, TAG_EXTERN))
+            {
+                ErrorReporter::report_parser_error(
+                    this->file->path.string(), tag.span, "Duplicate tag given for \"" + tag.string + "\""
+                );
+                return 0;
+            }
+            else
+            { SET_BIT(flag_mask, TAG_EXTERN); }
+        }
+        else
+        {
+            ErrorReporter::report_parser_error(
+                this->file->path.string(), tag.span, "Unknown tag give \"" + tag.string + "\""
+            );
+            return 0;
+        }
+    }
+
+    return flag_mask;
 }
