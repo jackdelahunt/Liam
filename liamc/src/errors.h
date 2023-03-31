@@ -24,12 +24,12 @@ struct TypeCheckerError {
     std::string error;
 
     static TypeCheckerError make(std::string file);
-    TypeCheckerError &expression_1(Expression *expression);
-    TypeCheckerError &expression_2(Expression *expression);
-    TypeCheckerError &type_expression_1(TypeExpression *type_expression);
-    TypeCheckerError &type_expression_2(TypeExpression *type_expression);
-    TypeCheckerError &related_token(Token token);
-    TypeCheckerError &message(std::string message);
+    TypeCheckerError &set_expr_1(Expression *expression);
+    TypeCheckerError &set_expr_2(Expression *expression);
+    TypeCheckerError &set_type_expr_1(TypeExpression *type_expression);
+    TypeCheckerError &set_type_expr_2(TypeExpression *type_expression);
+    TypeCheckerError &add_related_token(Token token);
+    TypeCheckerError &set_message(std::string message);
 
     void print_error_message();
 };

@@ -67,10 +67,16 @@ std::tuple<TypeInfo *, bool> SymbolTable::get_type(std::string identifier) {
     { return {this->current_module->builtin_type_table[identifier], false}; }
 
     if (this->current_module->top_level_type_table.count(identifier) > 0)
-    { return {this->current_module->top_level_type_table[identifier], false}; }
+    {
+        u64 index = this->current_module->top_level_type_table[identifier];
+        return {this->current_module->top_level_type_descriptors[index].type_info, false};
+    }
 
     if (this->current_module->top_level_function_table.count(identifier) > 0)
-    { return {this->current_module->top_level_function_table[identifier], false}; }
+    {
+        u64 index = this->current_module->top_level_function_table[identifier];
+        return {this->current_module->top_level_fn_descriptors[index].type_info, false};
+    }
 
     if (this->identifier_table.count(identifier) > 0)
     { return {this->identifier_table[identifier], false}; }
@@ -121,7 +127,6 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
     {
         for (auto file : module->files)
         {
-
             for (auto import_stmt : file->top_level_import_statements)
             {
                 auto import_path_relative_to_module = module->path;
@@ -132,11 +137,45 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
                 {
                     if (other_module->path == import_path_absolute)
                     {
-                        for (auto k_v : other_module->top_level_type_table)
-                        { file->imported_type_table[k_v.first] = k_v.second; }
+                        for (auto string_to_index : other_module->top_level_type_table)
+                        {
+                            auto [type_info, failed] = module->get_type(string_to_index.first);
+                            if (!failed || file->imported_type_table.count(string_to_index.first) > 0)
+                            {
+                                TypeCheckerError error =
+                                    TypeCheckerError::make(file->path.string())
+                                        .set_expr_1(import_stmt->path)
+                                        .set_message(
+                                            "Module import adds already declared type \"" + string_to_index.first + "\""
+                                        );
+                                ErrorReporter::report_type_checker_error(error);
+                                return;
+                            }
 
-                        for (auto k_v : other_module->top_level_function_table)
-                        { file->imported_function_table[k_v.first] = k_v.second; }
+                            TopLevelDescriptor descriptor =
+                                other_module->top_level_type_descriptors[string_to_index.second];
+                            file->imported_type_table[descriptor.identifier] = descriptor.type_info;
+                        }
+
+                        for (auto string_to_index : other_module->top_level_function_table)
+                        {
+                            auto [type_info, failed] = module->get_function(string_to_index.first);
+                            if (!failed || file->imported_function_table.count(string_to_index.first) > 0)
+                            {
+                                TypeCheckerError error = TypeCheckerError::make(file->path.string())
+                                                             .set_expr_1(import_stmt->path)
+                                                             .set_message(
+                                                                 "Module import adds already declared function \"" +
+                                                                 string_to_index.first + "\""
+                                                             );
+                                ErrorReporter::report_type_checker_error(error);
+                                return;
+                            }
+
+                            TopLevelDescriptor descriptor =
+                                other_module->top_level_fn_descriptors[string_to_index.second];
+                            file->imported_function_table[descriptor.identifier] = descriptor.type_info;
+                        }
                     }
                 }
             }
@@ -219,12 +258,13 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
 
-    if (this->current_module->get_type_if_exists(statement->identifier) != NULL)
+    auto [type_info, failed] = this->current_module->get_type(statement->identifier.string);
+    if (!failed)
     {
 
-        TypeCheckerError error =
-            TypeCheckerError::make(current_file->path.string()).related_token(statement->identifier)
-            .message("Re-declaration of type \"" + statement->identifier.string + "\"");
+        TypeCheckerError error = TypeCheckerError::make(current_file->path.string())
+                                     .add_related_token(statement->identifier)
+                                     .set_message("Re-declaration of type \"" + statement->identifier.string + "\"");
 
         ErrorReporter::report_type_checker_error(error);
         return;
@@ -285,7 +325,9 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
         if (parent_type_info == NULL)
         {
-            TypeCheckerError error = TypeCheckerError::make(current_file->path.string()).type_expression_1(statement->parent_type).message("Member functions can only be used on struct types");
+            TypeCheckerError error = TypeCheckerError::make(current_file->path.string())
+                                         .set_type_expr_1(statement->parent_type)
+                                         .set_message("Member functions can only be used on struct types");
 
             ErrorReporter::report_type_checker_error(error);
             return;
@@ -303,11 +345,13 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     }
 
     // add this fn decl to parent symbol table
-    auto current_type_info = (FnTypeInfo *)current_module->top_level_function_table[statement->identifier.string];
-    *current_type_info     = FnTypeInfo(
-            this->current_module->module_id, this->current_file->file_id, NULL, statement->return_type->type_info,
-            generic_type_infos, param_type_infos
-        );
+    u64 index              = this->current_module->top_level_function_table[statement->identifier.string];
+    auto current_type_info = (FnTypeInfo *)this->current_module->top_level_fn_descriptors[index].type_info;
+
+    *current_type_info = FnTypeInfo(
+        this->current_module->module_id, this->current_file->file_id, NULL, statement->return_type->type_info,
+        generic_type_infos, param_type_infos
+    );
 }
 
 void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
@@ -324,8 +368,8 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 
     if (statement->parent_type == NULL)
     {
-        fn_type_info =
-            static_cast<FnTypeInfo *>(current_module->top_level_function_table[statement->identifier.string]);
+        u64 index    = this->current_module->top_level_function_table[statement->identifier.string];
+        fn_type_info = (FnTypeInfo *)this->current_module->top_level_fn_descriptors[index].type_info;
         ASSERT(fn_type_info);
     }
     else
@@ -334,7 +378,9 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
         auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
         if (parent_type_info == NULL)
         {
-            TypeCheckerError error = TypeCheckerError::make(current_file->path.string()).type_expression_1(statement->parent_type).message("Member functions can only be used on struct types");
+            TypeCheckerError error = TypeCheckerError::make(current_file->path.string())
+                                         .set_type_expr_1(statement->parent_type)
+                                         .set_message("Member functions can only be used on struct types");
 
             ErrorReporter::report_type_checker_error(error);
             return;
@@ -382,7 +428,9 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
             {
                 if (rt->expression != NULL)
                 {
-                    TypeCheckerError error = TypeCheckerError::make(current_file->path.string()).expression_1(rt->expression).message("found expression in return when return type is void");
+                    TypeCheckerError error = TypeCheckerError::make(current_file->path.string())
+                                                 .set_expr_1(rt->expression)
+                                                 .set_message("found expression in return when return type is void");
 
                     ErrorReporter::report_type_checker_error(error);
                     return;
@@ -419,7 +467,8 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
 
     // this struct has not been fully typed until now just add to the type that already exists in the
     // type table
-    StructTypeInfo *sti = (StructTypeInfo *)this->current_module->top_level_type_table[statement->identifier.string];
+    u64 index           = this->current_module->top_level_type_table[statement->identifier.string];
+    StructTypeInfo *sti = (StructTypeInfo *)this->current_module->top_level_type_descriptors[index].type_info;
     sti->members        = members_type_info;
 }
 

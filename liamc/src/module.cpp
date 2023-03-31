@@ -7,8 +7,8 @@ Module::Module(u16 module_id, std::string name, std::filesystem::path path, std:
     this->files     = files;
 
     this->builtin_type_table   = std::unordered_map<std::string, TypeInfo *>();
-    this->top_level_type_table = std::unordered_map<std::string, TypeInfo *>();
-    this->top_level_type_table = std::unordered_map<std::string, TypeInfo *>();
+    this->top_level_type_table = std::unordered_map<std::string, u64>();
+    this->top_level_type_table = std::unordered_map<std::string, u64>();
 
     this->builtin_type_table["void"] = new VoidTypeInfo();
     this->builtin_type_table["bool"] = new BoolTypeInfo();
@@ -25,14 +25,10 @@ Module::Module(u16 module_id, std::string name, std::filesystem::path path, std:
     this->builtin_type_table["f64"]  = new NumberTypeInfo(64, NumberType::FLOAT);
 }
 
-TypeInfo *Module::get_type_if_exists(Token identifier) {
-    if (this->top_level_type_table.count(identifier.string) > 0)
-    { return this->top_level_type_table[identifier.string]; }
-
-    return NULL;
-}
-
 void Module::add_type(Token token, TypeInfo *type_info) {
+
+    ASSERT(type_info->type == TypeInfoType::STRUCT || type_info->type == TypeInfoType::ENUM);
+
     if (this->top_level_type_table.count(token.string) > 0)
     {
         panic(
@@ -41,7 +37,13 @@ void Module::add_type(Token token, TypeInfo *type_info) {
         );
     }
 
-    this->top_level_type_table[token.string] = type_info;
+    TopLevelDescriptor descriptor = TopLevelDescriptor{
+        .identifier = token.string,
+        .type_info  = type_info,
+    };
+
+    this->top_level_type_descriptors.push_back(descriptor);
+    this->top_level_type_table[token.string] = this->top_level_type_descriptors.size() - 1;
 }
 
 void Module::add_function(Token token, TypeInfo *type_info) {
@@ -53,7 +55,13 @@ void Module::add_function(Token token, TypeInfo *type_info) {
         );
     }
 
-    this->top_level_function_table[token.string] = type_info;
+    TopLevelDescriptor descriptor = TopLevelDescriptor{
+        .identifier = token.string,
+        .type_info  = type_info,
+    };
+
+    this->top_level_fn_descriptors.push_back(descriptor);
+    this->top_level_function_table[token.string] = this->top_level_fn_descriptors.size() - 1;
 }
 
 std::tuple<TypeInfo *, bool> Module::get_type(Token *identifier) {
@@ -62,7 +70,24 @@ std::tuple<TypeInfo *, bool> Module::get_type(Token *identifier) {
 
 std::tuple<TypeInfo *, bool> Module::get_type(std::string identifier) {
     if (this->top_level_type_table.count(identifier) > 0)
-    { return {this->top_level_type_table[identifier], false}; }
+    {
+        u64 index = this->top_level_type_table[identifier];
+        return {this->top_level_type_descriptors[index].type_info, false};
+    }
+
+    return {nullptr, true};
+}
+
+std::tuple<TypeInfo *, bool> Module::get_function(Token *identifier) {
+    return this->get_function(identifier->string);
+}
+
+std::tuple<TypeInfo *, bool> Module::get_function(std::string identifier) {
+    if (this->top_level_function_table.count(identifier) > 0)
+    {
+        u64 index = this->top_level_function_table[identifier];
+        return {this->top_level_fn_descriptors[index].type_info, false};
+    }
 
     return {nullptr, true};
 }

@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include <set>
 
 Module *create_lex_and_parse_module_from_path(
     u16 module_id, std::string module_name, std::filesystem::path module_path
@@ -56,7 +57,7 @@ std::vector<Module *> lex_parse(std::filesystem::path starting_import_path) {
     // a set containg all of the absolute paths of the modules that have been
     // created, this is used when checking an import to see if a module
     // needs to be created or skipped as it moght already exist
-    auto already_imported_module_paths = std::unordered_map<std::string, int>();
+    auto already_imported_module_paths = std::set<std::string>();
 
     u16 module_id_counter = 0;
 
@@ -91,9 +92,16 @@ std::vector<Module *> lex_parse(std::filesystem::path starting_import_path) {
                 auto module_path_and_relative_import_path = module_path.append(import_path);
                 auto absolute_path = std::filesystem::absolute(module_path_and_relative_import_path).string();
 
-                if (!(already_imported_module_paths.contains(absolute_path)))
+                if (already_imported_module_paths.contains(absolute_path))
                 {
-                    already_imported_module_paths[absolute_path] = 420;
+                    ErrorReporter::report_parser_error(
+                        file->path.string(), import_stmt->path->span,
+                        "Trying to import module more then once in the same file"
+                    );
+                }
+                else
+                {
+                    already_imported_module_paths.insert(absolute_path);
                     module_import_path_queue.push_back(absolute_path);
                 }
             }
