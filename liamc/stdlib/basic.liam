@@ -1,6 +1,6 @@
-extern fn println<T>(t: T) void;
-extern fn alloc<T>(size: u64) ^.. T;
-extern fn ptr_len<T>(ptr: ^.. T) u64;
-extern fn str_len(string: str) u64;
-extern fn substr(s: str, start: u64, length: u64) str;
-extern fn char_at(s: str, index: u64) str;
+fn println<T>(t: T) void @extern;
+fn alloc<T>(size: u64) ^.. T @extern;
+fn ptr_len<T>(ptr: ^.. T) u64 @extern;
+fn str_len(string: str) u64 @extern;
+fn substr(s: str, start: u64, length: u64) str @extern;
+fn char_at(s: str, index: u64) str @extern;

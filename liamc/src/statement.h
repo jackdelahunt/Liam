@@ -12,6 +12,10 @@ struct TypeExpression;
 
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
+enum Tags {
+    TAG_EXTERN = 0b00000001
+};
+
 enum class StatementType {
     STATEMENT_EXPRESSION,
     STATEMENT_LET,
@@ -72,11 +76,11 @@ struct FnStatement : Statement {
     CSV params;
     TypeExpression *return_type;
     ScopeStatement *body;
-    bool is_extern;
+    u8 tag_flags;
 
     FnStatement(
         File *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
-        TypeExpression *type, ScopeStatement *body, bool is_extern
+        TypeExpression *type, ScopeStatement *body, u8 tag_flags
     );
 };
 

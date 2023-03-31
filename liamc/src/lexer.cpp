@@ -6,32 +6,31 @@
 #include "liam.h"
 #include "utils.h"
 
-const char *TokenTypeStrings[51] = {
-    "int Literal", "string Literal",
-    "identifier",  "let",
-    "fn",          "(",
-    ")",           "{",
-    "}",           "+",
-    "-",           "*",
-    "/",           "%",
-    "=",           ";",
-    ",",           ":",
-    "return",      "^",           "struct",
-    ".",           "new",
-    "break",       "import",
-    "[",           "]",
-    "for",         "false",
-    "true",        "if",
-    "else",        "or",
-    "and",         "==",
-    "!=",          "!",
-    "<",           ">",
-    ">=",          "<=",
-    "extern",      "null",
-    "enum",        "continue",
-    "alias",       "as",
-    "zero", "&"
-};
+const char *TokenTypeStrings[52] = {"int Literal", "string Literal",
+                                    "identifier",  "let",
+                                    "fn",          "(",
+                                    ")",           "{",
+                                    "}",           "+",
+                                    "-",           "*",
+                                    "/",           "%",
+                                    "=",           ";",
+                                    ",",           ":",
+                                    "return",      "^",
+                                    "struct",      ".",
+                                    "new",         "break",
+                                    "import",      "[",
+                                    "]",           "for",
+                                    "false",       "true",
+                                    "if",          "else",
+                                    "or",          "and",
+                                    "==",          "!=",
+                                    "!",           "<",
+                                    ">",           ">=",
+                                    "<=",          "extern",
+                                    "null",        "enum",
+                                    "continue",    "alias",
+                                    "as",          "zero",
+                                    "&",           "@tag"};
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
 
@@ -62,12 +61,6 @@ Lexer::Lexer(std::filesystem::path path) {
     current_line      = 1;
     current_character = 1;
     this->path        = path;
-}
-
-// used to compare against keywords below
-// this showed a ~30% faster time then std::string::operator==
-template <std::size_t N> bool compare_string(const std::string &s, char const (&literal)[N]) {
-    return s.size() == N - 1 && std::memcmp(s.data(), literal, N - 1) == 0;
 }
 
 void Lexer::lex() {
@@ -219,6 +212,12 @@ void Lexer::lex() {
         default:
             i32 word_start = current_character;
             auto word      = get_word(file_data);
+
+            if (word.starts_with("@"))
+            {
+                tokens.emplace_back(Token(TokenType::TOKEN_TAG, word, current_line, word_start));
+                continue;
+            }
 
             // check keywords
             if (compare_string(word, "let"))

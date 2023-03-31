@@ -118,6 +118,7 @@ struct Parser {
     std::vector<Token> consume_comma_seperated_token_arguments(TokenType closer);
     std::vector<std::tuple<Token, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
     std::vector<EnumMember> consume_comma_seperated_enum_arguments(TokenType closer);
+    u8 consume_tags();
 
     // this is what CSV is
     std::vector<std::tuple<Token, TypeExpression *>> consume_comma_seperated_params();
