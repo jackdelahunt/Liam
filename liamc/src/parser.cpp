@@ -487,7 +487,7 @@ Expression *Parser::eval_factor() {
 
 Expression *Parser::eval_unary() {
 
-    if (match(TokenType::TOKEN_AT) || match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_NOT))
+    if (match(TokenType::TOKEN_AMPERSAND) || match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_NOT))
     {
         auto op   = consume_token();
         auto expr = TRY_CALL_RET(eval_unary(), NULL);

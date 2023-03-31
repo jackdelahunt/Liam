@@ -580,7 +580,7 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
 }
 
 std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {
-    if (expression->op.type == TokenType::TOKEN_AT)
+    if (expression->op.type == TokenType::TOKEN_AMPERSAND)
     { return "&(" + emit_expression(expression->expression) + ")"; }
     else if (expression->op.type == TokenType::TOKEN_STAR)
     { return "*(" + emit_expression(expression->expression) + ")"; }

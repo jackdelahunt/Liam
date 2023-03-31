@@ -35,7 +35,6 @@ enum class TokenType {
     TOKEN_COLON,              // :
     TOKEN_RETURN,             // return
     TOKEN_HAT,                // ^
-    TOKEN_AT,                 // @
     TOKEN_STRUCT,             // struct
     TOKEN_DOT,                // .
     TOKEN_NEW,                // new
@@ -64,6 +63,7 @@ enum class TokenType {
     TOKEN_ALIAS,              // alias
     TOKEN_AS,                 // as
     TOKEN_ZERO,               // zero
+    TOKEN_AMPERSAND           // &
 };
 
 extern const char *TokenTypeStrings[51];

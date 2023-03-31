@@ -71,7 +71,7 @@ if condition or another_condition {
 
 ### Pointers
 ```rust
-let x_ptr: ^type = @x;
+let x_ptr: ^type = &x;
 let y: type = *x_ptr;
 ```
 

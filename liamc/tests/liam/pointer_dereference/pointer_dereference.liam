@@ -17,7 +17,7 @@ fn main() void {
     let foo := new Foo{n: 100};
     // foo.foo();
 
-    // let ptr := @foo;
+    // let ptr := &foo;
     // ptr.foo();
     println::<i64>(foo.n);
     println::<i64>(foo.n);

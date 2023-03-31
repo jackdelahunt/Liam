@@ -849,7 +849,7 @@ void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expr
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL_VOID(type_check_expression(expression->expression, symbol_table));
 
-    if (expression->op.type == TokenType::TOKEN_AT)
+    if (expression->op.type == TokenType::TOKEN_AMPERSAND)
     {
         expression->type_info = new PointerTypeInfo(expression->expression->type_info);
         return;

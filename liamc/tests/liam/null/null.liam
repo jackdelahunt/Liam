@@ -8,7 +8,7 @@ fn main() void {
     let y := 100;
     let x : ^i64 = null;
 
-    x = @y;
+    x = &y;
     println::<i64>(*x);
 
     x = null;
