@@ -84,7 +84,7 @@ std::string CppBackend::forward_declare_enum(EnumStatement *statement) {
 }
 
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
-    if (statement->is_extern)
+    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
         return "";
 
     std::string source = "";
@@ -96,7 +96,7 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement) {
 }
 
 std::string CppBackend::forward_declare_function(FnStatement *statement) {
-    if (BIT_SET(statement->tag_flags, TAG_EXTERN))
+    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
         return "";
 
     std::string source = "";
@@ -217,7 +217,7 @@ std::string CppBackend::emit_scope_statement(ScopeStatement *statement) {
 }
 
 std::string CppBackend::emit_fn_statement(FnStatement *statement) {
-    if (BIT_SET(statement->tag_flags, TAG_EXTERN))
+    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
         return "";
 
     auto source = std::string();
@@ -272,8 +272,9 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 }
 
 std::string CppBackend::emit_struct_statement(StructStatement *statement) {
-    if (statement->is_extern)
+    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
         return "";
+
     auto source = std::string();
 
     source.append(emit_cpp_template_declaration(&statement->generics));

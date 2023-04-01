@@ -76,11 +76,11 @@ struct FnStatement : Statement {
     CSV params;
     TypeExpression *return_type;
     ScopeStatement *body;
-    u8 tag_flags;
+    u8 flag_mask;
 
     FnStatement(
         File *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
-        TypeExpression *type, ScopeStatement *body, u8 tag_flags
+        TypeExpression *type, ScopeStatement *body, u8 flag_mask
     );
 };
 
@@ -88,9 +88,9 @@ struct StructStatement : Statement {
     Token identifier;
     std::vector<Token> generics;
     CSV members;
-    bool is_extern;
+    u8 flag_mask;
 
-    StructStatement(File *file, Token identifier, std::vector<Token> generics, CSV members, bool is_extern);
+    StructStatement(File *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask);
 };
 
 struct AssigmentStatement : Statement {
