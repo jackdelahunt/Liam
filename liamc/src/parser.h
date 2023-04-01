@@ -66,8 +66,8 @@ struct Parser {
     Statement *eval_top_level_statement();
     LetStatement *eval_let_statement();
     ScopeStatement *eval_scope_statement();
-    StructStatement *eval_struct_statement(bool is_extern = false);
-    FnStatement *eval_fn_statement(bool is_extern = false);
+    StructStatement *eval_struct_statement();
+    FnStatement *eval_fn_statement();
     ReturnStatement *eval_return_statement();
     BreakStatement *eval_break_statement();
     ImportStatement *eval_import_statement();
@@ -75,7 +75,6 @@ struct Parser {
     IfStatement *eval_if_statement();
     ElseStatement *eval_else_statement();
     ExpressionStatement *eval_expression_statement();
-    Statement *eval_extern_statement();
     EnumStatement *eval_enum_statement();
     ContinueStatement *eval_continue_statement();
     AliasStatement *eval_alias_statement();

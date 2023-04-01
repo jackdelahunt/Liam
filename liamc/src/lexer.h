@@ -56,7 +56,6 @@ enum class TokenType {
     TOKEN_GREATER,            // >
     TOKEN_GREATER_EQUAL,      // >=
     TOKEN_LESS_EQUAL,         // <=
-    TOKEN_EXTERN,             // extern
     TOKEN_NULL,               // null
     TOKEN_ENUM,               // enum
     TOKEN_CONTINUE,           // continue
@@ -67,7 +66,7 @@ enum class TokenType {
     TOKEN_TAG                 // @identifier
 };
 
-extern const char *TokenTypeStrings[52];
+extern const char *TokenTypeStrings[51];
 
 std::string get_token_type_string(TokenType type);
 

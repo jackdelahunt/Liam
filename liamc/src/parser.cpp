@@ -98,8 +98,7 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_STRUCT:
     case TokenType::TOKEN_IMPORT:
     case TokenType::TOKEN_ENUM:
-    case TokenType::TOKEN_ALIAS:
-    case TokenType::TOKEN_EXTERN: {
+    case TokenType::TOKEN_ALIAS: {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
             path.string(), token.span,
@@ -130,9 +129,6 @@ Statement *Parser::eval_top_level_statement() {
         break;
     case TokenType::TOKEN_ALIAS:
         return eval_alias_statement();
-        break;
-    case TokenType::TOKEN_EXTERN:
-        return eval_extern_statement();
         break;
 
     default: {
@@ -186,7 +182,7 @@ ScopeStatement *Parser::eval_scope_statement() {
     return new ScopeStatement(file, statements);
 }
 
-FnStatement *Parser::eval_fn_statement(bool is_extern) {
+FnStatement *Parser::eval_fn_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
 
     TypeExpression *parent_type = NULL;
@@ -232,7 +228,7 @@ FnStatement *Parser::eval_fn_statement(bool is_extern) {
     }
 }
 
-StructStatement *Parser::eval_struct_statement(bool is_extern) {
+StructStatement *Parser::eval_struct_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_STRUCT), NULL);
 
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
@@ -335,19 +331,6 @@ ExpressionStatement *Parser::eval_expression_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
     return new ExpressionStatement(file, expression);
-}
-
-Statement *Parser::eval_extern_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_EXTERN), NULL);
-
-    if (peek()->type == TokenType::TOKEN_FN)
-    { return eval_fn_statement(true); }
-
-    if (peek()->type == TokenType::TOKEN_STRUCT)
-    { return eval_struct_statement(true); }
-
-    panic("Cannot extern this statement");
-    return NULL;
 }
 
 EnumStatement *Parser::eval_enum_statement() {
