@@ -247,11 +247,13 @@ StructStatement *Parser::eval_struct_statement(bool is_extern) {
         generics = types;
     }
 
+    u8 tag_mask = TRY_CALL_RET(consume_tags(), NULL);
+
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    return new StructStatement(file, *identifier, generics, member, is_extern);
+    return new StructStatement(file, *identifier, generics, member, tag_mask);
 }
 
 ReturnStatement *Parser::eval_return_statement() {
