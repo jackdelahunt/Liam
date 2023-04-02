@@ -13,7 +13,8 @@ struct TypeExpression;
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
 enum Tags {
-    TAG_EXTERN = 0b00000001
+    TAG_EXTERN  = 0b00000001,
+    TAG_PRIVATE = 0b00000010
 };
 
 enum class StatementType {

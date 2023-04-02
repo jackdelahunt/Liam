@@ -129,6 +129,9 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
         {
             for (auto import_stmt : file->top_level_import_statements)
             {
+                // ocnvert from import path relative to source file as
+                // that is the defualt in the import stmt to the absolute
+                // path to the module on the system
                 auto import_path_relative_to_module = module->path;
                 import_path_relative_to_module.append(import_stmt->path->token.string);
                 auto import_path_absolute = std::filesystem::absolute(import_path_relative_to_module);
