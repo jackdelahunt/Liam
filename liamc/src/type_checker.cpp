@@ -252,6 +252,8 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
     this->current_module->add_function(
+        this->current_module,
+        this->current_file,
         statement->identifier,
         new FnTypeInfo(this->current_module->module_id, this->current_file->file_id, NULL, NULL, {}, {})
     );
@@ -274,6 +276,8 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     }
 
     this->current_module->add_type(
+        this->current_module,
+        this->current_file,
         statement->identifier,
         new StructTypeInfo(
             this->current_module->module_id, this->current_file->file_id, {}, {}, statement->generics.size()
@@ -285,6 +289,8 @@ void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
     this->current_module->add_type(
+        this->current_module,
+        this->current_file,
         statement->identifier,
         new EnumTypeInfo(this->current_module->module_id, this->current_file->file_id, std::vector<EnumMember>())
     );
