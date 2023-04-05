@@ -966,9 +966,7 @@ u8 Parser::consume_tags() {
         if (compare_string(tag.string, "@extern"))
         {
             if (BIT_SET(flag_mask, TAG_EXTERN))
-            { 
-                goto duplicate_error;  
-            }
+            { goto duplicate_error; }
 
             SET_BIT(flag_mask, TAG_EXTERN);
             continue;
@@ -976,9 +974,7 @@ u8 Parser::consume_tags() {
         else if (compare_string(tag.string, "@private"))
         {
             if (BIT_SET(flag_mask, TAG_PRIVATE))
-            { 
-                goto duplicate_error; 
-            }
+            { goto duplicate_error; }
 
             SET_BIT(flag_mask, TAG_PRIVATE);
             continue;
@@ -991,11 +987,11 @@ u8 Parser::consume_tags() {
             return 0;
         }
 
-duplicate_error:
+    duplicate_error:
         ErrorReporter::report_parser_error(
-                this->file->path.string(), tag.span, "Duplicate tag given for \"" + tag.string + "\""
-            );
-            return true;
+            this->file->path.string(), tag.span, "Duplicate tag given for \"" + tag.string + "\""
+        );
+        return true;
     }
 
     return flag_mask;
