@@ -213,7 +213,7 @@ void Lexer::lex() {
             i32 word_start = current_character;
             auto word      = get_word(file_data);
 
-            if (word.starts_with("@"))
+            if (word.data()[0] == '@')
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_TAG, word, current_line, word_start));
                 continue;
