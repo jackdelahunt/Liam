@@ -1,6 +1,6 @@
 #pragma once
 
-#include "expression.h"
+#include "ast.h"
 #include "lexer.h"
 
 struct TypeExpression;

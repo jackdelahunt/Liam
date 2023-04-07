@@ -3,7 +3,7 @@
 #include <utility>
 #include <vector>
 
-#include "expression.h"
+#include "ast.h"
 #include "liam.h"
 
 struct ParserError {

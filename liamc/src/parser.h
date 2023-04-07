@@ -5,10 +5,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "expression.h"
 #include "lexer.h"
 #include "liam.h"
-#include "statement.h"
+#include "ast.h"
 #include "type_info.h"
 
 struct Statement;
