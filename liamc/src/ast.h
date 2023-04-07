@@ -1,11 +1,77 @@
 #pragma once
-#include "lexer.h"
-#include "statement.h"
-#include "type_info.h"
 
-struct TypeExpression;
+#include "lexer.h"
+#include "parser.h"
+
+struct EnumMember;
+struct Statement;
+struct ExpressionStatement;
+struct LetStatement;
 struct ScopeStatement;
+struct FnStatement;
+struct StructStatement;
+struct AssigmentStatement;
+struct ImportStatement;
+struct ForStatement;
+struct IfStatement;
+struct ElseStatement;
+struct ReturnStatement;
+struct BreakStatement;
+struct EnumStatement;
+struct ContinueStatement;
+struct Expression;
+struct BinaryExpression;
+struct UnaryExpression;
+struct SubscriptExpression;
+struct NumberLiteralExpression;
+struct StringLiteralExpression;
+struct BoolLiteralExpression;
+struct IdentifierExpression;
+struct CallExpression;
+struct GetExpression;
+struct GroupExpression;
+struct NullLiteralExpression;
+struct ZeroLiteralExpression;
+struct FnExpression;
+struct SliceLiteralExpression;
+struct InstantiateExpression;
+struct StructInstanceExpression;
+struct EnumInstanceExpression;
+struct TypeExpression; 
+struct IdentifierTypeExpression;
+struct UnaryTypeExpression;
+struct SpecifiedGenericsTypeExpression;
+struct FnTypeExpression;
+
+struct File;
 struct TypeInfo;
+
+
+typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
+
+enum Tags {
+    TAG_EXTERN  = 0b00000001,
+    TAG_PRIVATE = 0b00000010
+};
+
+enum class StatementType {
+    STATEMENT_EXPRESSION,
+    STATEMENT_LET,
+    STATEMENT_SCOPE,
+    STATEMENT_FN,
+    STATEMENT_STRUCT,
+    STATEMENT_ASSIGNMENT,
+    STATEMENT_INSERT,
+    STATEMENT_IMPORT,
+    STATEMENT_RETURN,
+    STATEMENT_BREAK,
+    STATEMENT_FOR,
+    STATEMENT_IF,
+    STATEMENT_ELSE,
+    STATEMENT_ENUM,
+    STATEMENT_CONTINUE,
+    STATEMENT_MATCH,
+};
 
 enum class ExpressionType {
     EXPRESSION_BINARY,
@@ -31,6 +97,132 @@ enum class UnaryType {
     POINTER,
     POINTER_SLICE
 };
+
+enum class TypeExpressionType {
+    TYPE_IDENTIFIER,
+    TYPE_UNARY,
+    TYPE_SPECIFIED_GENERICS,
+    TYPE_FN,
+};
+
+struct EnumMember {
+    Token identifier;
+    std::vector<TypeExpression *> members;
+
+    EnumMember(Token identifier, std::vector<TypeExpression *> members);
+};
+
+struct Statement {
+    StatementType statement_type;
+    File *file = NULL;
+    virtual std::ostream &format(std::ostream &os) const;
+};
+
+struct ExpressionStatement : Statement {
+    Expression *expression;
+
+    ExpressionStatement(File *file, Expression *expression);
+};
+
+struct LetStatement : Statement {
+    Token identifier;
+    Expression *rhs;
+    TypeExpression *type;
+
+    LetStatement(File *file, Token identifier, Expression *expression, TypeExpression *type);
+};
+
+struct ScopeStatement : Statement {
+    std::vector<Statement *> statements;
+
+    ScopeStatement(File *file, std::vector<Statement *> statements);
+};
+
+struct FnStatement : Statement {
+    TypeExpression *parent_type;
+    Token identifier;
+    std::vector<Token> generics;
+    CSV params;
+    TypeExpression *return_type;
+    ScopeStatement *body;
+    u8 flag_mask;
+
+    FnStatement(
+        File *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
+        TypeExpression *type, ScopeStatement *body, u8 flag_mask
+    );
+};
+
+struct StructStatement : Statement {
+    Token identifier;
+    std::vector<Token> generics;
+    CSV members;
+    u8 flag_mask;
+
+    StructStatement(File *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask);
+};
+
+struct AssigmentStatement : Statement {
+    Expression *lhs;
+    ExpressionStatement *assigned_to;
+
+    AssigmentStatement(File *file, Expression *lhs, ExpressionStatement *assigned_to);
+};
+
+struct ImportStatement : Statement {
+    StringLiteralExpression *path;
+
+    ImportStatement(File *file, StringLiteralExpression *path);
+};
+
+struct ForStatement : Statement {
+    Statement *assign;
+    Expression *condition;
+    Statement *update;
+    ScopeStatement *body;
+
+    ForStatement(File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body);
+};
+
+struct ElseStatement;
+
+struct IfStatement : Statement {
+    Expression *expression;
+    ScopeStatement *body;
+    ElseStatement *else_statement;
+
+    IfStatement(File *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement);
+};
+
+struct ElseStatement : Statement {
+    IfStatement *if_statement;
+    ScopeStatement *body;
+
+    ElseStatement(IfStatement *if_statement, ScopeStatement *body);
+};
+
+struct ReturnStatement : Statement {
+    Expression *expression;
+
+    ReturnStatement(File *file, Expression *expression);
+};
+
+struct BreakStatement : Statement {
+    BreakStatement(File *file);
+};
+
+struct EnumStatement : Statement {
+    Token identifier;
+    std::vector<EnumMember> members;
+    u8 flag_mask;
+
+    EnumStatement(File *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask);
+};
+
+struct ContinueStatement : Statement {
+    ContinueStatement(File *file);
+};
+
 
 struct Expression {
     Span span           = {};
@@ -158,13 +350,6 @@ struct EnumInstanceExpression : Expression {
     u64 member_index; // populated at type checking time
 
     EnumInstanceExpression(Token lhs, Token member, std::vector<Expression *> arguments);
-};
-
-enum class TypeExpressionType {
-    TYPE_IDENTIFIER,
-    TYPE_UNARY,
-    TYPE_SPECIFIED_GENERICS,
-    TYPE_FN,
 };
 
 struct TypeExpression {

@@ -2,9 +2,8 @@
 #include <map>
 #include <string>
 
-#include "expression.h"
+#include "ast.h"
 #include "parser.h"
-#include "statement.h"
 #include "type_checker.h"
 
 struct CppBackend {
