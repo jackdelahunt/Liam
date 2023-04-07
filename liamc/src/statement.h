@@ -146,8 +146,9 @@ struct BreakStatement : Statement {
 struct EnumStatement : Statement {
     Token identifier;
     std::vector<EnumMember> members;
+    u8 flag_mask;
 
-    EnumStatement(File *file, Token identifier, std::vector<EnumMember> members);
+    EnumStatement(File *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask);
 };
 
 struct ContinueStatement : Statement {

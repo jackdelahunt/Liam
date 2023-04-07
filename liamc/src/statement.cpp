@@ -106,10 +106,11 @@ BreakStatement::BreakStatement(File *file) {
     this->statement_type = StatementType::STATEMENT_BREAK;
 }
 
-EnumStatement::EnumStatement(File *file, Token identifier, std::vector<EnumMember> members) {
+EnumStatement::EnumStatement(File *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask) {
     this->file           = file;
     this->identifier     = identifier;
     this->members        = members;
+    this->flag_mask      = flag_mask;
     this->statement_type = StatementType::STATEMENT_ENUM;
 }
 
