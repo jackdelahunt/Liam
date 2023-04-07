@@ -142,6 +142,19 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
                     {
                         for (auto string_to_index : other_module->top_level_type_table)
                         {
+                            TopLevelDescriptor descriptor =
+                                other_module->top_level_type_descriptors[string_to_index.second];
+
+                            if (descriptor.type_info->type == TypeInfoType::STRUCT)
+                            {
+                                if (BIT_SET(((StructTypeInfo *)descriptor.type_info)->flag_mask, TAG_PRIVATE))
+                                { continue; }
+                            }
+                            else
+                            {
+                                // TODO: add enums
+                            }
+
                             auto [type_info, failed] = module->get_type(string_to_index.first);
                             if (!failed || file->imported_type_table.count(string_to_index.first) > 0)
                             {
@@ -155,13 +168,18 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
                                 return;
                             }
 
-                            TopLevelDescriptor descriptor =
-                                other_module->top_level_type_descriptors[string_to_index.second];
                             file->imported_type_table[descriptor.identifier] = descriptor.type_info;
                         }
 
                         for (auto string_to_index : other_module->top_level_function_table)
                         {
+                            TopLevelDescriptor descriptor =
+                                other_module->top_level_fn_descriptors[string_to_index.second];
+                            ASSERT(descriptor.type_info->type == TypeInfoType::FN);
+
+                            if (BIT_SET(((FnTypeInfo *)descriptor.type_info)->flag_mask, TAG_PRIVATE))
+                            { continue; }
+
                             auto [type_info, failed] = module->get_function(string_to_index.first);
                             if (!failed || file->imported_function_table.count(string_to_index.first) > 0)
                             {
@@ -175,8 +193,6 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
                                 return;
                             }
 
-                            TopLevelDescriptor descriptor =
-                                other_module->top_level_fn_descriptors[string_to_index.second];
                             file->imported_function_table[descriptor.identifier] = descriptor.type_info;
                         }
                     }
@@ -252,10 +268,10 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
     this->current_module->add_function(
-        this->current_module,
-        this->current_file,
-        statement->identifier,
-        new FnTypeInfo(this->current_module->module_id, this->current_file->file_id, NULL, NULL, {}, {})
+        this->current_module, this->current_file, statement->identifier,
+        new FnTypeInfo(
+            this->current_module->module_id, this->current_file->file_id, statement->flag_mask, NULL, NULL, {}, {}
+        )
     );
 }
 
@@ -276,11 +292,10 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     }
 
     this->current_module->add_type(
-        this->current_module,
-        this->current_file,
-        statement->identifier,
+        this->current_module, this->current_file, statement->identifier,
         new StructTypeInfo(
-            this->current_module->module_id, this->current_file->file_id, {}, {}, statement->generics.size()
+            this->current_module->module_id, this->current_file->file_id, statement->flag_mask, {}, {},
+            statement->generics.size()
         )
     );
 }
@@ -289,9 +304,7 @@ void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
     this->current_module->add_type(
-        this->current_module,
-        this->current_file,
-        statement->identifier,
+        this->current_module, this->current_file, statement->identifier,
         new EnumTypeInfo(this->current_module->module_id, this->current_file->file_id, std::vector<EnumMember>())
     );
 }
@@ -345,7 +358,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         parent_type_info->member_functions.push_back(
             {statement->identifier.string,
              new FnTypeInfo(
-                 this->current_module->module_id, this->current_file->file_id, parent_type_info,
+                 this->current_module->module_id, this->current_file->file_id, statement->flag_mask, parent_type_info,
                  statement->return_type->type_info, generic_type_infos, param_type_infos
              )}
         );
@@ -357,10 +370,9 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     u64 index              = this->current_module->top_level_function_table[statement->identifier.string];
     auto current_type_info = (FnTypeInfo *)this->current_module->top_level_fn_descriptors[index].type_info;
 
-    *current_type_info = FnTypeInfo(
-        this->current_module->module_id, this->current_file->file_id, NULL, statement->return_type->type_info,
-        generic_type_infos, param_type_infos
-    );
+    current_type_info->return_type        = statement->return_type->type_info;
+    current_type_info->generic_type_infos = generic_type_infos;
+    current_type_info->args               = param_type_infos;
 }
 
 void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {

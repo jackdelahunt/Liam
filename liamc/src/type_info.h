@@ -69,13 +69,14 @@ struct TypeTypeInfo : TypeInfo {
 struct StructTypeInfo : TypeInfo {
     u16 module_id;
     u16 file_id;
+    u8 flag_mask;
 
     std::vector<std::tuple<std::string, FnTypeInfo *>> member_functions;
     std::vector<std::tuple<std::string, TypeInfo *>> members;
     u64 generic_count;
 
     StructTypeInfo(
-        u16 module_id, u16 file_id, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+        u16 module_id, u16 file_id, u8 flag_mask, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
         std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
     );
 };
@@ -90,6 +91,7 @@ struct StructInstanceTypeInfo : TypeInfo {
 struct FnTypeInfo : TypeInfo {
     u16 module_id;
     u16 file_id;
+    u8 flag_mask;
 
     StructTypeInfo *parent_type;
     TypeInfo *return_type;
@@ -97,7 +99,7 @@ struct FnTypeInfo : TypeInfo {
     std::vector<TypeInfo *> args;
 
     FnTypeInfo(
-        u16 module_id, u16 file_id, StructTypeInfo *parentType, TypeInfo *returnType,
+        u16 module_id, u16 file_id, u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType,
         std::vector<TypeInfo *> genericTypeInfos, std::vector<TypeInfo *> args
     );
 };
