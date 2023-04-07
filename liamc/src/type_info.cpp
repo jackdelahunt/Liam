@@ -32,11 +32,12 @@ TypeTypeInfo::TypeTypeInfo() {
 }
 
 StructTypeInfo::StructTypeInfo(
-    u16 module_id, u16 file_id, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+    u16 module_id, u16 file_id, u8 flag_mask, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
     std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
 ) {
     this->module_id        = module_id;
     this->file_id          = file_id;
+    this->flag_mask        = flag_mask;
     this->member_functions = memberFunctions;
     this->members          = members;
     this->generic_count    = genericCount;
@@ -50,11 +51,12 @@ StructInstanceTypeInfo::StructInstanceTypeInfo(StructTypeInfo *structType, std::
 }
 
 FnTypeInfo::FnTypeInfo(
-    u16 module_id, u16 file_id, StructTypeInfo *parentType, TypeInfo *returnType,
+    u16 module_id, u16 file_id, u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType,
     std::vector<TypeInfo *> genericTypeInfos, std::vector<TypeInfo *> args
 ) {
     this->module_id          = module_id;
     this->file_id            = file_id;
+    this->flag_mask          = flag_mask;
     this->parent_type        = parentType;
     this->return_type        = returnType;
     this->generic_type_infos = genericTypeInfos;
