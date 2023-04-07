@@ -36,8 +36,6 @@ std::string CppBackend::emit(std::vector<Module *> *modules) {
         for (auto file : module->files)
         {
             this->current_file = file;
-            for (auto stmt : file->top_level_alias_statements)
-            { source_generated.append(emit_alias_statement(stmt)); }
 
             for (auto stmt : file->top_level_enum_statements)
             { source_generated.append(emit_enum_statement(stmt)); }
@@ -174,9 +172,6 @@ std::string CppBackend::emit_statement(Statement *statement) {
         break;
     case StatementType::STATEMENT_CONTINUE:
         return emit_continue_statement(dynamic_cast<ContinueStatement *>(statement));
-        break;
-    case StatementType::STATEMENT_ALIAS:
-        return emit_alias_statement(dynamic_cast<AliasStatement *>(statement));
         break;
     }
 
@@ -425,10 +420,6 @@ bool operator==(const {}& other) const {{
 
 std::string CppBackend::emit_continue_statement(ContinueStatement *statement) {
     return "continue;";
-}
-
-std::string CppBackend::emit_alias_statement(AliasStatement *statement) {
-    return "typedef " + emit_type_expression(statement->type_expression) + " " + statement->identifier.string + ";\n";
 }
 
 std::string CppBackend::emit_expression(Expression *expression) {

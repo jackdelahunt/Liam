@@ -33,7 +33,6 @@ enum class StatementType {
     STATEMENT_ELSE,
     STATEMENT_ENUM,
     STATEMENT_CONTINUE,
-    STATEMENT_ALIAS,
     STATEMENT_MATCH,
 };
 
@@ -153,11 +152,4 @@ struct EnumStatement : Statement {
 
 struct ContinueStatement : Statement {
     ContinueStatement(File *file);
-};
-
-struct AliasStatement : Statement {
-    Token identifier;
-    TypeExpression *type_expression;
-
-    AliasStatement(File *file, Token identifier, TypeExpression *type_expression);
 };
