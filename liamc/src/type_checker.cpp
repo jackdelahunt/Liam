@@ -116,9 +116,6 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
 
             for (auto stmt : file->top_level_fn_statements)
             { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
-
-            for (auto stmt : file->top_level_alias_statements)
-            {}
         }
     }
 
@@ -129,7 +126,7 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
         {
             for (auto import_stmt : file->top_level_import_statements)
             {
-                // ocnvert from import path relative to source file as
+                // convert from import path relative to source file as
                 // that is the defualt in the import stmt to the absolute
                 // path to the module on the system
                 auto import_path_relative_to_module = module->path;
@@ -217,9 +214,6 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
 
             for (auto stmt : file->top_level_struct_statements)
             { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
-
-            for (auto stmt : file->top_level_alias_statements)
-            {}
         }
     }
 
@@ -311,12 +305,6 @@ void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
             statement->flag_mask
         )
     );
-}
-
-void TypeChecker::type_check_alias_symbol(AliasStatement *statement) {
-    // TODO: fix aliases
-    // TRY_CALL_VOID(type_check_type_expression(statement->type_expression, symbol_table));
-    // symbol_table->add_type(statement->identifier, statement->type_expression->type_info);
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
@@ -540,7 +528,6 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
     case StatementType::STATEMENT_STRUCT:
     case StatementType::STATEMENT_ENUM:
     case StatementType::STATEMENT_IMPORT:
-    case StatementType::STATEMENT_ALIAS:
     case StatementType::STATEMENT_FN:
         ASSERT_MSG(0, "These should of already been type checked in the first pass");
     default:
@@ -1285,7 +1272,7 @@ void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *ex
     if (fail)
     {
         ErrorReporter::report_type_checker_error(
-            current_file->path.string(), expression, expression, NULL, NULL, {},
+            current_file->path.string(), expression, NULL, NULL, NULL, {},
             fmt::format("No enum type \"{}\" declared", expression->lhs.string)
         );
         return;

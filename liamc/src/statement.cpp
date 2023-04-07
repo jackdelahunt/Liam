@@ -118,10 +118,3 @@ ContinueStatement::ContinueStatement(File *file) {
     this->file           = file;
     this->statement_type = StatementType::STATEMENT_CONTINUE;
 }
-
-AliasStatement::AliasStatement(File *file, Token identifier, TypeExpression *type_expression) {
-    this->file            = file;
-    this->type_expression = type_expression;
-    this->identifier      = identifier;
-    this->statement_type  = StatementType::STATEMENT_ALIAS;
-}

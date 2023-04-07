@@ -49,7 +49,6 @@ struct TypeChecker {
     void type_check_fn_symbol(FnStatement *statement);
     void type_check_struct_symbol(StructStatement *statement);
     void type_check_enum_symbol(EnumStatement *statement);
-    void type_check_alias_symbol(AliasStatement *statement);
     void type_check_fn_decl(FnStatement *statement);
     void type_check_fn_statement_full(FnStatement *statement);
     void type_check_struct_statement_full(StructStatement *statement);

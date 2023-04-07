@@ -15,7 +15,6 @@ File::File(std::filesystem::path path) {
     this->imported_type_table         = std::unordered_map<std::string, TypeInfo *>();
     this->top_level_import_statements = std::vector<ImportStatement *>();
     this->top_level_struct_statements = std::vector<StructStatement *>();
-    this->top_level_alias_statements  = std::vector<AliasStatement *>();
     this->top_level_fn_statements     = std::vector<FnStatement *>();
     this->top_level_enum_statements   = std::vector<EnumStatement *>();
 
@@ -43,11 +42,6 @@ void Parser::parse() {
         {
             auto fn_stmt = dynamic_cast<FnStatement *>(stmt);
             file->top_level_fn_statements.push_back(fn_stmt);
-        }
-        else if (stmt->statement_type == StatementType::STATEMENT_ALIAS)
-        {
-            auto alias_stmt = dynamic_cast<AliasStatement *>(stmt);
-            file->top_level_alias_statements.push_back(alias_stmt);
         }
         else if (stmt->statement_type == StatementType::STATEMENT_ENUM)
         {
@@ -97,8 +91,7 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_FN:
     case TokenType::TOKEN_STRUCT:
     case TokenType::TOKEN_IMPORT:
-    case TokenType::TOKEN_ENUM:
-    case TokenType::TOKEN_ALIAS: {
+    case TokenType::TOKEN_ENUM: {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
             path.string(), token.span,
@@ -126,9 +119,6 @@ Statement *Parser::eval_top_level_statement() {
         break;
     case TokenType::TOKEN_ENUM:
         return eval_enum_statement();
-        break;
-    case TokenType::TOKEN_ALIAS:
-        return eval_alias_statement();
         break;
 
     default: {
@@ -349,16 +339,6 @@ ContinueStatement *Parser::eval_continue_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_CONTINUE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
     return new ContinueStatement(file);
-}
-
-AliasStatement *Parser::eval_alias_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ALIAS), NULL);
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_AS), NULL);
-    auto type_expression = TRY_CALL_RET(eval_type_expression(), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-
-    return new AliasStatement(file, *identifier, type_expression);
 }
 
 Statement *Parser::eval_line_starting_expression() {

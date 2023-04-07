@@ -27,7 +27,6 @@ struct IfStatement;
 struct ElseStatement;
 struct EnumStatement;
 struct ContinueStatement;
-struct AliasStatement;
 struct TestStatement;
 struct Expression;
 struct TypeExpression;
@@ -43,7 +42,6 @@ struct File {
 
     std::vector<ImportStatement *> top_level_import_statements;
     std::vector<StructStatement *> top_level_struct_statements;
-    std::vector<AliasStatement *> top_level_alias_statements;
     std::vector<FnStatement *> top_level_fn_statements;
     std::vector<EnumStatement *> top_level_enum_statements;
     std::filesystem::path path;
@@ -77,7 +75,6 @@ struct Parser {
     ExpressionStatement *eval_expression_statement();
     EnumStatement *eval_enum_statement();
     ContinueStatement *eval_continue_statement();
-    AliasStatement *eval_alias_statement();
     Statement *eval_line_starting_expression();
 
     /* normal expressions */
