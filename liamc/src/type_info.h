@@ -120,8 +120,9 @@ struct GenericTypeInfo : TypeInfo {
 struct EnumTypeInfo : TypeInfo {
     u16 module_id;
     u16 file_id;
+    u8 flag_mask;
 
     std::vector<EnumMember> members;
 
-    EnumTypeInfo(u16 module_id, u16 file_id, std::vector<EnumMember> members);
+    EnumTypeInfo(u16 module_id, u16 file_id, std::vector<EnumMember> members, u8 flag_mask);
 };

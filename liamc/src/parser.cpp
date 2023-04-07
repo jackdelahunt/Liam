@@ -337,11 +337,12 @@ EnumStatement *Parser::eval_enum_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ENUM), NULL);
 
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    u8 tag_mask     = TRY_CALL_RET(consume_tags(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
     auto members = TRY_CALL_RET(consume_comma_seperated_enum_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new EnumStatement(file, *identifier, members);
+    return new EnumStatement(file, *identifier, members, tag_mask);
 }
 
 ContinueStatement *Parser::eval_continue_statement() {

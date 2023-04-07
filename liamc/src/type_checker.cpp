@@ -150,9 +150,10 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
                                 if (BIT_SET(((StructTypeInfo *)descriptor.type_info)->flag_mask, TAG_PRIVATE))
                                 { continue; }
                             }
-                            else
+                            else if (descriptor.type_info->type == TypeInfoType::ENUM)
                             {
-                                // TODO: add enums
+                                if (BIT_SET(((EnumTypeInfo *)descriptor.type_info)->flag_mask, TAG_PRIVATE))
+                                { continue; }
                             }
 
                             auto [type_info, failed] = module->get_type(string_to_index.first);
@@ -305,7 +306,10 @@ void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
     // add it to the table and leave its type info blank until we type check it
     this->current_module->add_type(
         this->current_module, this->current_file, statement->identifier,
-        new EnumTypeInfo(this->current_module->module_id, this->current_file->file_id, std::vector<EnumMember>())
+        new EnumTypeInfo(
+            this->current_module->module_id, this->current_file->file_id, std::vector<EnumMember>(),
+            statement->flag_mask
+        )
     );
 }
 
