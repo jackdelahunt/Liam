@@ -66,6 +66,7 @@ struct TypeChecker {
     void type_check_else_statement(ElseStatement *statement, SymbolTable *symbol_table);
     void type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table);
     void type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table);
+    void type_check_match_statement(MatchStatement *statement, SymbolTable *symbol_table);
 
     void type_check_expression(Expression *expression, SymbolTable *symbol_table);
     void type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table);

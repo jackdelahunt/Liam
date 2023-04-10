@@ -7,13 +7,21 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Code",
+            "name": "compiler",
             "program": "${workspaceFolder}/zig-out/bin/liamc",
             "args": [
                 "--in=program/main.liam",
                 "--stdlib=stdlib",
                 "--time", 
             ],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "program",
+            "program": "${workspaceFolder}/out.exe",
+            "args": [],
             "cwd": "${workspaceFolder}"
         },
     ]

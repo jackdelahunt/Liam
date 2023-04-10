@@ -1,7 +1,6 @@
 #pragma once
 
 #include "lexer.h"
-#include "parser.h"
 
 struct EnumMember;
 struct Statement;
@@ -17,6 +16,7 @@ struct IfStatement;
 struct ElseStatement;
 struct ReturnStatement;
 struct BreakStatement;
+struct EnumMember;
 struct EnumStatement;
 struct ContinueStatement;
 struct Expression;
@@ -37,7 +37,7 @@ struct SliceLiteralExpression;
 struct InstantiateExpression;
 struct StructInstanceExpression;
 struct EnumInstanceExpression;
-struct TypeExpression; 
+struct TypeExpression;
 struct IdentifierTypeExpression;
 struct UnaryTypeExpression;
 struct SpecifiedGenericsTypeExpression;
@@ -45,7 +45,6 @@ struct FnTypeExpression;
 
 struct File;
 struct TypeInfo;
-
 
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
@@ -105,13 +104,21 @@ enum class TypeExpressionType {
     TYPE_FN,
 };
 
-struct EnumMember {
+/*
+    ======= PATTERN MATCHES ========
+*/
+struct EnumMemberPatternMatch {
     Token identifier;
-    std::vector<TypeExpression *> members;
+    std::vector<Token> matched_members;
+    i64 enum_member_index; // filled in by the type checker, this is used to index into to enum members in the enum type
+                           // info
 
-    EnumMember(Token identifier, std::vector<TypeExpression *> members);
+    EnumMemberPatternMatch(Token identifier, std::vector<Token> matched_members);
 };
 
+/*
+    ======= STATEMENTS ========
+*/
 struct Statement {
     StatementType statement_type;
     File *file = NULL;
@@ -184,8 +191,6 @@ struct ForStatement : Statement {
     ForStatement(File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body);
 };
 
-struct ElseStatement;
-
 struct IfStatement : Statement {
     Expression *expression;
     ScopeStatement *body;
@@ -211,6 +216,13 @@ struct BreakStatement : Statement {
     BreakStatement(File *file);
 };
 
+struct EnumMember {
+    Token identifier;
+    std::vector<TypeExpression *> members;
+
+    EnumMember(Token identifier, std::vector<TypeExpression *> members);
+};
+
 struct EnumStatement : Statement {
     Token identifier;
     std::vector<EnumMember> members;
@@ -219,11 +231,24 @@ struct EnumStatement : Statement {
     EnumStatement(File *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask);
 };
 
+struct MatchStatement : Statement {
+    Expression *matching_expression;
+    std::vector<EnumMemberPatternMatch> pattern_matches;
+    std::vector<ScopeStatement *> pattern_match_arms;
+
+    MatchStatement(
+        Expression *matching_expression, std::vector<EnumMemberPatternMatch> pattern_matches,
+        std::vector<ScopeStatement *> pattern_match_arms
+    );
+};
+
 struct ContinueStatement : Statement {
     ContinueStatement(File *file);
 };
 
-
+/*
+    ======= EXPRESSIONS ========
+*/
 struct Expression {
     Span span           = {};
     TypeInfo *type_info = nullptr;
@@ -352,6 +377,9 @@ struct EnumInstanceExpression : Expression {
     EnumInstanceExpression(Token lhs, Token member, std::vector<Expression *> arguments);
 };
 
+/*
+    ======= TYPE EXPRESSIONS ========
+*/
 struct TypeExpression {
     Span span           = {};
     TypeInfo *type_info = nullptr;

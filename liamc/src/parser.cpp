@@ -88,6 +88,9 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_CONTINUE:
         return eval_continue_statement();
         break;
+    case TokenType::TOKEN_MATCH:
+        return eval_match_statement();
+        break;
     case TokenType::TOKEN_FN:
     case TokenType::TOKEN_STRUCT:
     case TokenType::TOKEN_IMPORT:
@@ -339,6 +342,28 @@ ContinueStatement *Parser::eval_continue_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_CONTINUE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
     return new ContinueStatement(file);
+}
+
+MatchStatement *Parser::eval_match_statement() {
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_MATCH), NULL);
+    auto matching_expression = TRY_CALL_RET(eval_expression(), NULL);
+
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+
+    auto pattern_matches = std::vector<EnumMemberPatternMatch>();
+    auto match_arms      = std::vector<ScopeStatement *>();
+    while (peek()->type != TokenType::TOKEN_BRACE_CLOSE)
+    {
+        EnumMemberPatternMatch pattern_match = TRY_CALL_RET(consume_enum_pattern_match(), NULL);
+        ScopeStatement *match_arm            = TRY_CALL_RET(eval_scope_statement(), NULL);
+
+        pattern_matches.push_back(pattern_match);
+        match_arms.push_back(match_arm);
+    }
+
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
+
+    return new MatchStatement(matching_expression, pattern_matches, match_arms);
 }
 
 Statement *Parser::eval_line_starting_expression() {
@@ -936,6 +961,18 @@ std::vector<EnumMember> Parser::consume_comma_seperated_enum_arguments(TokenType
     return enum_members;
 }
 
+EnumMemberPatternMatch Parser::consume_enum_pattern_match() {
+    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), EnumMemberPatternMatch({}, {}));
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), EnumMemberPatternMatch({}, {}));
+    auto matched_membes = TRY_CALL_RET(
+        consume_comma_seperated_token_arguments(TokenType::TOKEN_PAREN_CLOSE), EnumMemberPatternMatch({}, {})
+    );
+    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), EnumMemberPatternMatch({}, {}));
+
+    return EnumMemberPatternMatch(*identifier, matched_membes);
+}
+
+// @extern @private
 u8 Parser::consume_tags() {
     u8 flag_mask = 0;
 

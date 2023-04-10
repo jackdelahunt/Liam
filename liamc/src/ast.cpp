@@ -2,9 +2,10 @@
 
 #include <tuple>
 
-EnumMember::EnumMember(Token identifier, std::vector<TypeExpression *> members) {
-    this->identifier = identifier;
-    this->members    = members;
+EnumMemberPatternMatch::EnumMemberPatternMatch(Token identifier, std::vector<Token> matched_members) {
+    this->identifier        = identifier;
+    this->matched_members   = matched_members;
+    this->enum_member_index = -1;
 }
 
 std::ostream &Statement::format(std::ostream &os) const {
@@ -104,12 +105,27 @@ BreakStatement::BreakStatement(File *file) {
     this->statement_type = StatementType::STATEMENT_BREAK;
 }
 
+EnumMember::EnumMember(Token identifier, std::vector<TypeExpression *> members) {
+    this->identifier = identifier;
+    this->members    = members;
+}
+
 EnumStatement::EnumStatement(File *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask) {
     this->file           = file;
     this->identifier     = identifier;
     this->members        = members;
     this->flag_mask      = flag_mask;
     this->statement_type = StatementType::STATEMENT_ENUM;
+}
+
+MatchStatement::MatchStatement(
+    Expression *matching_expression, std::vector<EnumMemberPatternMatch> pattern_matches,
+    std::vector<ScopeStatement *> pattern_match_arms
+) {
+    this->matching_expression = matching_expression;
+    this->pattern_matches     = pattern_matches;
+    this->pattern_match_arms  = pattern_match_arms;
+    this->statement_type      = StatementType::STATEMENT_MATCH;
 }
 
 ContinueStatement::ContinueStatement(File *file) {

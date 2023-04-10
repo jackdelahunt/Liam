@@ -61,10 +61,11 @@ enum class TokenType {
     TOKEN_CONTINUE,           // continue
     TOKEN_ZERO,               // zero
     TOKEN_AMPERSAND,          // &
-    TOKEN_TAG                 // @identifier
+    TOKEN_TAG,                // @identifier
+    TOKEN_MATCH               // match
 };
 
-extern const char *TokenTypeStrings[49];
+extern const char *TokenTypeStrings[50];
 
 std::string get_token_type_string(TokenType type);
 

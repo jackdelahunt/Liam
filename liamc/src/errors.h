@@ -30,6 +30,7 @@ struct TypeCheckerError {
     TypeCheckerError &set_type_expr_2(TypeExpression *type_expression);
     TypeCheckerError &add_related_token(Token token);
     TypeCheckerError &set_message(std::string message);
+    void report();
 
     void print_error_message();
 };

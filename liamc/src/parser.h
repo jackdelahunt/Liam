@@ -5,9 +5,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "ast.h"
 #include "lexer.h"
 #include "liam.h"
-#include "ast.h"
 #include "type_info.h"
 
 struct Statement;
@@ -26,6 +26,7 @@ struct IfStatement;
 struct ElseStatement;
 struct EnumStatement;
 struct ContinueStatement;
+struct MatchStatement;
 struct TestStatement;
 struct Expression;
 struct TypeExpression;
@@ -74,6 +75,7 @@ struct Parser {
     ExpressionStatement *eval_expression_statement();
     EnumStatement *eval_enum_statement();
     ContinueStatement *eval_continue_statement();
+    MatchStatement *eval_match_statement();
     Statement *eval_line_starting_expression();
 
     /* normal expressions */
@@ -113,6 +115,7 @@ struct Parser {
     std::vector<Token> consume_comma_seperated_token_arguments(TokenType closer);
     std::vector<std::tuple<Token, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
     std::vector<EnumMember> consume_comma_seperated_enum_arguments(TokenType closer);
+    EnumMemberPatternMatch consume_enum_pattern_match();
     u8 consume_tags();
 
     // this is what CSV is

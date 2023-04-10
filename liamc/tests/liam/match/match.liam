@@ -1,0 +1,41 @@
+//The number is less then ten
+//The number was over ten :[
+
+import "../../stdlib";
+
+enum Result {
+    Ok(i64),
+    Err(str)
+}
+
+fn main() void {
+    let maybe_error := error_over_ten(9);
+
+    match maybe_error {
+        Ok(n) {
+            println::<str>("The number is less then ten");
+        }
+        Err(s) {
+            println::<str>(s);
+        }
+    }
+
+    maybe_error = error_over_ten(100);
+
+    match maybe_error {
+        Ok(n) {
+            println::<str>("The number less then ten");
+        }
+        Err(s) {
+            println::<str>(s);
+        }
+    }
+}
+
+fn error_over_ten(n: i64) Result {
+    if n > 10 {
+        return new Result::Err("The number was over ten :[");
+    }
+
+    return new Result::Ok(n);
+}
