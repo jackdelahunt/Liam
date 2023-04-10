@@ -411,10 +411,12 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 
     // params and get type expressions
     auto args = std::vector<std::tuple<Token, TypeInfo *>>();
+    args.reserve(fn_type_info->args.size());
+    args.resize(fn_type_info->args.size());
     for (int i = 0; i < fn_type_info->args.size(); i++)
     {
         auto &[identifier, expr] = statement->params.at(i);
-        args.push_back({identifier, fn_type_info->args.at(i)});
+        args[i]                  = {identifier, fn_type_info->args.at(i)};
     }
 
     if (statement->parent_type != NULL)
@@ -469,10 +471,13 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
     { TRY_CALL_VOID(symbol_table.add_local_type(statement->generics[i], new GenericTypeInfo(i))); }
 
     auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
-    for (auto &[member, expr] : statement->members)
+    members_type_info.reserve(statement->members.size());
+    members_type_info.resize(statement->members.size());
+    for (i64 i = 0; i < statement->members.size(); i++)
     {
+        auto [member, expr] = statement->members.at(i);
         TRY_CALL_VOID(type_check_type_expression(expr, &symbol_table));
-        members_type_info.emplace_back(member.string, expr->type_info);
+        members_type_info[i] = {member.string, expr->type_info};
     }
 
     // this struct has not been fully typed until now just add to the type that already exists in the

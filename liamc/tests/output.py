@@ -6,9 +6,22 @@ main_code = """
 
 print(main_code)
 
+types_code = ""
+
+for i in range(100000):
+    types_code = f"""struct TypeStruct{i} {{
+        a: i64,
+        b: bool,
+        c: f32,
+        x: str,
+        y: f64,
+        z: u32
+    }}
+    {types_code}"""
+
 body_code = ""
 
-for i in range(100):
+for i in range(0):
     body_code = f"""
     let n_1_{i} := {i};
     let s_1_{i} := \"{i}\";
@@ -22,7 +35,9 @@ for i in range(100):
     {body_code}
     """
 
-for i in range(10000):
+print(types_code)
+
+for i in range(0):
     function_code = f"""fn add_{i}(a: i64, b: i64, c: i64, d: bool, e: str) void {{
         {body_code}
     }}"""
