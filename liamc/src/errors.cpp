@@ -58,6 +58,10 @@ TypeCheckerError &TypeCheckerError::set_message(std::string message) {
     return *this;
 }
 
+void TypeCheckerError::report() {
+    ErrorReporter::report_type_checker_error(*this);
+}
+
 void TypeCheckerError::print_error_message() {
     fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Type checking ERROR :: {}\n", error);
 

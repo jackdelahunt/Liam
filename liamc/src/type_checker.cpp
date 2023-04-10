@@ -21,10 +21,11 @@ SymbolTable::SymbolTable(Module *current_module, File *current_file) {
 void SymbolTable::add_local_type(Token token, TypeInfo *type_info) {
     if (this->local_type_table.count(token.string) > 0)
     {
-        panic(
-            "Duplcate creation of type: " + token.string + " at (" + std::to_string(token.span.line) + "," +
-            std::to_string(token.span.start) + ")"
-        );
+        TypeCheckerError::make(this->current_file->path.string())
+            .add_related_token(token)
+            .set_message("Duplicate creation of type \"" + token.string + "\"")
+            .report();
+        return;
     }
 
     this->local_type_table[token.string] = type_info;
@@ -33,19 +34,19 @@ void SymbolTable::add_local_type(Token token, TypeInfo *type_info) {
 void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     if (identifier_table.count(identifier.string) > 0)
     {
-        panic(
-            "Duplicate creation of identifier: " + identifier.string + " at (" + std::to_string(identifier.span.line) +
-            "," + std::to_string(identifier.span.start) + ")"
-        );
+        TypeCheckerError::make(this->current_file->path.string())
+            .add_related_token(identifier)
+            .set_message("Duplicate creation of identifier \"" + identifier.string + "\"")
+            .report();
+
+        return;
     }
 
     identifier_table[identifier.string] = type_info;
 }
 
 void SymbolTable::add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info) {
-    if (identifier_table.count(identifier) > 0)
-    { panic("Duplicate creation of identifier: " + identifier); }
-
+    ASSERT(identifier_table.count(identifier) > 0);
     identifier_table[identifier] = type_info;
 }
 
@@ -156,13 +157,12 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
                             auto [type_info, failed] = module->get_type(string_to_index.first);
                             if (!failed || file->imported_type_table.count(string_to_index.first) > 0)
                             {
-                                TypeCheckerError error =
-                                    TypeCheckerError::make(file->path.string())
-                                        .set_expr_1(import_stmt->path)
-                                        .set_message(
-                                            "Module import adds already declared type \"" + string_to_index.first + "\""
-                                        );
-                                ErrorReporter::report_type_checker_error(error);
+                                TypeCheckerError::make(file->path.string())
+                                    .set_expr_1(import_stmt->path)
+                                    .set_message(
+                                        "Module import adds already declared type \"" + string_to_index.first + "\""
+                                    )
+                                    .report();
                                 return;
                             }
 
@@ -181,13 +181,12 @@ void TypeChecker::type_check(std::vector<Module *> *modules) {
                             auto [type_info, failed] = module->get_function(string_to_index.first);
                             if (!failed || file->imported_function_table.count(string_to_index.first) > 0)
                             {
-                                TypeCheckerError error = TypeCheckerError::make(file->path.string())
-                                                             .set_expr_1(import_stmt->path)
-                                                             .set_message(
-                                                                 "Module import adds already declared function \"" +
-                                                                 string_to_index.first + "\""
-                                                             );
-                                ErrorReporter::report_type_checker_error(error);
+                                TypeCheckerError::make(file->path.string())
+                                    .set_expr_1(import_stmt->path)
+                                    .set_message(
+                                        "Module import adds already declared function \"" + string_to_index.first + "\""
+                                    )
+                                    .report();
                                 return;
                             }
 
@@ -278,11 +277,10 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     if (!failed)
     {
 
-        TypeCheckerError error = TypeCheckerError::make(current_file->path.string())
-                                     .add_related_token(statement->identifier)
-                                     .set_message("Re-declaration of type \"" + statement->identifier.string + "\"");
-
-        ErrorReporter::report_type_checker_error(error);
+        TypeCheckerError::make(current_file->path.string())
+            .add_related_token(statement->identifier)
+            .set_message("Re-declaration of type \"" + statement->identifier.string + "\"")
+            .report();
         return;
     }
 
@@ -316,7 +314,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         for (u64 i = 0; i < statement->generics.size(); i++)
         {
             auto generic_type = new GenericTypeInfo(i);
-            symbol_table.add_local_type(statement->generics[i], generic_type);
+            TRY_CALL_VOID(symbol_table.add_local_type(statement->generics[i], generic_type));
             generic_type_infos.push_back(generic_type);
         }
     }
@@ -339,11 +337,10 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
         if (parent_type_info == NULL)
         {
-            TypeCheckerError error = TypeCheckerError::make(current_file->path.string())
-                                         .set_type_expr_1(statement->parent_type)
-                                         .set_message("Member functions can only be used on struct types");
-
-            ErrorReporter::report_type_checker_error(error);
+            TypeCheckerError::make(current_file->path.string())
+                .set_type_expr_1(statement->parent_type)
+                .set_message("Member functions can only be used on struct types")
+                .report();
             return;
         }
 
@@ -391,11 +388,11 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
         auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
         if (parent_type_info == NULL)
         {
-            TypeCheckerError error = TypeCheckerError::make(current_file->path.string())
-                                         .set_type_expr_1(statement->parent_type)
-                                         .set_message("Member functions can only be used on struct types");
+            TypeCheckerError::make(current_file->path.string())
+                .set_type_expr_1(statement->parent_type)
+                .set_message("Member functions can only be used on struct types")
+                .report();
 
-            ErrorReporter::report_type_checker_error(error);
             return;
         }
 
@@ -424,10 +421,10 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     { symbol_table.add_compiler_generated_identifier("self", new PointerTypeInfo(statement->parent_type->type_info)); }
 
     for (auto &[identifier, type_info] : args)
-    { symbol_table.add_identifier(identifier, type_info); }
+    { TRY_CALL_VOID(symbol_table.add_identifier(identifier, type_info)); }
 
     for (u64 i = 0; i < statement->generics.size(); i++)
-    { symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i]); }
+    { TRY_CALL_VOID(symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i])); }
 
     // type statements and check return exists if needed
     TRY_CALL_VOID(type_check_scope_statement(statement->body, &symbol_table, false));
@@ -441,11 +438,11 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
             {
                 if (rt->expression != NULL)
                 {
-                    TypeCheckerError error = TypeCheckerError::make(current_file->path.string())
-                                                 .set_expr_1(rt->expression)
-                                                 .set_message("found expression in return when return type is void");
+                    TypeCheckerError::make(current_file->path.string())
+                        .set_expr_1(rt->expression)
+                        .set_message("found expression in return when return type is void")
+                        .report();
 
-                    ErrorReporter::report_type_checker_error(error);
                     return;
                 }
             }
@@ -469,7 +466,7 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
     SymbolTable symbol_table = SymbolTable(current_module, current_file);
 
     for (u64 i = 0; i < statement->generics.size(); i++)
-    { symbol_table.add_local_type(statement->generics[i], new GenericTypeInfo(i)); }
+    { TRY_CALL_VOID(symbol_table.add_local_type(statement->generics[i], new GenericTypeInfo(i))); }
 
     auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
     for (auto &[member, expr] : statement->members)
@@ -525,6 +522,9 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
         return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table);
     case StatementType::STATEMENT_CONTINUE:
         break;
+    case StatementType::STATEMENT_MATCH:
+        return type_check_match_statement(dynamic_cast<MatchStatement *>(statement), symbol_table);
+        break;
     case StatementType::STATEMENT_STRUCT:
     case StatementType::STATEMENT_ENUM:
     case StatementType::STATEMENT_IMPORT:
@@ -562,11 +562,11 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
             return;
         }
 
-        symbol_table->add_identifier(statement->identifier, statement->type->type_info);
+        TRY_CALL_VOID(symbol_table->add_identifier(statement->identifier, statement->type->type_info));
         return;
     }
 
-    symbol_table->add_identifier(statement->identifier, statement->rhs->type_info);
+    TRY_CALL_VOID(symbol_table->add_identifier(statement->identifier, statement->rhs->type_info));
 }
 
 void TypeChecker::type_check_scope_statement(
@@ -642,6 +642,86 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
 
 void TypeChecker::type_check_expression_statement(ExpressionStatement *statement, SymbolTable *symbol_table) {
     TRY_CALL_VOID(type_check_expression(statement->expression, symbol_table));
+}
+
+void TypeChecker::type_check_match_statement(MatchStatement *statement, SymbolTable *symbol_table) {
+    TRY_CALL_VOID(type_check_expression(statement->matching_expression, symbol_table));
+
+    if (statement->matching_expression->type_info->type != TypeInfoType::ENUM)
+    {
+        TypeCheckerError::make(this->current_file->path.string())
+            .set_expr_1(statement->matching_expression)
+            .set_message("Cannot use match on non-enum type")
+            .report();
+
+        return;
+    }
+
+    EnumTypeInfo *match_expression_type_info = (EnumTypeInfo *)statement->matching_expression->type_info;
+
+    // matching the identifier in the pattern match branches to the members in the
+    // enum type info, this does not check the identifiers used in the pattern
+    // match that map to the values in the enum instance itself
+    for (auto &pattern_match : statement->pattern_matches)
+    {
+        bool matched = false;
+        for (i64 i = 0; i < match_expression_type_info->members.size(); i++)
+        {
+            auto enum_member = match_expression_type_info->members.at(i);
+            if (pattern_match.identifier.string == enum_member.identifier.string)
+            {
+                pattern_match.enum_member_index = i;
+                matched                         = true;
+                break;
+            }
+        }
+
+        if (!matched)
+        {
+            TypeCheckerError::make(this->current_file->path.string())
+                .add_related_token(pattern_match.identifier)
+                .set_message("No matching enum member named \"" + pattern_match.identifier.string + "\"")
+                .report();
+
+            return;
+        }
+    }
+
+    for (i64 i = 0; i < statement->pattern_matches.size(); i++)
+    {
+
+        EnumMemberPatternMatch pattern_match = statement->pattern_matches.at(i);
+        ASSERT_MSG(
+            pattern_match.enum_member_index != -1, "If -1 then the above loop did not correctly assign the index"
+        );
+
+        auto equivilent_enum_member = match_expression_type_info->members.at(pattern_match.enum_member_index);
+
+        // check if the number of identifiers used to destructure the enum matches the
+        // amount of types in the enum member
+        if (pattern_match.matched_members.size() != equivilent_enum_member.members.size())
+        {
+            TypeCheckerError::make(this->current_file->path.string())
+                .add_related_token(pattern_match.identifier)
+                .set_message(fmt::format(
+                    "Incorrect number of identifers used to pattern match this enum member, expected {} got {}",
+                    equivilent_enum_member.members.size(), pattern_match.matched_members.size()
+                ))
+                .report();
+
+            return;
+        }
+
+        // type check the scope associated with the pattern match
+        SymbolTable symbol_table_copy = symbol_table->copy();
+        for (i64 i = 0; i < pattern_match.matched_members.size(); i++)
+        {
+            Token identifier = pattern_match.matched_members.at(i);
+            TRY_CALL_VOID(symbol_table_copy.add_identifier(identifier, equivilent_enum_member.members.at(i)->type_info)
+            );
+        }
+        TRY_CALL_VOID(type_check_scope_statement(statement->pattern_match_arms.at(i), &symbol_table_copy, false));
+    }
 }
 
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {
@@ -1190,7 +1270,7 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
     SymbolTable copied_symbol_table = symbol_table->copy();
 
     for (auto &[identifier, type_expression] : expression->params)
-    { copied_symbol_table.add_identifier(identifier, type_expression->type_info); }
+    { TRY_CALL_VOID(copied_symbol_table.add_identifier(identifier, type_expression->type_info)); }
 
     // type statements and check return exists if needed
     TRY_CALL_VOID(type_check_scope_statement(expression->body, &copied_symbol_table, false));

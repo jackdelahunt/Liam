@@ -173,6 +173,9 @@ std::string CppBackend::emit_statement(Statement *statement) {
     case StatementType::STATEMENT_CONTINUE:
         return emit_continue_statement(dynamic_cast<ContinueStatement *>(statement));
         break;
+    case StatementType::STATEMENT_MATCH:
+        return emit_match_statement(dynamic_cast<MatchStatement *>(statement));
+        break;
     }
 
     panic("Statement not implemented in cpp back end :[");
@@ -420,6 +423,40 @@ bool operator==(const {}& other) const {{
 
 std::string CppBackend::emit_continue_statement(ContinueStatement *statement) {
     return "continue;";
+}
+
+std::string CppBackend::emit_match_statement(MatchStatement *statement) {
+    std::string source;
+
+    ASSERT(statement->matching_expression->type_info->type == TypeInfoType::ENUM);
+    EnumTypeInfo *expression_type_info = (EnumTypeInfo *)statement->matching_expression->type_info;
+
+    std::string expression_to_match = emit_expression(statement->matching_expression);
+
+    source.append("switch(" + expression_to_match + ".index) {\n");
+
+    for (i64 i = 0; i < statement->pattern_matches.size(); i++)
+    {
+        auto pattern_match = statement->pattern_matches.at(i);
+        source.append("case " + std::to_string(i) + ": {");
+
+        // add the destructored memebers of the enums member first
+        EnumMember enum_member = expression_type_info->members.at(pattern_match.enum_member_index);
+        for (i64 j = 0; j < pattern_match.matched_members.size(); j++)
+        {
+            source.append(
+                "auto " + pattern_match.matched_members.at(j).string + " = " + expression_to_match + ".members.__" +
+                enum_member.identifier.string + ".__" + std::to_string(j) + ";\n"
+            );
+        }
+
+        source.append(emit_scope_statement(statement->pattern_match_arms.at(i)));
+        source.append("} break;");
+    }
+
+    source.append("}");
+
+    return source;
 }
 
 std::string CppBackend::emit_expression(Expression *expression) {

@@ -31,6 +31,7 @@ struct CppBackend {
     std::string emit_else_statement(ElseStatement *statement);
     std::string emit_enum_statement(EnumStatement *statement);
     std::string emit_continue_statement(ContinueStatement *statement);
+    std::string emit_match_statement(MatchStatement *statement);
 
     std::string emit_expression(Expression *expression);
     std::string emit_binary_expression(BinaryExpression *expression);
