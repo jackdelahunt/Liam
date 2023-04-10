@@ -46,7 +46,7 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
 }
 
 void SymbolTable::add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info) {
-    ASSERT(identifier_table.count(identifier) > 0);
+    ASSERT(identifier_table.count(identifier) == 0);
     identifier_table[identifier] = type_info;
 }
 
