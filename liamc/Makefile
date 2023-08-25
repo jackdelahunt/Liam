@@ -1,18 +1,11 @@
 format:
 	@find . -type f \( -name "*.h" -or -name "*.cpp" \) | xargs clang-format -i --style=file:".clang-format"
 
-# -Dtarget=x86_64-windows
-release:
-	@zig build -Drelease-fast
-
-build:
-	@zig build -Drelease-safe
-
-run: build
-	@./zig-out/bin/liamc --stdlib="stdlib" --in="program/main.liam" -t
-	@clang++ -I "stdlib/include" -g -O0 -I core -std=c++20 -o out.exe out.cpp
-	@clang-format -i out.cpp
-	@./out.exe
+run:
+	./bin/liamc/liamc --in=main.liam --stdlib="stdlib" --out=bin/out.cpp
+	@clang++ -I "stdlib/include" -g -O0 -I core -std=c++20 -o "bin/out.exe" bin/out.cpp
+#	@clang-format -i program/out.cpp
+	@./bin/out.exe
 
 manual:
 	clang++ -std=c++20 src/main.cpp src/args.cpp src/module.cpp src/compiler.cpp src/cpp_backend.cpp \
