@@ -54,15 +54,18 @@ std::vector<Module *> lex_parse(std::filesystem::path starting_import_path) {
     std::vector<std::filesystem::path> module_import_path_queue = {
         std::filesystem::path(starting_import_path.parent_path())};
 
-    // a set containg all of the absolute paths of the modules that have been
+    // a set containing all of the absolute paths of the modules that have been
     // created, this is used when checking an import to see if a module
-    // needs to be created or skipped as it moght already exist
+    // needs to be created or skipped as it might already exist
     auto already_imported_module_paths = std::set<std::string>();
 
     u16 module_id_counter = 0;
 
-    while (module_import_path_queue.size() > 0)
+    while (!module_import_path_queue.empty())
     {
+        // TODO: we do not account for modules that are being included from the stdlib
+        // we need to edit the path to be based off of the stdlib lib path given in
+        // the compiler arguments
         auto current_module_path = module_import_path_queue.at(module_import_path_queue.size() - 1);
         module_import_path_queue.pop_back();
 

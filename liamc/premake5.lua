@@ -16,7 +16,7 @@ workspace "Liam"
 		kind "ConsoleApp"
 		staticruntime "On"
 		language "C++"
-		cppdialect "C++17"
+		cppdialect "C++20"
 		toolset "clang"
 
 		targetdir ("bin/%{prj.name}")
