@@ -20,7 +20,10 @@ const (
 	BraceOpen
 	BraceClose
 	Identifier
-	BinaryOperator
+	Plus
+	Minus
+	Star
+	Divide
 )
 
 type Token struct {
@@ -71,13 +74,13 @@ func (self *Lexer) Lex(input string) []Token {
 		case '}':
 			tokens = append(tokens, NewToken(BraceClose, "}"))
 		case '+':
-			tokens = append(tokens, NewToken(BinaryOperator, "+"))
+			tokens = append(tokens, NewToken(Plus, "+"))
 		case '-':
-			tokens = append(tokens, NewToken(BinaryOperator, "-"))
+			tokens = append(tokens, NewToken(Minus, "-"))
 		case '*':
-			tokens = append(tokens, NewToken(BinaryOperator, "*"))
+			tokens = append(tokens, NewToken(Star, "*"))
 		case '/':
-			tokens = append(tokens, NewToken(BinaryOperator, "/"))
+			tokens = append(tokens, NewToken(Divide, "/"))
 		default:
 			word := self.GetWord()
 
@@ -246,7 +249,30 @@ call() slice[0]
 literal () new "" null true false []u64{}
 */
 func (self *Parser) ParseExpression() (Expression, error) {
-	return self.ParsePrimary()
+	return self.ParseTerm()
+}
+
+func (self *Parser) ParseTerm() (Expression, error) {
+	expression, err := self.ParsePrimary()
+	if err != nil {
+		return nil, err
+	}
+
+	for self.Match(Plus) || self.Match(Minus) {
+		token, err := self.ConsumeToken()
+		if err != nil {
+			return nil, err
+		}
+
+		rightExpression, err := self.ParsePrimary()
+		if err != nil {
+			return nil, err
+		}
+
+		expression = &BinaryExpression{lhs: expression, operator: *token, rhs: rightExpression}
+	}
+
+	return expression, err
 }
 
 func (self *Parser) ParsePrimary() (Expression, error) {
@@ -297,6 +323,19 @@ func (self *Parser) ParseGroupExpression() (Expression, error) {
 
 func (self *Parser) Peek() *Token {
 	return &(*self.Tokens)[self.CurrentTokenIndex]
+}
+
+func (self *Parser) Match(tokenType TokenType) bool {
+	if self.CurrentTokenIndex >= uint(len(*self.Tokens)) {
+		return false
+	}
+	return (*self.Tokens)[self.CurrentTokenIndex].TokenType == tokenType
+}
+
+func (self *Parser) ConsumeToken() (*Token, error) {
+	token := &(*self.Tokens)[self.CurrentTokenIndex]
+	self.CurrentTokenIndex += 1
+	return token, nil
 }
 
 func (self *Parser) ConsumeTokenOfType(tokenType TokenType) (*Token, error) {

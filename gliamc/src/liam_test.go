@@ -25,27 +25,20 @@ func Test_Lexer_BinaryOperators(t *testing.T) {
 		t.Errorf("Need 4 tokens got %v", len(tokens))
 	}
 
-	// check the token type of each
-	for _, token := range tokens {
-		if token.TokenType != BinaryOperator {
-			t.Errorf("Expected token type to be binary op %v", token.TokenType)
-		}
+	if tokens[0].TokenType != Plus {
+		t.Errorf("Expected + got %v", tokens[0].TokenType)
 	}
 
-	if tokens[0].Text != "+" {
-		t.Errorf("Expected + got %v", tokens[0].Text)
+	if tokens[1].TokenType != Minus {
+		t.Errorf("Expected - got %v", tokens[0].TokenType)
 	}
 
-	if tokens[1].Text != "-" {
-		t.Errorf("Expected + got %v", tokens[1].Text)
+	if tokens[2].TokenType != Star {
+		t.Errorf("Expected * got %v", tokens[0].TokenType)
 	}
 
-	if tokens[2].Text != "*" {
-		t.Errorf("Expected + got %v", tokens[2].Text)
-	}
-
-	if tokens[3].Text != "/" {
-		t.Errorf("Expected + got %v", tokens[3].Text)
+	if tokens[3].TokenType != Divide {
+		t.Errorf("Expected / got %v", tokens[0].TokenType)
 	}
 }
 
@@ -81,6 +74,37 @@ func Test_Lexer_Numbers(t *testing.T) {
 
 	if tokens[2].TokenType != NumberLiteral {
 		t.Errorf("Expected number literal got %v", tokens[2].TokenType)
+	}
+}
+
+func Test_Parser_Binary(t *testing.T) {
+	parser := LexAndMakeParse("1 + 2")
+	expression, err := parser.ParseExpression()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	binary, ok := expression.(*BinaryExpression)
+	if ok != true {
+		t.Errorf("expected binary expression")
+	}
+
+	lhs, ok := binary.lhs.(*NumberLiteralExpression)
+	if ok != true {
+		t.Errorf("expected number literal expression")
+	}
+
+	if lhs.number != 1 {
+		t.Errorf("expected 1 but got %v", lhs.number)
+	}
+
+	rhs, ok := binary.rhs.(*NumberLiteralExpression)
+	if ok != true {
+		t.Errorf("expected number literal expression")
+	}
+
+	if rhs.number != 2 {
+		t.Errorf("expected 2 but got %v", rhs.number)
 	}
 }
 
