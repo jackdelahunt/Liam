@@ -1,6 +1,11 @@
 package main
 
-import "strings"
+import (
+	"errors"
+	"fmt"
+	"strconv"
+	"strings"
+)
 
 type TokenType = uint8
 
@@ -141,6 +146,10 @@ type ExpressionStatement struct {
 	expression Expression
 }
 
+type ReturnStatement struct {
+	expression Expression
+}
+
 type Expression interface {
 	TypeInfo() *TypeInfo
 }
@@ -155,12 +164,150 @@ func (self *BinaryExpression) TypeInfo() *TypeInfo {
 	return nil
 }
 
+type GroupExpression struct {
+	expression Expression
+}
+
+func (self *GroupExpression) TypeInfo() *TypeInfo {
+	return nil
+}
+
 type NumberLiteralExpression struct {
 	number int
 }
 
 func (self *NumberLiteralExpression) TypeInfo() *TypeInfo {
 	return nil
+}
+
+type Parser struct {
+	CurrentTokenIndex uint
+	Tokens            *[]Token
+}
+
+func NewParser(tokens *[]Token) *Parser {
+	return &Parser{
+		CurrentTokenIndex: 0,
+		Tokens:            tokens,
+	}
+}
+
+func (self *Parser) Parse() ([]Statement, error) {
+	topLevelStatements := make([]Statement, 0)
+
+	for self.CurrentTokenIndex < uint(len(*self.Tokens)) {
+		statement, err := self.ParseStatement()
+		if err != nil {
+			return nil, err
+		}
+
+		topLevelStatements = append(topLevelStatements, statement)
+	}
+
+	return topLevelStatements, nil
+}
+
+func (self *Parser) ParseStatement() (Statement, error) {
+	currentToken := self.Peek()
+
+	switch currentToken.TokenType {
+	case Return:
+		return self.ParseReturnStatement()
+	}
+
+	return nil, errors.New("unexpected token when parsing statements")
+}
+
+func (self *Parser) ParseReturnStatement() (*ReturnStatement, error) {
+	_, err := self.ConsumeTokenOfType(Return)
+	if err != nil {
+		return nil, err
+	}
+
+	expression, err := self.ParseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	return &ReturnStatement{expression: expression}, nil
+}
+
+/*
+=== expression precedence === (lower is more precedence)
+or
+and
+== !=
+< > >= <=
++ -
+?
+* / %
+@ * !
+call() slice[0]
+literal () new "" null true false []u64{}
+*/
+func (self *Parser) ParseExpression() (Expression, error) {
+	return self.ParsePrimary()
+}
+
+func (self *Parser) ParsePrimary() (Expression, error) {
+	token := self.Peek()
+
+	switch token.TokenType {
+	case ParenOpen:
+		return self.ParseGroupExpression()
+	case NumberLiteral:
+		return self.ParseNumberLiteral()
+	default:
+		return nil, fmt.Errorf("unknown token %v", token.TokenType)
+	}
+}
+
+func (self *Parser) ParseNumberLiteral() (Expression, error) {
+	token, err := self.ConsumeTokenOfType(NumberLiteral)
+	if err != nil {
+		return nil, err
+	}
+
+	number, err := strconv.Atoi(token.Text)
+	if err != nil {
+		return nil, err
+	}
+
+	return &NumberLiteralExpression{number: number}, nil
+}
+
+func (self *Parser) ParseGroupExpression() (Expression, error) {
+	_, err := self.ConsumeTokenOfType(ParenOpen)
+	if err != nil {
+		return nil, err
+	}
+
+	expression, err := self.ParseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = self.ConsumeTokenOfType(ParenClose)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GroupExpression{expression: expression}, nil
+}
+
+func (self *Parser) Peek() *Token {
+	return &(*self.Tokens)[self.CurrentTokenIndex]
+}
+
+func (self *Parser) ConsumeTokenOfType(tokenType TokenType) (*Token, error) {
+	token := &(*self.Tokens)[self.CurrentTokenIndex]
+	if token.TokenType != tokenType {
+		return nil, errors.New(fmt.Sprintf("Unexpected token, expected type %v got %v", tokenType, token.TokenType))
+	}
+
+	self.CurrentTokenIndex += 1
+
+	return token, nil
 }
 
 func main() {

@@ -8,6 +8,16 @@ func LexStringAndGetTokens(inputText string) []Token {
 	return NewLexer().Lex(inputText)
 }
 
+func LexAndParseStringAndGetAST(inputText string) ([]Statement, error) {
+	tokens := NewLexer().Lex(inputText)
+	return NewParser(&tokens).Parse()
+}
+
+func LexAndMakeParse(inputText string) *Parser {
+	tokens := NewLexer().Lex(inputText)
+	return NewParser(&tokens)
+}
+
 func Test_Lexer_BinaryOperators(t *testing.T) {
 	tokens := LexStringAndGetTokens("+-*/")
 
@@ -54,12 +64,52 @@ func Test_Lexer_Identifiers(t *testing.T) {
 	}
 }
 
-func Test_Parser_Tree(t *testing.T) {
-	//statement := ExpressionStatement{
-	//	expression: &BinaryExpression{
-	//		lhs:      &NumberLiteralExpression{number: 5},
-	//		operator: NewToken(BinaryOperator, "+"),
-	//		rhs:      &NumberLiteralExpression{number: 5},
-	//	},
-	//}
+func Test_Lexer_Numbers(t *testing.T) {
+	tokens := LexStringAndGetTokens("5 4 2")
+
+	if len(tokens) != 3 {
+		t.Errorf("Expected 3 tokens got %v", len(tokens))
+	}
+
+	if tokens[0].TokenType != NumberLiteral {
+		t.Errorf("Expected number literal got %v", tokens[0].TokenType)
+	}
+
+	if tokens[1].TokenType != NumberLiteral {
+		t.Errorf("Expected number literal got %v", tokens[1].TokenType)
+	}
+
+	if tokens[2].TokenType != NumberLiteral {
+		t.Errorf("Expected number literal got %v", tokens[2].TokenType)
+	}
+}
+
+func Test_Parser_Groups(t *testing.T) {
+	parser := LexAndMakeParse("(5)")
+	expression, err := parser.ParseExpression()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	_, ok := expression.(*GroupExpression)
+	if ok != true {
+		t.Errorf("expected expression to be number literal")
+	}
+}
+
+func Test_Parser_NumberLiteral(t *testing.T) {
+	parser := LexAndMakeParse("1")
+	expression, err := parser.ParseExpression()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	numberLiteralExpression, ok := expression.(*NumberLiteralExpression)
+	if ok != true {
+		t.Errorf("expected expression to be number literal")
+	}
+
+	if numberLiteralExpression.number != 1 {
+		t.Errorf("expected number to be 1 got %v", numberLiteralExpression.number)
+	}
 }
