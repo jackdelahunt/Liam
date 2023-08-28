@@ -130,6 +130,19 @@ func Test_Parser_Scope_Empty(t *testing.T) {
 	}
 }
 
+func Test_Parser_If(t *testing.T) {
+	parser := LexAndMakeParse("if 1 + 2 { return 0; }")
+	ifStatement, err := parser.ParseIfStatement()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	_, ok := ifStatement.condition.(*BinaryExpression)
+	if ok != true {
+		t.Errorf("expected binary expression")
+	}
+}
+
 func Test_Parser_Binary(t *testing.T) {
 	parser := LexAndMakeParse("1 + 2")
 	expression, err := parser.ParseExpression()

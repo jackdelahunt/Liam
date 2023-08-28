@@ -15,6 +15,7 @@ const (
 	SemiColon
 	Let
 	Fn
+	If
 	Return
 	ParenOpen
 	ParenClose
@@ -94,6 +95,8 @@ func (self *Lexer) Lex(input string) []Token {
 				tokens = append(tokens, NewToken(Fn, word))
 			case "return":
 				tokens = append(tokens, NewToken(Return, word))
+			case "if":
+				tokens = append(tokens, NewToken(If, word))
 			default:
 				tokens = append(tokens, NewToken(Identifier, word))
 			}
@@ -166,6 +169,11 @@ type ReturnStatement struct {
 	expression Expression
 }
 
+type IfStatement struct {
+	condition Expression
+	scope     *ScopeStatement
+}
+
 /*
 	   ============
 		Expressions
@@ -236,6 +244,8 @@ func (self *Parser) ParseStatement() (Statement, error) {
 		return self.ParseReturnStatement()
 	case BraceOpen:
 		return self.ParseScopeStatement()
+	case If:
+		return self.ParseIfStatement()
 	}
 
 	return nil, errors.New("unexpected token when parsing statements")
@@ -290,29 +300,23 @@ func (self *Parser) ParseScopeStatement() (*ScopeStatement, error) {
 	return &ScopeStatement{statements: statements}, nil
 }
 
-func (self *Parser) FindBalancePoint(push TokenType, pull TokenType, startingPoint uint) (uint, error) {
-	currentIndex := startingPoint
-	balanceCount := int(0)
-
-	for self.CurrentTokenIndex < uint(len(*self.Tokens)) {
-		if (*self.Tokens)[currentIndex].TokenType == push {
-			balanceCount += 1
-			if balanceCount == 0 {
-				return currentIndex, nil
-			}
-		}
-
-		if (*self.Tokens)[currentIndex].TokenType == pull {
-			balanceCount -= 1
-			if balanceCount == 0 {
-				return currentIndex, nil
-			}
-		}
-
-		currentIndex += 1
+func (self *Parser) ParseIfStatement() (*IfStatement, error) {
+	_, err := self.ConsumeTokenOfType(If)
+	if err != nil {
+		return nil, err
 	}
 
-	return currentIndex, nil
+	condition, err := self.ParseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	scope, err := self.ParseScopeStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	return &IfStatement{condition: condition, scope: scope}, nil
 }
 
 /*
@@ -427,6 +431,31 @@ func (self *Parser) ConsumeTokenOfType(tokenType TokenType) (*Token, error) {
 	self.CurrentTokenIndex += 1
 
 	return token, nil
+}
+
+func (self *Parser) FindBalancePoint(push TokenType, pull TokenType, startingPoint uint) (uint, error) {
+	currentIndex := startingPoint
+	balanceCount := int(0)
+
+	for self.CurrentTokenIndex < uint(len(*self.Tokens)) {
+		if (*self.Tokens)[currentIndex].TokenType == push {
+			balanceCount += 1
+			if balanceCount == 0 {
+				return currentIndex, nil
+			}
+		}
+
+		if (*self.Tokens)[currentIndex].TokenType == pull {
+			balanceCount -= 1
+			if balanceCount == 0 {
+				return currentIndex, nil
+			}
+		}
+
+		currentIndex += 1
+	}
+
+	return currentIndex, nil
 }
 
 func main() {
