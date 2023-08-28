@@ -146,6 +146,11 @@ func IsDelimeter(c rune) bool {
 
 type TypeInfo struct{}
 
+/*
+	   ============
+		Statements
+	   ============
+*/
 type Statement interface {
 }
 
@@ -153,10 +158,19 @@ type ExpressionStatement struct {
 	expression Expression
 }
 
+type ScopeStatement struct {
+	statements []Statement
+}
+
 type ReturnStatement struct {
 	expression Expression
 }
 
+/*
+	   ============
+		Expressions
+	   ============
+*/
 type Expression interface {
 	TypeInfo() *TypeInfo
 }
@@ -220,6 +234,8 @@ func (self *Parser) ParseStatement() (Statement, error) {
 	switch currentToken.TokenType {
 	case Return:
 		return self.ParseReturnStatement()
+	case BraceOpen:
+		return self.ParseScopeStatement()
 	}
 
 	return nil, errors.New("unexpected token when parsing statements")
@@ -242,6 +258,61 @@ func (self *Parser) ParseReturnStatement() (*ReturnStatement, error) {
 	}
 
 	return &ReturnStatement{expression: expression}, nil
+}
+
+func (self *Parser) ParseScopeStatement() (*ScopeStatement, error) {
+	statements := make([]Statement, 0)
+
+	_, err := self.ConsumeTokenOfType(BraceOpen)
+	if err != nil {
+		return nil, err
+	}
+
+	closingIndex, err := self.FindBalancePoint(BraceOpen, BraceClose, self.CurrentTokenIndex-1)
+	if err != nil {
+		return nil, err
+	}
+
+	for self.CurrentTokenIndex < closingIndex {
+		statement, err := self.ParseStatement()
+		if err != nil {
+			return nil, err
+		}
+
+		statements = append(statements, statement)
+	}
+
+	_, err = self.ConsumeTokenOfType(BraceClose)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ScopeStatement{statements: statements}, nil
+}
+
+func (self *Parser) FindBalancePoint(push TokenType, pull TokenType, startingPoint uint) (uint, error) {
+	currentIndex := startingPoint
+	balanceCount := int(0)
+
+	for self.CurrentTokenIndex < uint(len(*self.Tokens)) {
+		if (*self.Tokens)[currentIndex].TokenType == push {
+			balanceCount += 1
+			if balanceCount == 0 {
+				return currentIndex, nil
+			}
+		}
+
+		if (*self.Tokens)[currentIndex].TokenType == pull {
+			balanceCount -= 1
+			if balanceCount == 0 {
+				return currentIndex, nil
+			}
+		}
+
+		currentIndex += 1
+	}
+
+	return currentIndex, nil
 }
 
 /*

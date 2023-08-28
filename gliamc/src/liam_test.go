@@ -94,6 +94,42 @@ func Test_Parser_Return(t *testing.T) {
 	}
 }
 
+func Test_Parser_Scope(t *testing.T) {
+	parser := LexAndMakeParse("{ return 2; }")
+	parseStatement, err := parser.ParseScopeStatement()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if len(parseStatement.statements) != 1 {
+		t.Errorf("only expected one statement in the scope")
+	}
+}
+
+func Test_Parser_Scope_2(t *testing.T) {
+	parser := LexAndMakeParse("{ return 2; return 3; }")
+	parseStatement, err := parser.ParseScopeStatement()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if len(parseStatement.statements) != 2 {
+		t.Errorf("expected two statement in the scope")
+	}
+}
+
+func Test_Parser_Scope_Empty(t *testing.T) {
+	parser := LexAndMakeParse("{}")
+	parseStatement, err := parser.ParseScopeStatement()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if len(parseStatement.statements) != 0 {
+		t.Errorf("expected no statement in the scope")
+	}
+}
+
 func Test_Parser_Binary(t *testing.T) {
 	parser := LexAndMakeParse("1 + 2")
 	expression, err := parser.ParseExpression()
