@@ -12,6 +12,7 @@ type TokenType = uint8
 const (
 	NumberLiteral TokenType = iota
 	StringLiteral
+	SemiColon
 	Let
 	Fn
 	Return
@@ -65,6 +66,8 @@ func (self *Lexer) Lex(input string) []Token {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			tokens = append(tokens, NewToken(NumberLiteral, string(character)))
 		case ' ', '\t', '\r', '\n':
+		case ';':
+			tokens = append(tokens, NewToken(SemiColon, ";"))
 		case '(':
 			tokens = append(tokens, NewToken(ParenOpen, "("))
 		case ')':
@@ -143,7 +146,8 @@ func IsDelimeter(c rune) bool {
 
 type TypeInfo struct{}
 
-type Statement interface{}
+type Statement interface {
+}
 
 type ExpressionStatement struct {
 	expression Expression
@@ -228,6 +232,11 @@ func (self *Parser) ParseReturnStatement() (*ReturnStatement, error) {
 	}
 
 	expression, err := self.ParseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = self.ConsumeTokenOfType(SemiColon)
 	if err != nil {
 		return nil, err
 	}
