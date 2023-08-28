@@ -77,6 +77,23 @@ func Test_Lexer_Numbers(t *testing.T) {
 	}
 }
 
+func Test_Parser_Return(t *testing.T) {
+	parser := LexAndMakeParse("return 2;")
+	returnStatement, err := parser.ParseReturnStatement()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	numberLiteral, ok := returnStatement.expression.(*NumberLiteralExpression)
+	if ok != true {
+		t.Errorf("expected number literal expression")
+	}
+
+	if numberLiteral.number != 2 {
+		t.Errorf("exptected 2 got %v", numberLiteral.number)
+	}
+}
+
 func Test_Parser_Binary(t *testing.T) {
 	parser := LexAndMakeParse("1 + 2")
 	expression, err := parser.ParseExpression()
