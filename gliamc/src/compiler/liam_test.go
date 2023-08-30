@@ -1,25 +1,53 @@
-package main
+package compiler
 
 import (
 	"testing"
 )
 
-func LexStringAndGetTokens(inputText string) []Token {
-	return NewLexer().Lex(inputText)
+const (
+	ExampleTestCode = `
+fn main() type {
+	if true {
+		return 0;
+		return 1 + 1;
+		return 5 / 2;
+	}
+}
+`
+)
+
+// used to just lex the source and get the tokens
+func lexSource(source string) []TokenData {
+	return NewLexer([]rune(source)).Lex()
 }
 
-func LexAndParseStringAndGetAST(inputText string) ([]Statement, error) {
-	tokens := NewLexer().Lex(inputText)
-	return NewParser(&tokens).Parse()
+// used to create a parse from the source and then can
+// choose how to parse it
+func createParserFromSource(source string) *Parser {
+	tokens := NewLexer([]rune(source)).Lex()
+	return NewParser([]rune(source), tokens)
 }
 
-func LexAndMakeParse(inputText string) *Parser {
-	tokens := NewLexer().Lex(inputText)
-	return NewParser(&tokens)
+// Used for full lexing and compiling on the source
+func createASTFromSource(source string) (AST, error) {
+	tokens := NewLexer([]rune(source)).Lex()
+	return NewParser([]rune(source), tokens).Parse()
+}
+
+func Test_Parser_Big(t *testing.T) {
+	_, err := createASTFromSource(ExampleTestCode)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+func Test_Lexer_Big(t *testing.T) {
+	// TODO make the lexer generate errors
+	_ = lexSource(ExampleTestCode)
 }
 
 func Test_Lexer_BinaryOperators(t *testing.T) {
-	tokens := LexStringAndGetTokens("+-*/")
+	tokens := lexSource("+-*/")
 
 	if len(tokens) != 4 {
 		t.Errorf("Need 4 tokens got %v", len(tokens))
@@ -43,14 +71,14 @@ func Test_Lexer_BinaryOperators(t *testing.T) {
 }
 
 func Test_Lexer_Whitespace(t *testing.T) {
-	tokens := LexStringAndGetTokens("   \n \t \r   ")
+	tokens := lexSource("   \n \t \r   ")
 	if len(tokens) != 0 {
-		t.Errorf("Tokens should be empty %v", len(tokens))
+		t.Errorf("TokenBuffer should be empty %v", len(tokens))
 	}
 }
 
 func Test_Lexer_Identifiers(t *testing.T) {
-	tokens := LexStringAndGetTokens("jack liam")
+	tokens := lexSource("jack liam")
 
 	if len(tokens) != 2 {
 		t.Errorf("Expected 2 tokens got %v", len(tokens))
@@ -58,7 +86,7 @@ func Test_Lexer_Identifiers(t *testing.T) {
 }
 
 func Test_Lexer_Numbers(t *testing.T) {
-	tokens := LexStringAndGetTokens("5 4 2")
+	tokens := lexSource("5 4 2")
 
 	if len(tokens) != 3 {
 		t.Errorf("Expected 3 tokens got %v", len(tokens))
@@ -78,7 +106,7 @@ func Test_Lexer_Numbers(t *testing.T) {
 }
 
 func Test_Parser_Return(t *testing.T) {
-	parser := LexAndMakeParse("return 2;")
+	parser := createParserFromSource("return 2;")
 	returnStatement, err := parser.ParseReturnStatement()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -89,13 +117,14 @@ func Test_Parser_Return(t *testing.T) {
 		t.Errorf("expected number literal expression")
 	}
 
-	if numberLiteral.number != 2 {
-		t.Errorf("exptected 2 got %v", numberLiteral.number)
+	numberString := string(GetTokenSLice(numberLiteral.number, parser.TokenBuffer, parser.source))
+	if numberString != "2" {
+		t.Errorf("exptected 2 got %v", numberString)
 	}
 }
 
 func Test_Parser_Scope(t *testing.T) {
-	parser := LexAndMakeParse("{ return 2; }")
+	parser := createParserFromSource("{ return 2; }")
 	parseStatement, err := parser.ParseScopeStatement()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -107,7 +136,7 @@ func Test_Parser_Scope(t *testing.T) {
 }
 
 func Test_Parser_Scope_2(t *testing.T) {
-	parser := LexAndMakeParse("{ return 2; return 3; }")
+	parser := createParserFromSource("{ return 2; return 3; }")
 	parseStatement, err := parser.ParseScopeStatement()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -119,7 +148,7 @@ func Test_Parser_Scope_2(t *testing.T) {
 }
 
 func Test_Parser_Scope_Empty(t *testing.T) {
-	parser := LexAndMakeParse("{}")
+	parser := createParserFromSource("{}")
 	parseStatement, err := parser.ParseScopeStatement()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -131,7 +160,7 @@ func Test_Parser_Scope_Empty(t *testing.T) {
 }
 
 func Test_Parser_If(t *testing.T) {
-	parser := LexAndMakeParse("if 1 + 2 { return 0; }")
+	parser := createParserFromSource("if 1 + 2 { return 0; }")
 	ifStatement, err := parser.ParseIfStatement()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -143,8 +172,18 @@ func Test_Parser_If(t *testing.T) {
 	}
 }
 
+func Test_Parser_Fn(t *testing.T) {
+	parser := createParserFromSource("fn main() type { }")
+	fnStatement, err := parser.ParseFnStatement()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	_ = fnStatement
+}
+
 func Test_Parser_Binary(t *testing.T) {
-	parser := LexAndMakeParse("1 + 2")
+	parser := createParserFromSource("1 + 2")
 	expression, err := parser.ParseExpression()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -160,8 +199,9 @@ func Test_Parser_Binary(t *testing.T) {
 		t.Errorf("expected number literal expression")
 	}
 
-	if lhs.number != 1 {
-		t.Errorf("expected 1 but got %v", lhs.number)
+	lhsNumberString := GetTokenSLice(lhs.number, parser.TokenBuffer, parser.source)
+	if string(lhsNumberString) != "1" {
+		t.Errorf("expected 1 but got %v", lhsNumberString)
 	}
 
 	rhs, ok := binary.rhs.(*NumberLiteralExpression)
@@ -169,13 +209,14 @@ func Test_Parser_Binary(t *testing.T) {
 		t.Errorf("expected number literal expression")
 	}
 
-	if rhs.number != 2 {
-		t.Errorf("expected 2 but got %v", rhs.number)
+	rhsNumberString := GetTokenSLice(rhs.number, parser.TokenBuffer, parser.source)
+	if string(rhsNumberString) != "2" {
+		t.Errorf("expected 2 but got %v", rhsNumberString)
 	}
 }
 
 func Test_Parser_Groups(t *testing.T) {
-	parser := LexAndMakeParse("(5)")
+	parser := createParserFromSource("(5)")
 	expression, err := parser.ParseExpression()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -188,7 +229,7 @@ func Test_Parser_Groups(t *testing.T) {
 }
 
 func Test_Parser_NumberLiteral(t *testing.T) {
-	parser := LexAndMakeParse("1")
+	parser := createParserFromSource("1")
 	expression, err := parser.ParseExpression()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -199,7 +240,8 @@ func Test_Parser_NumberLiteral(t *testing.T) {
 		t.Errorf("expected expression to be number literal")
 	}
 
-	if numberLiteralExpression.number != 1 {
-		t.Errorf("expected number to be 1 got %v", numberLiteralExpression.number)
+	numberString := GetTokenSLice(numberLiteralExpression.number, parser.TokenBuffer, parser.source)
+	if string(numberString) != "1" {
+		t.Errorf("expected number to be 1 got %v", numberString)
 	}
 }
