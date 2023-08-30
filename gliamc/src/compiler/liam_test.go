@@ -13,6 +13,12 @@ fn main() type {
 		return 5 / 2;
 	}
 }
+
+fn another_func() type {
+	if false {
+
+	}
+}
 `
 )
 
