@@ -9,14 +9,6 @@ const (
 fn main() type {
 	if true {
 		return 0;
-		return 1 + 1;
-		return 5 / 2;
-	}
-}
-
-fn another_func() type {
-	if false {
-
 	}
 }
 `
@@ -38,6 +30,18 @@ func createParserFromSource(source string) *Parser {
 func createASTFromSource(source string) (AST, error) {
 	tokens := NewLexer([]rune(source)).Lex()
 	return NewParser([]rune(source), tokens).Parse()
+}
+
+// Used for full lexing and compiling on the source
+func createIRFromSource(source string) (*IRBuilder, error) {
+	ast, err := createASTFromSource(source)
+	if err != nil {
+		return nil, err
+	}
+
+	builder := NewIRBuilder(ast)
+	builder.BuildIR()
+	return builder, nil
 }
 
 func Test_Parser_Big(t *testing.T) {
@@ -249,5 +253,21 @@ func Test_Parser_NumberLiteral(t *testing.T) {
 	numberString := GetTokenSLice(numberLiteralExpression.number, parser.TokenBuffer, parser.source)
 	if string(numberString) != "1" {
 		t.Errorf("expected number to be 1 got %v", numberString)
+	}
+}
+
+func Test_IR_FnTypeBuilt(t *testing.T) {
+	irBuilder, err := createIRFromSource("fn main() type {}")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if len(irBuilder.FnTypes) != 1 {
+		t.Errorf("expected 1 generated fn type got %v", len(irBuilder.FnTypes))
+	}
+
+	firstFnType := irBuilder.FnTypes[0]
+	if firstFnType.Name != "main" {
+		t.Errorf("expected fn name to be main got %v", firstFnType.Name)
 	}
 }

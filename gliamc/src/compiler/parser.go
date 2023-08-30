@@ -3,23 +3,23 @@ package compiler
 import (
 	"errors"
 	"fmt"
+	"log"
 )
 
 type AST struct {
-	Source             []rune
-	TokenBuffer        []TokenData
-	TopLevelStatements []Statement
+	Source       []rune
+	TokenBuffer  []TokenData
+	FnStatements []*FnStatement
+	// StructStatements []*StructStatements
 }
 
-func NewAST(source []rune, tokenBuffer []TokenData, topLevelStatements []Statement) AST {
+func NewAST(source []rune, tokenBuffer []TokenData, fnStatements []*FnStatement) AST {
 	return AST{
-		Source:             source,
-		TokenBuffer:        tokenBuffer,
-		TopLevelStatements: topLevelStatements,
+		Source:       source,
+		TokenBuffer:  tokenBuffer,
+		FnStatements: fnStatements,
 	}
 }
-
-type TypeInfo struct{}
 
 /*
 	   ============
@@ -58,23 +58,14 @@ type FnStatement struct {
 	   ============
 */
 type Expression interface {
-	TypeInfo() *TypeInfo
 }
 
 type BoolLiteralExpression struct {
 	value Token
 }
 
-func (self *BoolLiteralExpression) TypeInfo() *TypeInfo {
-	return nil
-}
-
 type IdentifierExpression struct {
 	identifier Token
-}
-
-func (self *IdentifierExpression) TypeInfo() *TypeInfo {
-	return nil
 }
 
 type BinaryExpression struct {
@@ -83,24 +74,12 @@ type BinaryExpression struct {
 	rhs      Expression
 }
 
-func (self *BinaryExpression) TypeInfo() *TypeInfo {
-	return nil
-}
-
 type GroupExpression struct {
 	expression Expression
 }
 
-func (self *GroupExpression) TypeInfo() *TypeInfo {
-	return nil
-}
-
 type NumberLiteralExpression struct {
 	number Token
-}
-
-func (self *NumberLiteralExpression) TypeInfo() *TypeInfo {
-	return nil
 }
 
 /*
@@ -109,15 +88,10 @@ func (self *NumberLiteralExpression) TypeInfo() *TypeInfo {
 	   ============
 */
 type TypeExpression interface {
-	TypeInfo() *TypeInfo
 }
 
 type IdentifierTypeExpression struct {
 	identifier Token
-}
-
-func (self *IdentifierTypeExpression) TypeInfo() *TypeInfo {
-	return nil
 }
 
 /*
@@ -125,7 +99,6 @@ func (self *IdentifierTypeExpression) TypeInfo() *TypeInfo {
 		Parsing
 	   ============
 */
-
 type Parser struct {
 	source       []rune
 	TokenBuffer  []TokenData
@@ -141,7 +114,7 @@ func NewParser(source []rune, tokens []TokenData) *Parser {
 }
 
 func (self *Parser) Parse() (AST, error) {
-	topLevelStatements := make([]Statement, 0)
+	fnStatements := make([]*FnStatement, 0)
 
 	for self.CurrentToken < Token(len(self.TokenBuffer)) {
 		statement, err := self.ParseStatement()
@@ -149,13 +122,18 @@ func (self *Parser) Parse() (AST, error) {
 			return AST{}, err
 		}
 
-		topLevelStatements = append(topLevelStatements, statement)
+		fnStatement, ok := statement.(*FnStatement)
+		if !ok {
+			return AST{}, fmt.Errorf("expecting only fn statements at top level")
+		}
+
+		fnStatements = append(fnStatements, fnStatement)
 	}
 
 	return AST{
-		Source:             self.source,
-		TokenBuffer:        self.TokenBuffer,
-		TopLevelStatements: topLevelStatements,
+		Source:       self.source,
+		TokenBuffer:  self.TokenBuffer,
+		FnStatements: fnStatements,
 	}, nil
 }
 
@@ -411,7 +389,6 @@ func (self *Parser) ParseGroupExpression() (Expression, error) {
 		Type Expressions
 	   ============
 */
-
 func (self *Parser) ParseTypeExpression() (TypeExpression, error) {
 	return self.ParsePrimaryTypeExpression()
 }
@@ -424,14 +401,6 @@ func (self *Parser) ParsePrimaryTypeExpression() (TypeExpression, error) {
 
 	return &IdentifierTypeExpression{identifier: identifier}, nil
 }
-
-/*
-TypeExpression *eval_type_expression();
-    TypeExpression *eval_type_unary();
-    TypeExpression *eval_type_specified_generics();
-    TypeExpression *eval_type_primary();
-    TypeExpression *eval_type_fn();
-*/
 
 func (self *Parser) Peek() Token {
 	return self.CurrentToken
@@ -467,6 +436,11 @@ func (self *Parser) ConsumeTokenOfType(tokenType TokenType) (Token, error) {
 
 func GetTokenSLice(token Token, tokenBuffer []TokenData, source []rune) []rune {
 	location := tokenBuffer[token].Location
+
+	if location.Start >= uint(len(source)) || location.End >= uint(len(source)) {
+		log.Fatal(fmt.Sprintf("getting slice from source with unbounded range :: start %v : end %v : source length %v", location.Start, location.End, len(source)))
+	}
+
 	return source[location.Start : location.End+1]
 }
 
