@@ -13,14 +13,6 @@ type AST struct {
 	StructStatements []*StructStatement
 }
 
-func NewAST(source []rune, tokenBuffer []TokenData, fnStatements []*FnStatement) AST {
-	return AST{
-		Source:       source,
-		TokenBuffer:  tokenBuffer,
-		FnStatements: fnStatements,
-	}
-}
-
 /*
 	   ============
 		Statements
@@ -62,28 +54,54 @@ type StructStatement struct {
 	   ============
 */
 type Expression interface {
+	TypeInfo() TypeInfo
 }
 
 type BoolLiteralExpression struct {
-	value Token
+	value    Token
+	typeInfo TypeInfo
+}
+
+func (self *BoolLiteralExpression) TypeInfo() TypeInfo {
+	return self.typeInfo
 }
 
 type IdentifierExpression struct {
 	identifier Token
+	typeInfo   TypeInfo
+}
+
+func (self *IdentifierExpression) TypeInfo() TypeInfo {
+	return self.typeInfo
 }
 
 type BinaryExpression struct {
 	lhs      Expression
 	operator Token
 	rhs      Expression
+	typeInfo TypeInfo
+}
+
+func (self *BinaryExpression) TypeInfo() TypeInfo {
+	return self.typeInfo
 }
 
 type GroupExpression struct {
 	expression Expression
+	typeInfo   TypeInfo
+}
+
+func (self *GroupExpression) TypeInfo() TypeInfo {
+	return self.typeInfo
 }
 
 type NumberLiteralExpression struct {
-	number Token
+	number   Token
+	typeInfo TypeInfo
+}
+
+func (self *NumberLiteralExpression) TypeInfo() TypeInfo {
+	return self.typeInfo
 }
 
 /*

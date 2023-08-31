@@ -40,29 +40,6 @@ func createASTFromSource(source string) (AST, error) {
 	return NewParser([]rune(source), tokens).Parse()
 }
 
-// Used for full lexing and compiling on the source
-func createIRFromSource(source string) (*IRBuilder, error) {
-	ast, err := createASTFromSource(source)
-	if err != nil {
-		return nil, err
-	}
-
-	builder := NewIRBuilder(ast)
-	err = builder.BuildIR()
-	if err != nil {
-		return nil, err
-	}
-
-	return builder, nil
-}
-
-func Test_IR_Big(t *testing.T) {
-	_, err := createIRFromSource(ExampleTestCode)
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-}
-
 func Test_Parser_Big(t *testing.T) {
 	_, err := createASTFromSource(ExampleTestCode)
 	if err != nil {
@@ -285,32 +262,5 @@ func Test_Parser_NumberLiteral(t *testing.T) {
 	numberString := GetTokenSLice(numberLiteralExpression.number, parser.TokenBuffer, parser.source)
 	if string(numberString) != "1" {
 		t.Errorf("expected number to be 1 got %v", numberString)
-	}
-}
-
-func Test_IR_FnTypeBuilt(t *testing.T) {
-	irBuilder, err := createIRFromSource("fn main() bool {}")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if len(irBuilder.FnInfoBuffer) != 1 {
-		t.Errorf("expected 1 generated fn type got %v", len(irBuilder.FnInfoBuffer))
-	}
-
-	firstFnType := irBuilder.FnInfoBuffer[0]
-	if firstFnType.Name != "main" {
-		t.Errorf("expected fn name to be main got %v", firstFnType.Name)
-	}
-}
-
-func Test_IR_StructInfoBuilt(t *testing.T) {
-	irBuilder, err := createIRFromSource("struct Person {}")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if len(irBuilder.BaseTypeInfoBuffer)-len(BuiltInTypes) != 1 {
-		t.Errorf("expected 1 generated struct type got %v", len(irBuilder.BaseTypeInfoBuffer)-len(BuiltInTypes))
 	}
 }
