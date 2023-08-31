@@ -13,6 +13,10 @@ type AST struct {
 	StructStatements []*StructStatement
 }
 
+func (self *AST) GetTokenSlice(token Token) []rune {
+	return GetTokenSLice(token, self.TokenBuffer, self.Source)
+}
+
 /*
 	   ============
 		Statements
@@ -110,10 +114,16 @@ func (self *NumberLiteralExpression) TypeInfo() TypeInfo {
 	   ============
 */
 type TypeExpression interface {
+	TypeInfo() TypeInfo
 }
 
 type IdentifierTypeExpression struct {
 	identifier Token
+	typeInfo   TypeInfo
+}
+
+func (self *IdentifierTypeExpression) TypeInfo() TypeInfo {
+	return self.typeInfo
 }
 
 /*
