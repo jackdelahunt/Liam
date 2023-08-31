@@ -1,23 +1,36 @@
 package main
 
 import (
-	"fmt"
-	"github.com/jackdelahunt/Liam/gliamc/src/liamCLI"
+	"github.com/jackdelahunt/Liam/gliamc/src/compiler"
+	"log"
 )
 
 const (
 	Code = `
-fn main() void {
-	if true {
-		return 5;
-	}
+fn main() bool {
+	return 5;
 }
 `
 )
 
 func main() {
-	err := liamCLI.StartCLI()
+	//err := liamCLI.StartCLI()
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//}
+	source := []rune(Code)
+	tokenBuffer := compiler.NewLexer(source).Lex()
+
+	ast, err := compiler.NewParser(source, tokenBuffer).Parse()
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Fatal(err.Error())
 	}
+
+	builder := compiler.NewIRBuilder(ast)
+	err = builder.BuildIR()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	builder.PrintIR()
 }

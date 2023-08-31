@@ -7,10 +7,10 @@ import (
 )
 
 type AST struct {
-	Source       []rune
-	TokenBuffer  []TokenData
-	FnStatements []*FnStatement
-	// StructStatements []*StructStatements
+	Source           []rune
+	TokenBuffer      []TokenData
+	FnStatements     []*FnStatement
+	StructStatements []*StructStatement
 }
 
 func NewAST(source []rune, tokenBuffer []TokenData, fnStatements []*FnStatement) AST {
@@ -50,6 +50,10 @@ type FnStatement struct {
 	identifier Token
 	returnType TypeExpression
 	body       *ScopeStatement
+}
+
+type StructStatement struct {
+	identifier Token
 }
 
 /*
@@ -115,6 +119,7 @@ func NewParser(source []rune, tokens []TokenData) *Parser {
 
 func (self *Parser) Parse() (AST, error) {
 	fnStatements := make([]*FnStatement, 0)
+	structStatements := make([]*StructStatement, 0)
 
 	for self.CurrentToken < Token(len(self.TokenBuffer)) {
 		statement, err := self.ParseStatement()
@@ -122,18 +127,22 @@ func (self *Parser) Parse() (AST, error) {
 			return AST{}, err
 		}
 
-		fnStatement, ok := statement.(*FnStatement)
-		if !ok {
-			return AST{}, fmt.Errorf("expecting only fn statements at top level")
+		switch statement.(type) {
+		case *FnStatement:
+			fnStatements = append(fnStatements, statement.(*FnStatement))
+		case *StructStatement:
+			structStatements = append(structStatements, statement.(*StructStatement))
+		default:
+			log.Fatal("unknown statement at top level")
 		}
 
-		fnStatements = append(fnStatements, fnStatement)
 	}
 
 	return AST{
-		Source:       self.source,
-		TokenBuffer:  self.TokenBuffer,
-		FnStatements: fnStatements,
+		Source:           self.source,
+		TokenBuffer:      self.TokenBuffer,
+		FnStatements:     fnStatements,
+		StructStatements: structStatements,
 	}, nil
 }
 
@@ -149,6 +158,8 @@ func (self *Parser) ParseStatement() (Statement, error) {
 		return self.ParseIfStatement()
 	case Fn:
 		return self.ParseFnStatement()
+	case Struct:
+		return self.ParseStructStatement()
 	}
 
 	return nil, errors.New("unexpected token at the start of a statement")
@@ -255,6 +266,30 @@ func (self *Parser) ParseFnStatement() (*FnStatement, error) {
 
 	// TODO make the identifier correct here
 	return &FnStatement{identifier: identifier, returnType: typeExpression, body: body}, nil
+}
+
+func (self *Parser) ParseStructStatement() (*StructStatement, error) {
+	_, err := self.ConsumeTokenOfType(Struct)
+	if err != nil {
+		return nil, err
+	}
+
+	identifier, err := self.ConsumeTokenOfType(Identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = self.ConsumeTokenOfType(BraceOpen)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = self.ConsumeTokenOfType(BraceClose)
+	if err != nil {
+		return nil, err
+	}
+
+	return &StructStatement{identifier: identifier}, nil
 }
 
 /*
