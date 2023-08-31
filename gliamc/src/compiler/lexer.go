@@ -9,6 +9,7 @@ const (
 	SemiColon
 	Let
 	Fn
+	Struct
 	If
 	Return
 	ParenOpen
@@ -98,6 +99,8 @@ func (self *Lexer) Lex() []TokenData {
 				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(Let, wordLocation.Start, wordLocation.End))
 			case "fn":
 				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(Fn, wordLocation.Start, wordLocation.End))
+			case "struct":
+				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(Struct, wordLocation.Start, wordLocation.End))
 			case "return":
 				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(Return, wordLocation.Start, wordLocation.End))
 			case "if":

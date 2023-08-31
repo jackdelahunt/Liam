@@ -6,10 +6,18 @@ import (
 
 const (
 	ExampleTestCode = `
-fn main() type {
+struct Person {
+
+}
+
+fn main() bool {
 	if true {
 		return 0;
 	}
+}
+
+fn getPerson() Person {
+	return 2 + 2;
 }
 `
 )
@@ -40,8 +48,19 @@ func createIRFromSource(source string) (*IRBuilder, error) {
 	}
 
 	builder := NewIRBuilder(ast)
-	builder.BuildIR()
+	err = builder.BuildIR()
+	if err != nil {
+		return nil, err
+	}
+
 	return builder, nil
+}
+
+func Test_IR_Big(t *testing.T) {
+	_, err := createIRFromSource(ExampleTestCode)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 }
 
 func Test_Parser_Big(t *testing.T) {
@@ -192,6 +211,19 @@ func Test_Parser_Fn(t *testing.T) {
 	_ = fnStatement
 }
 
+func Test_Parser_Struct(t *testing.T) {
+	parser := createParserFromSource("struct Person {}")
+	structStatement, err := parser.ParseStructStatement()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	structIdentifier := string(GetTokenSLice(structStatement.identifier, parser.TokenBuffer, parser.source))
+	if structIdentifier != "Person" {
+		t.Errorf("expected Person got %v", structIdentifier)
+	}
+}
+
 func Test_Parser_Binary(t *testing.T) {
 	parser := createParserFromSource("1 + 2")
 	expression, err := parser.ParseExpression()
@@ -257,17 +289,28 @@ func Test_Parser_NumberLiteral(t *testing.T) {
 }
 
 func Test_IR_FnTypeBuilt(t *testing.T) {
-	irBuilder, err := createIRFromSource("fn main() type {}")
+	irBuilder, err := createIRFromSource("fn main() bool {}")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
 
-	if len(irBuilder.FnTypes) != 1 {
-		t.Errorf("expected 1 generated fn type got %v", len(irBuilder.FnTypes))
+	if len(irBuilder.FnInfoBuffer) != 1 {
+		t.Errorf("expected 1 generated fn type got %v", len(irBuilder.FnInfoBuffer))
 	}
 
-	firstFnType := irBuilder.FnTypes[0]
+	firstFnType := irBuilder.FnInfoBuffer[0]
 	if firstFnType.Name != "main" {
 		t.Errorf("expected fn name to be main got %v", firstFnType.Name)
+	}
+}
+
+func Test_IR_StructInfoBuilt(t *testing.T) {
+	irBuilder, err := createIRFromSource("struct Person {}")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if len(irBuilder.BaseTypeInfoBuffer)-len(BuiltInTypes) != 1 {
+		t.Errorf("expected 1 generated struct type got %v", len(irBuilder.BaseTypeInfoBuffer)-len(BuiltInTypes))
 	}
 }
