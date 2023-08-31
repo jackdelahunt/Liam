@@ -11,13 +11,11 @@ struct Person {
 }
 
 fn main() bool {
-	if true {
-		return 0;
-	}
+	return 0 + 5;
 }
 
 fn getPerson() Person {
-	return 2 + 2;
+	return (false);
 }
 `
 )
@@ -38,6 +36,26 @@ func createParserFromSource(source string) *Parser {
 func createASTFromSource(source string) (AST, error) {
 	tokens := NewLexer([]rune(source)).Lex()
 	return NewParser([]rune(source), tokens).Parse()
+}
+
+// Used for full lexing and compiling on the source
+func createTypedASTFromSource(source string) (TypedAST, error) {
+	tokens := NewLexer([]rune(source)).Lex()
+	ast, err := NewParser([]rune(source), tokens).Parse()
+	if err != nil {
+		return TypedAST{}, err
+	}
+
+	return NewTypeChecker(ast).TypeCheck()
+}
+
+func Test_TypeChecker_Big(t *testing.T) {
+	typedAST, err := createTypedASTFromSource(ExampleTestCode)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	_ = typedAST
 }
 
 func Test_Parser_Big(t *testing.T) {
@@ -262,5 +280,20 @@ func Test_Parser_NumberLiteral(t *testing.T) {
 	numberString := GetTokenSLice(numberLiteralExpression.number, parser.TokenBuffer, parser.source)
 	if string(numberString) != "1" {
 		t.Errorf("expected number to be 1 got %v", numberString)
+	}
+}
+
+func Test_TypeChecker_BuiltInTypes(t *testing.T) {
+	typedAST, err := createTypedASTFromSource("fn main() bool {}")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if len(typedAST.Types) != len(BuiltInTypes) {
+		t.Errorf("should only expect builtin type to be created here")
+	}
+
+	if len(typedAST.FnTypeInfos) != 1 {
+		t.Errorf("should only expect 1 fn type to be created here")
 	}
 }
