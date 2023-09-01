@@ -21,6 +21,8 @@ const (
 	Minus
 	Star
 	Divide
+	Colon
+	Equal
 )
 
 type Token = uint
@@ -91,6 +93,10 @@ func (self *Lexer) Lex() []TokenData {
 			self.TokenBuffer = append(self.TokenBuffer, NewSingleTokenData(Star, self.CurrentIndex))
 		case '/':
 			self.TokenBuffer = append(self.TokenBuffer, NewSingleTokenData(Divide, self.CurrentIndex))
+		case ':':
+			self.TokenBuffer = append(self.TokenBuffer, NewSingleTokenData(Colon, self.CurrentIndex))
+		case '=':
+			self.TokenBuffer = append(self.TokenBuffer, NewSingleTokenData(Equal, self.CurrentIndex))
 		default:
 			wordLocation := self.GetWord()
 

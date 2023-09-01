@@ -30,7 +30,8 @@ type ExpressionStatement struct {
 }
 
 type ScopeStatement struct {
-	statements []Statement
+	statements  []Statement
+	symbolTable SymbolTable
 }
 
 type ReturnStatement struct {
@@ -42,10 +43,17 @@ type IfStatement struct {
 	scope     *ScopeStatement
 }
 
+type LetStatement struct {
+	identifier     Token
+	typeExpression TypeExpression
+	expression     Expression
+}
+
 type FnStatement struct {
-	identifier Token
-	returnType TypeExpression
-	body       *ScopeStatement
+	Identifier  Token
+	ReturnType  TypeExpression
+	Body        []Statement
+	SymbolTable *SymbolTable
 }
 
 type StructStatement struct {
@@ -188,6 +196,8 @@ func (self *Parser) ParseStatement() (Statement, error) {
 		return self.ParseFnStatement()
 	case Struct:
 		return self.ParseStructStatement()
+	case Let:
+		return self.ParseLetStatement()
 	}
 
 	return nil, errors.New("unexpected token at the start of a statement")
@@ -287,13 +297,12 @@ func (self *Parser) ParseFnStatement() (*FnStatement, error) {
 		return nil, err
 	}
 
-	body, err := self.ParseScopeStatement()
+	body, err := self.ParseStatementsInBrace()
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO make the identifier correct here
-	return &FnStatement{identifier: identifier, returnType: typeExpression, body: body}, nil
+	return &FnStatement{Identifier: identifier, ReturnType: typeExpression, Body: body}, nil
 }
 
 func (self *Parser) ParseStructStatement() (*StructStatement, error) {
@@ -318,6 +327,79 @@ func (self *Parser) ParseStructStatement() (*StructStatement, error) {
 	}
 
 	return &StructStatement{identifier: identifier}, nil
+}
+
+func (self *Parser) ParseLetStatement() (*LetStatement, error) {
+	_, err := self.ConsumeTokenOfType(Let)
+	if err != nil {
+		return nil, err
+	}
+
+	identifier, err := self.ConsumeTokenOfType(Identifier)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = self.ConsumeTokenOfType(Colon)
+	if err != nil {
+		return nil, err
+	}
+
+	typeExpression, err := self.ParseTypeExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = self.ConsumeTokenOfType(Equal)
+	if err != nil {
+		return nil, err
+	}
+
+	expression, err := self.ParseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = self.ConsumeTokenOfType(SemiColon)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LetStatement{
+		identifier:     identifier,
+		typeExpression: typeExpression,
+		expression:     expression,
+	}, nil
+}
+
+func (self *Parser) ParseStatementsInBrace() ([]Statement, error) {
+	statements := make([]Statement, 0)
+
+	_, err := self.ConsumeTokenOfType(BraceOpen)
+	if err != nil {
+		return nil, err
+	}
+
+	closingIndex, err := self.FindBalancePoint(BraceOpen, BraceClose, self.CurrentToken-1)
+	if err != nil {
+		return nil, err
+	}
+
+	for self.CurrentToken < closingIndex {
+		statement, err := self.ParseStatement()
+		if err != nil {
+			return nil, err
+		}
+
+		statements = append(statements, statement)
+	}
+
+	_, err = self.ConsumeTokenOfType(BraceClose)
+	if err != nil {
+		return nil, err
+	}
+
+	return statements, nil
 }
 
 /*

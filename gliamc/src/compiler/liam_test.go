@@ -10,6 +10,11 @@ struct Person {
 
 }
 
+fn add() int {
+	let x : bool = true; 
+	
+}
+
 fn main() bool {
 	
 	if true {
