@@ -8,29 +8,32 @@ import (
 type TypeInfoType = uint
 
 const (
+	TI_Fn TypeInfoType = iota
+	TI_Bool
+	TI_Int
+	TI_Struct
+)
+
+const (
 	boolTypeIndex = 0
 	intTypeIndex  = 1
 )
 
-const (
-	TI_Fn TypeInfoType = iota
-	TI_TypeIndex
-)
-
 var (
-	BuiltInTypes = [...]Type{
+	BuiltInTypes = [...]struct {
+		identifier string
+		typeInfo   TypeInfo
+	}{
 		{
-			Name: []rune("bool"),
+			identifier: "bool",
+			typeInfo:   &BoolTypeInfo{},
 		},
 		{
-			Name: []rune("int"),
+			identifier: "int",
+			typeInfo:   &IntTypeInfo{},
 		},
 	}
 )
-
-type Type struct {
-	Name []rune
-}
 
 type TypedAST struct {
 	Source           []rune
@@ -38,19 +41,34 @@ type TypedAST struct {
 	FnStatements     []*FnStatement
 	StructStatements []*StructStatement
 	FnTypeInfos      []*FnTypeInfo
-	Types            []Type
+	Types            []TypeInfo
+	NameToTypeMap    map[string]TypeInfo
 }
 
 type TypeInfo interface {
 	TypeInfoType() TypeInfoType
 }
 
-type TypeIndex struct {
-	index uint
+type IntTypeInfo struct {
 }
 
-func (self *TypeIndex) TypeInfoType() TypeInfoType {
-	return TI_TypeIndex
+func (self *IntTypeInfo) TypeInfoType() TypeInfoType {
+	return TI_Int
+}
+
+type BoolTypeInfo struct {
+}
+
+func (self *BoolTypeInfo) TypeInfoType() TypeInfoType {
+	return TI_Bool
+}
+
+type StructTypeInfo struct {
+	Name []rune
+}
+
+func (self *StructTypeInfo) TypeInfoType() TypeInfoType {
+	return TI_Struct
 }
 
 type FnTypeInfo struct {
@@ -63,37 +81,48 @@ func (self *FnTypeInfo) TypeInfoType() TypeInfoType {
 }
 
 type TypeChecker struct {
-	ast         AST
-	FnTypeInfos []*FnTypeInfo
-	Types       []Type
+	Ast           AST
+	FnTypeInfos   []*FnTypeInfo
+	Types         []TypeInfo
+	NameToTypeMap map[string]TypeInfo
 }
 
 func NewTypeChecker(ast AST) *TypeChecker {
-	return &TypeChecker{ast: ast}
+	return &TypeChecker{
+		Ast:           ast,
+		FnTypeInfos:   make([]*FnTypeInfo, 0),
+		Types:         make([]TypeInfo, 0),
+		NameToTypeMap: make(map[string]TypeInfo),
+	}
+}
+
+func (self *TypeChecker) AddType(identifier string, typeInfo TypeInfo) {
+	self.Types = append(self.Types, typeInfo)
+	self.NameToTypeMap[identifier] = typeInfo
 }
 
 func (self *TypeChecker) TypeCheck() (TypedAST, error) {
 
 	// add all the builtin types to the type table
 	for _, builtInTypo := range BuiltInTypes {
-		self.Types = append(self.Types, builtInTypo)
+		self.AddType(builtInTypo.identifier, builtInTypo.typeInfo)
 	}
 
-	for _, statement := range self.ast.StructStatements {
+	for _, statement := range self.Ast.StructStatements {
 		err := self.TypeCheckStructStatement(statement)
 		if err != nil {
 			return TypedAST{}, err
 		}
 	}
 
-	for _, statement := range self.ast.FnStatements {
+	for _, statement := range self.Ast.FnStatements {
 		err := self.TypeCheckFnStatementHeader(statement)
 		if err != nil {
 			return TypedAST{}, err
 		}
 	}
 
-	for _, statement := range self.ast.FnStatements {
+	for _, statement := range self.Ast.FnStatements {
 		err := self.TypeCheckFnStatementBody(statement)
 		if err != nil {
 			return TypedAST{}, err
@@ -101,10 +130,10 @@ func (self *TypeChecker) TypeCheck() (TypedAST, error) {
 	}
 
 	return TypedAST{
-		Source:           self.ast.Source,
-		TokenBuffer:      self.ast.TokenBuffer,
-		FnStatements:     self.ast.FnStatements,
-		StructStatements: self.ast.StructStatements,
+		Source:           self.Ast.Source,
+		TokenBuffer:      self.Ast.TokenBuffer,
+		FnStatements:     self.Ast.FnStatements,
+		StructStatements: self.Ast.StructStatements,
 		FnTypeInfos:      self.FnTypeInfos,
 		Types:            self.Types,
 	}, nil
@@ -132,7 +161,7 @@ func (self *TypeChecker) TypeCheckStatement(statement Statement) error {
 }
 
 func (self *TypeChecker) TypeCheckExpressionStatement(statement *ExpressionStatement) error {
-	return nil
+	return self.TypeCheckExpression(statement.expression)
 }
 
 func (self *TypeChecker) TypeCheckScopeStatement(statement *ScopeStatement) error {
@@ -151,6 +180,20 @@ func (self *TypeChecker) TypeCheckReturnStatement(statement *ReturnStatement) er
 }
 
 func (self *TypeChecker) TypeCheckIfStatement(statement *IfStatement) error {
+	err := self.TypeCheckExpression(statement.condition)
+	if err != nil {
+		return err
+	}
+
+	if statement.condition.TypeInfo().TypeInfoType() != TI_Bool {
+		return fmt.Errorf("can only pass bool expressions to if")
+	}
+
+	err = self.TypeCheckScopeStatement(statement.scope)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -174,11 +217,9 @@ func (self *TypeChecker) TypeCheckFnStatementBody(statement *FnStatement) error 
 }
 
 func (self *TypeChecker) TypeCheckStructStatement(statement *StructStatement) error {
-	structName := self.ast.GetTokenSlice(statement.identifier)
-	newType := Type{Name: structName}
-	self.Types = append(self.Types, newType)
+	structName := self.Ast.GetTokenSlice(statement.identifier)
+	self.AddType(string(structName), &StructTypeInfo{Name: structName})
 
-	// TODO in the future we need to make sure there are no conflicting type names
 	return nil
 }
 
@@ -186,7 +227,6 @@ func (self *TypeChecker) TypeCheckExpression(expression Expression) error {
 	switch expression.(type) {
 	case *BoolLiteralExpression:
 		self.TypeCheckBoolLiteralExpression(expression.(*BoolLiteralExpression))
-		return nil
 	case *IdentifierExpression:
 		return self.TypeCheckIdentifierExpression(expression.(*IdentifierExpression))
 	case *BinaryExpression:
@@ -195,7 +235,6 @@ func (self *TypeChecker) TypeCheckExpression(expression Expression) error {
 		return self.TypeCheckGroupExpression(expression.(*GroupExpression))
 	case *NumberLiteralExpression:
 		self.TypeCheckNumberLiteralExpression(expression.(*NumberLiteralExpression))
-		return nil
 	default:
 		log.Fatal("cannot type check this expression yet")
 	}
@@ -204,7 +243,7 @@ func (self *TypeChecker) TypeCheckExpression(expression Expression) error {
 }
 
 func (self *TypeChecker) TypeCheckBoolLiteralExpression(expression *BoolLiteralExpression) {
-	expression.typeInfo = &TypeIndex{index: boolTypeIndex}
+	expression.typeInfo = self.Types[boolTypeIndex]
 }
 
 func (self *TypeChecker) TypeCheckIdentifierExpression(expression *IdentifierExpression) error {
@@ -240,7 +279,7 @@ func (self *TypeChecker) TypeCheckGroupExpression(expression *GroupExpression) e
 }
 
 func (self *TypeChecker) TypeCheckNumberLiteralExpression(expression *NumberLiteralExpression) {
-	expression.typeInfo = &TypeIndex{index: intTypeIndex}
+	expression.typeInfo = self.Types[intTypeIndex]
 }
 
 func (self *TypeChecker) TypeCheckTypeExpression(typeExpression TypeExpression) error {
@@ -255,15 +294,14 @@ func (self *TypeChecker) TypeCheckTypeExpression(typeExpression TypeExpression) 
 }
 
 func (self *TypeChecker) TypeCheckIdentifierTypeExpression(typeExpression *IdentifierTypeExpression) error {
-	identifier := self.ast.GetTokenSlice(typeExpression.identifier)
-	for index, t := range self.Types {
-		if SliceEqual(&identifier, &t.Name) {
-			typeExpression.typeInfo = &TypeIndex{index: uint(index)}
-			return nil
-		}
+	identifier := self.Ast.GetTokenSlice(typeExpression.identifier)
+	typeInfo, ok := self.NameToTypeMap[string(identifier)]
+	if !ok {
+		return fmt.Errorf("use of undeclared type %v", string(identifier))
 	}
 
-	return fmt.Errorf("unknown type '%v' in type expression", string(identifier))
+	typeExpression.typeInfo = typeInfo
+	return nil
 }
 
 func EqualTypes(left TypeInfo, right TypeInfo) bool {
@@ -273,11 +311,10 @@ func EqualTypes(left TypeInfo, right TypeInfo) bool {
 	}
 
 	switch left.TypeInfoType() {
-	case TI_TypeIndex:
-		typeIndexLeft := left.(*TypeIndex)
-		typeIndexRight := right.(*TypeIndex)
-
-		return typeIndexLeft.index == typeIndexRight.index
+	case TI_Bool:
+		return true
+	case TI_Int:
+		return true
 	case TI_Fn:
 		fnLeft := left.(*FnTypeInfo)
 		fnRight := right.(*FnTypeInfo)

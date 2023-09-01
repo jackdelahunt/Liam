@@ -11,6 +11,11 @@ struct Person {
 }
 
 fn main() bool {
+	
+	if true {
+		return true;
+	}
+
 	return 0 + 5;
 }
 
