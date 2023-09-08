@@ -6,6 +6,15 @@ import (
 	"log"
 )
 
+type OperatorType = uint
+
+const (
+	OPAdd OperatorType = iota
+	OPMinus
+	OPMultiply
+	OPDivide
+)
+
 type AST struct {
 	Source           []rune
 	TokenBuffer      []TokenData
@@ -88,10 +97,11 @@ func (self *IdentifierExpression) TypeInfo() TypeInfo {
 }
 
 type BinaryExpression struct {
-	lhs      Expression
-	operator Token
-	rhs      Expression
-	typeInfo TypeInfo
+	lhs          Expression
+	operator     Token
+	rhs          Expression
+	operatorType OperatorType
+	typeInfo     TypeInfo
 }
 
 func (self *BinaryExpression) TypeInfo() TypeInfo {

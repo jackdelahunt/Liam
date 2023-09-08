@@ -117,12 +117,15 @@ func (self *IRBuilder) GenerateBytecodeForBinary(expression *BinaryExpression) u
 
 	var instructionType InstructionType
 
-	// TODO: fix this mess, convert this to an binary op enum in the parser instead of token
-	op := string(GetTokenSLice(expression.operator, self.TypedAST.TokenBuffer, self.TypedAST.Source))
-	if op == "+" {
+	tokenType := self.TypedAST.TokenBuffer[expression.operator].TokenType
+	switch tokenType {
+	case Plus:
 		instructionType = IBinaryAdd
-	} else {
-		log.Fatal("cant generate bytecode for this op yet")
+	case Minus:
+	case Star:
+	case Divide:
+	default:
+		log.Fatal("unsupported binary op in IR builder")
 	}
 
 	instruction := Instruction{
