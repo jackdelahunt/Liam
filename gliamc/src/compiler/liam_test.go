@@ -11,14 +11,18 @@ struct Person {
 }
 
 fn add() int {
-	let x : bool = true; 
-	
+	let x : int = 4; 
+	return x;
 }
 
-fn main() bool {
+fn is_true() bool {
+	return true;
+}
+
+fn main() int {
 	
-	if true {
-		return true;
+	if is_true() {
+		return add();
 	}
 
 	return 0 + 5;
@@ -57,6 +61,33 @@ func createTypedASTFromSource(source string) (TypedAST, error) {
 	}
 
 	return NewTypeChecker(ast).TypeCheck()
+}
+
+func Test_TypeChecker_EmptyMain(t *testing.T) {
+	typedAST, err := createTypedASTFromSource("fn main() int {  }")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	_ = typedAST
+}
+
+func Test_TypeChecker_FnCall(t *testing.T) {
+	typedAST, err := createTypedASTFromSource("fn main() bool { if main() { } }")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	_ = typedAST
+}
+
+func Test_TypeChecker_BasicIf(t *testing.T) {
+	typedAST, err := createTypedASTFromSource("fn main() int { if true { return 0; } }")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	_ = typedAST
 }
 
 func Test_TypeChecker_Big(t *testing.T) {
@@ -194,7 +225,7 @@ func Test_Parser_Scope_Empty(t *testing.T) {
 }
 
 func Test_Parser_If(t *testing.T) {
-	parser := createParserFromSource("if 1 + 2 { return 0; }")
+	parser := createParserFromSource("if 1 + 2 { return add(); }")
 	ifStatement, err := parser.ParseIfStatement()
 	if err != nil {
 		t.Errorf(err.Error())
@@ -290,6 +321,14 @@ func Test_Parser_NumberLiteral(t *testing.T) {
 	numberString := GetTokenSLice(numberLiteralExpression.number, parser.TokenBuffer, parser.source)
 	if string(numberString) != "1" {
 		t.Errorf("expected number to be 1 got %v", numberString)
+	}
+}
+
+func Test_Parser_Call(t *testing.T) {
+	parser := createParserFromSource("add()")
+	_, err := parser.ParseExpression()
+	if err != nil {
+		t.Errorf(err.Error())
 	}
 }
 
