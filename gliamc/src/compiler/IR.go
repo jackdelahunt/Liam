@@ -12,6 +12,7 @@ const UNUSED_SLOT_FLAG uint = 0x_cccc_cccc
 const (
 	ILoadNumberLiteral InstructionType = iota
 	IBinaryAdd
+	ICall
 
 	// :::::::::::::::::::::::::::::::::::
 	// above expressions, below statements
@@ -20,6 +21,8 @@ const (
 	IFnStart
 	IFnEnd
 	IReturn
+	IIfStart
+	IIfEnd
 )
 
 type Instruction struct {
@@ -48,8 +51,17 @@ func (self *IRBuilder) BuildIR() error {
 }
 
 func (self *IRBuilder) GenerateBytecodeForFn(index uint, fnTypeInfo *FnTypeInfo) {
-	start := self.BuildFnStartInstruction(fnTypeInfo.Identifier, index)
-	end := self.BuildFnEndInstruction()
+	start := Instruction{
+		instructionType: IFnStart,
+		highSlot:        index,
+		lowSlot:         UNUSED_SLOT_FLAG,
+	}
+
+	end := Instruction{
+		instructionType: IFnEnd,
+		highSlot:        UNUSED_SLOT_FLAG,
+		lowSlot:         UNUSED_SLOT_FLAG,
+	}
 
 	self.AddInstructionToBytecode(start)
 
@@ -64,12 +76,8 @@ func (self *IRBuilder) GenerateBytecodeForStatement(statement Statement) uint {
 	switch statement.(type) {
 	case *ReturnStatement:
 		return self.GenerateBytecodeForReturn(statement.(*ReturnStatement))
-	case *ExpressionStatement:
-	case *ScopeStatement:
 	case *IfStatement:
-	case *FnStatement:
-	case *StructStatement:
-	case *LetStatement:
+		return self.GenerateBytecodeForIf(statement.(*IfStatement))
 	default:
 		log.Fatal("cannot generate bytecode for this statement yet")
 	}
@@ -90,12 +98,46 @@ func (self *IRBuilder) GenerateBytecodeForReturn(statement *ReturnStatement) uin
 	return returnIndex
 }
 
+func (self *IRBuilder) GenerateBytecodeForIf(statement *IfStatement) uint {
+	ifStart := Instruction{
+		instructionType: IIfStart,
+		highSlot:        0,
+		lowSlot:         UNUSED_SLOT_FLAG,
+	}
+
+	ifEnd := Instruction{
+		instructionType: IIfEnd,
+		highSlot:        UNUSED_SLOT_FLAG,
+		lowSlot:         UNUSED_SLOT_FLAG,
+	}
+
+	ifStartIndex := self.AddInstructionToBytecode(ifStart)
+
+	expressionIndex := self.GenerateBytecodeForExpression(statement.condition)
+	self.ByteCode[ifStartIndex].highSlot = expressionIndex
+
+	for _, subStatement := range statement.scope.statements {
+		self.GenerateBytecodeForStatement(subStatement)
+	}
+
+	ifEndIndex := self.AddInstructionToBytecode(ifEnd)
+
+	// low slot of start is the end index
+	// high slot of the end is the start index
+	self.ByteCode[ifStartIndex].lowSlot = ifEndIndex
+	self.ByteCode[ifEndIndex].highSlot = ifStartIndex
+
+	return ifStartIndex
+}
+
 func (self *IRBuilder) GenerateBytecodeForExpression(expression Expression) uint {
 	switch expression.(type) {
 	case *NumberLiteralExpression:
 		return self.GenerateBytecodeForNumberLiteral(expression.(*NumberLiteralExpression))
 	case *BinaryExpression:
 		return self.GenerateBytecodeForBinary(expression.(*BinaryExpression))
+	case *CallExpression:
+		return self.GenerateBytecodeForCall(expression.(*CallExpression))
 	default:
 		log.Fatal("cannot generate bytecode for this expression yet")
 	}
@@ -140,42 +182,26 @@ func (self *IRBuilder) GenerateBytecodeForBinary(expression *BinaryExpression) u
 	return index
 }
 
+func (self *IRBuilder) GenerateBytecodeForCall(expression *CallExpression) uint {
+	fnTypeInfo, ok := expression.callee.TypeInfo().(*FnTypeInfo)
+	if !ok {
+		log.Fatal("this should always be a fn")
+		return 0
+	}
+
+	instruction := Instruction{
+		instructionType: ICall,
+		highSlot:        fnTypeInfo.FnTypeIndex,
+		lowSlot:         UNUSED_SLOT_FLAG,
+	}
+
+	return self.AddInstructionToBytecode(instruction)
+}
+
 func (self *IRBuilder) AddInstructionToBytecode(instruction Instruction) uint {
 	index := len(self.ByteCode)
 	self.ByteCode = append(self.ByteCode, instruction)
 	return uint(index)
-}
-
-func (self *IRBuilder) BuildFnStartInstruction(token Token, fnInfoIndex uint) Instruction {
-	return Instruction{
-		instructionType: IFnStart,
-		highSlot:        token,
-		lowSlot:         fnInfoIndex,
-	}
-}
-
-func (self *IRBuilder) BuildFnEndInstruction() Instruction {
-	return Instruction{
-		instructionType: IFnEnd,
-		highSlot:        UNUSED_SLOT_FLAG,
-		lowSlot:         UNUSED_SLOT_FLAG,
-	}
-}
-
-func (self *IRBuilder) BuildLoadNumberLiteralInstruction(number uint) Instruction {
-	return Instruction{
-		instructionType: ILoadNumberLiteral,
-		highSlot:        number,
-		lowSlot:         UNUSED_SLOT_FLAG,
-	}
-}
-
-func (self *IRBuilder) BuildReturnInstruction(expressionInstructionIndex uint) Instruction {
-	return Instruction{
-		instructionType: IReturn,
-		highSlot:        expressionInstructionIndex,
-		lowSlot:         UNUSED_SLOT_FLAG,
-	}
 }
 
 func GetInstructionTypeName(instructionType InstructionType) string {
@@ -184,21 +210,38 @@ func GetInstructionTypeName(instructionType InstructionType) string {
 		return "number_lit"
 	case IBinaryAdd:
 		return "binary_add"
+	case ICall:
+		return "call"
 	case IFnStart:
 		return "fn_start"
 	case IFnEnd:
 		return "fn_end"
 	case IReturn:
 		return "return"
+	case IIfStart:
+		return "if_start"
+	case IIfEnd:
+		return "if_end"
+
 	default:
 		log.Fatal(fmt.Sprintf("cannot get name of instruction type %v", instructionType))
-
 	}
 
 	return ""
 }
 
 func (self *IRBuilder) PrintIR() {
+
+	fmt.Println(":::::::::::::::::: Fn Table ::::::::::::::::::")
+	fmt.Println("index | name")
+	fmt.Println("----------------------------------------------")
+	for index, fn := range self.TypedAST.FnTypeInfos {
+		fmt.Printf("%-5v | %v \n", index, string(GetTokenSLice(fn.Identifier, self.TypedAST.TokenBuffer, self.TypedAST.Source)))
+	}
+	fmt.Println("::::::::::::::::::::::::::::::::::::::::::::::")
+
+	fmt.Print("\n\n")
+
 	fmt.Println(":::::::::::::::::: Byte Code :::::::::::::::::")
 	fmt.Println("index | type       | [high       , low       ]")
 	fmt.Println("----------------------------------------------")
