@@ -99,8 +99,9 @@ func (self *StructTypeInfo) TypeInfoType() TypeInfoType {
 }
 
 type FnTypeInfo struct {
-	Identifier Token
-	ReturnType TypeInfo
+	FnTypeIndex uint
+	Identifier  Token
+	ReturnType  TypeInfo
 }
 
 func (self *FnTypeInfo) TypeInfoType() TypeInfoType {
@@ -131,6 +132,12 @@ func (self *TypeChecker) AddType(identifier string, typeInfo TypeInfo) {
 func (self *TypeChecker) GetType(identifier string) (TypeInfo, bool) {
 	typeInfo, ok := self.NameToTypeMap[identifier]
 	return typeInfo, ok
+}
+
+func (self *TypeChecker) AddFn(fnTypeInfo *FnTypeInfo) {
+	index := uint(len(self.Fns))
+	self.Fns = append(self.Fns, fnTypeInfo)
+	fnTypeInfo.FnTypeIndex = index
 }
 
 func (self *TypeChecker) GetFn(identifier string) (*FnTypeInfo, bool) {
@@ -252,7 +259,8 @@ func (self *TypeChecker) TypeCheckFnStatementHeader(statement *FnStatement) erro
 		ReturnType: statement.ReturnType.TypeInfo(),
 	}
 
-	self.Fns = append(self.Fns, fnTypeInfo)
+	self.AddFn(fnTypeInfo)
+
 	return nil
 }
 

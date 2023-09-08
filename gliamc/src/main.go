@@ -7,6 +7,12 @@ import (
 
 const (
 	Code = `
+fn add() int {
+	if main() {
+		return 0;
+	}
+}
+
 fn main() bool {
 	return 5 + 5;
 }
