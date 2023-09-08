@@ -7,7 +7,7 @@ import (
 
 type InstructionType = uint8
 
-const UNUSED_SLOT_FLAG uint = 0x_cccc_cccc_cccc_cccc
+const UNUSED_SLOT_FLAG uint = 0x_cccc_cccc
 
 const (
 	ILoadNumberLiteral InstructionType = iota
@@ -175,10 +175,32 @@ func (self *IRBuilder) BuildReturnInstruction(expressionInstructionIndex uint) I
 	}
 }
 
-func (self *IRBuilder) PrintIR() {
-	fmt.Println("::::: Byte Code ::::: ")
-	for index, instruction := range self.ByteCode {
-		fmt.Printf("%v | (%v) {%x, %x} \n", index, instruction.instructionType, instruction.highSlot, instruction.lowSlot)
+func GetInstructionTypeName(instructionType InstructionType) string {
+	switch instructionType {
+	case ILoadNumberLiteral:
+		return "number_lit"
+	case IBinaryAdd:
+		return "binary_add"
+	case IFnStart:
+		return "fn_start"
+	case IFnEnd:
+		return "fn_end"
+	case IReturn:
+		return "return"
+	default:
+		log.Fatal(fmt.Sprintf("cannot get name of instruction type %v", instructionType))
+
 	}
-	fmt.Println("::::::::::::::::::::: ")
+
+	return ""
+}
+
+func (self *IRBuilder) PrintIR() {
+	fmt.Println(":::::::::::::::::: Byte Code :::::::::::::::::")
+	fmt.Println("index | type       | [high       , low       ]")
+	fmt.Println("----------------------------------------------")
+	for index, instruction := range self.ByteCode {
+		fmt.Printf("%-5v | %-10v | [%-10x , %-10x] \n", index, GetInstructionTypeName(instruction.instructionType), instruction.highSlot, instruction.lowSlot)
+	}
+	fmt.Println("::::::::::::::::::::::::::::::::::::::::::::::")
 }
