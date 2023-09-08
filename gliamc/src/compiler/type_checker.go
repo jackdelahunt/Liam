@@ -35,15 +35,15 @@ var (
 	}
 )
 
-type SymbolTable struct {
+type LocalSymbolTable struct {
 	identifiers map[string]TypeInfo
 }
 
-func NewSymbolTable() *SymbolTable {
-	return &SymbolTable{identifiers: make(map[string]TypeInfo)}
+func NewSymbolTable() *LocalSymbolTable {
+	return &LocalSymbolTable{identifiers: make(map[string]TypeInfo)}
 }
 
-func (self *SymbolTable) AddLocal(identifier string, typeInfo TypeInfo) error {
+func (self *LocalSymbolTable) AddLocal(identifier string, typeInfo TypeInfo) error {
 	_, exists := self.identifiers[identifier]
 	if exists {
 		return fmt.Errorf("symbol '%v' already exists", identifier)
@@ -53,13 +53,13 @@ func (self *SymbolTable) AddLocal(identifier string, typeInfo TypeInfo) error {
 	return nil
 }
 
-func (self *SymbolTable) GetLocal(identifier string) (TypeInfo, error) {
-	typeInfo, exists := self.identifiers[identifier]
-	if exists {
-		return typeInfo, nil
+func (self *LocalSymbolTable) GetLocal(identifier string) (TypeInfo, bool) {
+	typeInfo, ok := self.identifiers[identifier]
+	if !ok {
+		return nil, false
 	}
 
-	return nil, fmt.Errorf("identifier '%v' does not exist", identifier)
+	return typeInfo, true
 }
 
 type TypedAST struct {
@@ -109,7 +109,7 @@ func (self *FnTypeInfo) TypeInfoType() TypeInfoType {
 
 type TypeChecker struct {
 	Ast           AST
-	FnTypeInfos   []*FnTypeInfo
+	Fns           []*FnTypeInfo
 	Types         []TypeInfo
 	NameToTypeMap map[string]TypeInfo
 }
@@ -117,7 +117,7 @@ type TypeChecker struct {
 func NewTypeChecker(ast AST) *TypeChecker {
 	return &TypeChecker{
 		Ast:           ast,
-		FnTypeInfos:   make([]*FnTypeInfo, 0),
+		Fns:           make([]*FnTypeInfo, 0),
 		Types:         make([]TypeInfo, 0),
 		NameToTypeMap: make(map[string]TypeInfo),
 	}
@@ -126,6 +126,21 @@ func NewTypeChecker(ast AST) *TypeChecker {
 func (self *TypeChecker) AddType(identifier string, typeInfo TypeInfo) {
 	self.Types = append(self.Types, typeInfo)
 	self.NameToTypeMap[identifier] = typeInfo
+}
+
+func (self *TypeChecker) GetType(identifier string) (TypeInfo, bool) {
+	typeInfo, ok := self.NameToTypeMap[identifier]
+	return typeInfo, ok
+}
+
+func (self *TypeChecker) GetFn(identifier string) (*FnTypeInfo, bool) {
+	for _, fnTypeInfo := range self.Fns {
+		if string(self.Ast.GetTokenSlice(fnTypeInfo.Identifier)) == identifier {
+			return fnTypeInfo, true
+		}
+	}
+
+	return nil, false
 }
 
 func (self *TypeChecker) TypeCheck() (TypedAST, error) {
@@ -161,12 +176,12 @@ func (self *TypeChecker) TypeCheck() (TypedAST, error) {
 		TokenBuffer:      self.Ast.TokenBuffer,
 		FnStatements:     self.Ast.FnStatements,
 		StructStatements: self.Ast.StructStatements,
-		FnTypeInfos:      self.FnTypeInfos,
+		FnTypeInfos:      self.Fns,
 		Types:            self.Types,
 	}, nil
 }
 
-func (self *TypeChecker) TypeCheckStatement(statement Statement, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckStatement(statement Statement, symbolTable *LocalSymbolTable) error {
 	switch statement.(type) {
 	case *ExpressionStatement:
 		return self.TypeCheckExpressionStatement(statement.(*ExpressionStatement), symbolTable)
@@ -189,11 +204,11 @@ func (self *TypeChecker) TypeCheckStatement(statement Statement, symbolTable *Sy
 	return nil
 }
 
-func (self *TypeChecker) TypeCheckExpressionStatement(statement *ExpressionStatement, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckExpressionStatement(statement *ExpressionStatement, symbolTable *LocalSymbolTable) error {
 	return self.TypeCheckExpression(statement.expression, symbolTable)
 }
 
-func (self *TypeChecker) TypeCheckScopeStatement(statement *ScopeStatement, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckScopeStatement(statement *ScopeStatement, symbolTable *LocalSymbolTable) error {
 	for _, subStatement := range statement.statements {
 		err := self.TypeCheckStatement(subStatement, symbolTable)
 		if err != nil {
@@ -204,11 +219,11 @@ func (self *TypeChecker) TypeCheckScopeStatement(statement *ScopeStatement, symb
 	return nil
 }
 
-func (self *TypeChecker) TypeCheckReturnStatement(statement *ReturnStatement, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckReturnStatement(statement *ReturnStatement, symbolTable *LocalSymbolTable) error {
 	return self.TypeCheckExpression(statement.expression, symbolTable)
 }
 
-func (self *TypeChecker) TypeCheckIfStatement(statement *IfStatement, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckIfStatement(statement *IfStatement, symbolTable *LocalSymbolTable) error {
 	err := self.TypeCheckExpression(statement.condition, symbolTable)
 	if err != nil {
 		return err
@@ -237,7 +252,7 @@ func (self *TypeChecker) TypeCheckFnStatementHeader(statement *FnStatement) erro
 		ReturnType: statement.ReturnType.TypeInfo(),
 	}
 
-	self.FnTypeInfos = append(self.FnTypeInfos, fnTypeInfo)
+	self.Fns = append(self.Fns, fnTypeInfo)
 	return nil
 }
 
@@ -260,7 +275,7 @@ func (self *TypeChecker) TypeCheckStructStatement(statement *StructStatement) er
 	return nil
 }
 
-func (self *TypeChecker) TypeCheckLetStatement(statement *LetStatement, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckLetStatement(statement *LetStatement, symbolTable *LocalSymbolTable) error {
 	err := self.TypeCheckTypeExpression(statement.typeExpression)
 	if err != nil {
 		return err
@@ -279,7 +294,7 @@ func (self *TypeChecker) TypeCheckLetStatement(statement *LetStatement, symbolTa
 	return nil
 }
 
-func (self *TypeChecker) TypeCheckExpression(expression Expression, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckExpression(expression Expression, symbolTable *LocalSymbolTable) error {
 	switch expression.(type) {
 	case *BoolLiteralExpression:
 		self.TypeCheckBoolLiteralExpression(expression.(*BoolLiteralExpression))
@@ -291,6 +306,8 @@ func (self *TypeChecker) TypeCheckExpression(expression Expression, symbolTable 
 		return self.TypeCheckGroupExpression(expression.(*GroupExpression), symbolTable)
 	case *NumberLiteralExpression:
 		self.TypeCheckNumberLiteralExpression(expression.(*NumberLiteralExpression))
+	case *CallExpression:
+		return self.TypeCheckCallExpression(expression.(*CallExpression), symbolTable)
 	default:
 		log.Fatal("cannot type check this expression yet")
 	}
@@ -302,17 +319,29 @@ func (self *TypeChecker) TypeCheckBoolLiteralExpression(expression *BoolLiteralE
 	expression.typeInfo = self.Types[boolTypeIndex]
 }
 
-func (self *TypeChecker) TypeCheckIdentifierExpression(expression *IdentifierExpression, symbolTable *SymbolTable) error {
-	identifierTypeInfo, err := symbolTable.GetLocal(string(self.Ast.GetTokenSlice(expression.identifier)))
-	if err != nil {
-		return err
+func (self *TypeChecker) TypeCheckIdentifierExpression(expression *IdentifierExpression, symbolTable *LocalSymbolTable) error {
+	identifier := string(self.Ast.GetTokenSlice(expression.identifier))
+
+	var typeInfo TypeInfo = nil
+
+	typeInfo, ok := symbolTable.GetLocal(identifier)
+	if ok {
+		goto assignType
 	}
 
-	expression.typeInfo = identifierTypeInfo
+	typeInfo, ok = self.GetFn(identifier)
+	if ok {
+		goto assignType
+	}
+
+	return fmt.Errorf("identifier '%v' cannot be found", identifier)
+
+assignType:
+	expression.typeInfo = typeInfo
 	return nil
 }
 
-func (self *TypeChecker) TypeCheckBinaryExpression(expression *BinaryExpression, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckBinaryExpression(expression *BinaryExpression, symbolTable *LocalSymbolTable) error {
 	err := self.TypeCheckExpression(expression.lhs, symbolTable)
 	if err != nil {
 		return err
@@ -330,7 +359,7 @@ func (self *TypeChecker) TypeCheckBinaryExpression(expression *BinaryExpression,
 	return nil
 }
 
-func (self *TypeChecker) TypeCheckGroupExpression(expression *GroupExpression, symbolTable *SymbolTable) error {
+func (self *TypeChecker) TypeCheckGroupExpression(expression *GroupExpression, symbolTable *LocalSymbolTable) error {
 	err := self.TypeCheckExpression(expression.expression, symbolTable)
 	if err != nil {
 		return err
@@ -342,6 +371,25 @@ func (self *TypeChecker) TypeCheckGroupExpression(expression *GroupExpression, s
 
 func (self *TypeChecker) TypeCheckNumberLiteralExpression(expression *NumberLiteralExpression) {
 	expression.typeInfo = self.Types[intTypeIndex]
+}
+
+func (self *TypeChecker) TypeCheckCallExpression(expression *CallExpression, symbolTable *LocalSymbolTable) error {
+	err := self.TypeCheckExpression(expression.callee, symbolTable)
+	if err != nil {
+		return err
+	}
+
+	if expression.callee.TypeInfo().TypeInfoType() != TI_Fn {
+		return fmt.Errorf("can only call fn types with '()'")
+	}
+
+	fnTypeInfo, ok := expression.callee.TypeInfo().(*FnTypeInfo)
+	if !ok {
+		log.Fatal("fn is always expected here")
+	}
+
+	expression.typeInfo = fnTypeInfo.ReturnType
+	return nil
 }
 
 func (self *TypeChecker) TypeCheckTypeExpression(typeExpression TypeExpression) error {

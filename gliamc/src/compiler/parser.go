@@ -31,7 +31,7 @@ type ExpressionStatement struct {
 
 type ScopeStatement struct {
 	statements  []Statement
-	symbolTable SymbolTable
+	symbolTable LocalSymbolTable
 }
 
 type ReturnStatement struct {
@@ -53,7 +53,7 @@ type FnStatement struct {
 	Identifier  Token
 	ReturnType  TypeExpression
 	Body        []Statement
-	SymbolTable *SymbolTable
+	SymbolTable *LocalSymbolTable
 }
 
 type StructStatement struct {
@@ -104,6 +104,15 @@ type GroupExpression struct {
 }
 
 func (self *GroupExpression) TypeInfo() TypeInfo {
+	return self.typeInfo
+}
+
+type CallExpression struct {
+	callee   Expression
+	typeInfo TypeInfo
+}
+
+func (self *CallExpression) TypeInfo() TypeInfo {
 	return self.typeInfo
 }
 
@@ -443,7 +452,7 @@ func (self *Parser) ParseTerm() (Expression, error) {
 }
 
 func (self *Parser) ParseFactor() (Expression, error) {
-	expression, err := self.ParsePrimary()
+	expression, err := self.ParsePostfix()
 	if err != nil {
 		return nil, err
 	}
@@ -454,7 +463,7 @@ func (self *Parser) ParseFactor() (Expression, error) {
 			return nil, err
 		}
 
-		rightExpression, err := self.ParsePrimary()
+		rightExpression, err := self.ParsePostfix()
 		if err != nil {
 			return nil, err
 		}
@@ -464,6 +473,51 @@ func (self *Parser) ParseFactor() (Expression, error) {
 
 	return expression, err
 }
+
+func (self *Parser) ParsePostfix() (Expression, error) {
+	expression, err := self.ParsePrimary()
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		if self.Match(ParenOpen) {
+			_, _ = self.ConsumeToken()
+			_, err := self.ConsumeTokenOfType(ParenClose)
+			if err != nil {
+				return nil, err
+			}
+
+			expression = &CallExpression{callee: expression}
+		} else {
+			break
+		}
+	}
+
+	return expression, nil
+}
+
+/*
+Expression *Parser::eval_postfix() {
+    auto expr = TRY_CALL_RET(eval_primary(), NULL);
+
+    while (true)
+    {
+        if (match(TokenType::TOKEN_PAREN_OPEN) || match(TokenType::TOKEN_COLON))
+        {
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+            auto call_args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
+            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+
+            expr = new CallExpression(expr, call_args, generics);
+        }
+        else
+        { break; }
+    }
+
+    return expr;
+}
+*/
 
 func (self *Parser) ParsePrimary() (Expression, error) {
 	token := self.Peek()
