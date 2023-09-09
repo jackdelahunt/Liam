@@ -63,13 +63,12 @@ func (self *LocalSymbolTable) GetLocal(identifier string) (TypeInfo, bool) {
 }
 
 type TypedAST struct {
-	Source           []rune
-	TokenBuffer      []TokenData
-	FnStatements     []*FnStatement
-	StructStatements []*StructStatement
-	FnTypeInfos      []*FnTypeInfo
-	Types            []TypeInfo
-	NameToTypeMap    map[string]TypeInfo
+	Source        []rune
+	TokenBuffer   []TokenData
+	Statements    []Statement
+	FnTypeInfos   []*FnTypeInfo
+	Types         []TypeInfo
+	NameToTypeMap map[string]TypeInfo
 }
 
 type TypeInfo interface {
@@ -157,62 +156,30 @@ func (self *TypeChecker) TypeCheck() (TypedAST, error) {
 		self.AddType(builtInTypo.identifier, builtInTypo.typeInfo)
 	}
 
-	for _, statement := range self.Ast.StructStatements {
-		err := self.TypeCheckStructStatement(statement)
-		if err != nil {
-			return TypedAST{}, err
-		}
-	}
-
-	for _, statement := range self.Ast.FnStatements {
-		err := self.TypeCheckFnStatementHeader(statement)
-		if err != nil {
-			return TypedAST{}, err
-		}
-	}
-
-	for _, statement := range self.Ast.FnStatements {
-		err := self.TypeCheckFnStatementBody(statement)
-		if err != nil {
-			return TypedAST{}, err
-		}
-	}
-
 	return TypedAST{
-		Source:           self.Ast.Source,
-		TokenBuffer:      self.Ast.TokenBuffer,
-		FnStatements:     self.Ast.FnStatements,
-		StructStatements: self.Ast.StructStatements,
-		FnTypeInfos:      self.Fns,
-		Types:            self.Types,
+		Source:      self.Ast.Source,
+		TokenBuffer: self.Ast.TokenBuffer,
+		Statements:  self.Ast.Statements,
+		FnTypeInfos: self.Fns,
+		Types:       self.Types,
 	}, nil
 }
 
 func (self *TypeChecker) TypeCheckStatement(statement Statement, symbolTable *LocalSymbolTable) error {
 	switch statement.(type) {
-	case *ExpressionStatement:
-		return self.TypeCheckExpressionStatement(statement.(*ExpressionStatement), symbolTable)
 	case *ScopeStatement:
 		return self.TypeCheckScopeStatement(statement.(*ScopeStatement), symbolTable)
 	case *ReturnStatement:
 		return self.TypeCheckReturnStatement(statement.(*ReturnStatement), symbolTable)
-	case *IfStatement:
-		return self.TypeCheckIfStatement(statement.(*IfStatement), symbolTable)
 	case *FnStatement:
 		return self.TypeCheckFnStatementBody(statement.(*FnStatement))
 	case *StructStatement:
 		return self.TypeCheckStructStatement(statement.(*StructStatement))
-	case *LetStatement:
-		return self.TypeCheckLetStatement(statement.(*LetStatement), symbolTable)
 	default:
 		log.Fatal("cannot type check this statement yet")
 	}
 
 	return nil
-}
-
-func (self *TypeChecker) TypeCheckExpressionStatement(statement *ExpressionStatement, symbolTable *LocalSymbolTable) error {
-	return self.TypeCheckExpression(statement.expression, symbolTable)
 }
 
 func (self *TypeChecker) TypeCheckScopeStatement(statement *ScopeStatement, symbolTable *LocalSymbolTable) error {
@@ -228,24 +195,6 @@ func (self *TypeChecker) TypeCheckScopeStatement(statement *ScopeStatement, symb
 
 func (self *TypeChecker) TypeCheckReturnStatement(statement *ReturnStatement, symbolTable *LocalSymbolTable) error {
 	return self.TypeCheckExpression(statement.expression, symbolTable)
-}
-
-func (self *TypeChecker) TypeCheckIfStatement(statement *IfStatement, symbolTable *LocalSymbolTable) error {
-	err := self.TypeCheckExpression(statement.condition, symbolTable)
-	if err != nil {
-		return err
-	}
-
-	if statement.condition.TypeInfo().TypeInfoType() != TI_Bool {
-		return fmt.Errorf("can only pass bool expressions to if")
-	}
-
-	err = self.TypeCheckScopeStatement(statement.scope, symbolTable)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (self *TypeChecker) TypeCheckFnStatementHeader(statement *FnStatement) error {
@@ -277,27 +226,8 @@ func (self *TypeChecker) TypeCheckFnStatementBody(statement *FnStatement) error 
 }
 
 func (self *TypeChecker) TypeCheckStructStatement(statement *StructStatement) error {
-	structName := self.Ast.GetTokenSlice(statement.identifier)
+	structName := self.Ast.GetTokenSlice(statement.Identifier)
 	self.AddType(string(structName), &StructTypeInfo{Name: structName})
-
-	return nil
-}
-
-func (self *TypeChecker) TypeCheckLetStatement(statement *LetStatement, symbolTable *LocalSymbolTable) error {
-	err := self.TypeCheckTypeExpression(statement.typeExpression)
-	if err != nil {
-		return err
-	}
-
-	err = self.TypeCheckExpression(statement.expression, symbolTable)
-	if err != nil {
-		return err
-	}
-
-	err = symbolTable.AddLocal(string(self.Ast.GetTokenSlice(statement.identifier)), statement.expression.TypeInfo())
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -310,8 +240,6 @@ func (self *TypeChecker) TypeCheckExpression(expression Expression, symbolTable 
 		return self.TypeCheckIdentifierExpression(expression.(*IdentifierExpression), symbolTable)
 	case *BinaryExpression:
 		return self.TypeCheckBinaryExpression(expression.(*BinaryExpression), symbolTable)
-	case *GroupExpression:
-		return self.TypeCheckGroupExpression(expression.(*GroupExpression), symbolTable)
 	case *NumberLiteralExpression:
 		self.TypeCheckNumberLiteralExpression(expression.(*NumberLiteralExpression))
 	case *CallExpression:
@@ -364,16 +292,6 @@ func (self *TypeChecker) TypeCheckBinaryExpression(expression *BinaryExpression,
 		return fmt.Errorf("mismatched types in binary expression")
 	}
 
-	return nil
-}
-
-func (self *TypeChecker) TypeCheckGroupExpression(expression *GroupExpression, symbolTable *LocalSymbolTable) error {
-	err := self.TypeCheckExpression(expression.expression, symbolTable)
-	if err != nil {
-		return err
-	}
-
-	expression.typeInfo = expression.expression.TypeInfo()
 	return nil
 }
 

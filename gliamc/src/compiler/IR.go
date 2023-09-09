@@ -44,16 +44,16 @@ func NewIRBuilder(typedAST TypedAST) *IRBuilder {
 }
 
 func (self *IRBuilder) BuildIR() error {
-	for index, fnTypeInfo := range self.TypedAST.FnTypeInfos {
-		self.GenerateBytecodeForFn(uint(index), fnTypeInfo)
+	for _, statement := range self.TypedAST.Statements {
+		self.GenerateBytecodeForStatement(statement)
 	}
 	return nil
 }
 
-func (self *IRBuilder) GenerateBytecodeForFn(index uint, fnTypeInfo *FnTypeInfo) {
+func (self *IRBuilder) GenerateBytecodeForFn(statement *FnStatement) uint {
 	start := Instruction{
 		instructionType: IFnStart,
-		highSlot:        index,
+		highSlot:        0x_abba,
 		lowSlot:         UNUSED_SLOT_FLAG,
 	}
 
@@ -63,21 +63,23 @@ func (self *IRBuilder) GenerateBytecodeForFn(index uint, fnTypeInfo *FnTypeInfo)
 		lowSlot:         UNUSED_SLOT_FLAG,
 	}
 
-	self.AddInstructionToBytecode(start)
+	startIndex := self.AddInstructionToBytecode(start)
 
-	for _, statement := range self.TypedAST.FnStatements[index].Body {
+	for _, statement := range statement.Body {
 		self.GenerateBytecodeForStatement(statement)
 	}
 
 	self.AddInstructionToBytecode(end)
+
+	return startIndex
 }
 
 func (self *IRBuilder) GenerateBytecodeForStatement(statement Statement) uint {
 	switch statement.(type) {
+	case *FnStatement:
+		return self.GenerateBytecodeForFn(statement.(*FnStatement))
 	case *ReturnStatement:
 		return self.GenerateBytecodeForReturn(statement.(*ReturnStatement))
-	case *IfStatement:
-		return self.GenerateBytecodeForIf(statement.(*IfStatement))
 	default:
 		log.Fatal("cannot generate bytecode for this statement yet")
 	}
@@ -96,38 +98,6 @@ func (self *IRBuilder) GenerateBytecodeForReturn(statement *ReturnStatement) uin
 	expressionIndex := self.GenerateBytecodeForExpression(statement.expression)
 	self.ByteCode[returnIndex].highSlot = expressionIndex
 	return returnIndex
-}
-
-func (self *IRBuilder) GenerateBytecodeForIf(statement *IfStatement) uint {
-	ifStart := Instruction{
-		instructionType: IIfStart,
-		highSlot:        0,
-		lowSlot:         UNUSED_SLOT_FLAG,
-	}
-
-	ifEnd := Instruction{
-		instructionType: IIfEnd,
-		highSlot:        UNUSED_SLOT_FLAG,
-		lowSlot:         UNUSED_SLOT_FLAG,
-	}
-
-	ifStartIndex := self.AddInstructionToBytecode(ifStart)
-
-	expressionIndex := self.GenerateBytecodeForExpression(statement.condition)
-	self.ByteCode[ifStartIndex].highSlot = expressionIndex
-
-	for _, subStatement := range statement.scope.statements {
-		self.GenerateBytecodeForStatement(subStatement)
-	}
-
-	ifEndIndex := self.AddInstructionToBytecode(ifEnd)
-
-	// low slot of start is the end index
-	// high slot of the end is the start index
-	self.ByteCode[ifStartIndex].lowSlot = ifEndIndex
-	self.ByteCode[ifEndIndex].highSlot = ifStartIndex
-
-	return ifStartIndex
 }
 
 func (self *IRBuilder) GenerateBytecodeForExpression(expression Expression) uint {
