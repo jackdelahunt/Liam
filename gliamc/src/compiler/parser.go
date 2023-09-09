@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 )
 
 type OperatorType = uint
@@ -16,14 +17,152 @@ const (
 )
 
 type AST struct {
-	Source           []rune
-	TokenBuffer      []TokenData
-	FnStatements     []*FnStatement
-	StructStatements []*StructStatement
+	Source      []rune
+	TokenBuffer []TokenData
+	Statements  []Statement
+}
+
+func GetIndentationString(indentation int) string {
+	builder := strings.Builder{}
+	for i := 0; i < indentation; i += 1 {
+		builder.WriteString("  ")
+	}
+
+	return builder.String()
 }
 
 func (self *AST) GetTokenSlice(token Token) []rune {
 	return GetTokenSLice(token, self.TokenBuffer, self.Source)
+}
+
+func (self *AST) PrintAST() {
+	for _, statement := range self.Statements {
+		fmt.Println(self.StatementToString(0, statement))
+	}
+}
+
+func (self *AST) StatementToString(indentation int, statement Statement) string {
+	switch statement.(type) {
+	case *ScopeStatement:
+		return self.ScopeStatementToString(indentation, statement.(*ScopeStatement))
+	case *ReturnStatement:
+		return self.ReturnStatementToString(indentation, statement.(*ReturnStatement))
+	case *FnStatement:
+		return self.FnStatementToString(indentation, statement.(*FnStatement))
+	case *StructStatement:
+		return self.StructStatementToString(indentation, statement.(*StructStatement))
+
+	default:
+		log.Fatal("cannot to string this statement when printing in the AST")
+	}
+
+	return ""
+}
+
+func (self *AST) ScopeStatementToString(indentation int, statement *ScopeStatement) string {
+	builder := strings.Builder{}
+	builder.WriteString(fmt.Sprintf("scope\n"))
+	for _, subStatement := range statement.statements {
+		builder.WriteString(fmt.Sprintf("%v-%v\n", GetIndentationString(indentation+1), self.StatementToString(indentation+1, subStatement)))
+	}
+
+	return builder.String()
+}
+
+func (self *AST) ReturnStatementToString(indentation int, statement *ReturnStatement) string {
+	builder := strings.Builder{}
+	builder.WriteString(fmt.Sprintf("<return>\n"))
+	builder.WriteString(fmt.Sprintf("%v- %v", GetIndentationString(indentation+1), self.ExpressionToString(indentation+1, statement.expression)))
+	return builder.String()
+}
+
+func (self *AST) FnStatementToString(indentation int, statement *FnStatement) string {
+	builder := strings.Builder{}
+	builder.WriteString(fmt.Sprintf("<fn> %v\n", string(self.GetTokenSlice(statement.Identifier))))
+
+	// return expression
+	builder.WriteString(fmt.Sprintf("%v| return type\n", GetIndentationString(indentation+1)))
+	builder.WriteString(fmt.Sprintf("%v- %v\n", GetIndentationString(indentation+2), self.TypeExpressionToString(indentation+2, statement.ReturnType)))
+
+	// body area
+	builder.WriteString(fmt.Sprintf("%v| body\n", GetIndentationString(indentation+1)))
+	for _, subStatement := range statement.Body {
+		builder.WriteString(fmt.Sprintf("%v- %v\n", GetIndentationString(indentation+2), self.StatementToString(indentation+2, subStatement)))
+	}
+
+	return builder.String()
+}
+
+func (self *AST) StructStatementToString(indentation int, statement *StructStatement) string {
+	return fmt.Sprintf("<struct> %v\n", string(self.GetTokenSlice(statement.Identifier)))
+}
+
+func (self *AST) ExpressionToString(indentation int, expression Expression) string {
+	switch expression.(type) {
+	case *BoolLiteralExpression:
+		return self.BoolLiteralExpressionToString(expression.(*BoolLiteralExpression))
+	case *IdentifierExpression:
+		return self.IdentifierExpressionToString(expression.(*IdentifierExpression))
+	case *BinaryExpression:
+		return self.BinaryExpressionToString(indentation, expression.(*BinaryExpression))
+	case *CallExpression:
+		return self.CallExpressionToString(indentation, expression.(*CallExpression))
+	case *NumberLiteralExpression:
+		return self.NumberLiteralExpressionToString(expression.(*NumberLiteralExpression))
+
+	default:
+		log.Fatal("cannot to string this statement when printing in the AST")
+	}
+
+	return ""
+}
+
+func (self *AST) BoolLiteralExpressionToString(expression *BoolLiteralExpression) string {
+	if self.TokenBuffer[expression.value].TokenType == TrueLiteral {
+		return "<bool> true"
+	} else {
+		return "<bool> false"
+	}
+}
+
+func (self *AST) IdentifierExpressionToString(expression *IdentifierExpression) string {
+	return "<identifier> " + string(self.GetTokenSlice(expression.identifier))
+}
+
+func (self *AST) BinaryExpressionToString(indentation int, expression *BinaryExpression) string {
+	builder := strings.Builder{}
+	builder.WriteString("<binary> ")
+	builder.WriteString(string(self.GetTokenSlice(expression.operator)) + "\n")
+	builder.WriteString(fmt.Sprintf("%v- %v\n", GetIndentationString(indentation+1), self.ExpressionToString(indentation+1, expression.lhs)))
+	builder.WriteString(fmt.Sprintf("%v- %v", GetIndentationString(indentation+1), self.ExpressionToString(indentation+1, expression.rhs)))
+	return builder.String()
+}
+
+func (self *AST) CallExpressionToString(indentation int, expression *CallExpression) string {
+	builder := strings.Builder{}
+	builder.WriteString("<call>\n")
+	builder.WriteString(fmt.Sprintf("%v- %v", GetIndentationString(indentation+1), self.ExpressionToString(indentation+1, expression.callee)))
+	return builder.String()
+}
+
+func (self *AST) NumberLiteralExpressionToString(expression *NumberLiteralExpression) string {
+	return "<int> " + string(self.GetTokenSlice(expression.number))
+}
+
+func (self *AST) TypeExpressionToString(indentation int, expression TypeExpression) string {
+	switch expression.(type) {
+	case *IdentifierTypeExpression:
+		return self.IdentifierTypeExpression(expression.(*IdentifierTypeExpression))
+
+	default:
+		log.Fatal("cannot to string this type expression when printing in the AST")
+	}
+
+	return ""
+}
+
+func (self *AST) IdentifierTypeExpression(expression *IdentifierTypeExpression) string {
+	return "<identifier> " + string(self.GetTokenSlice(expression.identifier))
 }
 
 /*
@@ -32,10 +171,6 @@ func (self *AST) GetTokenSlice(token Token) []rune {
 	   ============
 */
 type Statement interface {
-}
-
-type ExpressionStatement struct {
-	expression Expression
 }
 
 type ScopeStatement struct {
@@ -47,26 +182,14 @@ type ReturnStatement struct {
 	expression Expression
 }
 
-type IfStatement struct {
-	condition Expression
-	scope     *ScopeStatement
-}
-
-type LetStatement struct {
-	identifier     Token
-	typeExpression TypeExpression
-	expression     Expression
-}
-
 type FnStatement struct {
 	Identifier  Token
 	ReturnType  TypeExpression
 	Body        []Statement
 	SymbolTable *LocalSymbolTable
 }
-
 type StructStatement struct {
-	identifier Token
+	Identifier Token
 }
 
 /*
@@ -105,15 +228,6 @@ type BinaryExpression struct {
 }
 
 func (self *BinaryExpression) TypeInfo() TypeInfo {
-	return self.typeInfo
-}
-
-type GroupExpression struct {
-	expression Expression
-	typeInfo   TypeInfo
-}
-
-func (self *GroupExpression) TypeInfo() TypeInfo {
 	return self.typeInfo
 }
 
@@ -173,8 +287,7 @@ func NewParser(source []rune, tokens []TokenData) *Parser {
 }
 
 func (self *Parser) Parse() (AST, error) {
-	fnStatements := make([]*FnStatement, 0)
-	structStatements := make([]*StructStatement, 0)
+	statements := make([]Statement, 0)
 
 	for self.CurrentToken < Token(len(self.TokenBuffer)) {
 		statement, err := self.ParseStatement()
@@ -182,22 +295,13 @@ func (self *Parser) Parse() (AST, error) {
 			return AST{}, err
 		}
 
-		switch statement.(type) {
-		case *FnStatement:
-			fnStatements = append(fnStatements, statement.(*FnStatement))
-		case *StructStatement:
-			structStatements = append(structStatements, statement.(*StructStatement))
-		default:
-			log.Fatal("unknown statement at top level")
-		}
-
+		statements = append(statements, statement)
 	}
 
 	return AST{
-		Source:           self.source,
-		TokenBuffer:      self.TokenBuffer,
-		FnStatements:     fnStatements,
-		StructStatements: structStatements,
+		Source:      self.source,
+		TokenBuffer: self.TokenBuffer,
+		Statements:  statements,
 	}, nil
 }
 
@@ -209,14 +313,10 @@ func (self *Parser) ParseStatement() (Statement, error) {
 		return self.ParseReturnStatement()
 	case BraceOpen:
 		return self.ParseScopeStatement()
-	case If:
-		return self.ParseIfStatement()
 	case Fn:
 		return self.ParseFnStatement()
 	case Struct:
 		return self.ParseStructStatement()
-	case Let:
-		return self.ParseLetStatement()
 	}
 
 	return nil, errors.New("unexpected token at the start of a statement")
@@ -269,25 +369,6 @@ func (self *Parser) ParseScopeStatement() (*ScopeStatement, error) {
 	}
 
 	return &ScopeStatement{statements: statements}, nil
-}
-
-func (self *Parser) ParseIfStatement() (*IfStatement, error) {
-	_, err := self.ConsumeTokenOfType(If)
-	if err != nil {
-		return nil, err
-	}
-
-	condition, err := self.ParseExpression()
-	if err != nil {
-		return nil, err
-	}
-
-	scope, err := self.ParseScopeStatement()
-	if err != nil {
-		return nil, err
-	}
-
-	return &IfStatement{condition: condition, scope: scope}, nil
 }
 
 func (self *Parser) ParseFnStatement() (*FnStatement, error) {
@@ -345,50 +426,7 @@ func (self *Parser) ParseStructStatement() (*StructStatement, error) {
 		return nil, err
 	}
 
-	return &StructStatement{identifier: identifier}, nil
-}
-
-func (self *Parser) ParseLetStatement() (*LetStatement, error) {
-	_, err := self.ConsumeTokenOfType(Let)
-	if err != nil {
-		return nil, err
-	}
-
-	identifier, err := self.ConsumeTokenOfType(Identifier)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = self.ConsumeTokenOfType(Colon)
-	if err != nil {
-		return nil, err
-	}
-
-	typeExpression, err := self.ParseTypeExpression()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = self.ConsumeTokenOfType(Equal)
-	if err != nil {
-		return nil, err
-	}
-
-	expression, err := self.ParseExpression()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = self.ConsumeTokenOfType(SemiColon)
-	if err != nil {
-		return nil, err
-	}
-
-	return &LetStatement{
-		identifier:     identifier,
-		typeExpression: typeExpression,
-		expression:     expression,
-	}, nil
+	return &StructStatement{Identifier: identifier}, nil
 }
 
 func (self *Parser) ParseStatementsInBrace() ([]Statement, error) {
@@ -534,13 +572,11 @@ func (self *Parser) ParsePrimary() (Expression, error) {
 	currentTokenType := self.TokenBuffer[token].TokenType
 
 	switch currentTokenType {
-	case ParenOpen:
-		return self.ParseGroupExpression()
 	case NumberLiteral:
 		return self.ParseNumberLiteral()
 	case Identifier:
 		return self.ParseIdentifier()
-	case BoolLiteral:
+	case TrueLiteral, FalseLiteral:
 		return self.ParseBoolLiteral()
 	default:
 		return nil, fmt.Errorf("unknown token when parsing primary %v", currentTokenType)
@@ -548,7 +584,7 @@ func (self *Parser) ParsePrimary() (Expression, error) {
 }
 
 func (self *Parser) ParseBoolLiteral() (Expression, error) {
-	value, err := self.ConsumeTokenOfType(BoolLiteral)
+	value, err := self.ConsumeToken()
 	if err != nil {
 		return nil, err
 	}
@@ -572,25 +608,6 @@ func (self *Parser) ParseNumberLiteral() (Expression, error) {
 	}
 
 	return &NumberLiteralExpression{number: number}, nil
-}
-
-func (self *Parser) ParseGroupExpression() (Expression, error) {
-	_, err := self.ConsumeTokenOfType(ParenOpen)
-	if err != nil {
-		return nil, err
-	}
-
-	expression, err := self.ParseExpression()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = self.ConsumeTokenOfType(ParenClose)
-	if err != nil {
-		return nil, err
-	}
-
-	return &GroupExpression{expression: expression}, nil
 }
 
 /*

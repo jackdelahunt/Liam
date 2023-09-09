@@ -7,14 +7,15 @@ import (
 
 const (
 	Code = `
+struct Person {
+}
+
 fn add() int {
-	if main() {
-		return 0;
-	}
+	return main();
 }
 
 fn main() bool {
-	return 5 + 5;
+	return jack;
 }
 `
 )
@@ -28,16 +29,5 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	typedAST, err := compiler.NewTypeChecker(ast).TypeCheck()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	builder := compiler.NewIRBuilder(typedAST)
-	err = builder.BuildIR()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	builder.PrintIR()
+	ast.PrintAST()
 }

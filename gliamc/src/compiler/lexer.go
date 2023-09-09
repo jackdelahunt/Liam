@@ -5,7 +5,8 @@ type TokenType = uint8
 const (
 	NumberLiteral TokenType = iota
 	StringLiteral
-	BoolLiteral
+	TrueLiteral
+	FalseLiteral
 	SemiColon
 	Let
 	Fn
@@ -111,8 +112,10 @@ func (self *Lexer) Lex() []TokenData {
 				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(Return, wordLocation.Start, wordLocation.End))
 			case "if":
 				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(If, wordLocation.Start, wordLocation.End))
-			case "true", "false":
-				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(BoolLiteral, wordLocation.Start, wordLocation.End))
+			case "true":
+				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(TrueLiteral, wordLocation.Start, wordLocation.End))
+			case "false":
+				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(FalseLiteral, wordLocation.Start, wordLocation.End))
 			default:
 				self.TokenBuffer = append(self.TokenBuffer, NewTokenData(Identifier, wordLocation.Start, wordLocation.End))
 			}
