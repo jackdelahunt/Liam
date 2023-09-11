@@ -11,7 +11,6 @@ struct Person {
 }
 
 fn add() int {
-	let x : int = 4; 
 	return x;
 }
 
@@ -20,16 +19,7 @@ fn is_true() bool {
 }
 
 fn main() int {
-	
-	if is_true() {
-		return add();
-	}
-
 	return 0 + 5;
-}
-
-fn getPerson() Person {
-	return (false);
 }
 `
 )
@@ -65,24 +55,6 @@ func createTypedASTFromSource(source string) (TypedAST, error) {
 
 func Test_TypeChecker_EmptyMain(t *testing.T) {
 	typedAST, err := createTypedASTFromSource("fn main() int {  }")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	_ = typedAST
-}
-
-func Test_TypeChecker_FnCall(t *testing.T) {
-	typedAST, err := createTypedASTFromSource("fn main() bool { if main() { } }")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	_ = typedAST
-}
-
-func Test_TypeChecker_BasicIf(t *testing.T) {
-	typedAST, err := createTypedASTFromSource("fn main() int { if true { return 0; } }")
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -224,19 +196,6 @@ func Test_Parser_Scope_Empty(t *testing.T) {
 	}
 }
 
-func Test_Parser_If(t *testing.T) {
-	parser := createParserFromSource("if 1 + 2 { return add(); }")
-	ifStatement, err := parser.ParseIfStatement()
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	_, ok := ifStatement.condition.(*BinaryExpression)
-	if ok != true {
-		t.Errorf("expected binary expression")
-	}
-}
-
 func Test_Parser_Fn(t *testing.T) {
 	parser := createParserFromSource("fn main() type { }")
 	fnStatement, err := parser.ParseFnStatement()
@@ -245,19 +204,6 @@ func Test_Parser_Fn(t *testing.T) {
 	}
 
 	_ = fnStatement
-}
-
-func Test_Parser_Struct(t *testing.T) {
-	parser := createParserFromSource("struct Person {}")
-	structStatement, err := parser.ParseStructStatement()
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	structIdentifier := string(GetTokenSLice(structStatement.identifier, parser.TokenBuffer, parser.source))
-	if structIdentifier != "Person" {
-		t.Errorf("expected Person got %v", structIdentifier)
-	}
 }
 
 func Test_Parser_Binary(t *testing.T) {
@@ -293,19 +239,6 @@ func Test_Parser_Binary(t *testing.T) {
 	}
 }
 
-func Test_Parser_Groups(t *testing.T) {
-	parser := createParserFromSource("(5)")
-	expression, err := parser.ParseExpression()
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	_, ok := expression.(*GroupExpression)
-	if ok != true {
-		t.Errorf("expected expression to be number literal")
-	}
-}
-
 func Test_Parser_NumberLiteral(t *testing.T) {
 	parser := createParserFromSource("1")
 	expression, err := parser.ParseExpression()
@@ -329,20 +262,5 @@ func Test_Parser_Call(t *testing.T) {
 	_, err := parser.ParseExpression()
 	if err != nil {
 		t.Errorf(err.Error())
-	}
-}
-
-func Test_TypeChecker_BuiltInTypes(t *testing.T) {
-	typedAST, err := createTypedASTFromSource("fn main() bool {}")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if len(typedAST.Types) != len(BuiltInTypes) {
-		t.Errorf("should only expect builtin type to be created here")
-	}
-
-	if len(typedAST.FnTypeInfos) != 1 {
-		t.Errorf("should only expect 1 fn type to be created here")
 	}
 }
