@@ -2,7 +2,6 @@
 #include <map>
 
 #include "parser.h"
-#include "type_info.h"
 
 struct Statement;
 struct LetStatement;

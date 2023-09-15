@@ -2,6 +2,83 @@
 
 #include <tuple>
 
+VoidTypeInfo::VoidTypeInfo() {
+    this->type = TypeInfoType::VOID;
+}
+
+NumberTypeInfo::NumberTypeInfo(size_t size, NumberType number_type) {
+    this->size        = size;
+    this->number_type = number_type;
+    this->type        = TypeInfoType::NUMBER;
+}
+
+BoolTypeInfo::BoolTypeInfo() {
+    this->type = TypeInfoType::BOOLEAN;
+}
+
+PointerTypeInfo::PointerTypeInfo(TypeInfo *to) {
+    this->to   = to;
+    this->type = TypeInfoType::POINTER;
+}
+
+PointerSliceTypeInfo::PointerSliceTypeInfo(TypeInfo *to) {
+    this->to   = to;
+    this->type = TypeInfoType::POINTER_SLICE;
+}
+
+StrTypeInfo::StrTypeInfo() {
+    this->type = TypeInfoType::STRING;
+}
+
+TypeTypeInfo::TypeTypeInfo() {
+}
+
+StructTypeInfo::StructTypeInfo(
+    u8 flag_mask, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+    std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
+) {
+    this->flag_mask        = flag_mask;
+    this->member_functions = memberFunctions;
+    this->members          = members;
+    this->generic_count    = genericCount;
+    this->type             = TypeInfoType::STRUCT;
+}
+
+StructInstanceTypeInfo::StructInstanceTypeInfo(StructTypeInfo *structType, std::vector<TypeInfo *> genericTypes) {
+    this->struct_type   = structType;
+    this->generic_types = genericTypes;
+    this->type          = TypeInfoType::STRUCT_INSTANCE;
+}
+
+FnTypeInfo::FnTypeInfo(
+    u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
+    std::vector<TypeInfo *> args
+) {
+    this->flag_mask          = flag_mask;
+    this->parent_type        = parentType;
+    this->return_type        = returnType;
+    this->generic_type_infos = genericTypeInfos;
+    this->args               = args;
+    this->type               = TypeInfoType::FN;
+}
+
+FnExpressionTypeInfo::FnExpressionTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args) {
+    this->return_type = returnType;
+    this->args        = args;
+    this->type        = TypeInfoType::FN_EXPRESSION;
+}
+
+GenericTypeInfo::GenericTypeInfo(u64 id) {
+    this->id   = id;
+    this->type = TypeInfoType::GENERIC;
+}
+
+EnumTypeInfo::EnumTypeInfo(std::vector<EnumMember> members, u8 flag_mask) {
+    this->members   = members;
+    this->flag_mask = flag_mask;
+    this->type      = TypeInfoType::ENUM;
+}
+
 EnumMemberPatternMatch::EnumMemberPatternMatch(Token identifier, std::vector<Token> matched_members) {
     this->identifier        = identifier;
     this->matched_members   = matched_members;
@@ -42,7 +119,8 @@ FnStatement::FnStatement(
 }
 
 StructStatement::StructStatement(
-    CompilationUnit *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask) {
+    CompilationUnit *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask
+) {
     this->file           = file;
     this->identifier     = identifier;
     this->generics       = generics;
@@ -82,7 +160,8 @@ ForStatement::ForStatement(
 }
 
 IfStatement::IfStatement(
-    CompilationUnit *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement) {
+    CompilationUnit *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement
+) {
     this->file           = file;
     this->expression     = expression;
     this->body           = body;

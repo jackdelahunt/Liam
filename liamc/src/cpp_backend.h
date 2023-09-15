@@ -8,7 +8,7 @@
 
 struct CppBackend {
     CompilationUnit *current_file = NULL;
-    CppBackend()       = default;
+    CppBackend()                  = default;
     std::string emit(CompilationUnit *file);
 
     std::string forward_declare_enum(EnumStatement *statement);

@@ -6,9 +6,8 @@
 #include <vector>
 
 #include "ast.h"
-#include "lexer.h"
-#include "type_info.h"
 #include "compilation_unit.h"
+#include "lexer.h"
 
 struct Statement;
 struct LetStatement;

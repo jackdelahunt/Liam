@@ -5,15 +5,9 @@
 #include <string>
 #include <vector>
 
+#include "compilation_unit.h"
 #include "file.h"
 #include "liam.h"
-#include "compilation_unit.h"
-
-enum class NumberType {
-    UNSIGNED,
-    SIGNED,
-    FLOAT
-};
 
 bool is_delim(char c);
 

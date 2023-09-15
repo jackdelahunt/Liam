@@ -7,7 +7,6 @@
 #include "fmt/core.h"
 #include "liam.h"
 #include "parser.h"
-#include "type_info.h"
 #include "utils.h"
 #include <tuple>
 

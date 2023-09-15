@@ -12,7 +12,7 @@
 
 Parser::Parser(CompilationUnit *compilation_unit) {
     this->compilation_unit = compilation_unit;
-    this->current = 0;
+    this->current          = 0;
 }
 
 void Parser::parse() {
@@ -148,7 +148,9 @@ ScopeStatement *Parser::eval_scope_statement() {
     // else
     if (closing_brace_index < 0)
     {
-        ErrorReporter::report_parser_error(this->compilation_unit->path.string(), open_brace->span, "No closing brace for scope found");
+        ErrorReporter::report_parser_error(
+            this->compilation_unit->path.string(), open_brace->span, "No closing brace for scope found"
+        );
         return NULL;
     }
 
