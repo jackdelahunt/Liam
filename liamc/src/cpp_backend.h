@@ -7,9 +7,9 @@
 #include "type_checker.h"
 
 struct CppBackend {
-    File *current_file     = NULL;
-    CppBackend() = default;
-    std::string emit(File *file);
+    CompilationUnit *current_file = NULL;
+    CppBackend()       = default;
+    std::string emit(CompilationUnit *file);
 
     std::string forward_declare_enum(EnumStatement *statement);
     std::string forward_declare_struct(StructStatement *statement);

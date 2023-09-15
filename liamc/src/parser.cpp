@@ -10,29 +10,16 @@
 #include "liam.h"
 #include "utils.h"
 
-File::File(std::filesystem::path path) {
-    this->imported_function_table     = std::unordered_map<std::string, TypeInfo *>();
-    this->imported_type_table         = std::unordered_map<std::string, TypeInfo *>();
-    this->top_level_import_statements = std::vector<ImportStatement *>();
-    this->top_level_struct_statements = std::vector<StructStatement *>();
-    this->top_level_fn_statements     = std::vector<FnStatement *>();
-    this->top_level_enum_statements   = std::vector<EnumStatement *>();
-
-    this->path = std::move(path);
-}
-
-Parser::Parser(std::filesystem::path path, std::vector<Token> *tokens) {
+Parser::Parser(CompilationUnit *compilation_unit, std::vector<Token> *tokens) {
+    this->file = compilation_unit;
     this->tokens  = tokens;
     this->current = 0;
     this->path    = absolute(std::filesystem::path(path));
-    this->file    = NULL;
 }
 
 void Parser::parse() {
-    this->file = new File(path);
     while (current < this->tokens->size())
     {
-
         auto errors_before = ErrorReporter::error_count();
         auto stmt          = TRY_CALL(eval_top_level_statement());
         if (ErrorReporter::error_count() > errors_before)
@@ -143,7 +130,9 @@ LetStatement *Parser::eval_let_statement() {
 
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
     if (peek()->type != TokenType::TOKEN_ASSIGN)
-    { type = TRY_CALL_RET(eval_type_expression(), NULL); }
+    {
+        type = TRY_CALL_RET(eval_type_expression(), NULL);
+    }
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ASSIGN), NULL);
     auto expression = TRY_CALL_RET(eval_expression_statement(), NULL);
     return new LetStatement(file, *identifier, expression->expression, type);
@@ -251,7 +240,9 @@ ReturnStatement *Parser::eval_return_statement() {
     Expression *expression = NULL;
 
     if (peek()->type != TokenType::TOKEN_SEMI_COLON)
-    { expression = TRY_CALL_RET(eval_expression(), NULL); }
+    {
+        expression = TRY_CALL_RET(eval_expression(), NULL);
+    }
 
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
@@ -300,7 +291,9 @@ IfStatement *Parser::eval_if_statement() {
     // if so capture it and own it else just leave the else statement as NULL
     ElseStatement *else_statement = NULL;
     if (peek()->type == TokenType::TOKEN_ELSE)
-    { else_statement = TRY_CALL_RET(eval_else_statement(), NULL); }
+    {
+        else_statement = TRY_CALL_RET(eval_else_statement(), NULL);
+    }
 
     return new IfStatement(file, expression, body, else_statement);
 }
@@ -532,7 +525,9 @@ Expression *Parser::eval_postfix() {
             expr = new SubscriptExpression(expr, subscript_by);
         }
         else
-        { break; }
+        {
+            break;
+        }
     }
 
     return expr;
@@ -566,7 +561,7 @@ Expression *Parser::eval_primary() {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
             path.string(), token.span,
-            fmt::format("Unexpected token when parsing expression '{}'", TokenTypeStrings[(int)token.type])
+            fmt::format("Unexpected token when parsing expression '{}'", get_token_type_string(token.type))
         );
         return NULL;
     }
@@ -612,9 +607,13 @@ Expression *Parser::eval_instantiate_expression() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
 
     if (peek(1)->type == TokenType::TOKEN_COLON)
-    { expression = TRY_CALL_RET(eval_enum_instance_expression(), NULL); }
+    {
+        expression = TRY_CALL_RET(eval_enum_instance_expression(), NULL);
+    }
     else
-    { expression = TRY_CALL_RET(eval_struct_instance_expression(), NULL); }
+    {
+        expression = TRY_CALL_RET(eval_struct_instance_expression(), NULL);
+    }
 
     return new InstantiateExpression(expression);
 }
@@ -719,7 +718,9 @@ TypeExpression *Parser::eval_type_specified_generics() {
 TypeExpression *Parser::eval_type_primary() {
 
     if (peek()->type == TokenType::TOKEN_FN)
-    { return TRY_CALL_RET(eval_type_fn(), NULL); }
+    {
+        return TRY_CALL_RET(eval_type_fn(), NULL);
+    }
 
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
     return new IdentifierTypeExpression(*identifier);
@@ -795,7 +796,7 @@ Token *Parser::consume_token_of_type(TokenType type) {
     {
         ErrorReporter::report_parser_error(
             path.string(), t_ptr->span,
-            fmt::format("Expected '{}' got '{}'", TokenTypeStrings[(int)type], t_ptr->string)
+            fmt::format("Expected '{}' got '{}'", get_token_type_string(type), t_ptr->string)
         );
         return NULL;
     }
@@ -950,7 +951,9 @@ std::vector<EnumMember> Parser::consume_comma_seperated_enum_arguments(TokenType
                 enum_members.emplace_back(*identifier, types);
             }
             else
-            { enum_members.emplace_back(*identifier, std::vector<TypeExpression *>()); }
+            {
+                enum_members.emplace_back(*identifier, std::vector<TypeExpression *>());
+            }
 
             if (is_first)
                 is_first = false;
@@ -984,7 +987,9 @@ u8 Parser::consume_tags() {
         if (compare_string(tag.string, "@extern"))
         {
             if (BIT_SET(flag_mask, TAG_EXTERN))
-            { goto duplicate_error; }
+            {
+                goto duplicate_error;
+            }
 
             SET_BIT(flag_mask, TAG_EXTERN);
             continue;
@@ -992,7 +997,9 @@ u8 Parser::consume_tags() {
         else if (compare_string(tag.string, "@private"))
         {
             if (BIT_SET(flag_mask, TAG_PRIVATE))
-            { goto duplicate_error; }
+            {
+                goto duplicate_error;
+            }
 
             SET_BIT(flag_mask, TAG_PRIVATE);
             continue;

@@ -6,79 +6,34 @@
 #include "liam.h"
 #include "utils.h"
 
-const char *TokenTypeStrings[50] = {"int Literal", "string Literal",
-                                    "identifier",  "let",
-                                    "fn",          "(",
-                                    ")",           "{",
-                                    "}",           "+",
-                                    "-",           "*",
-                                    "/",           "%",
-                                    "=",           ";",
-                                    ",",           ":",
-                                    "return",      "^",
-                                    "struct",      ".",
-                                    "new",         "break",
-                                    "import",      "[",
-                                    "]",           "for",
-                                    "false",       "true",
-                                    "if",          "else",
-                                    "or",          "and",
-                                    "==",          "!=",
-                                    "!",           "<",
-                                    ">",           ">=",
-                                    "<=",          "null",
-                                    "enum",        "continue",
-                                    "zero",        "&",
-                                    "@tag",        "match"};
-
-Token::Token(TokenType type, std::string string, u32 line, u32 start) {
-
-    // we use the index of where the token is in the file
-    // so lines and characters start at 1
-    ASSERT(line > 0);
-    ASSERT(start > 0);
-
-    this->type   = type;
-    this->string = string;
-    this->span   = Span{.line = line, .start = start, .end = (u32)(start + string.length())};
-}
-
-std::ostream &operator<<(std::ostream &os, const Token &token) {
-    os << token.string;
-    return os;
-}
-
 bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' ||
            c == '=' || c == '+' || c == '^' || c == '&' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
            c == '<' || c == '>' || c == '|' || c == '-' || c == '/' || c == '%';
 }
 
-Lexer::Lexer(std::filesystem::path path) {
-    tokens            = std::vector<Token>();
-    current_index     = 0;
-    current_line      = 1;
-    current_character = 1;
-    this->path        = path;
+Lexer::Lexer(FileData *file_data) {
+    this->file_data         = file_data;
+    this->tokens            = std::vector<Token>();
+    this->current_index     = 0;
+    this->current_line      = 1;
+    this->current_character = 1;
+
+    ASSERT(this->file_data->data);
 }
 
-void Lexer::lex() {
-    auto as_string  = path.string();
-    auto file_data  = FileManager::load(&as_string);
-    char *chars     = file_data->data;
-    u64 data_length = file_data->data_length;
-
+CompilationUnit *Lexer::lex() {
     // pre allocate some of the token vector
-    u64 token_vec_start_size = data_length * 0.45;
+    u64 token_vec_start_size = this->file_data->data_length * 0.45;
     if (token_vec_start_size > this->tokens.capacity())
-    { this->tokens.reserve(token_vec_start_size); }
+    {
+        this->tokens.reserve(token_vec_start_size);
+    }
 
-    ASSERT(chars);
-
-    for (; this->current_index < data_length; next_char())
+    for (; this->current_index < this->file_data->data_length; next_char())
     {
 
-        char c = chars[this->current_index];
+        char c = this->file_data->data[this->current_index];
         switch (c)
         {
         case '\n':
@@ -104,10 +59,13 @@ void Lexer::lex() {
             tokens.emplace_back(TokenType::TOKEN_STAR, "*", current_line, current_character);
             break;
         case '/':
-            if (peek(file_data) == '/')
+            if (peek() == '/')
             {
-                while (this->current_index < data_length && chars[this->current_index] != '\n')
-                { next_char(); }
+                while (this->current_index < this->file_data->data_length &&
+                       this->file_data->data[this->current_index] != '\n')
+                {
+                    next_char();
+                }
                 current_line++;
                 break;
             }
@@ -117,7 +75,7 @@ void Lexer::lex() {
             tokens.emplace_back(TokenType::TOKEN_MOD, "%", current_line, current_character);
             break;
         case '=':
-            if (peek(file_data) == '=')
+            if (peek() == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_EQUAL, "==", current_line, current_character);
@@ -162,7 +120,7 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
             break;
         case '<':
-            if (peek(file_data) == '=')
+            if (peek() == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_LESS_EQUAL, "<=", current_line, current_character);
@@ -171,7 +129,7 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_LESS, "<", current_line, current_character));
             break;
         case '>':
-            if (peek(file_data) == '=')
+            if (peek() == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_GREATER_EQUAL, ">=", current_line, current_character);
@@ -180,7 +138,7 @@ void Lexer::lex() {
             tokens.emplace_back(Token(TokenType::TOKEN_GREATER, ">", current_line, current_character));
             break;
         case '!':
-            if (peek(file_data) == '=')
+            if (peek() == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_NOT_EQUAL, "!=", current_line, current_character);
@@ -193,16 +151,16 @@ void Lexer::lex() {
             std::string str = std::string();
 
             next_char();
-            while (current_index < data_length && chars[current_index] != '"')
+            while (current_index < this->file_data->data_length && this->file_data->data[current_index] != '"')
             {
                 // skip back slash and accept next char
-                if (chars[current_index] == '\\')
+                if (this->file_data->data[current_index] == '\\')
                 {
-                    str.append(std::string(1, chars[current_index]));
+                    str.append(std::string(1, this->file_data->data[current_index]));
                     next_char();
                 }
 
-                str.append(std::string(1, chars[current_index]));
+                str.append(std::string(1, this->file_data->data[current_index]));
                 next_char();
             }
             tokens.emplace_back(TokenType::TOKEN_STRING_LITERAL, str, current_line, start);
@@ -210,7 +168,7 @@ void Lexer::lex() {
         break;
         default:
             i32 word_start = current_character;
-            auto word      = get_word(file_data);
+            auto word      = get_word();
 
             if (word.data()[0] == '@')
             {
@@ -353,6 +311,8 @@ void Lexer::lex() {
             break;
         }
     }
+
+    return new CompilationUnit(this->file_data);
 }
 
 void Lexer::next_char() {
@@ -360,15 +320,15 @@ void Lexer::next_char() {
     this->current_character++;
 }
 
-char Lexer::peek(FileData *file_data) {
-    return file_data->data[this->current_index + 1];
+char Lexer::peek() {
+    return this->file_data->data[this->current_index + 1];
 }
 
-std::string Lexer::get_word(FileData *file_data) {
+std::string Lexer::get_word() {
     std::string word = std::string();
-    while (this->current_index < file_data->data_length && !is_delim(file_data->data[this->current_index]))
+    while (this->current_index < this->file_data->data_length && !is_delim(this->file_data->data[this->current_index]))
     {
-        word.append(1, file_data->data[this->current_index]);
+        word.append(1, this->file_data->data[this->current_index]);
         next_char();
     }
 

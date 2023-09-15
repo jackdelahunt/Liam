@@ -66,19 +66,29 @@ void TypeCheckerError::print_error_message() {
     fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Type checking ERROR :: {}\n", error);
 
     if (this->expr_1)
-    { write_error_annotation_at_span(&file, this->expr_1->span); }
+    {
+        write_error_annotation_at_span(&file, this->expr_1->span);
+    }
 
     if (this->expr_2)
-    { write_error_annotation_at_span(&file, this->expr_2->span); }
+    {
+        write_error_annotation_at_span(&file, this->expr_2->span);
+    }
 
     if (this->type_expr_1)
-    { write_error_annotation_at_span(&file, this->type_expr_1->span); }
+    {
+        write_error_annotation_at_span(&file, this->type_expr_1->span);
+    }
 
     if (this->type_expr_2)
-    { write_error_annotation_at_span(&file, this->type_expr_2->span); }
+    {
+        write_error_annotation_at_span(&file, this->type_expr_2->span);
+    }
 
     for (auto &token : this->related_tokens)
-    { write_error_annotation_at_span(&file, token.span); }
+    {
+        write_error_annotation_at_span(&file, token.span);
+    }
 }
 
 ErrorReporter::ErrorReporter() {
@@ -88,7 +98,9 @@ ErrorReporter::ErrorReporter() {
 
 void ErrorReporter::report_parser_error(std::string file, Span span, std::string message) {
     if (ErrorReporter::singleton == nullptr)
-    { ErrorReporter::singleton = new ErrorReporter(); }
+    {
+        ErrorReporter::singleton = new ErrorReporter();
+    }
 
     ErrorReporter::singleton->parse_errors.push_back(ParserError{std::move(file), span, std::move(message)});
     ErrorReporter::singleton->error_reported_since_last_check = true;
@@ -99,7 +111,9 @@ void ErrorReporter::report_type_checker_error(
     std::vector<Token> related_tokens, std::string message
 ) {
     if (ErrorReporter::singleton == nullptr)
-    { ErrorReporter::singleton = new ErrorReporter(); }
+    {
+        ErrorReporter::singleton = new ErrorReporter();
+    }
 
     ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
         .file           = std::move(file),
@@ -115,7 +129,9 @@ void ErrorReporter::report_type_checker_error(
 
 void ErrorReporter::report_type_checker_error(TypeCheckerError error) {
     if (ErrorReporter::singleton == nullptr)
-    { ErrorReporter::singleton = new ErrorReporter(); }
+    {
+        ErrorReporter::singleton = new ErrorReporter();
+    }
 
     ErrorReporter::singleton->type_check_errors.push_back(error);
     ErrorReporter::singleton->error_reported_since_last_check = true;
@@ -156,7 +172,7 @@ u64 ErrorReporter::error_count() {
 }
 
 void write_error_annotation_at_span(std::string *file, Span span) {
-    auto file_data = FileManager::load(file);
+    auto file_data = FileManager::load(*file);
 
     std::string top    = "";
     std::string middle = file_data->line(span.line);
@@ -186,10 +202,14 @@ std::string build_highlighter(u64 start, u64 length) {
 
     auto source = std::string();
     for (int i = 0; i < start - 1; i++)
-    { source.append(" "); }
+    {
+        source.append(" ");
+    }
 
     for (int i = 0; i < length; i++)
-    { source.append("^"); }
+    {
+        source.append("^");
+    }
 
     return source;
 }

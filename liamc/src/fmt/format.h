@@ -100,7 +100,9 @@ FMT_END_NAMESPACE
 #else
 #define FMT_THROW(x)                                                                                                   \
     do                                                                                                                 \
-    { FMT_ASSERT(false, (x).what()); }                                                                                 \
+    {                                                                                                                  \
+        FMT_ASSERT(false, (x).what());                                                                                 \
+    }                                                                                                                  \
     while (false)
 #endif
 #endif
@@ -454,7 +456,7 @@ using uint128_t = conditional_t<FMT_USE_INT128, uint128_opt, uint128_fallback>;
 #ifdef UINTPTR_MAX
 using uintptr_t = ::uintptr_t;
 #else
-using uintptr_t = uint128_t;
+using uintptr_t                         = uint128_t;
 #endif
 
 // Returns the largest possible value for type T. Same as
@@ -596,7 +598,9 @@ FMT_CONSTEXPR auto fill_n(OutputIt out, Size count, const T &value) -> OutputIt 
 
 template <typename T, typename Size> FMT_CONSTEXPR20 auto fill_n(T *out, Size count, char value) -> T * {
     if (is_constant_evaluated())
-    { return fill_n<T *, Size, T>(out, count, value); }
+    {
+        return fill_n<T *, Size, T>(out, count, value);
+    }
     std::memset(out, value, to_unsigned(count));
     return out + count;
 }
@@ -1136,7 +1140,9 @@ inline auto do_count_digits(uint64_t n) -> int {
 FMT_CONSTEXPR20 inline auto count_digits(uint64_t n) -> int {
 #ifdef FMT_BUILTIN_CLZLL
     if (!is_constant_evaluated())
-    { return do_count_digits(n); }
+    {
+        return do_count_digits(n);
+    }
 #endif
     return count_digits_fallback(n);
 }
@@ -1151,7 +1157,9 @@ template <int BITS, typename UInt> FMT_CONSTEXPR auto count_digits(UInt n) -> in
     return [](UInt m) {
         int num_digits = 0;
         do
-        { ++num_digits; }
+        {
+            ++num_digits;
+        }
         while ((m >>= BITS) != 0);
         return num_digits;
     }(n);
@@ -1186,7 +1194,9 @@ FMT_INLINE auto do_count_digits(uint32_t n) -> int {
 FMT_CONSTEXPR20 inline auto count_digits(uint32_t n) -> int {
 #ifdef FMT_BUILTIN_CLZ
     if (!is_constant_evaluated())
-    { return do_count_digits(n); }
+    {
+        return do_count_digits(n);
+    }
 #endif
     return count_digits_fallback(n);
 }
@@ -1426,7 +1436,9 @@ template <typename Char, typename It> FMT_CONSTEXPR auto write_exponent(int exp,
         exp   = -exp;
     }
     else
-    { *it++ = static_cast<Char>('+'); }
+    {
+        *it++ = static_cast<Char>('+');
+    }
     if (exp >= 100)
     {
         const char *top = digits2(to_unsigned(exp / 100));
@@ -1839,14 +1851,22 @@ auto write_escaped_cp(OutputIt out, const find_escape_result<Char> &escape) -> O
         if (is_utf8())
         {
             if (escape.cp < 0x100)
-            { return write_codepoint<2, Char>(out, 'x', escape.cp); }
+            {
+                return write_codepoint<2, Char>(out, 'x', escape.cp);
+            }
             if (escape.cp < 0x10000)
-            { return write_codepoint<4, Char>(out, 'u', escape.cp); }
+            {
+                return write_codepoint<4, Char>(out, 'u', escape.cp);
+            }
             if (escape.cp < 0x110000)
-            { return write_codepoint<8, Char>(out, 'U', escape.cp); }
+            {
+                return write_codepoint<8, Char>(out, 'U', escape.cp);
+            }
         }
         for (Char escape_char : basic_string_view<Char>(escape.begin, to_unsigned(escape.end - escape.begin)))
-        { out = write_codepoint<2, Char>(out, 'x', static_cast<uint32_t>(escape_char) & 0xFF); }
+        {
+            out = write_codepoint<2, Char>(out, 'x', static_cast<uint32_t>(escape_char) & 0xFF);
+        }
         return out;
     }
     *out++ = c;
@@ -1874,9 +1894,13 @@ auto write_escaped_string(OutputIt out, basic_string_view<Char> str) -> OutputIt
 template <typename Char, typename OutputIt> auto write_escaped_char(OutputIt out, Char v) -> OutputIt {
     *out++ = static_cast<Char>('\'');
     if ((needs_escape(static_cast<uint32_t>(v)) && v != static_cast<Char>('"')) || v == static_cast<Char>('\''))
-    { out = write_escaped_cp(out, find_escape_result<Char>{&v, &v + 1, static_cast<uint32_t>(v)}); }
+    {
+        out = write_escaped_cp(out, find_escape_result<Char>{&v, &v + 1, static_cast<uint32_t>(v)});
+    }
     else
-    { *out++ = v; }
+    {
+        *out++ = v;
+    }
     *out++ = static_cast<Char>('\'');
     return out;
 }
@@ -2092,7 +2116,9 @@ FMT_CONSTEXPR FMT_INLINE auto write_int(
     case presentation_type::none:
     case presentation_type::dec: {
         if (specs.localized && write_int_localized(out, static_cast<uint64_or_128_t<T>>(abs_value), prefix, specs, loc))
-        { return out; }
+        {
+            return out;
+        }
         auto num_digits = count_digits(abs_value);
         return write_int(out, num_digits, prefix, specs, [=](reserve_iterator<OutputIt> it) {
             return format_decimal<Char>(it, abs_value, num_digits).end;
@@ -2381,7 +2407,9 @@ FMT_CONSTEXPR20 auto write_significand(
     OutputIt out, T significand, int significand_size, int integral_size, Char decimal_point, const Grouping &grouping
 ) -> OutputIt {
     if (!grouping.separator())
-    { return write_significand(out, significand, significand_size, integral_size, decimal_point); }
+    {
+        return write_significand(out, significand, significand_size, integral_size, decimal_point);
+    }
     auto buffer = basic_memory_buffer<Char>();
     write_significand(buffer_appender<Char>(buffer), significand, significand_size, integral_size, decimal_point);
     grouping.apply(out, basic_string_view<Char>(buffer.data(), to_unsigned(integral_size)));
@@ -2423,7 +2451,9 @@ FMT_CONSTEXPR20 auto do_write_float(
             size += to_unsigned(num_zeros);
         }
         else if (significand_size == 1)
-        { decimal_point = Char(); }
+        {
+            decimal_point = Char();
+        }
         auto abs_output_exp = output_exp >= 0 ? output_exp : -output_exp;
         int exp_digits      = 2;
         if (abs_output_exp >= 100)
@@ -2489,7 +2519,9 @@ FMT_CONSTEXPR20 auto do_write_float(
     // 1234e-6 -> 0.001234
     int num_zeros = -exp;
     if (significand_size == 0 && fspecs.precision >= 0 && fspecs.precision < num_zeros)
-    { num_zeros = fspecs.precision; }
+    {
+        num_zeros = fspecs.precision;
+    }
     bool pointy = num_zeros != 0 || significand_size != 0 || fspecs.showpoint;
     size += 1 + (pointy ? 1 : 0) + to_unsigned(num_zeros);
     return write_padded<align::right>(out, specs, size, [&](iterator it) {
@@ -2527,9 +2559,13 @@ FMT_CONSTEXPR20 auto write_float(
     OutputIt out, const DecimalFP &f, const basic_format_specs<Char> &specs, float_specs fspecs, locale_ref loc
 ) -> OutputIt {
     if (is_constant_evaluated())
-    { return do_write_float<OutputIt, DecimalFP, Char, fallback_digit_grouping<Char>>(out, f, specs, fspecs, loc); }
+    {
+        return do_write_float<OutputIt, DecimalFP, Char, fallback_digit_grouping<Char>>(out, f, specs, fspecs, loc);
+    }
     else
-    { return do_write_float(out, f, specs, fspecs, loc); }
+    {
+        return do_write_float(out, f, specs, fspecs, loc);
+    }
 }
 
 template <typename T> constexpr bool isnan(T value) {
@@ -2587,7 +2623,9 @@ FMT_CONSTEXPR inline round_direction get_round_direction(uint64_t divisor, uint6
         return round_direction::down;
     // Round up if (remainder - error) * 2 >= divisor.
     if (remainder >= error && remainder - error >= divisor - (remainder - error))
-    { return round_direction::up; }
+    {
+        return round_direction::up;
+    }
     return round_direction::unknown;
 }
 
@@ -2624,7 +2662,9 @@ struct gen_digits_handler {
                 return digits::error;
         }
         else
-        { FMT_ASSERT(error == 1 && divisor > 2, ""); }
+        {
+            FMT_ASSERT(error == 1 && divisor > 2, "");
+        }
         auto dir = get_round_direction(divisor, remainder, error);
         if (dir != round_direction::up)
             return dir == round_direction::down ? digits::done : digits::error;
@@ -2737,8 +2777,8 @@ FMT_INLINE FMT_CONSTEXPR20 auto grisu_gen_digits(fp value, uint64_t error, int &
         --exp;
         auto remainder = (static_cast<uint64_t>(integral) << -one.e) + fractional;
         auto result    = handler.on_digit(
-               static_cast<char>('0' + digit), data::power_of_10_64[exp] << -one.e, remainder, error, true
-           );
+            static_cast<char>('0' + digit), data::power_of_10_64[exp] << -one.e, remainder, error, true
+        );
         if (result != digits::more)
             return result;
     }
@@ -3145,7 +3185,9 @@ FMT_CONSTEXPR20 inline void format_dragon(
             if (low || high)
             {
                 if (!low)
-                { ++data[num_digits - 1]; }
+                {
+                    ++data[num_digits - 1];
+                }
                 else if (high)
                 {
                     int result = add_compare(numerator, numerator, denominator);
@@ -3316,7 +3358,9 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value, basic_format_specs<Char> specs
         value       = -value;
     }
     else if (fspecs.sign == sign::minus)
-    { fspecs.sign = sign::none; }
+    {
+        fspecs.sign = sign::none;
+    }
 
     if (!detail::isfinite(value))
         return write_nonfinite(out, detail::isnan(value), specs, fspecs);
@@ -3348,7 +3392,9 @@ FMT_CONSTEXPR20 auto write(OutputIt out, T value, basic_format_specs<Char> specs
             ++precision;
     }
     else if (fspecs.format != float_format::fixed && precision == 0)
-    { precision = 1; }
+    {
+        precision = 1;
+    }
     if (const_check(std::is_same<T, float>()))
         fspecs.binary32 = true;
     int exp          = format_float(convert_float(value), precision, fspecs, buffer);
@@ -3434,9 +3480,13 @@ template <typename Char, typename OutputIt> FMT_CONSTEXPR auto write(OutputIt ou
 template <typename Char, typename OutputIt>
 FMT_CONSTEXPR_CHAR_TRAITS auto write(OutputIt out, const Char *value) -> OutputIt {
     if (!value)
-    { throw_format_error("string pointer is null"); }
+    {
+        throw_format_error("string pointer is null");
+    }
     else
-    { out = write(out, basic_string_view<Char>(value)); }
+    {
+        out = write(out, basic_string_view<Char>(value));
+    }
     return out;
 }
 
@@ -3979,7 +4029,9 @@ template <> struct formatter<bytes> {
 };
 
 // group_digits_view is not derived from view because it copies the argument.
-template <typename T> struct group_digits_view { T value; };
+template <typename T> struct group_digits_view {
+    T value;
+};
 
 /**
   \rst

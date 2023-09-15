@@ -17,8 +17,9 @@ void Arguments::New(int argc, char **argv) {
 
     // required fields
     options->add_options()("i,in", "[REQUIRED] Input file path", cxxopts::value<std::string>()->default_value(""));
-    options->add_options(
-    )("s,stdlib", "[REQUIRED] Get the stdlib location", cxxopts::value<std::string>()->default_value(""));
+    options->add_options()(
+        "s,stdlib", "[REQUIRED] Get the stdlib location", cxxopts::value<std::string>()->default_value("")
+    );
 
     // optionals with defaults
     options->add_options()("o,out", "Output file path", cxxopts::value<std::string>()->default_value("out.cpp"));
@@ -54,8 +55,12 @@ void Arguments::New(int argc, char **argv) {
     args->test     = args->value<bool>("test");
 
     if (args->in_path.empty())
-    { panic("--in is a required flag use --help for more info"); }
+    {
+        panic("--in is a required flag use --help for more info");
+    }
 
     if (args->stdlib.empty())
-    { panic("--stdlib is a required flag use --help for more info"); }
+    {
+        panic("--stdlib is a required flag use --help for more info");
+    }
 }

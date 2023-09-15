@@ -16,22 +16,21 @@ struct AssigmentStatement;
 struct NumberLiteralExpression;
 struct StringLiteralExpression;
 struct Expression;
-struct File;
+struct CompilationUnit;
 
 struct TopLevelDescriptor {
     std::string identifier;
-    File *file;
     TypeInfo *type_info;
 };
 
 struct SymbolTable {
-    File *current_file     = NULL;
+    CompilationUnit *current_file = NULL;
 
-    std::unordered_map<std::string, TypeInfo *> local_type_table; // structs
-    std::unordered_map<std::string, TypeInfo *> identifier_table; // variables or funcs
+    std::unordered_map<std::string, TypeInfo *> local_generic_type_table; // generic type added into scope
+    std::unordered_map<std::string, TypeInfo *> identifier_table;         // variables or funcs
 
-    SymbolTable(File *current_file);
-    SymbolTable() = default;
+    SymbolTable(CompilationUnit *current_file);
+    SymbolTable() = default; // removing this makes a compile error... why? lululul
 
     void add_local_type(Token type, TypeInfo *type_info);
     void add_identifier(Token identifier, TypeInfo *type_info);
@@ -40,25 +39,22 @@ struct SymbolTable {
 };
 
 struct TypeChecker {
-    File *current_file;
+    CompilationUnit *current_file;
 
     std::unordered_map<std::string, TypeInfo *> builtin_type_table;
-    std::unordered_map<std::string, u64> top_level_type_table;
-    std::unordered_map<std::string, u64> top_level_function_table;
-
-    std::vector<TopLevelDescriptor> top_level_type_descriptors;
-    std::vector<TopLevelDescriptor> top_level_fn_descriptors;
+    std::unordered_map<std::string, TopLevelDescriptor> top_level_type_table;
+    std::unordered_map<std::string, TopLevelDescriptor> top_level_function_table;
 
     TypeChecker();
 
-    void add_type(File *file, Token idetifier, TypeInfo *type_info);
-    void add_function(File *file, Token identifier, TypeInfo *type_info);
+    void add_type(CompilationUnit *file, Token idetifier, TypeInfo *type_info);
+    void add_function(CompilationUnit *file, Token identifier, TypeInfo *type_info);
     std::tuple<TypeInfo *, bool> get_type(Token *identifier);
     std::tuple<TypeInfo *, bool> get_type(std::string identifier);
     std::tuple<TypeInfo *, bool> get_function(Token *identifier);
     std::tuple<TypeInfo *, bool> get_function(std::string identifier);
 
-    void type_check(File *file);
+    void type_check(CompilationUnit *file);
 
     void type_check_fn_symbol(FnStatement *statement);
     void type_check_struct_symbol(StructStatement *statement);
