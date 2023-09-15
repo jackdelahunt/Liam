@@ -9,7 +9,6 @@ struct LetStatement;
 struct ScopeStatement;
 struct StructStatement;
 struct FnStatement;
-struct InsertStatement;
 struct ReturnStatement;
 struct BreakStatement;
 struct ExpressionStatement;

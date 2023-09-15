@@ -196,7 +196,7 @@ void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
     this->add_function(
         this->current_file, statement->identifier,
         new FnTypeInfo(
-            0, this->current_file->file_id, statement->flag_mask, NULL, NULL, {}, {}
+            statement->flag_mask, NULL, NULL, {}, {}
         )
     );
 }
@@ -219,7 +219,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     this->add_type(
         this->current_file, statement->identifier,
         new StructTypeInfo(
-            0, this->current_file->file_id, statement->flag_mask, {}, {},
+            statement->flag_mask, {}, {},
             statement->generics.size()
         )
     );
@@ -231,7 +231,7 @@ void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
     this->add_type(
         this->current_file, statement->identifier,
         new EnumTypeInfo(
-            0, this->current_file->file_id, std::vector<EnumMember>(),
+            std::vector<EnumMember>(),
             statement->flag_mask
         )
     );
@@ -279,7 +279,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         parent_type_info->member_functions.push_back(
             {statement->identifier.string,
              new FnTypeInfo(
-                 0, this->current_file->file_id, statement->flag_mask, parent_type_info,
+                 statement->flag_mask, parent_type_info,
                  statement->return_type->type_info, generic_type_infos, param_type_infos
              )}
         );
@@ -436,7 +436,6 @@ void TypeChecker::type_check_enum_statement_full(EnumStatement *statement) {
 
     auto type_info       = (EnumTypeInfo *)existing_type;
     type_info->members   = statement->members;
-    type_info->file_id   = this->current_file->file_id;
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
