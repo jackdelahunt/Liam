@@ -23,7 +23,7 @@ struct TopLevelDescriptor {
 };
 
 struct SymbolTable {
-    CompilationUnit *current_file = NULL;
+    CompilationUnit *compilation_unit = NULL;
 
     std::unordered_map<std::string, TypeInfo *> local_generic_type_table; // generic type added into scope
     std::unordered_map<std::string, TypeInfo *> identifier_table;         // variables or funcs
@@ -38,7 +38,7 @@ struct SymbolTable {
 };
 
 struct TypeChecker {
-    CompilationUnit *current_file;
+    CompilationUnit *compilation_unit;
 
     std::unordered_map<std::string, TypeInfo *> builtin_type_table;
     std::unordered_map<std::string, TopLevelDescriptor> top_level_type_table;
