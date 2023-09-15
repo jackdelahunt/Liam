@@ -33,6 +33,7 @@ struct SymbolTable {
 
     void add_local_type(Token type, TypeInfo *type_info);
     void add_identifier(Token identifier, TypeInfo *type_info);
+    std::tuple<TypeInfo *, bool> get_identifier(Token identifier);
     void add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info);
     SymbolTable copy();
 };

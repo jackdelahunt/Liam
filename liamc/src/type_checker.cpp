@@ -43,6 +43,15 @@ void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
     identifier_table[identifier.string] = type_info;
 }
 
+std::tuple<TypeInfo *, bool> SymbolTable::get_identifier(Token identifier) {
+    if (identifier_table.count(identifier.string) > 0)
+    {
+        return {this->identifier_table[identifier.string], false};
+    }
+
+    return {NULL, true};
+}
+
 void SymbolTable::add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info) {
     ASSERT(identifier_table.count(identifier) == 0);
     identifier_table[identifier] = type_info;
@@ -1115,7 +1124,7 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
 }
 
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
-    auto [type_info, failed] = this->get_type(&expression->identifier);
+    auto [type_info, failed] = symbol_table->get_identifier(expression->identifier);
 
     if (failed)
     {
