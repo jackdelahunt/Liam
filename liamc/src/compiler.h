@@ -8,7 +8,6 @@
 #include "errors.h"
 #include "lexer.h"
 #include "liam.h"
-#include "module.h"
 #include "parser.h"
 #include "type_checker.h"
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <map>
 
-#include "module.h"
 #include "parser.h"
 #include "type_info.h"
 
