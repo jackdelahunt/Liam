@@ -7,7 +7,6 @@
 #include "file.h"
 
 struct CompilationUnit {
-    std::filesystem::path path;
     FileData *file_data;
     std::vector<Token> tokens;
     std::vector<ImportStatement *> top_level_import_statements;

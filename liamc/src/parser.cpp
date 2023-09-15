@@ -82,7 +82,7 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_ENUM: {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
-            this->compilation_unit->path.string(), token.span,
+            this->compilation_unit->file_data->path.string(), token.span,
             fmt::format("Cannot declare top level statement '{}' in a function", token.string)
         );
         return NULL;
@@ -112,7 +112,7 @@ Statement *Parser::eval_top_level_statement() {
     default: {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
-            this->compilation_unit->path.string(), token.span,
+            this->compilation_unit->file_data->path.string(), token.span,
             fmt::format("Unexpected token used to declare new statement at top level '{}'", token.string)
         );
         return NULL;
@@ -149,7 +149,7 @@ ScopeStatement *Parser::eval_scope_statement() {
     if (closing_brace_index < 0)
     {
         ErrorReporter::report_parser_error(
-            this->compilation_unit->path.string(), open_brace->span, "No closing brace for scope found"
+            this->compilation_unit->file_data->path.string(), open_brace->span, "No closing brace for scope found"
         );
         return NULL;
     }
@@ -560,7 +560,7 @@ Expression *Parser::eval_primary() {
     {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
-            this->compilation_unit->path.string(), token.span,
+            this->compilation_unit->file_data->path.string(), token.span,
             fmt::format("Unexpected token when parsing expression '{}'", get_token_type_string(token.type))
         );
         return NULL;
@@ -785,8 +785,8 @@ Token *Parser::consume_token_of_type(TokenType type) {
     {
         auto last_token = this->compilation_unit->tokens.at(this->compilation_unit->tokens.size() - 1);
         ErrorReporter::report_parser_error(
-            this->compilation_unit->path.string(), last_token.span,
-            fmt::format("Expected '{}' but got unexpected end of compilation_unit", last_token.string)
+            this->compilation_unit->file_data->path.string(), last_token.span,
+            fmt::format("Expected '{}' but got unexpected end of file", last_token.string)
         );
         return NULL;
     }
@@ -795,7 +795,7 @@ Token *Parser::consume_token_of_type(TokenType type) {
     if (t_ptr->type != type)
     {
         ErrorReporter::report_parser_error(
-            this->compilation_unit->path.string(), t_ptr->span,
+            this->compilation_unit->file_data->path.string(), t_ptr->span,
             fmt::format("Expected '{}' got '{}'", get_token_type_string(type), t_ptr->string)
         );
         return NULL;
@@ -1007,14 +1007,14 @@ u8 Parser::consume_tags() {
         else
         {
             ErrorReporter::report_parser_error(
-                this->compilation_unit->path.string(), tag.span, "Unknown tag give \"" + tag.string + "\""
+                this->compilation_unit->file_data->path.string(), tag.span, "Unknown tag give \"" + tag.string + "\""
             );
             return 0;
         }
 
     duplicate_error:
         ErrorReporter::report_parser_error(
-            this->compilation_unit->path.string(), tag.span, "Duplicate tag given for \"" + tag.string + "\""
+            this->compilation_unit->file_data->path.string(), tag.span, "Duplicate tag given for \"" + tag.string + "\""
         );
         return true;
     }
