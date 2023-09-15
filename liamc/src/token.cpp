@@ -27,7 +27,7 @@ const char *TokenTypeStrings[50] = {"int Literal", "string Literal",
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
 
-    // we use the index of where the token is in the file
+    // we use the index of where the token is in the compilation_unit
     // so lines and characters start at 1
     ASSERT(line > 0);
     ASSERT(start > 0);

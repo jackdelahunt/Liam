@@ -80,7 +80,7 @@ FMT_FUNC void report_error(format_func func, int error_code, const char *message
 inline void fwrite_fully(const void *ptr, size_t size, size_t count, FILE *stream) {
     size_t written = std::fwrite(ptr, size, count, stream);
     if (written < count)
-        FMT_THROW(system_error(errno, FMT_STRING("cannot write to file")));
+        FMT_THROW(system_error(errno, FMT_STRING("cannot write to compilation_unit")));
 }
 
 #ifndef FMT_STATIC_THOUSANDS_SEPARATOR
@@ -1476,7 +1476,7 @@ FMT_FUNC bool write_console(std::FILE *f, string_view text) {
             return true;
         }
     }
-    // We return false if the file descriptor was not TTY, or it was but
+    // We return false if the compilation_unit descriptor was not TTY, or it was but
     // SetConsoleW failed which can happen if the output has been redirected to
     // NUL. In both cases when we return false, we should attempt to do regular
     // write via fwrite or std::ostream::write.

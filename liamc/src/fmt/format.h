@@ -3757,12 +3757,12 @@ FMT_API auto vsystem_error(int error_code, string_view format_str, format_args a
  **Example**::
 
    // This throws std::system_error with the description
-   //   cannot open file 'madeup': No such file or directory
+   //   cannot open compilation_unit 'madeup': No such compilation_unit or directory
    // or similar (system message may vary).
    const char* filename = "madeup";
-   std::FILE* file = std::fopen(filename, "r");
-   if (!file)
-     throw fmt::system_error(errno, "cannot open file '{}'", filename);
+   std::FILE* compilation_unit = std::fopen(filename, "r");
+   if (!compilation_unit)
+     throw fmt::system_error(errno, "cannot open compilation_unit '{}'", filename);
  \endrst
 */
 template <typename... T> auto system_error(int error_code, format_string<T...> fmt, T &&...args) -> std::system_error {
@@ -3772,7 +3772,7 @@ template <typename... T> auto system_error(int error_code, format_string<T...> f
 /**
   \rst
   Formats an error message for an error returned by an operating system or a
-  language runtime, for example a file opening error, and writes it to *out*.
+  language runtime, for example a compilation_unit opening error, and writes it to *out*.
   The format is the same as the one used by ``std::system_error(ec, message)``
   where ``ec`` is ``std::error_code(error_code, std::generic_category()})``.
   It is implementation-defined but normally looks like:

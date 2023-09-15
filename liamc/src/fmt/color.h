@@ -465,13 +465,13 @@ template <typename Char> FMT_CONSTEXPR ansi_color_escape<Char> make_emphasis(emp
 template <typename Char> inline void fputs(const Char *chars, FILE *stream) {
     int result = std::fputs(chars, stream);
     if (result < 0)
-        FMT_THROW(system_error(errno, FMT_STRING("cannot write to file")));
+        FMT_THROW(system_error(errno, FMT_STRING("cannot write to compilation_unit")));
 }
 
 template <> inline void fputs<wchar_t>(const wchar_t *chars, FILE *stream) {
     int result = std::fputws(chars, stream);
     if (result < 0)
-        FMT_THROW(system_error(errno, FMT_STRING("cannot write to file")));
+        FMT_THROW(system_error(errno, FMT_STRING("cannot write to compilation_unit")));
 }
 
 template <typename Char> inline void reset_color(FILE *stream) {
@@ -542,7 +542,7 @@ void vprint(
 
 /**
   \rst
-  Formats a string and prints it to the specified file stream using ANSI
+  Formats a string and prints it to the specified compilation_unit stream using ANSI
   escape sequences to specify text formatting.
 
   **Example**::
