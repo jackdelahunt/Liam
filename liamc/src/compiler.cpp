@@ -2,10 +2,10 @@
 #include <set>
 
 CompilationUnit *lex_parse(std::filesystem::path file_path) {
-    FileData *file_data = FileManager::load(file_path.string());
-    Lexer lexer         = Lexer(file_data);
+    FileData *file_data               = FileManager::load(file_path.string());
+    Lexer lexer                       = Lexer(file_data);
     CompilationUnit *compilation_unit = lexer.lex();
-    Parser parser = Parser(compilation_unit);
+    Parser parser                     = Parser(compilation_unit);
     parser.parse();
 
     if (ErrorReporter::has_parse_errors())

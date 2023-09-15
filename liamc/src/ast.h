@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "liam.h"
 #include "token.h"
 
 struct EnumMember;
@@ -46,7 +47,22 @@ struct SpecifiedGenericsTypeExpression;
 struct FnTypeExpression;
 
 struct CompilationUnit;
+
 struct TypeInfo;
+struct AnyTypeInfo;
+struct VoidTypeInfo;
+struct NumberTypeInfo;
+struct BoolTypeInfo;
+struct PointerTypeInfo;
+struct PointerSliceTypeInfo;
+struct StrTypeInfo;
+struct TypeTypeInfo;
+struct StructTypeInfo;
+struct StructInstanceTypeInfo;
+struct FnTypeInfo;
+struct FnExpressionTypeInfo;
+struct GenericTypeInfo;
+struct EnumTypeInfo;
 
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
@@ -104,6 +120,125 @@ enum class TypeExpressionType {
     TYPE_UNARY,
     TYPE_SPECIFIED_GENERICS,
     TYPE_FN,
+};
+
+enum class TypeInfoType {
+    ANY,
+    VOID,
+    NUMBER,
+    BOOLEAN,
+    STRING,
+    FN,
+    FN_EXPRESSION,
+    STRUCT,
+    STRUCT_INSTANCE,
+    POINTER,
+    POINTER_SLICE,
+    SLICE,
+    GENERIC,
+    ENUM,
+};
+
+enum class NumberType {
+    UNSIGNED,
+    SIGNED,
+    FLOAT
+};
+
+struct TypeInfo {
+    TypeInfoType type;
+};
+
+struct AnyTypeInfo : TypeInfo {};
+
+struct VoidTypeInfo : TypeInfo {
+    VoidTypeInfo();
+};
+
+struct NumberTypeInfo : TypeInfo {
+    size_t size;
+    NumberType number_type;
+
+    NumberTypeInfo(size_t size, NumberType number_type);
+};
+
+struct BoolTypeInfo : TypeInfo {
+    BoolTypeInfo();
+};
+
+struct PointerTypeInfo : TypeInfo {
+    TypeInfo *to;
+
+    PointerTypeInfo(TypeInfo *to);
+};
+
+struct PointerSliceTypeInfo : TypeInfo {
+    TypeInfo *to;
+
+    PointerSliceTypeInfo(TypeInfo *to);
+};
+
+struct StrTypeInfo : TypeInfo {
+    StrTypeInfo();
+};
+
+struct TypeTypeInfo : TypeInfo {
+    TypeTypeInfo();
+};
+
+struct StructTypeInfo : TypeInfo {
+    u8 flag_mask;
+
+    std::vector<std::tuple<std::string, FnTypeInfo *>> member_functions;
+    std::vector<std::tuple<std::string, TypeInfo *>> members;
+    u64 generic_count;
+
+    StructTypeInfo(
+        u8 flag_mask, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+        std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
+    );
+};
+
+struct StructInstanceTypeInfo : TypeInfo {
+    StructTypeInfo *struct_type;
+    std::vector<TypeInfo *> generic_types;
+
+    StructInstanceTypeInfo(StructTypeInfo *structType, std::vector<TypeInfo *> genericTypes);
+};
+
+struct FnTypeInfo : TypeInfo {
+    u8 flag_mask;
+
+    StructTypeInfo *parent_type;
+    TypeInfo *return_type;
+    std::vector<TypeInfo *> generic_type_infos;
+    std::vector<TypeInfo *> args;
+
+    FnTypeInfo(
+        u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
+        std::vector<TypeInfo *> args
+    );
+};
+
+struct FnExpressionTypeInfo : TypeInfo {
+    TypeInfo *return_type;
+    std::vector<TypeInfo *> args;
+
+    FnExpressionTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args);
+};
+
+struct GenericTypeInfo : TypeInfo {
+    u64 id;
+
+    GenericTypeInfo(u64 id);
+};
+
+struct EnumTypeInfo : TypeInfo {
+    u8 flag_mask;
+
+    std::vector<EnumMember> members;
+
+    EnumTypeInfo(std::vector<EnumMember> members, u8 flag_mask);
 };
 
 /*
@@ -191,7 +326,8 @@ struct ForStatement : Statement {
     ScopeStatement *body;
 
     ForStatement(
-        CompilationUnit *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body);
+        CompilationUnit *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
+    );
 };
 
 struct IfStatement : Statement {
