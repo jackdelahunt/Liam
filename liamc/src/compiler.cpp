@@ -131,5 +131,5 @@ void type_check(std::vector<Module *> *modules) {
 }
 
 std::string code_gen(std::vector<Module *> *modules) {
-    return CppBackend().emit(modules);
+    return CppBackend().emit(modules->at(0)->files.at(0));
 }
