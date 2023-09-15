@@ -15,15 +15,15 @@ i32 main(i32 argc, char **argv) {
     Arguments::New(argc, argv);
 
     TIME_START(l_p_time);
-    auto modules = lex_parse(std::filesystem::absolute(args->in_path));
+    File *file = lex_parse(std::filesystem::absolute(args->in_path));
     TIME_END(l_p_time, "Lex and parsing time");
 
     TIME_START(type_time);
-    type_check(&modules);
+    type_check(file);
     TIME_END(type_time, "Type checking time");
 
     TIME_START(code_gen_time);
-    auto code = code_gen(&modules);
+    auto code = code_gen(file);
     TIME_END(code_gen_time, "Code generation time");
 
     if (args->emit)
