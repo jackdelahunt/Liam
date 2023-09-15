@@ -11,9 +11,8 @@
 #include "utils.h"
 #include <tuple>
 
-SymbolTable::SymbolTable(Module *current_module, File *current_file) {
+SymbolTable::SymbolTable(File *current_file) {
     this->current_file     = current_file;
-    this->current_module   = current_module;
     this->local_type_table = std::unordered_map<std::string, TypeInfo *>();
     this->identifier_table = std::unordered_map<std::string, TypeInfo *>();
 }
@@ -50,44 +49,6 @@ void SymbolTable::add_compiler_generated_identifier(std::string identifier, Type
     identifier_table[identifier] = type_info;
 }
 
-std::tuple<TypeInfo *, bool> SymbolTable::get_type(Token *identifier) {
-    return get_type(identifier->string);
-}
-
-std::tuple<TypeInfo *, bool> SymbolTable::get_type(std::string identifier) {
-    ASSERT(this->current_module);
-    ASSERT(this->current_file);
-
-    if (this->current_file->imported_function_table.count(identifier) > 0)
-    { return {this->current_file->imported_function_table[identifier], false}; }
-
-    if (this->current_file->imported_type_table.count(identifier) > 0)
-    { return {this->current_file->imported_type_table[identifier], false}; }
-
-    if (this->current_module->builtin_type_table.count(identifier) > 0)
-    { return {this->current_module->builtin_type_table[identifier], false}; }
-
-    if (this->current_module->top_level_type_table.count(identifier) > 0)
-    {
-        u64 index = this->current_module->top_level_type_table[identifier];
-        return {this->current_module->top_level_type_descriptors[index].type_info, false};
-    }
-
-    if (this->current_module->top_level_function_table.count(identifier) > 0)
-    {
-        u64 index = this->current_module->top_level_function_table[identifier];
-        return {this->current_module->top_level_fn_descriptors[index].type_info, false};
-    }
-
-    if (this->identifier_table.count(identifier) > 0)
-    { return {this->identifier_table[identifier], false}; }
-
-    if (this->local_type_table.count(identifier) > 0)
-    { return {this->local_type_table[identifier], false}; }
-
-    return {nullptr, true};
-}
-
 SymbolTable SymbolTable::copy() {
     SymbolTable st = *this;
     return st;
@@ -96,154 +57,129 @@ SymbolTable SymbolTable::copy() {
 TypeChecker::TypeChecker() {
     current_file   = NULL;
     current_module = NULL;
+
+    this->builtin_type_table   = std::unordered_map<std::string, TypeInfo *>();
+    this->top_level_type_table = std::unordered_map<std::string, u64>();
+    this->top_level_type_table = std::unordered_map<std::string, u64>();
+
+    this->builtin_type_table["void"] = new VoidTypeInfo();
+    this->builtin_type_table["bool"] = new BoolTypeInfo();
+    this->builtin_type_table["str"]  = new StrTypeInfo();
+    this->builtin_type_table["u8"]   = new NumberTypeInfo(8, NumberType::UNSIGNED);
+    this->builtin_type_table["i8"]   = new NumberTypeInfo(8, NumberType::SIGNED);
+    this->builtin_type_table["u16"]  = new NumberTypeInfo(16, NumberType::UNSIGNED);
+    this->builtin_type_table["i16"]  = new NumberTypeInfo(16, NumberType::SIGNED);
+    this->builtin_type_table["u32"]  = new NumberTypeInfo(32, NumberType::UNSIGNED);
+    this->builtin_type_table["i32"]  = new NumberTypeInfo(32, NumberType::SIGNED);
+    this->builtin_type_table["f32"]  = new NumberTypeInfo(32, NumberType::FLOAT);
+    this->builtin_type_table["u64"]  = new NumberTypeInfo(64, NumberType::UNSIGNED);
+    this->builtin_type_table["i64"]  = new NumberTypeInfo(64, NumberType::SIGNED);
+    this->builtin_type_table["f64"]  = new NumberTypeInfo(64, NumberType::FLOAT);
+}
+
+void TypeChecker::add_type(Module *module, File *file, Token token, TypeInfo *type_info) {
+
+    ASSERT(type_info->type == TypeInfoType::STRUCT || type_info->type == TypeInfoType::ENUM);
+
+    if (this->top_level_type_table.count(token.string) > 0)
+    {
+        panic(
+            "Duplcate creation of type: " + token.string + " at (" + std::to_string(token.span.line) + "," +
+            std::to_string(token.span.start) + ")"
+        );
+    }
+
+    TopLevelDescriptor descriptor = TopLevelDescriptor{
+        .identifier = token.string,
+        .module     = module,
+        .file       = file,
+        .type_info  = type_info,
+    };
+
+    this->top_level_type_descriptors.push_back(descriptor);
+    this->top_level_type_table[token.string] = this->top_level_type_descriptors.size() - 1;
+}
+
+void TypeChecker::add_function(Module *module, File *file, Token token, TypeInfo *type_info) {
+    if (this->top_level_function_table.count(token.string) > 0)
+    {
+        panic(
+            "Duplicate creation of function: " + token.string + " at (" + std::to_string(token.span.line) + "," +
+            std::to_string(token.span.start) + ")"
+        );
+    }
+
+    TopLevelDescriptor descriptor = TopLevelDescriptor{
+        .identifier = token.string,
+        .module     = module,
+        .file       = file,
+        .type_info  = type_info,
+    };
+
+    this->top_level_fn_descriptors.push_back(descriptor);
+    this->top_level_function_table[token.string] = this->top_level_fn_descriptors.size() - 1;
+}
+
+std::tuple<TypeInfo *, bool> TypeChecker::get_type(Token *identifier) {
+    return get_type(identifier->string);
+}
+
+std::tuple<TypeInfo *, bool> TypeChecker::get_type(std::string identifier) {
+    if (this->top_level_type_table.count(identifier) > 0)
+    {
+        u64 index = this->top_level_type_table[identifier];
+        return {this->top_level_type_descriptors[index].type_info, false};
+    }
+
+    if (this->builtin_type_table.count(identifier) > 0)
+    {
+        return {this->builtin_type_table[identifier], false};
+    }
+
+    return {nullptr, true};
+}
+
+std::tuple<TypeInfo *, bool> TypeChecker::get_function(Token *identifier) {
+    return this->get_function(identifier->string);
+}
+
+std::tuple<TypeInfo *, bool> TypeChecker::get_function(std::string identifier) {
+    if (this->top_level_function_table.count(identifier) > 0)
+    {
+        u64 index = this->top_level_function_table[identifier];
+        return {this->top_level_fn_descriptors[index].type_info, false};
+    }
+
+    return {nullptr, true};
 }
 
 void TypeChecker::type_check(std::vector<Module *> *modules) {
 
+    this->current_module = modules->at(0);
+    this->current_file = this->current_module->files.at(0);
+
     // add symbols for structs, enums and aliass for each module
-    for (auto module : *modules)
-    {
-        this->current_module = module;
-        for (auto file : module->files)
-        {
+    for (auto stmt : this->current_file->top_level_enum_statements)
+    { TRY_CALL_VOID(type_check_enum_symbol(stmt)); }
 
-            this->current_file = file;
+    for (auto stmt : this->current_file->top_level_struct_statements)
+    { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
 
-            for (auto stmt : file->top_level_enum_statements)
-            { TRY_CALL_VOID(type_check_enum_symbol(stmt)); }
+    for (auto stmt : this->current_file->top_level_fn_statements)
+    { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
 
-            for (auto stmt : file->top_level_struct_statements)
-            { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
+    for (auto stmt : this->current_file->top_level_enum_statements)
+    { TRY_CALL_VOID(type_check_enum_statement_full(stmt)); }
 
-            for (auto stmt : file->top_level_fn_statements)
-            { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
-        }
-    }
+    for (auto stmt : this->current_file->top_level_struct_statements)
+    { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
 
-    // resolve the imports to include all needed symbols
-    for (auto module : *modules)
-    {
-        for (auto file : module->files)
-        {
-            for (auto import_stmt : file->top_level_import_statements)
-            {
-                // convert from import path relative to source file as
-                // that is the defualt in the import stmt to the absolute
-                // path to the module on the system
-                auto import_path_relative_to_module = module->path;
-                import_path_relative_to_module.append(import_stmt->path->token.string);
-                auto import_path_absolute = std::filesystem::absolute(import_path_relative_to_module);
-
-                for (auto other_module : *modules)
-                {
-                    if (other_module->path == import_path_absolute)
-                    {
-                        for (auto string_to_index : other_module->top_level_type_table)
-                        {
-                            TopLevelDescriptor descriptor =
-                                other_module->top_level_type_descriptors[string_to_index.second];
-
-                            if (descriptor.type_info->type == TypeInfoType::STRUCT)
-                            {
-                                if (BIT_SET(((StructTypeInfo *)descriptor.type_info)->flag_mask, TAG_PRIVATE))
-                                { continue; }
-                            }
-                            else if (descriptor.type_info->type == TypeInfoType::ENUM)
-                            {
-                                if (BIT_SET(((EnumTypeInfo *)descriptor.type_info)->flag_mask, TAG_PRIVATE))
-                                { continue; }
-                            }
-
-                            auto [type_info, failed] = module->get_type(string_to_index.first);
-                            if (!failed || file->imported_type_table.count(string_to_index.first) > 0)
-                            {
-                                TypeCheckerError::make(file->path.string())
-                                    .set_expr_1(import_stmt->path)
-                                    .set_message(
-                                        "Module import adds already declared type \"" + string_to_index.first + "\""
-                                    )
-                                    .report();
-                                return;
-                            }
-
-                            file->imported_type_table[descriptor.identifier] = descriptor.type_info;
-                        }
-
-                        for (auto string_to_index : other_module->top_level_function_table)
-                        {
-                            TopLevelDescriptor descriptor =
-                                other_module->top_level_fn_descriptors[string_to_index.second];
-                            ASSERT(descriptor.type_info->type == TypeInfoType::FN);
-
-                            if (BIT_SET(((FnTypeInfo *)descriptor.type_info)->flag_mask, TAG_PRIVATE))
-                            { continue; }
-
-                            auto [type_info, failed] = module->get_function(string_to_index.first);
-                            if (!failed || file->imported_function_table.count(string_to_index.first) > 0)
-                            {
-                                TypeCheckerError::make(file->path.string())
-                                    .set_expr_1(import_stmt->path)
-                                    .set_message(
-                                        "Module import adds already declared function \"" + string_to_index.first + "\""
-                                    )
-                                    .report();
-                                return;
-                            }
-
-                            file->imported_function_table[descriptor.identifier] = descriptor.type_info;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // type check the bodys of each struct, enum and alias
-    // to fill in their type infos
-    for (auto module : *modules)
-    {
-        this->current_module = module;
-        for (auto file : module->files)
-        {
-
-            this->current_file = file;
-
-            for (auto stmt : file->top_level_enum_statements)
-            { TRY_CALL_VOID(type_check_enum_statement_full(stmt)); }
-
-            for (auto stmt : file->top_level_struct_statements)
-            { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
-        }
-    }
-
-    // fill in the type info of each function as now
-    // we have all of the required symbols and their
-    // type infos resolved
-    for (auto module : *modules)
-    {
-        this->current_module = module;
-        for (auto file : module->files)
-        {
-            this->current_file = file;
-
-            for (auto stmt : file->top_level_fn_statements)
-            { TRY_CALL_VOID(type_check_fn_decl(stmt)); }
-        }
-    }
+    for (auto stmt : this->current_file->top_level_fn_statements)
+    { TRY_CALL_VOID(type_check_fn_decl(stmt)); }
 
     // finally do the function body pass
-    for (auto module : *modules)
-    {
-        this->current_module = module;
-        for (auto file : module->files)
-        {
-
-            this->current_file = file;
-
-            for (auto stmt : file->top_level_fn_statements)
-            { TRY_CALL_VOID(type_check_fn_statement_full(stmt)); }
-        }
-    }
+    for (auto stmt : this->current_file->top_level_fn_statements)
+    { TRY_CALL_VOID(type_check_fn_statement_full(stmt)); }
 }
 
 StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
@@ -261,7 +197,7 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
 }
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
-    this->current_module->add_function(
+    this->add_function(
         this->current_module, this->current_file, statement->identifier,
         new FnTypeInfo(
             this->current_module->module_id, this->current_file->file_id, statement->flag_mask, NULL, NULL, {}, {}
@@ -273,7 +209,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
 
-    auto [type_info, failed] = this->current_module->get_type(statement->identifier.string);
+    auto [type_info, failed] = this->get_type(statement->identifier.string);
     if (!failed)
     {
 
@@ -284,7 +220,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
         return;
     }
 
-    this->current_module->add_type(
+    this->add_type(
         this->current_module, this->current_file, statement->identifier,
         new StructTypeInfo(
             this->current_module->module_id, this->current_file->file_id, statement->flag_mask, {}, {},
@@ -296,7 +232,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
 void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
-    this->current_module->add_type(
+    this->add_type(
         this->current_module, this->current_file, statement->identifier,
         new EnumTypeInfo(
             this->current_module->module_id, this->current_file->file_id, std::vector<EnumMember>(),
@@ -306,7 +242,7 @@ void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
-    SymbolTable symbol_table = SymbolTable(current_module, current_file);
+    SymbolTable symbol_table = SymbolTable(current_file);
 
     auto generic_type_infos = std::vector<TypeInfo *>();
     if (!statement->generics.empty())
@@ -357,7 +293,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
 
     // add this fn decl to parent symbol table
     u64 index              = this->current_module->top_level_function_table[statement->identifier.string];
-    auto current_type_info = (FnTypeInfo *)this->current_module->top_level_fn_descriptors[index].type_info;
+    auto current_type_info = (FnTypeInfo *)this->top_level_fn_descriptors[index].type_info;
 
     current_type_info->return_type        = statement->return_type->type_info;
     current_type_info->generic_type_infos = generic_type_infos;
@@ -369,7 +305,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     if (BIT_SET(statement->flag_mask, TAG_EXTERN))
         return;
 
-    SymbolTable symbol_table = SymbolTable(current_module, current_file);
+    SymbolTable symbol_table = SymbolTable(current_file);
 
     // getting the already existing type info for the function is done in 2 ways
     // 1. looking into the symbol table of the current scope (normal function)
@@ -379,7 +315,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     if (statement->parent_type == NULL)
     {
         u64 index    = this->current_module->top_level_function_table[statement->identifier.string];
-        fn_type_info = (FnTypeInfo *)this->current_module->top_level_fn_descriptors[index].type_info;
+        fn_type_info = (FnTypeInfo *)this->top_level_fn_descriptors[index].type_info;
         ASSERT(fn_type_info);
     }
     else
@@ -465,7 +401,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 
 void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
 
-    SymbolTable symbol_table = SymbolTable(current_module, current_file);
+    SymbolTable symbol_table = SymbolTable(current_file);
 
     for (u64 i = 0; i < statement->generics.size(); i++)
     { TRY_CALL_VOID(symbol_table.add_local_type(statement->generics[i], new GenericTypeInfo(i))); }
@@ -489,7 +425,7 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
 
 void TypeChecker::type_check_enum_statement_full(EnumStatement *statement) {
 
-    SymbolTable symbol_table = SymbolTable(current_module, current_file);
+    SymbolTable symbol_table = SymbolTable(current_file);
     for (auto &member : statement->members)
     {
         for (auto type : member.members)
@@ -1146,7 +1082,7 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
 }
 
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
-    auto [type_info, failed] = symbol_table->get_type(&expression->identifier);
+    auto [type_info, failed] = this->get_type(&expression->identifier);
 
     if (failed)
     {
@@ -1353,7 +1289,7 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
 
 void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table) {
 
-    auto [type_info, fail] = symbol_table->get_type(&expression->lhs);
+    auto [type_info, fail] = this->get_type(&expression->lhs);
     if (fail)
     {
         ErrorReporter::report_type_checker_error(
@@ -1438,7 +1374,7 @@ void TypeChecker::type_check_struct_instance_expression(
 ) {
     // check its type
 
-    auto [type_info, failed] = symbol_table->get_type(expression->identifier.string);
+    auto [type_info, failed] = this->get_type(expression->identifier.string);
     if (failed)
     {
         ErrorReporter::report_type_checker_error(
@@ -1615,7 +1551,7 @@ void TypeChecker::type_check_fn_type_expression(FnTypeExpression *type_expressio
 void TypeChecker::type_check_identifier_type_expression(
     IdentifierTypeExpression *type_expression, SymbolTable *symbol_table
 ) {
-    auto [type, error] = symbol_table->get_type(&type_expression->identifier);
+    auto [type, error] = this->get_type(&type_expression->identifier);
     if (error)
     {
         ErrorReporter::report_type_checker_error(

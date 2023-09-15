@@ -21,20 +21,17 @@ struct Expression;
 struct File;
 
 struct SymbolTable {
-    Module *current_module = NULL;
     File *current_file     = NULL;
 
     std::unordered_map<std::string, TypeInfo *> local_type_table; // structs
     std::unordered_map<std::string, TypeInfo *> identifier_table; // variables or funcs
 
-    SymbolTable(Module *current_module, File *current_file);
+    SymbolTable(File *current_file);
     SymbolTable() = default;
 
     void add_local_type(Token type, TypeInfo *type_info);
     void add_identifier(Token identifier, TypeInfo *type_info);
     void add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info);
-    std::tuple<TypeInfo *, bool> get_type(Token *identifier);
-    std::tuple<TypeInfo *, bool> get_type(std::string identifier);
     SymbolTable copy();
 };
 
@@ -42,7 +39,21 @@ struct TypeChecker {
     File *current_file;
     Module *current_module;
 
+    std::unordered_map<std::string, TypeInfo *> builtin_type_table;
+    std::unordered_map<std::string, u64> top_level_type_table;     // module defined types
+    std::unordered_map<std::string, u64> top_level_function_table; // module defined functions
+
+    std::vector<TopLevelDescriptor> top_level_type_descriptors;
+    std::vector<TopLevelDescriptor> top_level_fn_descriptors;
+
     TypeChecker();
+
+    void add_type(Module *module, File *file, Token idetifier, TypeInfo *type_info);
+    void add_function(Module *module, File *file, Token identifier, TypeInfo *type_info);
+    std::tuple<TypeInfo *, bool> get_type(Token *identifier);
+    std::tuple<TypeInfo *, bool> get_type(std::string identifier);
+    std::tuple<TypeInfo *, bool> get_function(Token *identifier);
+    std::tuple<TypeInfo *, bool> get_function(std::string identifier);
 
     void type_check(std::vector<Module *> *modules);
 
