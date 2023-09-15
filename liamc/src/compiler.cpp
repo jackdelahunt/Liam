@@ -116,7 +116,7 @@ std::vector<Module *> lex_parse(std::filesystem::path starting_import_path) {
 
 void type_check(std::vector<Module *> *modules) {
 
-    TypeChecker().type_check(modules);
+    TypeChecker().type_check(modules->at(0)->files.at(0));
 
     if (ErrorReporter::has_type_check_errors())
     {
