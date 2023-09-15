@@ -1,17 +1,19 @@
 #include "compiler.h"
 #include <set>
 
-File * lex_parse(std::filesystem::path file_path) {
-
-    Lexer lexer = Lexer(file_path);
-    lexer.lex();
-    Parser parser = Parser(file_path, &lexer.tokens);
+CompilationUnit *lex_parse(std::filesystem::path file_path) {
+    FileData *file_data = FileManager::load(file_path.string());
+    Lexer lexer         = Lexer(file_data);
+    CompilationUnit *compilation_unit = lexer.lex();
+    Parser parser = Parser(compilation_unit, &lexer.tokens);
     parser.parse();
 
     if (ErrorReporter::has_parse_errors())
     {
         for (auto &error : ErrorReporter::singleton->parse_errors)
-        { error.print_error_message(); }
+        {
+            error.print_error_message();
+        }
 
         panic(
             "Cannot continue with errors :: count (" + std::to_string(ErrorReporter::singleton->parse_errors.size()) +
@@ -22,14 +24,16 @@ File * lex_parse(std::filesystem::path file_path) {
     return parser.file;
 }
 
-void type_check(File *file) {
+void type_check(CompilationUnit *file) {
 
     TypeChecker().type_check(file);
 
     if (ErrorReporter::has_type_check_errors())
     {
         for (auto &error : ErrorReporter::singleton->type_check_errors)
-        { error.print_error_message(); }
+        {
+            error.print_error_message();
+        }
 
         panic(
             "Cannot continue with errors :: count (" +
@@ -38,6 +42,6 @@ void type_check(File *file) {
     }
 }
 
-std::string code_gen(File *file) {
+std::string code_gen(CompilationUnit *file) {
     return CppBackend().emit(file);
 }

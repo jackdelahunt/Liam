@@ -11,6 +11,6 @@
 #include "parser.h"
 #include "type_checker.h"
 
-File * lex_parse(std::filesystem::path file_path);
-void type_check(File *file);
-std::string code_gen(File *file);
+CompilationUnit *lex_parse(std::filesystem::path file_path);
+void type_check(CompilationUnit *file);
+std::string code_gen(CompilationUnit *file);

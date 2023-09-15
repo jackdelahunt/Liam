@@ -285,7 +285,9 @@ template <typename T> using remove_reference_t                = typename std::re
 template <typename T> using remove_const_t                    = typename std::remove_const<T>::type;
 template <typename T> using remove_cvref_t                    = typename std::remove_cv<remove_reference_t<T>>::type;
 
-template <typename T> struct type_identity { using type = T; };
+template <typename T> struct type_identity {
+    using type = T;
+};
 
 template <typename T> using type_identity_t = typename type_identity<T>::type;
 template <typename T> using underlying_t    = typename std::underlying_type<T>::type;
@@ -366,8 +368,8 @@ template <typename T> struct std_string_view {};
 // Do nothing.
 #elif defined(__SIZEOF_INT128__) && !defined(__NVCC__) && !(FMT_CLANG_VERSION && FMT_MSC_VERSION)
 #define FMT_USE_INT128 1
-using int128_opt = __int128_t; // An optional native 128-bit integer.
-using uint128_opt = __uint128_t;
+using int128_opt                               = __int128_t; // An optional native 128-bit integer.
+using uint128_opt                              = __uint128_t;
 
 template <typename T> inline auto convert_for_visit(T value) -> T {
     return value;
@@ -1849,7 +1851,9 @@ template <typename Char, typename R, typename OutputIt> FMT_CONSTEXPR auto copy_
 
 #if FMT_GCC_VERSION && FMT_GCC_VERSION < 500
 // A workaround for gcc 4.8 to make void_t work in a SFINAE context.
-template <typename... Ts> struct void_t_impl { using type = void; };
+template <typename... Ts> struct void_t_impl {
+    using type = void;
+};
 
 template <typename... Ts> using void_t = typename detail::void_t_impl<Ts...>::type;
 #else
@@ -2603,7 +2607,9 @@ FMT_CONSTEXPR auto parse_align(const Char *begin, const Char *end, Handler &&han
             break;
         }
         else if (p == begin)
-        { break; }
+        {
+            break;
+        }
         p = begin;
     }
     return begin;
@@ -2637,7 +2643,9 @@ FMT_CONSTEXPR auto do_parse_arg_id(const Char *begin, const Char *end, IDHandler
     }
     auto it = begin;
     do
-    { ++it; }
+    {
+        ++it;
+    }
     while (it != end && (is_name_start(c = *it) || ('0' <= c && c <= '9')));
     handler(basic_string_view<Char>(begin, to_unsigned(it - begin)));
     return it;
@@ -2742,7 +2750,9 @@ FMT_CONSTEXPR auto parse_precision(const Char *begin, const Char *end, Handler &
             return handler.on_error("invalid format string"), begin;
     }
     else
-    { return handler.on_error("missing precision specifier"), begin; }
+    {
+        return handler.on_error("missing precision specifier"), begin;
+    }
     handler.end_precision();
     return begin;
 }
@@ -2905,16 +2915,22 @@ FMT_CONSTEXPR auto parse_replacement_field(const Char *begin, const Char *end, H
     if (begin == end)
         return handler.on_error("invalid format string"), end;
     if (*begin == '}')
-    { handler.on_replacement_field(handler.on_arg_id(), begin); }
+    {
+        handler.on_replacement_field(handler.on_arg_id(), begin);
+    }
     else if (*begin == '{')
-    { handler.on_text(begin, begin + 1); }
+    {
+        handler.on_text(begin, begin + 1);
+    }
     else
     {
         auto adapter = id_adapter{handler, 0};
         begin        = parse_arg_id(begin, end, adapter);
         Char c       = begin != end ? *begin : Char();
         if (c == '}')
-        { handler.on_replacement_field(adapter.arg_id, begin); }
+        {
+            handler.on_replacement_field(adapter.arg_id, begin);
+        }
         else if (c == ':')
         {
             begin = handler.on_format_specs(adapter.arg_id, begin + 1, end);
@@ -2922,7 +2938,9 @@ FMT_CONSTEXPR auto parse_replacement_field(const Char *begin, const Char *end, H
                 return handler.on_error("unknown format specifier"), end;
         }
         else
-        { return handler.on_error("missing '}' in format string"), end; }
+        {
+            return handler.on_error("missing '}' in format string"), end;
+        }
     }
     return begin + 1;
 }
@@ -2990,9 +3008,13 @@ FMT_CONSTEXPR FMT_INLINE void parse_format_string(basic_string_view<Char> format
     }
 }
 
-template <typename T, bool = is_named_arg<T>::value> struct strip_named_arg { using type = T; };
+template <typename T, bool = is_named_arg<T>::value> struct strip_named_arg {
+    using type = T;
+};
 
-template <typename T> struct strip_named_arg<T, true> { using type = remove_cvref_t<decltype(T::value)>; };
+template <typename T> struct strip_named_arg<T, true> {
+    using type = remove_cvref_t<decltype(T::value)>;
+};
 
 template <typename T, typename ParseContext>
 FMT_CONSTEXPR auto parse_format_specs(ParseContext &ctx) -> decltype(ctx.begin()) {
@@ -3133,7 +3155,9 @@ template <typename Handler> class specs_checker : public Handler {
         require_numeric_argument();
         if (is_integral_type(arg_type_) && arg_type_ != type::int_type && arg_type_ != type::long_long_type &&
             arg_type_ != type::int128_type && arg_type_ != type::char_type)
-        { this->on_error("format specifier requires signed argument"); }
+        {
+            this->on_error("format specifier requires signed argument");
+        }
         Handler::on_sign(s);
     }
 
@@ -3302,7 +3326,9 @@ struct formatter<T, Char, enable_if_t<detail::type_constant<T, Char>::value != d
             break;
         case detail::type::bool_type:
             if (specs_.type == presentation_type::none || specs_.type == presentation_type::string)
-            { break; }
+            {
+                break;
+            }
             FMT_FALLTHROUGH;
         case detail::type::int_type:
         case detail::type::uint_type:
@@ -3382,7 +3408,9 @@ FMT_FORMAT_AS(std::basic_string<Char>, basic_string_view<Char>);
 FMT_FORMAT_AS(std::nullptr_t, const void *);
 FMT_FORMAT_AS(detail::std_string_view<Char>, basic_string_view<Char>);
 
-template <typename Char> struct basic_runtime { basic_string_view<Char> str; };
+template <typename Char> struct basic_runtime {
+    basic_string_view<Char> str;
+};
 
 /** A compile-time format string. */
 template <typename Char, typename... Args> class basic_format_string {

@@ -7,8 +7,8 @@
 
 #include "ast.h"
 #include "lexer.h"
-#include "liam.h"
 #include "type_info.h"
+#include "compilation_unit.h"
 
 struct Statement;
 struct LetStatement;
@@ -32,28 +32,13 @@ struct IdentifierTypeExpression;
 struct EnumMember;
 struct TypeInfo;
 
-struct File {
-    u16 file_id = 0;
-
-    std::unordered_map<std::string, TypeInfo *> imported_type_table;     // import defined types
-    std::unordered_map<std::string, TypeInfo *> imported_function_table; // import defined functions
-
-    std::vector<ImportStatement *> top_level_import_statements;
-    std::vector<StructStatement *> top_level_struct_statements;
-    std::vector<FnStatement *> top_level_fn_statements;
-    std::vector<EnumStatement *> top_level_enum_statements;
-    std::filesystem::path path;
-
-    File(std::filesystem::path path);
-};
-
 struct Parser {
     std::vector<Token> *tokens;
     i32 current;
     std::filesystem::path path;
-    File *file;
+    CompilationUnit *file;
 
-    Parser(std::filesystem::path path, std::vector<Token> *tokens);
+    Parser(CompilationUnit *compilation_unit, std::vector<Token> *tokens);
 
     void parse();
 

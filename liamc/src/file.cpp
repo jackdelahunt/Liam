@@ -15,7 +15,9 @@ u64 FileData::index_at(u32 line, u32 character) {
     {
 
         if (current_line == line && current_char == character)
-        { return i; }
+        {
+            return i;
+        }
 
         if (this->data[i] == '\n')
         {
@@ -23,7 +25,9 @@ u64 FileData::index_at(u32 line, u32 character) {
             current_char = 1;
         }
         else
-        { current_char++; }
+        {
+            current_char++;
+        }
     }
 
     ASSERT_MSG(0, "Could not find line and character in file data");
@@ -64,23 +68,27 @@ std::string FileData::line(u64 line) {
 
 FileManager *FileManager::singleton = NULL;
 
-FileData *FileManager::load(std::string *path) {
+FileData *FileManager::load(std::string path) {
     if (FileManager::singleton == NULL)
-    { singleton = new FileManager(); }
+    {
+        singleton = new FileManager();
+    }
 
-    if (FileManager::singleton->files.count(*path) > 0)
-    { return &FileManager::singleton->files[*path]; }
+    if (FileManager::singleton->files.count(path) > 0)
+    {
+        return &FileManager::singleton->files[path];
+    }
 
     u64 file_size_in_bytes = 0;
 
     {
-        std::ifstream file_binary_read(*path, std::ios::binary);
+        std::ifstream file_binary_read(path, std::ios::binary);
         file_binary_read.seekg(0, std::ios::end);
         file_size_in_bytes = file_binary_read.tellg();
     }
 
     std::ifstream file;
-    file.open(*path);
+    file.open(path);
     ASSERT_MSG(file.is_open(), "All files should be possible to read as this is not user input");
 
     char *data = (char *)malloc(sizeof(char) * file_size_in_bytes);
@@ -104,7 +112,9 @@ FileData *FileManager::load(std::string *path) {
         {
             char c = (char)i;
             if (c == '\n')
-            { line_count++; }
+            {
+                line_count++;
+            }
 
             data[index] = c;
             index++;
@@ -113,14 +123,16 @@ FileData *FileManager::load(std::string *path) {
 
     file.close();
 
-    FileManager::singleton->files[*path] =
+    FileManager::singleton->files[path] =
         FileData{.data = data, .data_length = file_size_in_bytes, .line_count = line_count};
-    return &FileManager::singleton->files[*path];
+    return &FileManager::singleton->files[path];
 }
 
 std::map<std::string, FileData> *FileManager::get_files() {
     if (FileManager::singleton == NULL)
-    { singleton = new FileManager(); }
+    {
+        singleton = new FileManager();
+    }
 
     return &FileManager::singleton->files;
 }

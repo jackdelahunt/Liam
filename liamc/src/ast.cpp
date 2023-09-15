@@ -13,13 +13,13 @@ std::ostream &Statement::format(std::ostream &os) const {
     return os;
 }
 
-ExpressionStatement::ExpressionStatement(File *file, Expression *expression) {
+ExpressionStatement::ExpressionStatement(CompilationUnit *file, Expression *expression) {
     this->file           = file;
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_EXPRESSION;
 }
 
-LetStatement::LetStatement(File *file, Token identifier, Expression *expression, TypeExpression *type) {
+LetStatement::LetStatement(CompilationUnit *file, Token identifier, Expression *expression, TypeExpression *type) {
     this->identifier     = identifier;
     this->rhs            = expression;
     this->type           = type;
@@ -27,7 +27,7 @@ LetStatement::LetStatement(File *file, Token identifier, Expression *expression,
 }
 
 FnStatement::FnStatement(
-    File *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
+    CompilationUnit *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
     TypeExpression *type, ScopeStatement *body, u8 flag_mask
 ) {
     this->file           = file;
@@ -41,7 +41,8 @@ FnStatement::FnStatement(
     this->statement_type = StatementType::STATEMENT_FN;
 }
 
-StructStatement::StructStatement(File *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask) {
+StructStatement::StructStatement(
+    CompilationUnit *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask) {
     this->file           = file;
     this->identifier     = identifier;
     this->generics       = generics;
@@ -50,27 +51,27 @@ StructStatement::StructStatement(File *file, Token identifier, std::vector<Token
     this->statement_type = StatementType::STATEMENT_STRUCT;
 }
 
-AssigmentStatement::AssigmentStatement(File *file, Expression *lhs, ExpressionStatement *assigned_to) {
+AssigmentStatement::AssigmentStatement(CompilationUnit *file, Expression *lhs, ExpressionStatement *assigned_to) {
     this->file           = file;
     this->lhs            = lhs;
     this->assigned_to    = assigned_to;
     this->statement_type = StatementType::STATEMENT_ASSIGNMENT;
 }
 
-ScopeStatement::ScopeStatement(File *file, std::vector<Statement *> statements) {
+ScopeStatement::ScopeStatement(CompilationUnit *file, std::vector<Statement *> statements) {
     this->file           = file;
     this->statements     = statements;
     this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 
-ImportStatement::ImportStatement(File *file, StringLiteralExpression *path) {
+ImportStatement::ImportStatement(CompilationUnit *file, StringLiteralExpression *path) {
     this->file           = file;
     this->path           = path;
     this->statement_type = StatementType::STATEMENT_IMPORT;
 }
 
 ForStatement::ForStatement(
-    File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
+    CompilationUnit *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
 ) {
     this->file           = file;
     this->assign         = assign;
@@ -80,7 +81,8 @@ ForStatement::ForStatement(
     this->statement_type = StatementType::STATEMENT_FOR;
 }
 
-IfStatement::IfStatement(File *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement) {
+IfStatement::IfStatement(
+    CompilationUnit *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement) {
     this->file           = file;
     this->expression     = expression;
     this->body           = body;
@@ -94,13 +96,13 @@ ElseStatement::ElseStatement(IfStatement *if_statement, ScopeStatement *body) {
     this->statement_type = StatementType::STATEMENT_ELSE;
 }
 
-ReturnStatement::ReturnStatement(File *file, Expression *expression) {
+ReturnStatement::ReturnStatement(CompilationUnit *file, Expression *expression) {
     this->file           = file;
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_RETURN;
 }
 
-BreakStatement::BreakStatement(File *file) {
+BreakStatement::BreakStatement(CompilationUnit *file) {
     this->file           = file;
     this->statement_type = StatementType::STATEMENT_BREAK;
 }
@@ -110,7 +112,7 @@ EnumMember::EnumMember(Token identifier, std::vector<TypeExpression *> members) 
     this->members    = members;
 }
 
-EnumStatement::EnumStatement(File *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask) {
+EnumStatement::EnumStatement(CompilationUnit *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask) {
     this->file           = file;
     this->identifier     = identifier;
     this->members        = members;
@@ -128,7 +130,7 @@ MatchStatement::MatchStatement(
     this->statement_type      = StatementType::STATEMENT_MATCH;
 }
 
-ContinueStatement::ContinueStatement(File *file) {
+ContinueStatement::ContinueStatement(CompilationUnit *file) {
     this->file           = file;
     this->statement_type = StatementType::STATEMENT_CONTINUE;
 }

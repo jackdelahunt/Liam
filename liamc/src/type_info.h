@@ -95,8 +95,8 @@ struct FnTypeInfo : TypeInfo {
     std::vector<TypeInfo *> args;
 
     FnTypeInfo(
-        u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType,
-        std::vector<TypeInfo *> genericTypeInfos, std::vector<TypeInfo *> args
+        u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
+        std::vector<TypeInfo *> args
     );
 };
 

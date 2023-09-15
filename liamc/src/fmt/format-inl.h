@@ -1236,9 +1236,13 @@ template <class T> FMT_INLINE decimal_fp<T> shorter_interval_case(int exponent) 
     // When tie occurs, choose one of them according to the rule
     if (exponent >= float_info<T>::shorter_interval_tie_lower_threshold &&
         exponent <= float_info<T>::shorter_interval_tie_upper_threshold)
-    { ret_value.significand = ret_value.significand % 2 == 0 ? ret_value.significand : ret_value.significand - 1; }
+    {
+        ret_value.significand = ret_value.significand % 2 == 0 ? ret_value.significand : ret_value.significand - 1;
+    }
     else if (ret_value.significand < xi)
-    { ++ret_value.significand; }
+    {
+        ++ret_value.significand;
+    }
     return ret_value;
 }
 
@@ -1319,7 +1323,9 @@ template <typename T> decimal_fp<T> to_decimal(T x) noexcept {
         }
     }
     else if (r > deltai)
-    { goto small_divisor_case_label; }
+    {
+        goto small_divisor_case_label;
+    }
     else
     {
         // r == deltai; compare fractional parts.
@@ -1413,7 +1419,9 @@ FMT_FUNC detail::utf8_to_utf16::utf8_to_utf16(string_view s) {
         if (cp == invalid_code_point)
             FMT_THROW(std::runtime_error("invalid utf8"));
         if (cp <= 0xFFFF)
-        { buffer_.push_back(static_cast<wchar_t>(cp)); }
+        {
+            buffer_.push_back(static_cast<wchar_t>(cp));
+        }
         else
         {
             cp -= 0x10000;
@@ -1464,7 +1472,9 @@ FMT_FUNC bool write_console(std::FILE *f, string_view text) {
                 reinterpret_cast<void *>(_get_osfhandle(fd)), u16.c_str(), static_cast<uint32_t>(u16.size()), &written,
                 nullptr
             ))
-        { return true; }
+        {
+            return true;
+        }
     }
     // We return false if the file descriptor was not TTY, or it was but
     // SetConsoleW failed which can happen if the output has been redirected to

@@ -1,6 +1,8 @@
 #pragma once
 
-#include "lexer.h"
+#include <vector>
+
+#include "token.h"
 
 struct EnumMember;
 struct Statement;
@@ -43,7 +45,7 @@ struct UnaryTypeExpression;
 struct SpecifiedGenericsTypeExpression;
 struct FnTypeExpression;
 
-struct File;
+struct CompilationUnit;
 struct TypeInfo;
 
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
@@ -121,14 +123,14 @@ struct EnumMemberPatternMatch {
 */
 struct Statement {
     StatementType statement_type;
-    File *file = NULL;
+    CompilationUnit *file = NULL;
     virtual std::ostream &format(std::ostream &os) const;
 };
 
 struct ExpressionStatement : Statement {
     Expression *expression;
 
-    ExpressionStatement(File *file, Expression *expression);
+    ExpressionStatement(CompilationUnit *file, Expression *expression);
 };
 
 struct LetStatement : Statement {
@@ -136,13 +138,13 @@ struct LetStatement : Statement {
     Expression *rhs;
     TypeExpression *type;
 
-    LetStatement(File *file, Token identifier, Expression *expression, TypeExpression *type);
+    LetStatement(CompilationUnit *file, Token identifier, Expression *expression, TypeExpression *type);
 };
 
 struct ScopeStatement : Statement {
     std::vector<Statement *> statements;
 
-    ScopeStatement(File *file, std::vector<Statement *> statements);
+    ScopeStatement(CompilationUnit *file, std::vector<Statement *> statements);
 };
 
 struct FnStatement : Statement {
@@ -155,7 +157,7 @@ struct FnStatement : Statement {
     u8 flag_mask;
 
     FnStatement(
-        File *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
+        CompilationUnit *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
         TypeExpression *type, ScopeStatement *body, u8 flag_mask
     );
 };
@@ -166,20 +168,20 @@ struct StructStatement : Statement {
     CSV members;
     u8 flag_mask;
 
-    StructStatement(File *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask);
+    StructStatement(CompilationUnit *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask);
 };
 
 struct AssigmentStatement : Statement {
     Expression *lhs;
     ExpressionStatement *assigned_to;
 
-    AssigmentStatement(File *file, Expression *lhs, ExpressionStatement *assigned_to);
+    AssigmentStatement(CompilationUnit *file, Expression *lhs, ExpressionStatement *assigned_to);
 };
 
 struct ImportStatement : Statement {
     StringLiteralExpression *path;
 
-    ImportStatement(File *file, StringLiteralExpression *path);
+    ImportStatement(CompilationUnit *file, StringLiteralExpression *path);
 };
 
 struct ForStatement : Statement {
@@ -188,7 +190,8 @@ struct ForStatement : Statement {
     Statement *update;
     ScopeStatement *body;
 
-    ForStatement(File *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body);
+    ForStatement(
+        CompilationUnit *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body);
 };
 
 struct IfStatement : Statement {
@@ -196,7 +199,7 @@ struct IfStatement : Statement {
     ScopeStatement *body;
     ElseStatement *else_statement;
 
-    IfStatement(File *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement);
+    IfStatement(CompilationUnit *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement);
 };
 
 struct ElseStatement : Statement {
@@ -209,11 +212,11 @@ struct ElseStatement : Statement {
 struct ReturnStatement : Statement {
     Expression *expression;
 
-    ReturnStatement(File *file, Expression *expression);
+    ReturnStatement(CompilationUnit *file, Expression *expression);
 };
 
 struct BreakStatement : Statement {
-    BreakStatement(File *file);
+    BreakStatement(CompilationUnit *file);
 };
 
 struct EnumMember {
@@ -228,7 +231,7 @@ struct EnumStatement : Statement {
     std::vector<EnumMember> members;
     u8 flag_mask;
 
-    EnumStatement(File *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask);
+    EnumStatement(CompilationUnit *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask);
 };
 
 struct MatchStatement : Statement {
@@ -243,7 +246,7 @@ struct MatchStatement : Statement {
 };
 
 struct ContinueStatement : Statement {
-    ContinueStatement(File *file);
+    ContinueStatement(CompilationUnit *file);
 };
 
 /*

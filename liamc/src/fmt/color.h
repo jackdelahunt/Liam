@@ -378,7 +378,9 @@ template <typename Char> struct ansi_color_escape {
         }
 
         for (int i = 0; i < 7; i++)
-        { buffer[i] = static_cast<Char>(esc[i]); }
+        {
+            buffer[i] = static_cast<Char>(esc[i]);
+        }
         rgb color(text_color.value.rgb_color);
         to_esc(color.r, buffer + 7, ';');
         to_esc(color.g, buffer + 11, ';');
@@ -528,7 +530,9 @@ void vprint(
     basic_memory_buffer<Char> buf;
     detail::vformat_to(buf, ts, detail::to_string_view(format), args);
     if (detail::is_utf8())
-    { detail::print(f, basic_string_view<Char>(buf.begin(), buf.size())); }
+    {
+        detail::print(f, basic_string_view<Char>(buf.begin(), buf.size()));
+    }
     else
     {
         buf.push_back(Char(0));
