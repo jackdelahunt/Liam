@@ -312,7 +312,7 @@ CompilationUnit *Lexer::lex() {
         }
     }
 
-    return new CompilationUnit(this->file_data);
+    return new CompilationUnit(this->file_data, this->tokens);
 }
 
 void Lexer::next_char() {

@@ -3570,7 +3570,7 @@ template <typename... T> FMT_INLINE void print(format_string<T...> fmt, T &&...a
 /**
   \rst
   Formats ``args`` according to specifications in ``fmt`` and writes the
-  output to the file ``f``.
+  output to the compilation_unit ``f``.
 
   **Example**::
 

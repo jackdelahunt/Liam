@@ -33,12 +33,10 @@ struct EnumMember;
 struct TypeInfo;
 
 struct Parser {
-    std::vector<Token> *tokens;
     i32 current;
-    std::filesystem::path path;
-    CompilationUnit *file;
+    CompilationUnit *compilation_unit;
 
-    Parser(CompilationUnit *compilation_unit, std::vector<Token> *tokens);
+    Parser(CompilationUnit *compilation_unit);
 
     void parse();
 

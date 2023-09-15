@@ -10,15 +10,13 @@
 #include "liam.h"
 #include "utils.h"
 
-Parser::Parser(CompilationUnit *compilation_unit, std::vector<Token> *tokens) {
-    this->file = compilation_unit;
-    this->tokens  = tokens;
+Parser::Parser(CompilationUnit *compilation_unit) {
+    this->compilation_unit = compilation_unit;
     this->current = 0;
-    this->path    = absolute(std::filesystem::path(path));
 }
 
 void Parser::parse() {
-    while (current < this->tokens->size())
+    while (current < this->compilation_unit->tokens.size())
     {
         auto errors_before = ErrorReporter::error_count();
         auto stmt          = TRY_CALL(eval_top_level_statement());
@@ -28,22 +26,22 @@ void Parser::parse() {
         if (stmt->statement_type == StatementType::STATEMENT_FN)
         {
             auto fn_stmt = dynamic_cast<FnStatement *>(stmt);
-            file->top_level_fn_statements.push_back(fn_stmt);
+            compilation_unit->top_level_fn_statements.push_back(fn_stmt);
         }
         else if (stmt->statement_type == StatementType::STATEMENT_ENUM)
         {
             auto enum_stmt = dynamic_cast<EnumStatement *>(stmt);
-            file->top_level_enum_statements.push_back(enum_stmt);
+            compilation_unit->top_level_enum_statements.push_back(enum_stmt);
         }
         else if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
         {
             auto struct_stmt = dynamic_cast<StructStatement *>(stmt);
-            file->top_level_struct_statements.push_back(struct_stmt);
+            compilation_unit->top_level_struct_statements.push_back(struct_stmt);
         }
         else if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
         {
             auto import_stmt = dynamic_cast<ImportStatement *>(stmt);
-            file->top_level_import_statements.push_back(import_stmt);
+            compilation_unit->top_level_import_statements.push_back(import_stmt);
         }
         else
         {
@@ -84,7 +82,7 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_ENUM: {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
-            path.string(), token.span,
+            this->compilation_unit->path.string(), token.span,
             fmt::format("Cannot declare top level statement '{}' in a function", token.string)
         );
         return NULL;
@@ -114,7 +112,7 @@ Statement *Parser::eval_top_level_statement() {
     default: {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
-            path.string(), token.span,
+            this->compilation_unit->path.string(), token.span,
             fmt::format("Unexpected token used to declare new statement at top level '{}'", token.string)
         );
         return NULL;
@@ -135,7 +133,7 @@ LetStatement *Parser::eval_let_statement() {
     }
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ASSIGN), NULL);
     auto expression = TRY_CALL_RET(eval_expression_statement(), NULL);
-    return new LetStatement(file, *identifier, expression->expression, type);
+    return new LetStatement(compilation_unit, *identifier, expression->expression, type);
 }
 
 ScopeStatement *Parser::eval_scope_statement() {
@@ -150,7 +148,7 @@ ScopeStatement *Parser::eval_scope_statement() {
     // else
     if (closing_brace_index < 0)
     {
-        ErrorReporter::report_parser_error(path.string(), open_brace->span, "No closing brace for scope found");
+        ErrorReporter::report_parser_error(this->compilation_unit->path.string(), open_brace->span, "No closing brace for scope found");
         return NULL;
     }
 
@@ -161,7 +159,7 @@ ScopeStatement *Parser::eval_scope_statement() {
     }
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new ScopeStatement(file, statements);
+    return new ScopeStatement(compilation_unit, statements);
 }
 
 FnStatement *Parser::eval_fn_statement() {
@@ -201,12 +199,12 @@ FnStatement *Parser::eval_fn_statement() {
     if (BIT_SET(tag_mask, TAG_EXTERN))
     {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-        return new FnStatement(file, parent_type, *identifier, generics, params, type, NULL, tag_mask);
+        return new FnStatement(compilation_unit, parent_type, *identifier, generics, params, type, NULL, tag_mask);
     }
     else
     {
         auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-        return new FnStatement(file, parent_type, *identifier, generics, params, type, body, tag_mask);
+        return new FnStatement(compilation_unit, parent_type, *identifier, generics, params, type, body, tag_mask);
     }
 }
 
@@ -231,7 +229,7 @@ StructStatement *Parser::eval_struct_statement() {
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    return new StructStatement(file, *identifier, generics, member, tag_mask);
+    return new StructStatement(compilation_unit, *identifier, generics, member, tag_mask);
 }
 
 ReturnStatement *Parser::eval_return_statement() {
@@ -246,7 +244,7 @@ ReturnStatement *Parser::eval_return_statement() {
 
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
-    return new ReturnStatement(file, expression);
+    return new ReturnStatement(compilation_unit, expression);
 }
 
 BreakStatement *Parser::eval_break_statement() {
@@ -254,7 +252,7 @@ BreakStatement *Parser::eval_break_statement() {
     // string lit
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BREAK), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-    return new BreakStatement(file);
+    return new BreakStatement(compilation_unit);
 }
 
 ImportStatement *Parser::eval_import_statement() {
@@ -264,7 +262,7 @@ ImportStatement *Parser::eval_import_statement() {
 
     ASSERT_MSG(import_path != NULL, "Even though it is returning a expression we always assume it is a StringLiteral");
 
-    return new ImportStatement(file, import_path);
+    return new ImportStatement(compilation_unit, import_path);
 }
 
 ForStatement *Parser::eval_for_statement() {
@@ -279,7 +277,7 @@ ForStatement *Parser::eval_for_statement() {
 
     auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
 
-    return new ForStatement(file, assign, condition, update, body);
+    return new ForStatement(compilation_unit, assign, condition, update, body);
 }
 
 IfStatement *Parser::eval_if_statement() {
@@ -295,7 +293,7 @@ IfStatement *Parser::eval_if_statement() {
         else_statement = TRY_CALL_RET(eval_else_statement(), NULL);
     }
 
-    return new IfStatement(file, expression, body, else_statement);
+    return new IfStatement(compilation_unit, expression, body, else_statement);
 }
 
 ElseStatement *Parser::eval_else_statement() {
@@ -316,7 +314,7 @@ ExpressionStatement *Parser::eval_expression_statement() {
     auto expression = TRY_CALL_RET(eval_expression(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
 
-    return new ExpressionStatement(file, expression);
+    return new ExpressionStatement(compilation_unit, expression);
 }
 
 EnumStatement *Parser::eval_enum_statement() {
@@ -328,13 +326,13 @@ EnumStatement *Parser::eval_enum_statement() {
     auto members = TRY_CALL_RET(consume_comma_seperated_enum_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new EnumStatement(file, *identifier, members, tag_mask);
+    return new EnumStatement(compilation_unit, *identifier, members, tag_mask);
 }
 
 ContinueStatement *Parser::eval_continue_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_CONTINUE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-    return new ContinueStatement(file);
+    return new ContinueStatement(compilation_unit);
 }
 
 MatchStatement *Parser::eval_match_statement() {
@@ -367,12 +365,12 @@ Statement *Parser::eval_line_starting_expression() {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ASSIGN), NULL);
         auto rhs = TRY_CALL_RET(eval_expression_statement(), NULL);
 
-        return new AssigmentStatement(file, lhs, rhs);
+        return new AssigmentStatement(compilation_unit, lhs, rhs);
     }
 
     // not assign, after eval expresion only semi colon is left
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-    return new ExpressionStatement(file, lhs);
+    return new ExpressionStatement(compilation_unit, lhs);
 }
 
 /*
@@ -560,7 +558,7 @@ Expression *Parser::eval_primary() {
     {
         auto token = *consume_token();
         ErrorReporter::report_parser_error(
-            path.string(), token.span,
+            this->compilation_unit->path.string(), token.span,
             fmt::format("Unexpected token when parsing expression '{}'", get_token_type_string(token.type))
         );
         return NULL;
@@ -741,15 +739,15 @@ i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
     i32 current_index = from;
     i32 balance       = 0;
 
-    while (current_index < this->tokens->size())
+    while (current_index < this->compilation_unit->tokens.size())
     {
-        if (this->tokens->at(current_index).type == push)
+        if (this->compilation_unit->tokens.at(current_index).type == push)
         {
             balance++;
             if (balance == 0)
                 return current_index;
         }
-        if (this->tokens->at(current_index).type == pull)
+        if (this->compilation_unit->tokens.at(current_index).type == pull)
         {
             balance--;
             if (balance == 0)
@@ -763,39 +761,39 @@ i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
 }
 
 bool Parser::match(TokenType type) {
-    if (this->tokens->size() > 0)
+    if (this->compilation_unit->tokens.size() > 0)
         return peek()->type == type;
 
     return false;
 }
 
 Token *Parser::peek(i32 offset) {
-    return &this->tokens->at(current + offset);
+    return &this->compilation_unit->tokens.at(current + offset);
 }
 
 Token *Parser::consume_token() {
-    if (current >= this->tokens->size())
+    if (current >= this->compilation_unit->tokens.size())
         panic("No more tokens to consume");
 
-    return &this->tokens->at(current++);
+    return &this->compilation_unit->tokens.at(current++);
 }
 
 Token *Parser::consume_token_of_type(TokenType type) {
-    if (current >= this->tokens->size())
+    if (current >= this->compilation_unit->tokens.size())
     {
-        auto last_token = this->tokens->at(this->tokens->size() - 1);
+        auto last_token = this->compilation_unit->tokens.at(this->compilation_unit->tokens.size() - 1);
         ErrorReporter::report_parser_error(
-            path.string(), last_token.span,
-            fmt::format("Expected '{}' but got unexpected end of file", last_token.string)
+            this->compilation_unit->path.string(), last_token.span,
+            fmt::format("Expected '{}' but got unexpected end of compilation_unit", last_token.string)
         );
         return NULL;
     }
 
-    auto t_ptr = &this->tokens->at(current++);
+    auto t_ptr = &this->compilation_unit->tokens.at(current++);
     if (t_ptr->type != type)
     {
         ErrorReporter::report_parser_error(
-            path.string(), t_ptr->span,
+            this->compilation_unit->path.string(), t_ptr->span,
             fmt::format("Expected '{}' got '{}'", get_token_type_string(type), t_ptr->string)
         );
         return NULL;
@@ -1007,14 +1005,14 @@ u8 Parser::consume_tags() {
         else
         {
             ErrorReporter::report_parser_error(
-                this->file->path.string(), tag.span, "Unknown tag give \"" + tag.string + "\""
+                this->compilation_unit->path.string(), tag.span, "Unknown tag give \"" + tag.string + "\""
             );
             return 0;
         }
 
     duplicate_error:
         ErrorReporter::report_parser_error(
-            this->file->path.string(), tag.span, "Duplicate tag given for \"" + tag.string + "\""
+            this->compilation_unit->path.string(), tag.span, "Duplicate tag given for \"" + tag.string + "\""
         );
         return true;
     }

@@ -5,7 +5,7 @@ CompilationUnit *lex_parse(std::filesystem::path file_path) {
     FileData *file_data = FileManager::load(file_path.string());
     Lexer lexer         = Lexer(file_data);
     CompilationUnit *compilation_unit = lexer.lex();
-    Parser parser = Parser(compilation_unit, &lexer.tokens);
+    Parser parser = Parser(compilation_unit);
     parser.parse();
 
     if (ErrorReporter::has_parse_errors())
@@ -21,7 +21,7 @@ CompilationUnit *lex_parse(std::filesystem::path file_path) {
         );
     }
 
-    return parser.file;
+    return parser.compilation_unit;
 }
 
 void type_check(CompilationUnit *file) {
