@@ -72,5 +72,4 @@ struct Token {
     Token(TokenType type, std::string string, u32 line, u32 start);
 };
 
-std::ostream &operator<<(std::ostream &os, const Token &token);
 std::string get_token_type_string(TokenType type);

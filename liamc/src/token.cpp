@@ -37,11 +37,6 @@ Token::Token(TokenType type, std::string string, u32 line, u32 start) {
     this->span   = Span{.line = line, .start = start, .end = (u32)(start + string.length())};
 }
 
-std::ostream &operator<<(std::ostream &os, const Token &token) {
-    os << token.string;
-    return os;
-}
-
 std::string get_token_type_string(TokenType type) {
     return TokenTypeStrings[(int)type];
 }
