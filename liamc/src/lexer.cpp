@@ -18,6 +18,7 @@ Lexer::Lexer(FileData *file_data) {
     this->current_index     = 0;
     this->current_line      = 1;
     this->current_character = 1;
+    this->token_buffer = std::vector<TokenData>();
 
     ASSERT(this->file_data->data);
 }
@@ -51,12 +52,15 @@ CompilationUnit *Lexer::lex() {
             break;
         case '+':
             tokens.emplace_back(TokenType::TOKEN_PLUS, "+", current_line, current_character);
+            this->token_buffer.emplace_back(TokenType::TOKEN_PLUS, this->current_index, this->current_index);
             break;
         case '-':
             tokens.emplace_back(TokenType::TOKEN_MINUS, "-", current_line, current_character);
+            this->token_buffer.emplace_back(TokenType::TOKEN_MINUS, this->current_index, this->current_index);
             break;
         case '*':
             tokens.emplace_back(TokenType::TOKEN_STAR, "*", current_line, current_character);
+            this->token_buffer.emplace_back(TokenType::TOKEN_STAR, this->current_index, this->current_index);
             break;
         case '/':
             if (peek() == '/')
@@ -70,81 +74,103 @@ CompilationUnit *Lexer::lex() {
                 break;
             }
             tokens.emplace_back(TokenType::TOKEN_SLASH, "/", current_line, current_character);
+            this->token_buffer.emplace_back(TokenType::TOKEN_SLASH, this->current_index, this->current_index);
             break;
         case '%':
             tokens.emplace_back(TokenType::TOKEN_MOD, "%", current_line, current_character);
+            this->token_buffer.emplace_back(TokenType::TOKEN_MOD, this->current_index, this->current_index);
             break;
         case '=':
             if (peek() == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_EQUAL, "==", current_line, current_character);
+                this->token_buffer.emplace_back(TokenType::TOKEN_EQUAL, this->current_index - 1, this->current_index);
                 break;
             }
             tokens.emplace_back(Token(TokenType::TOKEN_ASSIGN, "=", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_ASSIGN, this->current_index, this->current_index);
             break;
         case ';':
             tokens.emplace_back(Token(TokenType::TOKEN_SEMI_COLON, ";", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_SEMI_COLON, this->current_index, this->current_index);
             break;
         case '(':
             tokens.emplace_back(Token(TokenType::TOKEN_PAREN_OPEN, "(", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_PAREN_OPEN, this->current_index, this->current_index);
             break;
         case ')':
             tokens.emplace_back(Token(TokenType::TOKEN_PAREN_CLOSE, ")", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_PAREN_CLOSE, this->current_index, this->current_index);
             break;
         case '{':
             tokens.emplace_back(Token(TokenType::TOKEN_BRACE_OPEN, "{", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_BRACE_OPEN, this->current_index, this->current_index);
             break;
         case '}':
             tokens.emplace_back(Token(TokenType::TOKEN_BRACE_CLOSE, "}", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_BRACE_CLOSE, this->current_index, this->current_index);
             break;
         case ',':
             tokens.emplace_back(Token(TokenType::TOKEN_COMMA, ",", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_COMMA, this->current_index, this->current_index);
             break;
         case '[':
             tokens.emplace_back(Token(TokenType::TOKEN_BRACKET_OPEN, "[", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_BRACKET_OPEN, this->current_index, this->current_index);
             break;
         case ']':
             tokens.emplace_back(Token(TokenType::TOKEN_BRACKET_CLOSE, "]", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_BRACKET_CLOSE, this->current_index, this->current_index);
             break;
         case ':':
             tokens.emplace_back(Token(TokenType::TOKEN_COLON, ":", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_COLON, this->current_index, this->current_index);
             break;
         case '^':
             tokens.emplace_back(Token(TokenType::TOKEN_HAT, "^", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_HAT, this->current_index, this->current_index);
             break;
         case '&':
             tokens.emplace_back(Token(TokenType::TOKEN_AMPERSAND, "&", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_AMPERSAND, this->current_index, this->current_index);
             break;
         case '.':
             tokens.emplace_back(Token(TokenType::TOKEN_DOT, ".", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_DOT, this->current_index, this->current_index);
             break;
         case '<':
             if (peek() == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_LESS_EQUAL, "<=", current_line, current_character);
+                this->token_buffer.emplace_back(TokenType::TOKEN_LESS_EQUAL, this->current_index - 1, this->current_index);
                 break;
             }
             tokens.emplace_back(Token(TokenType::TOKEN_LESS, "<", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_LESS, this->current_index, this->current_index);
             break;
         case '>':
             if (peek() == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_GREATER_EQUAL, ">=", current_line, current_character);
+                this->token_buffer.emplace_back(TokenType::TOKEN_GREATER_EQUAL, this->current_index - 1, this->current_index);
                 break;
             }
             tokens.emplace_back(Token(TokenType::TOKEN_GREATER, ">", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_GREATER, this->current_index, this->current_index);
             break;
         case '!':
             if (peek() == '=')
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_NOT_EQUAL, "!=", current_line, current_character);
+                this->token_buffer.emplace_back(TokenType::TOKEN_NOT_EQUAL, this->current_index - 1, this->current_index);
                 break;
             }
             tokens.emplace_back(Token(TokenType::TOKEN_NOT, "!", current_line, current_character));
+            this->token_buffer.emplace_back(TokenType::TOKEN_NOT, this->current_index, this->current_index);
             break;
         case '"': {
             u64 start       = current_character;
@@ -164,15 +190,19 @@ CompilationUnit *Lexer::lex() {
                 next_char();
             }
             tokens.emplace_back(TokenType::TOKEN_STRING_LITERAL, str, current_line, start);
+            this->token_buffer.emplace_back(TokenType::TOKEN_STRING_LITERAL, start, this->current_index);
         }
         break;
         default:
             i32 word_start = current_character;
             auto word      = get_word();
 
+            ASSERT(word.length() > 0);
+
             if (word.data()[0] == '@')
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_TAG, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_TAG, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
@@ -180,114 +210,133 @@ CompilationUnit *Lexer::lex() {
             if (compare_string(word, "let"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_LET, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_LET, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "fn"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_FN, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_FN, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "return"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_RETURN, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_RETURN, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "struct"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_STRUCT, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_STRUCT, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "new"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_NEW, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_NEW, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "continue"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_CONTINUE, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_CONTINUE, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "import"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_IMPORT, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_IMPORT, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "for"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_FOR, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_FOR, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "if"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_IF, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_IF, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "else"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_ELSE, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_ELSE, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "and"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_AND, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_AND, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "or"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_OR, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_OR, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "enum"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_ENUM, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_ENUM, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "true"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_TRUE, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_TRUE, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "false"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_FALSE, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_FALSE, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "null"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_NULL, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_NULL, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "zero"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_ZERO, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_ZERO, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "break"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_BREAK, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_BREAK, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             if (compare_string(word, "match"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_MATCH, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_MATCH, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
@@ -302,11 +351,13 @@ CompilationUnit *Lexer::lex() {
                 // find a delimiter but not including . or -
 
                 tokens.emplace_back(Token(TokenType::TOKEN_NUMBER_LITERAL, word, current_line, word_start));
+                this->token_buffer.emplace_back(TokenType::TOKEN_NUMBER_LITERAL, word_start, (word_start - 1) + word.length());
                 continue;
             }
 
             // must be an identifier
             tokens.emplace_back(Token(TokenType::TOKEN_IDENTIFIER, word, current_line, word_start));
+            this->token_buffer.emplace_back(TokenType::TOKEN_IDENTIFIER, word_start, (word_start - 1) + word.length());
 
             break;
         }
