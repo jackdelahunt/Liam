@@ -39,7 +39,7 @@ Token::Token(TokenType type, std::string string, u32 line, u32 start) {
 
 TokenData::TokenData(TokenType token_type, u64 start, u64 end) {
     this->token_type = token_type;
-    this->span = Span{.line = 1, .start = start, .end = end};
+    this->span       = Span{.line = 1, .start = start, .end = end};
 }
 
 std::string get_token_type_string(TokenType type) {

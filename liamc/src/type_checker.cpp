@@ -1,14 +1,14 @@
 #include "type_checker.h"
 
 #include <assert.h>
+#include <format>
+#include <tuple>
 
 #include "args.h"
 #include "errors.h"
-#include "fmt/core.h"
 #include "liam.h"
 #include "parser.h"
 #include "utils.h"
-#include <tuple>
 
 SymbolTable::SymbolTable(CompilationUnit *current_file) {
     this->compilation_unit         = current_file;
@@ -396,8 +396,8 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
                 if (!type_match(fn_type_info->return_type, rt->expression->type_info))
                 {
                     ErrorReporter::report_type_checker_error(
-                        compilation_unit->file_data->path.string(), rt->expression, NULL, statement->return_type, NULL, {},
-                        "Mismatch types in function, return types do not match"
+                        compilation_unit->file_data->path.string(), rt->expression, NULL, statement->return_type, NULL,
+                        {}, "Mismatch types in function, return types do not match"
                     );
                     return;
                 }
@@ -592,8 +592,8 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info))
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), statement->lhs, statement->assigned_to->expression, NULL, NULL, {},
-            "Type mismatch, trying to assign a identifier to an expression of different type"
+            compilation_unit->file_data->path.string(), statement->lhs, statement->assigned_to->expression, NULL, NULL,
+            {}, "Type mismatch, trying to assign a identifier to an expression of different type"
         );
         return;
     }
@@ -662,7 +662,7 @@ void TypeChecker::type_check_match_statement(MatchStatement *statement, SymbolTa
         {
             TypeCheckerError::make(this->compilation_unit->file_data->path.string())
                 .add_related_token(pattern_match.identifier)
-                .set_message(fmt::format(
+                .set_message(std::format(
                     "Incorrect number of identifers used to pattern match this enum member, expected {} got {}",
                     equivilent_enum_member.members.size(), pattern_match.matched_members.size()
                 ))
@@ -828,7 +828,8 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     if (size == -1)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {}, "Problem parsing number literal"
+            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
+            "Problem parsing number literal"
         );
         return;
     }
@@ -836,7 +837,8 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     if (type != NumberType::FLOAT && number != (i64)number)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {}, "Cannot use decimal point on non float types"
+            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
+            "Cannot use decimal point on non float types"
         );
         return;
     }
@@ -850,7 +852,8 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         if (number < 0)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {}, "Unsigned number cannot be negative"
+                compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
+                "Unsigned number cannot be negative"
             );
             return;
         }
@@ -933,7 +936,8 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
         if (expression->expression->type_info->type != TypeInfoType::POINTER)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {}, "Cannot dereference non-pointer value"
+                compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
+                "Cannot dereference non-pointer value"
             );
             return;
         }
@@ -1036,7 +1040,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), callee_expression, NULL, NULL, NULL, {},
-            fmt::format(
+            std::format(
                 "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
                 arg_type_infos.size()
             )
@@ -1048,7 +1052,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), callee_expression, NULL, NULL, NULL, {},
-            fmt::format(
+            std::format(
                 "Incorrect number of generic arguments in call expression, expected {} got {}",
                 fn_type_info->generic_type_infos.size(), expression->generics.size()
             )
@@ -1091,7 +1095,7 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), callee_expression, NULL, NULL, NULL, {},
-            fmt::format(
+            std::format(
                 "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
                 arg_type_infos.size()
             )
@@ -1130,7 +1134,7 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            fmt::format("Unrecognized identifier \"{}\"", expression->identifier.string)
+            std::format("Unrecognized identifier \"{}\"", expression->identifier.string)
         );
         return;
     }
@@ -1181,7 +1185,8 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     else
     {
         ErrorReporter::report_type_checker_error(
-            this->compilation_unit->file_data->path, expression->lhs, NULL, NULL, NULL, {}, "Cannot derive member from non struct type"
+            this->compilation_unit->file_data->path, expression->lhs, NULL, NULL, NULL, {},
+            "Cannot derive member from non struct type"
         );
         return;
     }
@@ -1215,7 +1220,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            fmt::format("Cannot find member \"{}\" in struct", expression->member.string)
+            std::format("Cannot find member \"{}\" in struct", expression->member.string)
         );
         return;
     }
@@ -1286,8 +1291,8 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
                 if (!type_match(expression->return_type->type_info, rt->expression->type_info))
                 {
                     ErrorReporter::report_type_checker_error(
-                        compilation_unit->file_data->path.string(), rt->expression, NULL, expression->return_type, NULL, {},
-                        "Mismatch types in function, return types do not match"
+                        compilation_unit->file_data->path.string(), rt->expression, NULL, expression->return_type, NULL,
+                        {}, "Mismatch types in function, return types do not match"
                     );
                     return;
                 }
@@ -1308,8 +1313,8 @@ void TypeChecker::type_check_slice_literal_expression(SliceLiteralExpression *ex
         if (!type_match(expression->type_expression->type_info, passed_expression->type_info))
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), passed_expression, NULL, expression->type_expression, NULL, {},
-                "Mismatched types in slice literal expression, expression in slice literal must match type given"
+                compilation_unit->file_data->path.string(), passed_expression, NULL, expression->type_expression, NULL,
+                {}, "Mismatched types in slice literal expression, expression in slice literal must match type given"
             );
             return;
         }
@@ -1342,7 +1347,7 @@ void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *ex
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            fmt::format("No enum type \"{}\" declared", expression->lhs.string)
+            std::format("No enum type \"{}\" declared", expression->lhs.string)
         );
         return;
     }
@@ -1426,7 +1431,8 @@ void TypeChecker::type_check_struct_instance_expression(
     if (failed)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {}, "Unrecognised type in new expression"
+            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
+            "Unrecognised type in new expression"
         );
         return;
     }
@@ -1435,7 +1441,8 @@ void TypeChecker::type_check_struct_instance_expression(
     if (type_info->type != TypeInfoType::STRUCT)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {}, "Can only use struct types in new expression"
+            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
+            "Can only use struct types in new expression"
         );
         return;
     }
@@ -1463,7 +1470,7 @@ void TypeChecker::type_check_struct_instance_expression(
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            fmt::format(
+            std::format(
                 "Incorrect number of arguments in new expression, expected {} got {}", struct_type_info->members.size(),
                 calling_args_type_infos.size()
             )
@@ -1475,7 +1482,7 @@ void TypeChecker::type_check_struct_instance_expression(
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            fmt::format(
+            std::format(
                 "Incorrect number of type param arguments in new expression, expected {} got {}",
                 struct_type_info->generic_count, expression->generics.size()
             )
@@ -1497,7 +1504,8 @@ void TypeChecker::type_check_struct_instance_expression(
         {
             auto [name, expr] = expression->named_expressions.at(i);
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expr, NULL, NULL, NULL, {}, "Incorrect name specifier in new expression"
+                compilation_unit->file_data->path.string(), expr, NULL, NULL, NULL, {},
+                "Incorrect name specifier in new expression"
             );
             return;
         }
@@ -1506,7 +1514,8 @@ void TypeChecker::type_check_struct_instance_expression(
         {
             auto [name, expr] = expression->named_expressions.at(i);
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression, expr, NULL, NULL, {}, "Mismatched types in new expression"
+                compilation_unit->file_data->path.string(), expression, expr, NULL, NULL, {},
+                "Mismatched types in new expression"
             );
             return;
         }
@@ -1607,7 +1616,8 @@ void TypeChecker::type_check_identifier_type_expression(
     if (error)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), NULL, NULL, type_expression, NULL, {}, "Unrecognised type in type expression"
+            compilation_unit->file_data->path.string(), NULL, NULL, type_expression, NULL, {},
+            "Unrecognised type in type expression"
         );
         return;
     }

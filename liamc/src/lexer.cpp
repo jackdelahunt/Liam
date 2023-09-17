@@ -18,7 +18,7 @@ Lexer::Lexer(FileData *file_data) {
     this->current_index     = 0;
     this->current_line      = 1;
     this->current_character = 1;
-    this->token_buffer = std::vector<TokenData>();
+    this->token_buffer      = std::vector<TokenData>();
 
     ASSERT(this->file_data->data);
 }
@@ -144,7 +144,9 @@ CompilationUnit *Lexer::lex() {
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_LESS_EQUAL, "<=", current_line, current_character);
-                this->token_buffer.emplace_back(TokenType::TOKEN_LESS_EQUAL, this->current_index - 1, this->current_index);
+                this->token_buffer.emplace_back(
+                    TokenType::TOKEN_LESS_EQUAL, this->current_index - 1, this->current_index
+                );
                 break;
             }
             tokens.emplace_back(Token(TokenType::TOKEN_LESS, "<", current_line, current_character));
@@ -155,7 +157,9 @@ CompilationUnit *Lexer::lex() {
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_GREATER_EQUAL, ">=", current_line, current_character);
-                this->token_buffer.emplace_back(TokenType::TOKEN_GREATER_EQUAL, this->current_index - 1, this->current_index);
+                this->token_buffer.emplace_back(
+                    TokenType::TOKEN_GREATER_EQUAL, this->current_index - 1, this->current_index
+                );
                 break;
             }
             tokens.emplace_back(Token(TokenType::TOKEN_GREATER, ">", current_line, current_character));
@@ -166,7 +170,9 @@ CompilationUnit *Lexer::lex() {
             {
                 next_char();
                 tokens.emplace_back(TokenType::TOKEN_NOT_EQUAL, "!=", current_line, current_character);
-                this->token_buffer.emplace_back(TokenType::TOKEN_NOT_EQUAL, this->current_index - 1, this->current_index);
+                this->token_buffer.emplace_back(
+                    TokenType::TOKEN_NOT_EQUAL, this->current_index - 1, this->current_index
+                );
                 break;
             }
             tokens.emplace_back(Token(TokenType::TOKEN_NOT, "!", current_line, current_character));
@@ -245,7 +251,9 @@ CompilationUnit *Lexer::lex() {
             if (compare_string(word, "continue"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_CONTINUE, word, current_line, word_start));
-                this->token_buffer.emplace_back(TokenType::TOKEN_CONTINUE, word_start, (word_start - 1) + word.length());
+                this->token_buffer.emplace_back(
+                    TokenType::TOKEN_CONTINUE, word_start, (word_start - 1) + word.length()
+                );
                 continue;
             }
 
@@ -351,7 +359,9 @@ CompilationUnit *Lexer::lex() {
                 // find a delimiter but not including . or -
 
                 tokens.emplace_back(Token(TokenType::TOKEN_NUMBER_LITERAL, word, current_line, word_start));
-                this->token_buffer.emplace_back(TokenType::TOKEN_NUMBER_LITERAL, word_start, (word_start - 1) + word.length());
+                this->token_buffer.emplace_back(
+                    TokenType::TOKEN_NUMBER_LITERAL, word_start, (word_start - 1) + word.length()
+                );
                 continue;
             }
 

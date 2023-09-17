@@ -9,8 +9,10 @@ CompilationUnit *lex_parse(std::filesystem::path file_path) {
     parser.parse();
 
     // TODO: remove me
-    for(auto& token : lexer.token_buffer) {
-        std::cout << "[type: " << get_token_type_string(token.token_type) << ", start: " << token.span.start << ", end: " << token.span.end << "]\n";
+    for (auto &token : lexer.token_buffer)
+    {
+        std::cout << "[type: " << get_token_type_string(token.token_type) << ", start: " << token.span.start
+                  << ", end: " << token.span.end << "]\n";
     }
 
     if (ErrorReporter::has_parse_errors())
