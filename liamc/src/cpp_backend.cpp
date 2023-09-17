@@ -1,9 +1,10 @@
 #include "cpp_backend.h"
 
-#include "args.h"
-#include "fmt/core.h"
 #include <algorithm>
+#include <format>
 #include <string>
+
+#include "args.h"
 
 std::string CppBackend::emit(CompilationUnit *file) {
 
@@ -433,7 +434,7 @@ bool operator==(const {}& other) const {{
         );
     }
     source.append("} members;\n");
-    source.append(fmt::format(overload_ops_template, statement->identifier.string, statement->identifier.string));
+    source.append(std::format(overload_ops_template, statement->identifier.string, statement->identifier.string));
     source.append("};\n");
 
     return source;

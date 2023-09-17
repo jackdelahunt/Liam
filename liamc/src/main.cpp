@@ -1,5 +1,6 @@
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <functional>
 #include <iostream>
 
@@ -9,7 +10,6 @@
 #include "liam.h"
 
 i32 main(i32 argc, char **argv) {
-
     TIME_START(total_time);
 
     Arguments::New(argc, argv);

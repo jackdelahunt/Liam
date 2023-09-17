@@ -2,6 +2,7 @@
 
 #include "lexer.h"
 #include "liam.h"
+#include <string.h>
 #include <string>
 #include <tuple>
 
@@ -19,5 +20,5 @@ std::string copy_trim(std::string s, const char *t = ws);
 // used to compare against keywords below
 // this showed a ~30% faster time then std::string::operator==
 template <std::size_t N> bool compare_string(const std::string &s, char const (&literal)[N]) {
-    return s.size() == N - 1 && std::memcmp(s.data(), literal, N - 1) == 0;
+    return s.size() == N - 1 && memcmp(s.data(), literal, N - 1) == 0;
 }

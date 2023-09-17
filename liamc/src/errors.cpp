@@ -1,17 +1,16 @@
 #include "errors.h"
 
+#include <format>
 #include <utility>
 
 #include "file.h"
-#include "fmt/color.h"
-#include "fmt/core.h"
 #include "liam.h"
 #include "utils.h"
 
 ErrorReporter *ErrorReporter::singleton = NULL;
 
 void ParserError::print_error_message() {
-    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Parsing ERROR :: {}\n", error);
+    std::cerr << std::format("Parsing ERROR :: {}\n", error);
     write_error_annotation_at_span(&this->file, this->span);
 }
 
@@ -63,7 +62,7 @@ void TypeCheckerError::report() {
 }
 
 void TypeCheckerError::print_error_message() {
-    fmt::print(stderr, fmt::emphasis::bold | fg(fmt::color::red), "Type checking ERROR :: {}\n", error);
+    std::cerr << std::format("Type checking ERROR :: {}\n", error);
 
     if (this->expr_1)
     {
@@ -186,8 +185,7 @@ void write_error_annotation_at_span(std::string *file, Span span) {
 
     rtrim(middle);
 
-    fmt::print(
-        stderr,
+    std::cerr << std::format(
         "--> {}:{}:{}\n"
         "   |   {}\n"
         "   |   {}\n"
