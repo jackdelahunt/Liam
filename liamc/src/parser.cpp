@@ -122,7 +122,7 @@ Statement *Parser::eval_top_level_statement() {
 
 LetStatement *Parser::eval_let_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LET), NULL);
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    TokenIndex identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
     TypeExpression *type = NULL;
 
@@ -133,7 +133,7 @@ LetStatement *Parser::eval_let_statement() {
     }
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ASSIGN), NULL);
     auto expression = TRY_CALL_RET(eval_expression_statement(), NULL);
-    return new LetStatement(compilation_unit, *identifier, expression->expression, type);
+    return new LetStatement(compilation_unit, identifier, expression->expression, type);
 }
 
 ScopeStatement *Parser::eval_scope_statement() {
@@ -802,6 +802,35 @@ Token *Parser::consume_token_of_type(TokenType type) {
     }
 
     return t_ptr;
+}
+
+TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
+    if (this->current >= this->compilation_unit->tokens.size())
+    {
+        TokenData last_token_data =
+            this->compilation_unit->token_buffer.at(this->compilation_unit->token_buffer.size() - 1);
+        ErrorReporter::report_parser_error(
+            this->compilation_unit->file_data->path.string(), last_token_data.span,
+            std::format("Expected '{}' but got unexpected end of file", "TODO: add token string HERE!!")
+        );
+        return 0;
+    }
+
+    TokenIndex current_token_index = this->current++;
+    TokenData *token_data_ptr      = &this->compilation_unit->token_buffer[current_token_index];
+    if (token_data_ptr->token_type != type)
+    {
+        ErrorReporter::report_parser_error(
+            this->compilation_unit->file_data->path.string(), token_data_ptr->span,
+            std::format("Expected '{}' got '{}'", get_token_type_string(type), "TODO: add token string HERE!!")
+        );
+        return 0;
+    }
+
+    return current_token_index;
+}
+
+TokenData *Parser::get_token_data(TokenIndex token_index) {
 }
 
 // e.g. (0, "hello sailor", ...)

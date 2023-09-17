@@ -269,11 +269,11 @@ struct ExpressionStatement : Statement {
 };
 
 struct LetStatement : Statement {
-    Token identifier;
+    TokenIndex identifier;
     Expression *rhs;
     TypeExpression *type;
 
-    LetStatement(CompilationUnit *file, Token identifier, Expression *expression, TypeExpression *type);
+    LetStatement(CompilationUnit *file, TokenIndex identifier, Expression *expression, TypeExpression *type);
 };
 
 struct ScopeStatement : Statement {

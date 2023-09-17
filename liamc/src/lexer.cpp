@@ -33,7 +33,6 @@ CompilationUnit *Lexer::lex() {
 
     for (; this->current_index < this->file_data->data_length; next_char())
     {
-
         char c = this->file_data->data[this->current_index];
         switch (c)
         {
@@ -200,7 +199,7 @@ CompilationUnit *Lexer::lex() {
         }
         break;
         default:
-            i32 word_start = current_character;
+            i32 word_start = this->current_index;
             auto word      = get_word();
 
             ASSERT(word.length() > 0);
@@ -373,7 +372,7 @@ CompilationUnit *Lexer::lex() {
         }
     }
 
-    return new CompilationUnit(this->file_data, this->tokens);
+    return new CompilationUnit(this->file_data, this->tokens, this->token_buffer);
 }
 
 void Lexer::next_char() {

@@ -200,7 +200,7 @@ std::string CppBackend::emit_let_statement(LetStatement *statement) {
     {
         source.append("auto ");
     }
-    source.append(statement->identifier.string);
+    source.append(this->current_file->get_token_string_from_index(statement->identifier));
     source.append(" = ");
     source.append(emit_expression(statement->rhs) + ";\n");
     return source;

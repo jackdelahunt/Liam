@@ -32,7 +32,7 @@ struct EnumMember;
 struct TypeInfo;
 
 struct Parser {
-    i32 current;
+    u64 current;
     CompilationUnit *compilation_unit;
 
     Parser(CompilationUnit *compilation_unit);
@@ -90,6 +90,8 @@ struct Parser {
     Token *consume_token();
     i32 find_balance_point(TokenType push, TokenType pull, i32 from);
     Token *consume_token_of_type(TokenType type);
+    TokenIndex consume_token_of_type_with_index(TokenType type);
+    TokenData *get_token_data(TokenIndex token_index);
     std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
     std::vector<Token> consume_comma_seperated_token_arguments(TokenType closer);

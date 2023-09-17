@@ -96,7 +96,7 @@ ExpressionStatement::ExpressionStatement(CompilationUnit *file, Expression *expr
     this->statement_type = StatementType::STATEMENT_EXPRESSION;
 }
 
-LetStatement::LetStatement(CompilationUnit *file, Token identifier, Expression *expression, TypeExpression *type) {
+LetStatement::LetStatement(CompilationUnit *file, TokenIndex identifier, Expression *expression, TypeExpression *type) {
     this->identifier     = identifier;
     this->rhs            = expression;
     this->type           = type;
