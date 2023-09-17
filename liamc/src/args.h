@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string>
+#include <cxxopts/cxxopts.h>
 
-#include "cxxopts.h"
 #include "liam.h"
 
 struct Arguments;
