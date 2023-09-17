@@ -72,6 +72,8 @@ struct Token {
     Token(TokenType type, std::string string, u32 line, u32 start);
 };
 
+typedef u64 TokenIndex;
+
 struct TokenData {
     TokenType token_type;
     Span span;

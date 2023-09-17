@@ -30,17 +30,22 @@ void SymbolTable::add_local_type(Token token, TypeInfo *type_info) {
 }
 
 void SymbolTable::add_identifier(Token identifier, TypeInfo *type_info) {
-    if (identifier_table.count(identifier.string) > 0)
+    this->add_identifier(identifier.string, type_info);
+}
+
+void SymbolTable::add_identifier(std::string identifier, TypeInfo *type_info) {
+    if (identifier_table.count(identifier) > 0)
     {
         TypeCheckerError::make(this->compilation_unit->file_data->path.string())
-            .add_related_token(identifier)
-            .set_message("Duplicate creation of identifier \"" + identifier.string + "\"")
+            // TODO: figure out how to replace this
+            //            .add_related_token(identifier)
+            .set_message("Duplicate creation of identifier \"" + identifier + "\"")
             .report();
 
         return;
     }
 
-    identifier_table[identifier.string] = type_info;
+    identifier_table[identifier] = type_info;
 }
 
 std::tuple<TypeInfo *, bool> SymbolTable::get_identifier(Token identifier) {
@@ -510,12 +515,10 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
             );
             return;
         }
-
-        TRY_CALL_VOID(symbol_table->add_identifier(statement->identifier, statement->type->type_info));
-        return;
     }
 
-    TRY_CALL_VOID(symbol_table->add_identifier(statement->identifier, statement->rhs->type_info));
+    auto string = this->compilation_unit->get_token_string_from_index(statement->identifier);
+    TRY_CALL_VOID(symbol_table->add_identifier(string, statement->rhs->type_info));
 }
 
 void TypeChecker::type_check_scope_statement(
