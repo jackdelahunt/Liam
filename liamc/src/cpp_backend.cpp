@@ -89,7 +89,10 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
     source.append(emit_cpp_template_declaration(&statement->generics));
     source.append(emit_type_expression(statement->return_type) + " ");
 
-    if (statement->identifier.string == "main")
+    // TODO dont do this string from token here
+    std::string name_as_string = this->current_file->get_token_string_from_index(statement->identifier);
+
+    if (name_as_string == "main")
     {
         source.append(" __liam__main__");
     }
@@ -97,11 +100,11 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
     {
         // add a __ to any member functions, this keeps the inclusion that they are scoped
         // to the type even though they are not in the cpp generation
-        source.append("__" + statement->identifier.string);
+        source.append("__" + name_as_string);
     }
     else
     {
-        source.append(statement->identifier.string);
+        source.append(name_as_string);
     }
 
     source.append("(");
@@ -240,7 +243,10 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 
     source.append(emit_type_expression(statement->return_type) + " ");
 
-    if (statement->identifier.string == "main")
+    // TODO remove this token to string thing
+    std::string name_as_string = this->current_file->get_token_string_from_index(statement->identifier);
+
+    if (name_as_string == "main")
     {
         source.append("__liam__main__");
     }
@@ -248,11 +254,11 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
     {
         // add a __ to any member functions, this keeps the illusion that they are scoped
         // to the type even though they are not in the cpp generation
-        source.append("__" + statement->identifier.string);
+        source.append("__" + name_as_string);
     }
     else
     {
-        source.append(statement->identifier.string);
+        source.append(name_as_string);
     }
 
     source.append("(");

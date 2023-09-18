@@ -103,21 +103,6 @@ LetStatement::LetStatement(CompilationUnit *file, TokenIndex identifier, Express
     this->statement_type = StatementType::STATEMENT_LET;
 }
 
-FnStatement::FnStatement(
-    CompilationUnit *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
-    TypeExpression *type, ScopeStatement *body, u8 flag_mask
-) {
-    this->file           = file;
-    this->parent_type    = parent_type;
-    this->identifier     = identifier;
-    this->generics       = generics;
-    this->return_type    = type;
-    this->params         = params;
-    this->body           = body;
-    this->flag_mask      = flag_mask;
-    this->statement_type = StatementType::STATEMENT_FN;
-}
-
 StructStatement::StructStatement(
     CompilationUnit *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask
 ) {
@@ -140,6 +125,21 @@ ScopeStatement::ScopeStatement(CompilationUnit *file, std::vector<Statement *> s
     this->file           = file;
     this->statements     = statements;
     this->statement_type = StatementType::STATEMENT_SCOPE;
+}
+
+FnStatement::FnStatement(
+    CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, std::vector<Token> generics, CSV params,
+    TypeExpression *type, ScopeStatement *body, u8 flag_mask
+) {
+    this->file           = file;
+    this->parent_type    = parent_type;
+    this->identifier     = identifier;
+    this->generics       = generics;
+    this->return_type    = type;
+    this->params         = params;
+    this->body           = body;
+    this->flag_mask      = flag_mask;
+    this->statement_type = StatementType::STATEMENT_FN;
 }
 
 ImportStatement::ImportStatement(CompilationUnit *file, StringLiteralExpression *path) {

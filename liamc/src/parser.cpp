@@ -177,7 +177,7 @@ FnStatement *Parser::eval_fn_statement() {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
     }
 
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<Token>();
     if (peek()->type == TokenType::TOKEN_LESS)
@@ -201,12 +201,12 @@ FnStatement *Parser::eval_fn_statement() {
     if (BIT_SET(tag_mask, TAG_EXTERN))
     {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-        return new FnStatement(compilation_unit, parent_type, *identifier, generics, params, type, NULL, tag_mask);
+        return new FnStatement(compilation_unit, parent_type, identifier, generics, params, type, NULL, tag_mask);
     }
     else
     {
         auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-        return new FnStatement(compilation_unit, parent_type, *identifier, generics, params, type, body, tag_mask);
+        return new FnStatement(compilation_unit, parent_type, identifier, generics, params, type, body, tag_mask);
     }
 }
 

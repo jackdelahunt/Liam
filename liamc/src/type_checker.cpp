@@ -126,6 +126,23 @@ void TypeChecker::add_function(CompilationUnit *file, Token token, TypeInfo *typ
     this->top_level_function_table[token.string] = descriptor;
 }
 
+void TypeChecker::add_function(CompilationUnit *file, TokenIndex token, TypeInfo *type_info) {
+    std::string token_as_string = this->compilation_unit->get_token_string_from_index(token);
+    if (this->top_level_function_table.count(token_as_string) > 0)
+    {
+        panic(
+            "Duplicate creation of function: " + token_as_string
+        );
+    }
+
+    TopLevelDescriptor descriptor = TopLevelDescriptor{
+        .identifier = token_as_string,
+        .type_info  = type_info,
+    };
+
+    this->top_level_function_table[token_as_string] = descriptor;
+}
+
 std::tuple<TypeInfo *, bool> TypeChecker::get_type(Token *identifier) {
     return get_type(identifier->string);
 }
@@ -290,7 +307,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         }
 
         parent_type_info->member_functions.push_back(
-            {statement->identifier.string, new FnTypeInfo(
+            {this->compilation_unit->get_token_string_from_index(statement->identifier), new FnTypeInfo(
                                                statement->flag_mask, parent_type_info,
                                                statement->return_type->type_info, generic_type_infos, param_type_infos
                                            )}
@@ -299,8 +316,11 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         return;
     }
 
+    // TODO remove this
+    std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
+
     // add this fn decl to parent symbol table
-    auto current_type_info = (FnTypeInfo *)this->top_level_function_table[statement->identifier.string].type_info;
+    auto current_type_info = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
 
     current_type_info->return_type        = statement->return_type->type_info;
     current_type_info->generic_type_infos = generic_type_infos;
@@ -321,7 +341,8 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 
     if (statement->parent_type == NULL)
     {
-        fn_type_info = (FnTypeInfo *)this->top_level_function_table[statement->identifier.string].type_info;
+        std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
+        fn_type_info = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
         ASSERT(fn_type_info);
     }
     else
@@ -340,7 +361,8 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 
         for (auto [identifier, type_info] : parent_type_info->member_functions)
         {
-            if (identifier == statement->identifier.string)
+            std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
+            if (identifier == name_as_string)
             {
                 fn_type_info = type_info;
                 break;

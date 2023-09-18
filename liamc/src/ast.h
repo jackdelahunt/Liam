@@ -284,7 +284,7 @@ struct ScopeStatement : Statement {
 
 struct FnStatement : Statement {
     TypeExpression *parent_type;
-    Token identifier;
+    TokenIndex identifier;
     std::vector<Token> generics;
     CSV params;
     TypeExpression *return_type;
@@ -292,7 +292,7 @@ struct FnStatement : Statement {
     u8 flag_mask;
 
     FnStatement(
-        CompilationUnit *file, TypeExpression *parent_type, Token identifier, std::vector<Token> generics, CSV params,
+        CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, std::vector<Token> generics, CSV params,
         TypeExpression *type, ScopeStatement *body, u8 flag_mask
     );
 };
