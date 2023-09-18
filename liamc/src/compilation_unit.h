@@ -13,7 +13,6 @@ struct CompilationUnit {
     std::vector<ImportStatement *> top_level_import_statements;
     std::vector<StructStatement *> top_level_struct_statements;
     std::vector<FnStatement *> top_level_fn_statements;
-    std::vector<EnumStatement *> top_level_enum_statements;
 
     CompilationUnit(FileData *file_data, std::vector<Token> tokens, std::vector<TokenData> token_buffer) {
         this->file_data                   = file_data;
@@ -22,7 +21,6 @@ struct CompilationUnit {
         this->top_level_import_statements = std::vector<ImportStatement *>();
         this->top_level_struct_statements = std::vector<StructStatement *>();
         this->top_level_fn_statements     = std::vector<FnStatement *>();
-        this->top_level_enum_statements   = std::vector<EnumStatement *>();
 
         ASSERT(this->tokens.size() == this->token_buffer.size());
     }

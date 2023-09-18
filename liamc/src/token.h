@@ -47,7 +47,6 @@ enum class TokenType {
     TOKEN_GREATER_EQUAL,      // >=
     TOKEN_LESS_EQUAL,         // <=
     TOKEN_NULL,               // null
-    TOKEN_ENUM,               // enum
     TOKEN_CONTINUE,           // continue
     TOKEN_ZERO,               // zero
     TOKEN_AMPERSAND,          // &

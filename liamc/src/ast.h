@@ -5,7 +5,6 @@
 #include "liam.h"
 #include "token.h"
 
-struct EnumMember;
 struct Statement;
 struct ExpressionStatement;
 struct LetStatement;
@@ -19,8 +18,6 @@ struct IfStatement;
 struct ElseStatement;
 struct ReturnStatement;
 struct BreakStatement;
-struct EnumMember;
-struct EnumStatement;
 struct ContinueStatement;
 struct Expression;
 struct BinaryExpression;
@@ -39,7 +36,6 @@ struct FnExpression;
 struct SliceLiteralExpression;
 struct InstantiateExpression;
 struct StructInstanceExpression;
-struct EnumInstanceExpression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
 struct UnaryTypeExpression;
@@ -49,7 +45,6 @@ struct FnTypeExpression;
 struct CompilationUnit;
 
 struct TypeInfo;
-struct AnyTypeInfo;
 struct VoidTypeInfo;
 struct NumberTypeInfo;
 struct BoolTypeInfo;
@@ -62,7 +57,6 @@ struct StructInstanceTypeInfo;
 struct FnTypeInfo;
 struct FnExpressionTypeInfo;
 struct GenericTypeInfo;
-struct EnumTypeInfo;
 
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
@@ -78,16 +72,13 @@ enum class StatementType {
     STATEMENT_FN,
     STATEMENT_STRUCT,
     STATEMENT_ASSIGNMENT,
-    STATEMENT_INSERT,
     STATEMENT_IMPORT,
     STATEMENT_RETURN,
     STATEMENT_BREAK,
     STATEMENT_FOR,
     STATEMENT_IF,
     STATEMENT_ELSE,
-    STATEMENT_ENUM,
     STATEMENT_CONTINUE,
-    STATEMENT_MATCH,
 };
 
 enum class ExpressionType {
@@ -107,7 +98,6 @@ enum class ExpressionType {
     EXPRESSION_SLICE_LITERAL,
     EXPRESSION_INSTANTIATION,
     EXPRESSION_STRUCT_INSTANCE,
-    EXPRESSION_ENUM_INSTANCE,
 };
 
 enum class UnaryType {
@@ -136,7 +126,6 @@ enum class TypeInfoType {
     POINTER_SLICE,
     SLICE,
     GENERIC,
-    ENUM,
 };
 
 enum class NumberType {
@@ -233,26 +222,6 @@ struct GenericTypeInfo : TypeInfo {
     GenericTypeInfo(u64 id);
 };
 
-struct EnumTypeInfo : TypeInfo {
-    u8 flag_mask;
-
-    std::vector<EnumMember> members;
-
-    EnumTypeInfo(std::vector<EnumMember> members, u8 flag_mask);
-};
-
-/*
-    ======= PATTERN MATCHES ========
-*/
-struct EnumMemberPatternMatch {
-    Token identifier;
-    std::vector<Token> matched_members;
-    i64 enum_member_index; // filled in by the type checker, this is used to index into to enum members in the enum type
-                           // info
-
-    EnumMemberPatternMatch(Token identifier, std::vector<Token> matched_members);
-};
-
 /*
     ======= STATEMENTS ========
 */
@@ -292,8 +261,8 @@ struct FnStatement : Statement {
     u8 flag_mask;
 
     FnStatement(
-        CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, std::vector<Token> generics, CSV params,
-        TypeExpression *type, ScopeStatement *body, u8 flag_mask
+        CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, std::vector<Token> generics,
+        CSV params, TypeExpression *type, ScopeStatement *body, u8 flag_mask
     );
 };
 
@@ -353,32 +322,6 @@ struct ReturnStatement : Statement {
 
 struct BreakStatement : Statement {
     BreakStatement(CompilationUnit *file);
-};
-
-struct EnumMember {
-    Token identifier;
-    std::vector<TypeExpression *> members;
-
-    EnumMember(Token identifier, std::vector<TypeExpression *> members);
-};
-
-struct EnumStatement : Statement {
-    Token identifier;
-    std::vector<EnumMember> members;
-    u8 flag_mask;
-
-    EnumStatement(CompilationUnit *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask);
-};
-
-struct MatchStatement : Statement {
-    Expression *matching_expression;
-    std::vector<EnumMemberPatternMatch> pattern_matches;
-    std::vector<ScopeStatement *> pattern_match_arms;
-
-    MatchStatement(
-        Expression *matching_expression, std::vector<EnumMemberPatternMatch> pattern_matches,
-        std::vector<ScopeStatement *> pattern_match_arms
-    );
 };
 
 struct ContinueStatement : Statement {
@@ -505,15 +448,6 @@ struct StructInstanceExpression : Expression {
         Token identifier, std::vector<TypeExpression *> generics,
         std::vector<std::tuple<Token, Expression *>> named_expressions
     );
-};
-
-struct EnumInstanceExpression : Expression {
-    Token lhs;
-    Token member;
-    std::vector<Expression *> arguments;
-    u64 member_index; // populated at type checking time
-
-    EnumInstanceExpression(Token lhs, Token member, std::vector<Expression *> arguments);
 };
 
 /*

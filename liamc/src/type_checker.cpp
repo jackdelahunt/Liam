@@ -91,7 +91,7 @@ TypeChecker::TypeChecker() {
 
 void TypeChecker::add_type(CompilationUnit *file, Token token, TypeInfo *type_info) {
 
-    ASSERT(type_info->type == TypeInfoType::STRUCT || type_info->type == TypeInfoType::ENUM);
+    ASSERT(type_info->type == TypeInfoType::STRUCT);
 
     if (this->top_level_type_table.count(token.string) > 0)
     {
@@ -130,9 +130,7 @@ void TypeChecker::add_function(CompilationUnit *file, TokenIndex token, TypeInfo
     std::string token_as_string = this->compilation_unit->get_token_string_from_index(token);
     if (this->top_level_function_table.count(token_as_string) > 0)
     {
-        panic(
-            "Duplicate creation of function: " + token_as_string
-        );
+        panic("Duplicate creation of function: " + token_as_string);
     }
 
     TopLevelDescriptor descriptor = TopLevelDescriptor{
@@ -179,11 +177,6 @@ void TypeChecker::type_check(CompilationUnit *file) {
     this->compilation_unit = file;
 
     // add symbols for structs, enums and aliass
-    for (auto stmt : this->compilation_unit->top_level_enum_statements)
-    {
-        TRY_CALL_VOID(type_check_enum_symbol(stmt));
-    }
-
     for (auto stmt : this->compilation_unit->top_level_struct_statements)
     {
         TRY_CALL_VOID(type_check_struct_symbol(stmt));
@@ -192,11 +185,6 @@ void TypeChecker::type_check(CompilationUnit *file) {
     for (auto stmt : this->compilation_unit->top_level_fn_statements)
     {
         TRY_CALL_VOID(type_check_fn_symbol(stmt));
-    }
-
-    for (auto stmt : this->compilation_unit->top_level_enum_statements)
-    {
-        TRY_CALL_VOID(type_check_enum_statement_full(stmt));
     }
 
     for (auto stmt : this->compilation_unit->top_level_struct_statements)
@@ -259,14 +247,6 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     );
 }
 
-void TypeChecker::type_check_enum_symbol(EnumStatement *statement) {
-    // this type does exist but the type info has not been type checked yet so just
-    // add it to the table and leave its type info blank until we type check it
-    this->add_type(
-        this->compilation_unit, statement->identifier, new EnumTypeInfo(std::vector<EnumMember>(), statement->flag_mask)
-    );
-}
-
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     SymbolTable symbol_table = SymbolTable(compilation_unit);
 
@@ -307,10 +287,11 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         }
 
         parent_type_info->member_functions.push_back(
-            {this->compilation_unit->get_token_string_from_index(statement->identifier), new FnTypeInfo(
-                                               statement->flag_mask, parent_type_info,
-                                               statement->return_type->type_info, generic_type_infos, param_type_infos
-                                           )}
+            {this->compilation_unit->get_token_string_from_index(statement->identifier),
+             new FnTypeInfo(
+                 statement->flag_mask, parent_type_info, statement->return_type->type_info, generic_type_infos,
+                 param_type_infos
+             )}
         );
 
         return;
@@ -342,7 +323,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     if (statement->parent_type == NULL)
     {
         std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-        fn_type_info = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
+        fn_type_info               = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
         ASSERT(fn_type_info);
     }
     else
@@ -458,27 +439,6 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
     sti->members        = members_type_info;
 }
 
-void TypeChecker::type_check_enum_statement_full(EnumStatement *statement) {
-
-    SymbolTable symbol_table = SymbolTable(compilation_unit);
-    for (auto &member : statement->members)
-    {
-        for (auto type : member.members)
-        {
-            TRY_CALL_VOID(type_check_type_expression(type, &symbol_table));
-        }
-    }
-
-    // get the existing type and insert the members type info
-    auto [existing_type, failed] = this->get_type(&statement->identifier);
-    ASSERT_MSG(!failed, "Assuming this enum is forward declared");
-
-    ASSERT(existing_type->type == TypeInfoType::ENUM);
-
-    auto type_info     = (EnumTypeInfo *)existing_type;
-    type_info->members = statement->members;
-}
-
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
     switch (statement->statement_type)
     {
@@ -498,11 +458,7 @@ void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol
         return type_check_if_statement(dynamic_cast<IfStatement *>(statement), symbol_table);
     case StatementType::STATEMENT_CONTINUE:
         break;
-    case StatementType::STATEMENT_MATCH:
-        return type_check_match_statement(dynamic_cast<MatchStatement *>(statement), symbol_table);
-        break;
     case StatementType::STATEMENT_STRUCT:
-    case StatementType::STATEMENT_ENUM:
     case StatementType::STATEMENT_IMPORT:
     case StatementType::STATEMENT_FN:
         ASSERT_MSG(0, "These should of already been type checked in the first pass");
@@ -628,86 +584,6 @@ void TypeChecker::type_check_expression_statement(ExpressionStatement *statement
     TRY_CALL_VOID(type_check_expression(statement->expression, symbol_table));
 }
 
-void TypeChecker::type_check_match_statement(MatchStatement *statement, SymbolTable *symbol_table) {
-    TRY_CALL_VOID(type_check_expression(statement->matching_expression, symbol_table));
-
-    if (statement->matching_expression->type_info->type != TypeInfoType::ENUM)
-    {
-        TypeCheckerError::make(this->compilation_unit->file_data->path.string())
-            .set_expr_1(statement->matching_expression)
-            .set_message("Cannot use match on non-enum type")
-            .report();
-
-        return;
-    }
-
-    EnumTypeInfo *match_expression_type_info = (EnumTypeInfo *)statement->matching_expression->type_info;
-
-    // matching the identifier in the pattern match branches to the members in the
-    // enum type info, this does not check the identifiers used in the pattern
-    // match that map to the values in the enum instance itself
-    for (auto &pattern_match : statement->pattern_matches)
-    {
-        bool matched = false;
-        for (i64 i = 0; i < match_expression_type_info->members.size(); i++)
-        {
-            auto enum_member = match_expression_type_info->members.at(i);
-            if (pattern_match.identifier.string == enum_member.identifier.string)
-            {
-                pattern_match.enum_member_index = i;
-                matched                         = true;
-                break;
-            }
-        }
-
-        if (!matched)
-        {
-            TypeCheckerError::make(this->compilation_unit->file_data->path.string())
-                .add_related_token(pattern_match.identifier)
-                .set_message("No matching enum member named \"" + pattern_match.identifier.string + "\"")
-                .report();
-
-            return;
-        }
-    }
-
-    for (i64 i = 0; i < statement->pattern_matches.size(); i++)
-    {
-
-        EnumMemberPatternMatch pattern_match = statement->pattern_matches.at(i);
-        ASSERT_MSG(
-            pattern_match.enum_member_index != -1, "If -1 then the above loop did not correctly assign the index"
-        );
-
-        auto equivilent_enum_member = match_expression_type_info->members.at(pattern_match.enum_member_index);
-
-        // check if the number of identifiers used to destructure the enum matches the
-        // amount of types in the enum member
-        if (pattern_match.matched_members.size() != equivilent_enum_member.members.size())
-        {
-            TypeCheckerError::make(this->compilation_unit->file_data->path.string())
-                .add_related_token(pattern_match.identifier)
-                .set_message(std::format(
-                    "Incorrect number of identifers used to pattern match this enum member, expected {} got {}",
-                    equivilent_enum_member.members.size(), pattern_match.matched_members.size()
-                ))
-                .report();
-
-            return;
-        }
-
-        // type check the scope associated with the pattern match
-        SymbolTable symbol_table_copy = symbol_table->copy();
-        for (i64 i = 0; i < pattern_match.matched_members.size(); i++)
-        {
-            Token identifier = pattern_match.matched_members.at(i);
-            TRY_CALL_VOID(symbol_table_copy.add_identifier(identifier, equivilent_enum_member.members.at(i)->type_info)
-            );
-        }
-        TRY_CALL_VOID(type_check_scope_statement(statement->pattern_match_arms.at(i), &symbol_table_copy, false));
-    }
-}
-
 void TypeChecker::type_check_expression(Expression *expression, SymbolTable *symbol_table) {
     switch (expression->type)
     {
@@ -760,9 +636,6 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
         return type_check_struct_instance_expression(
             dynamic_cast<StructInstanceExpression *>(expression), symbol_table
         );
-        break;
-    case ExpressionType::EXPRESSION_ENUM_INSTANCE:
-        return type_check_enum_instance_expression(dynamic_cast<EnumInstanceExpression *>(expression), symbol_table);
         break;
     default:
         panic("Expression not implemented in type checker");
@@ -1350,12 +1223,11 @@ void TypeChecker::type_check_slice_literal_expression(SliceLiteralExpression *ex
 
 void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table) {
 
-    if (expression->expression->type != ExpressionType::EXPRESSION_STRUCT_INSTANCE &&
-        expression->expression->type != ExpressionType::EXPRESSION_ENUM_INSTANCE)
+    if (expression->expression->type != ExpressionType::EXPRESSION_STRUCT_INSTANCE)
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, expression->expression, NULL, NULL, {},
-            "Cannot instantiate non-struct or non-enum type"
+            "Cannot instantiate non-struct type"
         );
         return;
     }
@@ -1363,88 +1235,6 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
     TRY_CALL_VOID(type_check_expression(expression->expression, symbol_table));
 
     expression->type_info = expression->expression->type_info;
-}
-
-void TypeChecker::type_check_enum_instance_expression(EnumInstanceExpression *expression, SymbolTable *symbol_table) {
-
-    auto [type_info, fail] = this->get_type(&expression->lhs);
-    if (fail)
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            std::format("No enum type \"{}\" declared", expression->lhs.string)
-        );
-        return;
-    }
-
-    EnumTypeInfo *enum_type_info = (EnumTypeInfo *)type_info;
-    ASSERT(enum_type_info);
-
-    if (enum_type_info->type != TypeInfoType::ENUM)
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            "Cannot create enum instance from non enum type"
-        );
-        return;
-    }
-
-    // get the index of the enum member we are trying to create
-    // verify it is in the enum type and get its index
-    u64 member_index;
-    bool found = false;
-    for (member_index = 0; member_index < enum_type_info->members.size(); member_index++)
-    {
-        auto member = enum_type_info->members[member_index];
-        if (member.identifier.string == expression->member.string)
-        {
-            found = true;
-            break;
-        }
-    }
-
-    if (!found)
-    {
-        ErrorReporter::report_type_checker_error(
-            this->compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            "No member of enum type with identifier \'" + expression->member.string + "\'"
-        );
-        return;
-    }
-
-    // verify the correct number of arguments passed
-    EnumMember member_to_create  = enum_type_info->members[member_index];
-    auto expected_arg_amount     = member_to_create.members.size();
-    auto actual_arg_amount_given = expression->arguments.size();
-
-    if (expected_arg_amount != actual_arg_amount_given)
-    {
-        ErrorReporter::report_type_checker_error(
-            this->compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            "Mismatched number of arguments when creating enum instance, expected " +
-                std::to_string(expected_arg_amount) + " got " + std::to_string(actual_arg_amount_given)
-        );
-        return;
-    }
-
-    // type check each arg against the expected type in the enum
-    for (i64 i = 0; i < actual_arg_amount_given; i++)
-    {
-        auto argument = expression->arguments[i];
-        TRY_CALL_VOID(type_check_expression(argument, symbol_table));
-        if (!type_match(argument->type_info, member_to_create.members[i]->type_info))
-        {
-            ErrorReporter::report_type_checker_error(
-                this->compilation_unit->file_data->path.string(), expression, argument, NULL, NULL, {},
-                "Mismatched types in argument when creating enum instance, argument " + std::to_string(i) +
-                    " does not match enum member type"
-            );
-            return;
-        }
-    }
-
-    expression->member_index = member_index;
-    expression->type_info    = enum_type_info;
 }
 
 void TypeChecker::type_check_struct_instance_expression(
@@ -1790,13 +1580,6 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
         }
 
         return true;
-    }
-    else if (a->type == TypeInfoType::ENUM)
-    {
-        auto enum_a = static_cast<EnumTypeInfo *>(a);
-        auto enum_b = static_cast<EnumTypeInfo *>(b);
-
-        return enum_a == enum_b;
     }
     else if (a->type == TypeInfoType::FN_EXPRESSION)
     {

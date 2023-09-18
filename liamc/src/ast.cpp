@@ -73,18 +73,6 @@ GenericTypeInfo::GenericTypeInfo(u64 id) {
     this->type = TypeInfoType::GENERIC;
 }
 
-EnumTypeInfo::EnumTypeInfo(std::vector<EnumMember> members, u8 flag_mask) {
-    this->members   = members;
-    this->flag_mask = flag_mask;
-    this->type      = TypeInfoType::ENUM;
-}
-
-EnumMemberPatternMatch::EnumMemberPatternMatch(Token identifier, std::vector<Token> matched_members) {
-    this->identifier        = identifier;
-    this->matched_members   = matched_members;
-    this->enum_member_index = -1;
-}
-
 std::ostream &Statement::format(std::ostream &os) const {
     os << "()";
     return os;
@@ -184,29 +172,6 @@ ReturnStatement::ReturnStatement(CompilationUnit *file, Expression *expression) 
 BreakStatement::BreakStatement(CompilationUnit *file) {
     this->file           = file;
     this->statement_type = StatementType::STATEMENT_BREAK;
-}
-
-EnumMember::EnumMember(Token identifier, std::vector<TypeExpression *> members) {
-    this->identifier = identifier;
-    this->members    = members;
-}
-
-EnumStatement::EnumStatement(CompilationUnit *file, Token identifier, std::vector<EnumMember> members, u8 flag_mask) {
-    this->file           = file;
-    this->identifier     = identifier;
-    this->members        = members;
-    this->flag_mask      = flag_mask;
-    this->statement_type = StatementType::STATEMENT_ENUM;
-}
-
-MatchStatement::MatchStatement(
-    Expression *matching_expression, std::vector<EnumMemberPatternMatch> pattern_matches,
-    std::vector<ScopeStatement *> pattern_match_arms
-) {
-    this->matching_expression = matching_expression;
-    this->pattern_matches     = pattern_matches;
-    this->pattern_match_arms  = pattern_match_arms;
-    this->statement_type      = StatementType::STATEMENT_MATCH;
 }
 
 ContinueStatement::ContinueStatement(CompilationUnit *file) {
@@ -329,15 +294,6 @@ StructInstanceExpression::StructInstanceExpression(
     this->named_expressions = named_expressions;
     this->span              = identifier.span;
     this->type              = ExpressionType::EXPRESSION_STRUCT_INSTANCE;
-}
-
-EnumInstanceExpression::EnumInstanceExpression(Token lhs, Token member, std::vector<Expression *> arguments) {
-    this->lhs          = lhs;
-    this->member       = member;
-    this->arguments    = std::move(arguments);
-    this->member_index = -1; // yes I am setting a u64 to -1, lulul
-    this->span         = lhs.span;
-    this->type         = ExpressionType::EXPRESSION_ENUM_INSTANCE;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {

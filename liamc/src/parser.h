@@ -22,13 +22,10 @@ struct ImportStatement;
 struct ForStatement;
 struct IfStatement;
 struct ElseStatement;
-struct EnumStatement;
 struct ContinueStatement;
-struct MatchStatement;
 struct Expression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
-struct EnumMember;
 struct TypeInfo;
 
 struct Parser {
@@ -53,9 +50,7 @@ struct Parser {
     IfStatement *eval_if_statement();
     ElseStatement *eval_else_statement();
     ExpressionStatement *eval_expression_statement();
-    EnumStatement *eval_enum_statement();
     ContinueStatement *eval_continue_statement();
-    MatchStatement *eval_match_statement();
     Statement *eval_line_starting_expression();
 
     /* normal expressions */
@@ -74,7 +69,6 @@ struct Parser {
     Expression *eval_fn();
     Expression *eval_slice_literal();
     Expression *eval_instantiate_expression();
-    Expression *eval_enum_instance_expression();
     Expression *eval_struct_instance_expression();
     Expression *eval_group_expression();
 
@@ -96,8 +90,6 @@ struct Parser {
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
     std::vector<Token> consume_comma_seperated_token_arguments(TokenType closer);
     std::vector<std::tuple<Token, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
-    std::vector<EnumMember> consume_comma_seperated_enum_arguments(TokenType closer);
-    EnumMemberPatternMatch consume_enum_pattern_match();
     u8 consume_tags();
 
     // this is what CSV is

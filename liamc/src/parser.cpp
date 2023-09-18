@@ -28,11 +28,6 @@ void Parser::parse() {
             auto fn_stmt = dynamic_cast<FnStatement *>(stmt);
             compilation_unit->top_level_fn_statements.push_back(fn_stmt);
         }
-        else if (stmt->statement_type == StatementType::STATEMENT_ENUM)
-        {
-            auto enum_stmt = dynamic_cast<EnumStatement *>(stmt);
-            compilation_unit->top_level_enum_statements.push_back(enum_stmt);
-        }
         else if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
         {
             auto struct_stmt = dynamic_cast<StructStatement *>(stmt);
@@ -73,20 +68,9 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_CONTINUE:
         return eval_continue_statement();
         break;
-    case TokenType::TOKEN_MATCH:
-        return eval_match_statement();
-        break;
     case TokenType::TOKEN_FN:
     case TokenType::TOKEN_STRUCT:
     case TokenType::TOKEN_IMPORT:
-    case TokenType::TOKEN_ENUM: {
-        auto token = *consume_token();
-        ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), token.span,
-            std::format("Cannot declare top level statement '{}' in a function", token.string)
-        );
-        return NULL;
-    }
     default:
         return eval_line_starting_expression();
         break;
@@ -104,9 +88,6 @@ Statement *Parser::eval_top_level_statement() {
         break;
     case TokenType::TOKEN_IMPORT:
         return eval_import_statement();
-        break;
-    case TokenType::TOKEN_ENUM:
-        return eval_enum_statement();
         break;
 
     default: {
@@ -319,44 +300,10 @@ ExpressionStatement *Parser::eval_expression_statement() {
     return new ExpressionStatement(compilation_unit, expression);
 }
 
-EnumStatement *Parser::eval_enum_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ENUM), NULL);
-
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-    u8 tag_mask     = TRY_CALL_RET(consume_tags(), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
-    auto members = TRY_CALL_RET(consume_comma_seperated_enum_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
-
-    return new EnumStatement(compilation_unit, *identifier, members, tag_mask);
-}
-
 ContinueStatement *Parser::eval_continue_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_CONTINUE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
     return new ContinueStatement(compilation_unit);
-}
-
-MatchStatement *Parser::eval_match_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_MATCH), NULL);
-    auto matching_expression = TRY_CALL_RET(eval_expression(), NULL);
-
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
-
-    auto pattern_matches = std::vector<EnumMemberPatternMatch>();
-    auto match_arms      = std::vector<ScopeStatement *>();
-    while (peek()->type != TokenType::TOKEN_BRACE_CLOSE)
-    {
-        EnumMemberPatternMatch pattern_match = TRY_CALL_RET(consume_enum_pattern_match(), NULL);
-        ScopeStatement *match_arm            = TRY_CALL_RET(eval_scope_statement(), NULL);
-
-        pattern_matches.push_back(pattern_match);
-        match_arms.push_back(match_arm);
-    }
-
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
-
-    return new MatchStatement(matching_expression, pattern_matches, match_arms);
 }
 
 Statement *Parser::eval_line_starting_expression() {
@@ -602,40 +549,9 @@ Expression *Parser::eval_slice_literal() {
 }
 
 Expression *Parser::eval_instantiate_expression() {
-    Expression *expression = NULL;
-
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
-
-    if (peek(1)->type == TokenType::TOKEN_COLON)
-    {
-        expression = TRY_CALL_RET(eval_enum_instance_expression(), NULL);
-    }
-    else
-    {
-        expression = TRY_CALL_RET(eval_struct_instance_expression(), NULL);
-    }
-
+    Expression *expression = TRY_CALL_RET(eval_struct_instance_expression(), NULL);
     return new InstantiateExpression(expression);
-}
-
-Expression *Parser::eval_enum_instance_expression() {
-
-    auto lhs = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
-
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-    auto args       = std::vector<Expression *>();
-
-    if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
-        args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
-    }
-
-    return new EnumInstanceExpression(*lhs, *identifier, args);
 }
 
 Expression *Parser::eval_struct_instance_expression() {
@@ -957,51 +873,6 @@ std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_nam
     }
 
     return named_args;
-}
-
-// Null, Number(i64), String(str)
-std::vector<EnumMember> Parser::consume_comma_seperated_enum_arguments(TokenType closer) {
-    auto enum_members = std::vector<EnumMember>();
-    bool is_first     = true;
-    if (!match(closer))
-    {
-        do
-        {
-            if (!is_first)
-                current++; // only iterate current by one when it is not the
-                           // first time
-
-            auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), {});
-            if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
-            {
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), {});
-                auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_PAREN_CLOSE), {});
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), {});
-                enum_members.emplace_back(*identifier, types);
-            }
-            else
-            {
-                enum_members.emplace_back(*identifier, std::vector<TypeExpression *>());
-            }
-
-            if (is_first)
-                is_first = false;
-        }
-        while (match(TokenType::TOKEN_COMMA));
-    }
-
-    return enum_members;
-}
-
-EnumMemberPatternMatch Parser::consume_enum_pattern_match() {
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), EnumMemberPatternMatch({}, {}));
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), EnumMemberPatternMatch({}, {}));
-    auto matched_membes = TRY_CALL_RET(
-        consume_comma_seperated_token_arguments(TokenType::TOKEN_PAREN_CLOSE), EnumMemberPatternMatch({}, {})
-    );
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), EnumMemberPatternMatch({}, {}));
-
-    return EnumMemberPatternMatch(*identifier, matched_membes);
 }
 
 // @extern @private
