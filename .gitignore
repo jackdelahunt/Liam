@@ -13,7 +13,6 @@
 **.vcxproj.user
 liamc/main.liam
 liamc/Code
-**/CMakeLists.txt
 liamc/src/Makefile
 **.DS_Store
 **/dependencies/
@@ -24,6 +23,4 @@ liamc/program/
 **/build-debug/
 *.exe
 liamc/release
-**/zig-cache
-**/zig-out
 **/compile_flags.txt
