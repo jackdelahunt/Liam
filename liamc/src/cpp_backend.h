@@ -11,7 +11,6 @@ struct CppBackend {
     CppBackend()                  = default;
     std::string emit(CompilationUnit *file);
 
-    std::string forward_declare_enum(EnumStatement *statement);
     std::string forward_declare_struct(StructStatement *statement);
     std::string forward_declare_function(FnStatement *statement);
 
@@ -27,9 +26,7 @@ struct CppBackend {
     std::string emit_for_statement(ForStatement *statement);
     std::string emit_if_statement(IfStatement *statement);
     std::string emit_else_statement(ElseStatement *statement);
-    std::string emit_enum_statement(EnumStatement *statement);
     std::string emit_continue_statement(ContinueStatement *statement);
-    std::string emit_match_statement(MatchStatement *statement);
 
     std::string emit_expression(Expression *expression);
     std::string emit_binary_expression(BinaryExpression *expression);
@@ -47,7 +44,6 @@ struct CppBackend {
     std::string emit_fn_expression(FnExpression *expression);
     std::string emit_slice_literal_expression(SliceLiteralExpression *expression);
     std::string emit_instantiate_expression(InstantiateExpression *expression);
-    std::string emit_enum_instance_expression(EnumInstanceExpression *expression);
     std::string emit_struct_instance_expression(StructInstanceExpression *expression);
 
     std::string emit_type_expression(TypeExpression *type_expression);

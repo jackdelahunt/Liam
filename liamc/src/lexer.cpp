@@ -298,13 +298,6 @@ CompilationUnit *Lexer::lex() {
                 continue;
             }
 
-            if (compare_string(word, "enum"))
-            {
-                tokens.emplace_back(Token(TokenType::TOKEN_ENUM, word, current_line, word_start));
-                this->token_buffer.emplace_back(TokenType::TOKEN_ENUM, word_start, (word_start - 1) + word.length());
-                continue;
-            }
-
             if (compare_string(word, "true"))
             {
                 tokens.emplace_back(Token(TokenType::TOKEN_TRUE, word, current_line, word_start));

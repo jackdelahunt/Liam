@@ -13,11 +13,6 @@ std::string CppBackend::emit(CompilationUnit *file) {
     std::string source_generated = "#include <core.h>\n#include<liam_stdlib.h>\n\n";
 
     // forward declarations
-    for (auto stmt : this->current_file->top_level_enum_statements)
-    {
-        source_generated.append(forward_declare_enum(stmt));
-    }
-
     for (auto stmt : this->current_file->top_level_struct_statements)
     {
         source_generated.append(forward_declare_struct(stmt));
@@ -29,11 +24,6 @@ std::string CppBackend::emit(CompilationUnit *file) {
     }
 
     // bodys
-    for (auto stmt : this->current_file->top_level_enum_statements)
-    {
-        source_generated.append(emit_enum_statement(stmt));
-    }
-
     for (auto stmt : this->current_file->top_level_struct_statements)
     {
         source_generated.append(emit_struct_statement(stmt));
@@ -48,24 +38,6 @@ std::string CppBackend::emit(CompilationUnit *file) {
     source_generated.append("\nint main(int argc, char **argv) { __liam__main__(); return 0; }\n\n\n // GOODBYE");
 
     return source_generated;
-}
-
-std::string CppBackend::forward_declare_enum(EnumStatement *statement) {
-    std::string source = "";
-
-    // enum struct member namespace forward decl
-    source.append("namespace __" + statement->identifier.string + "Members {\n");
-
-    for (auto &member : statement->members)
-    {
-        source.append("struct " + member.identifier.string + ";\n");
-    }
-
-    source.append("}\n\n");
-
-    // enum (we use struct) forward decl
-    source.append("struct " + statement->identifier.string + ";\n");
-    return source;
 }
 
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
@@ -165,14 +137,8 @@ std::string CppBackend::emit_statement(Statement *statement) {
     case StatementType::STATEMENT_IF:
         return emit_if_statement(dynamic_cast<IfStatement *>(statement));
         break;
-    case StatementType::STATEMENT_ENUM:
-        return emit_enum_statement(dynamic_cast<EnumStatement *>(statement));
-        break;
     case StatementType::STATEMENT_CONTINUE:
         return emit_continue_statement(dynamic_cast<ContinueStatement *>(statement));
-        break;
-    case StatementType::STATEMENT_MATCH:
-        return emit_match_statement(dynamic_cast<MatchStatement *>(statement));
         break;
     }
 
@@ -379,109 +345,8 @@ std::string CppBackend::emit_else_statement(ElseStatement *statement) {
     return source;
 }
 
-std::string CppBackend::emit_enum_statement(EnumStatement *statement) {
-    std::string source = "";
-
-    /*
-     * namespace __{EnumName}Members {
-     *      struct Member {
-     *          type __1;
-     *          type __2;
-     *      };
-     * }
-     */
-
-    // emit the enums namespace for the members it has
-    // then go on to generate the enum which will
-    // have its members as the structs defined in the namespace
-    source.append("namespace __" + statement->identifier.string + "Members {\n");
-
-    for (auto &member : statement->members)
-    {
-        source.append("struct " + member.identifier.string + " {\n");
-        for (int i = 0; i < member.members.size(); i++)
-        {
-            source.append(emit_type_expression(member.members[i]) + " __" + std::to_string(i));
-            source.append(";\n");
-        }
-
-        source.append("};\n");
-    }
-    source.append("}\n\n\n");
-
-    constexpr auto overload_ops_template = R"(
-bool operator==(const {}& other) const {{
-        return this->index == other.index;
-    }}
-
-    bool operator!=(const {}& other) const {{
-        return this->index != other.index;
-    }}
-)";
-
-    /*
-     * struct X {
-     *      u64 index;
-     *      union Members {
-     *          __{EnumName}Members::Member __Member;
-     *      } members;
-     *
-     *      {overload operators}
-     * };
-     */
-    source.append("struct " + statement->identifier.string + " {\n");
-    source.append("u64 index;\n");
-    source.append("union Members {\n");
-    for (auto &member : statement->members)
-    {
-        source.append(
-            "__" + statement->identifier.string + "Members::" + member.identifier.string + " __" +
-            member.identifier.string + ";\n"
-        );
-    }
-    source.append("} members;\n");
-    source.append(std::format(overload_ops_template, statement->identifier.string, statement->identifier.string));
-    source.append("};\n");
-
-    return source;
-}
-
 std::string CppBackend::emit_continue_statement(ContinueStatement *statement) {
     return "continue;";
-}
-
-std::string CppBackend::emit_match_statement(MatchStatement *statement) {
-    std::string source;
-
-    ASSERT(statement->matching_expression->type_info->type == TypeInfoType::ENUM);
-    EnumTypeInfo *expression_type_info = (EnumTypeInfo *)statement->matching_expression->type_info;
-
-    std::string expression_to_match = emit_expression(statement->matching_expression);
-
-    source.append("switch(" + expression_to_match + ".index) {\n");
-
-    for (i64 i = 0; i < statement->pattern_matches.size(); i++)
-    {
-        auto pattern_match = statement->pattern_matches.at(i);
-        source.append("case " + std::to_string(i) + ": {");
-
-        // add the destructored memebers of the enums member first
-        EnumMember enum_member = expression_type_info->members.at(pattern_match.enum_member_index);
-        for (i64 j = 0; j < pattern_match.matched_members.size(); j++)
-        {
-            source.append(
-                "auto " + pattern_match.matched_members.at(j).string + " = " + expression_to_match + ".members.__" +
-                enum_member.identifier.string + ".__" + std::to_string(j) + ";\n"
-            );
-        }
-
-        source.append(emit_scope_statement(statement->pattern_match_arms.at(i)));
-        source.append("} break;");
-    }
-
-    source.append("}");
-
-    return source;
 }
 
 std::string CppBackend::emit_expression(Expression *expression) {
@@ -534,9 +399,6 @@ std::string CppBackend::emit_expression(Expression *expression) {
         break;
     case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
         return emit_struct_instance_expression(dynamic_cast<StructInstanceExpression *>(expression));
-        break;
-    case ExpressionType::EXPRESSION_ENUM_INSTANCE:
-        return emit_enum_instance_expression(dynamic_cast<EnumInstanceExpression *>(expression));
         break;
     default: {
         panic("Cannot emit this expression in cpp backend");
@@ -750,11 +612,6 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
         return emit_expression(expression->lhs) + "->" + expression->member.string;
     }
 
-    if (expression->lhs->type_info->type == TypeInfoType::ENUM)
-    {
-        return emit_expression(expression->lhs) + "::" + expression->member.string;
-    }
-
     return emit_expression(expression->lhs) + "." + expression->member.string;
 }
 
@@ -817,44 +674,6 @@ std::string CppBackend::emit_slice_literal_expression(SliceLiteralExpression *ex
 std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expression) {
     auto source = std::string();
     source.append(emit_expression(expression->expression));
-    return source;
-}
-
-std::string CppBackend::emit_enum_instance_expression(EnumInstanceExpression *expression) {
-    std::string source = "";
-
-    /*
-     * let expr := Expr::Number(100);
-     * Expr expr = Expr{.index = 0, .members.__Number = __ExprMembers::Number{100}};
-     */
-
-    // if the struct is in another module we need to prepend the identifier with a
-    // module_name::
-    ASSERT(expression->type_info->type == TypeInfoType::ENUM);
-    EnumTypeInfo *enum_type_info = (EnumTypeInfo *)expression->type_info;
-    std::string possible_namespace_prepand;
-
-    std::string enum_type = expression->lhs.string;
-
-    source.append(
-        enum_type + "{.index = " + std::to_string(expression->member_index) + ", .members.__" +
-        expression->member.string + " = " + possible_namespace_prepand + "__" + enum_type +
-        "Members::" + expression->member.string + "{"
-    );
-
-    int index = 0;
-
-    for (auto expr : expression->arguments)
-    {
-        source.append(emit_expression(expr));
-        if (index + 1 < expression->arguments.size())
-        {
-            source.append(", ");
-        }
-        index++;
-    }
-
-    source.append("}}");
     return source;
 }
 

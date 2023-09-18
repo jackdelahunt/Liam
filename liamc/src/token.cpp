@@ -1,6 +1,6 @@
 #include "token.h"
 
-const char *TokenTypeStrings[50] = {"int Literal", "string Literal",
+const char *TokenTypeStrings[49] = {"int Literal", "string Literal",
                                     "identifier",  "let",
                                     "fn",          "(",
                                     ")",           "{",
@@ -21,9 +21,9 @@ const char *TokenTypeStrings[50] = {"int Literal", "string Literal",
                                     "!",           "<",
                                     ">",           ">=",
                                     "<=",          "null",
-                                    "enum",        "continue",
-                                    "zero",        "&",
-                                    "@tag",        "match"};
+                                    "continue",    "zero",
+                                    "&",           "@tag",
+                                    "match"};
 
 Token::Token(TokenType type, std::string string, u32 line, u32 start) {
 
