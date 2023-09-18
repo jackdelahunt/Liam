@@ -50,6 +50,7 @@ struct TypeChecker {
 
     void add_type(CompilationUnit *file, Token idetifier, TypeInfo *type_info);
     void add_function(CompilationUnit *file, Token identifier, TypeInfo *type_info);
+    void add_function(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info);
     std::tuple<TypeInfo *, bool> get_type(Token *identifier);
     std::tuple<TypeInfo *, bool> get_type(std::string identifier);
     std::tuple<TypeInfo *, bool> get_function(Token *identifier);
