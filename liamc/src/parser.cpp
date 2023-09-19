@@ -194,7 +194,7 @@ FnStatement *Parser::eval_fn_statement() {
 StructStatement *Parser::eval_struct_statement() {
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_STRUCT), NULL);
 
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
     auto generics = std::vector<Token>();
     if (peek()->type == TokenType::TOKEN_LESS)
@@ -212,7 +212,7 @@ StructStatement *Parser::eval_struct_statement() {
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    return new StructStatement(compilation_unit, *identifier, generics, member, tag_mask);
+    return new StructStatement(compilation_unit, identifier, generics, member, tag_mask);
 }
 
 ReturnStatement *Parser::eval_return_statement() {
@@ -345,9 +345,9 @@ Expression *Parser::eval_or() {
 
     while (match(TokenType::TOKEN_OR))
     {
-        Token *op  = consume_token();
+        TokenIndex token_index  = consume_token_with_index();
         auto right = TRY_CALL_RET(eval_and(), NULL);
-        expr       = new BinaryExpression(expr, *op, right);
+        expr       = new BinaryExpression(expr, this->compilation_unit->token_buffer[token_index].token_type, right);
     }
 
     return expr;
@@ -358,9 +358,9 @@ Expression *Parser::eval_and() {
 
     while (match(TokenType::TOKEN_AND))
     {
-        Token *op  = consume_token();
+        TokenIndex token_index  = consume_token_with_index();
         auto right = TRY_CALL_RET(eval_equality(), NULL);
-        expr       = new BinaryExpression(expr, *op, right);
+        expr       = new BinaryExpression(expr, this->compilation_unit->token_buffer[token_index].token_type, right);
     }
 
     return expr;
@@ -371,9 +371,9 @@ Expression *Parser::eval_equality() {
 
     while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL))
     {
-        Token *op  = consume_token();
+        TokenIndex token_index  = consume_token_with_index();
         auto right = TRY_CALL_RET(eval_relational(), NULL);
-        expr       = new BinaryExpression(expr, *op, right);
+        expr       = new BinaryExpression(expr, this->compilation_unit->token_buffer[token_index].token_type, right);
     }
 
     return expr;
@@ -385,9 +385,9 @@ Expression *Parser::eval_relational() {
     while (match(TokenType::TOKEN_LESS) || match(TokenType::TOKEN_GREATER) || match(TokenType::TOKEN_GREATER_EQUAL) ||
            match(TokenType::TOKEN_LESS_EQUAL))
     {
-        Token *op  = consume_token();
+        TokenIndex token_index  = consume_token_with_index();
         auto right = TRY_CALL_RET(eval_term(), NULL);
-        expr       = new BinaryExpression(expr, *op, right);
+        expr       = new BinaryExpression(expr, this->compilation_unit->token_buffer[token_index].token_type, right);
     }
 
     return expr;
@@ -398,9 +398,9 @@ Expression *Parser::eval_term() {
 
     while (match(TokenType::TOKEN_PLUS) || match(TokenType::TOKEN_MINUS))
     {
-        Token *op  = consume_token();
+        TokenIndex token_index  = consume_token_with_index();
         auto right = TRY_CALL_RET(eval_factor(), NULL);
-        expr       = new BinaryExpression(expr, *op, right);
+        expr       = new BinaryExpression(expr, this->compilation_unit->token_buffer[token_index].token_type, right);
     }
 
     return expr;
@@ -411,9 +411,9 @@ Expression *Parser::eval_factor() {
 
     while (match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_SLASH) || match(TokenType::TOKEN_MOD))
     {
-        Token *op  = consume_token();
+        TokenIndex token_index = consume_token_with_index();
         auto right = TRY_CALL_RET(eval_unary(), NULL);
-        expr       = new BinaryExpression(expr, *op, right);
+        expr       = new BinaryExpression(expr, this->compilation_unit->token_buffer[token_index].token_type, right);
     }
 
     return expr;
@@ -423,10 +423,10 @@ Expression *Parser::eval_unary() {
 
     if (match(TokenType::TOKEN_AMPERSAND) || match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_NOT))
     {
-        auto op   = consume_token();
+        TokenIndex token_index   = consume_token_with_index();
         auto expr = TRY_CALL_RET(eval_unary(), NULL);
 
-        return new UnaryExpression(expr, *op);
+        return new UnaryExpression(expr, this->compilation_unit->token_buffer[token_index].token_type);
     }
 
     return TRY_CALL_RET(eval_postfix(), NULL);
@@ -518,8 +518,8 @@ Expression *Parser::eval_primary() {
 }
 
 Expression *Parser::eval_string_literal() {
-    auto literal = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_STRING_LITERAL), NULL);
-    return new StringLiteralExpression(*literal);
+    auto literal = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRING_LITERAL), NULL);
+    return new StringLiteralExpression(literal);
 }
 
 Expression *Parser::eval_fn() {
@@ -694,6 +694,13 @@ Token *Parser::consume_token() {
         panic("No more tokens to consume");
 
     return &this->compilation_unit->tokens.at(current++);
+}
+
+TokenIndex Parser::consume_token_with_index() {
+    if (current >= this->compilation_unit->tokens.size())
+        panic("No more tokens to consume");
+
+    return this->current++;
 }
 
 Token *Parser::consume_token_of_type(TokenType type) {
