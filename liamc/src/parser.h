@@ -82,6 +82,7 @@ struct Parser {
     bool match(TokenType type);
     inline Token *peek(i32 offset = 0);
     Token *consume_token();
+    TokenIndex consume_token_with_index();
     i32 find_balance_point(TokenType push, TokenType pull, i32 from);
     Token *consume_token_of_type(TokenType type);
     TokenIndex consume_token_of_type_with_index(TokenType type);

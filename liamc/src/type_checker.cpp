@@ -89,24 +89,42 @@ TypeChecker::TypeChecker() {
     this->builtin_type_table["f64"]  = new NumberTypeInfo(64, NumberType::FLOAT);
 }
 
-void TypeChecker::add_type(CompilationUnit *file, Token token, TypeInfo *type_info) {
+void TypeChecker::add_type(CompilationUnit *file, Token identifier, TypeInfo *type_info) {
 
     ASSERT(type_info->type == TypeInfoType::STRUCT);
 
-    if (this->top_level_type_table.count(token.string) > 0)
+    if (this->top_level_type_table.count(identifier.string) > 0)
     {
         panic(
-            "Duplcate creation of type: " + token.string + " at (" + std::to_string(token.span.line) + "," +
-            std::to_string(token.span.start) + ")"
+            "Duplcate creation of type: " + identifier.string + " at (" + std::to_string(identifier.span.line) + "," +
+            std::to_string(identifier.span.start) + ")"
         );
     }
 
     TopLevelDescriptor descriptor = TopLevelDescriptor{
-        .identifier = token.string,
+        .identifier = identifier.string,
         .type_info  = type_info,
     };
 
-    this->top_level_type_table[token.string] = descriptor;
+    this->top_level_type_table[identifier.string] = descriptor;
+}
+
+void TypeChecker::add_type(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info) {
+    ASSERT(type_info->type == TypeInfoType::STRUCT);
+
+    std::string identifier_string = file->get_token_string_from_index(identifier);
+
+    if (this->top_level_type_table.count(identifier_string) > 0)
+    {
+        panic("Duplicate creation of type: " + identifier_string);
+    }
+
+    TopLevelDescriptor descriptor = TopLevelDescriptor{
+        .identifier = identifier_string,
+        .type_info  = type_info,
+    };
+
+    this->top_level_type_table[identifier_string] = descriptor;
 }
 
 void TypeChecker::add_function(CompilationUnit *file, Token token, TypeInfo *type_info) {
@@ -230,13 +248,15 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     // this type does exist but the type info has not been type checked yet so just
     // add it to the table and leave its type info blank until we type check it
 
-    auto [type_info, failed] = this->get_type(statement->identifier.string);
+    std::string identifier_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
+    auto [type_info, failed]      = this->get_type(identifier_string);
     if (!failed)
     {
 
         TypeCheckerError::make(compilation_unit->file_data->path.string())
-            .add_related_token(statement->identifier)
-            .set_message("Re-declaration of type \"" + statement->identifier.string + "\"")
+            // TODO: replace this somehow
+            //            .add_related_token(statement->identifier)
+            .set_message("Re-declaration of type \"" + identifier_string + "\"")
             .report();
         return;
     }
@@ -433,9 +453,11 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
         members_type_info[i] = {member.string, expr->type_info};
     }
 
+    std::string identifier_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
+
     // this struct has not been fully typed until now just add to the type that already exists in the
     // type table
-    StructTypeInfo *sti = (StructTypeInfo *)this->top_level_type_table[statement->identifier.string].type_info;
+    StructTypeInfo *sti = (StructTypeInfo *)this->top_level_type_table[identifier_string].type_info;
     sti->members        = members_type_info;
 }
 
@@ -658,7 +680,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     TypeInfo *info = NULL;
 
     // logical ops - bools -> bool
-    if (expression->op.type == TokenType::TOKEN_AND || expression->op.type == TokenType::TOKEN_OR)
+    if (expression->op == TokenType::TOKEN_AND || expression->op == TokenType::TOKEN_OR)
     {
         if (expression->left->type_info->type != TypeInfoType::BOOLEAN &&
             expression->right->type_info->type != TypeInfoType::BOOLEAN)
@@ -674,9 +696,9 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     }
 
     // math ops - numbers -> numbers
-    if (expression->op.type == TokenType::TOKEN_PLUS || expression->op.type == TokenType::TOKEN_STAR ||
-        expression->op.type == TokenType::TOKEN_SLASH || expression->op.type == TokenType::TOKEN_MOD ||
-        expression->op.type == TokenType::TOKEN_MINUS)
+    if (expression->op == TokenType::TOKEN_PLUS || expression->op == TokenType::TOKEN_STAR ||
+        expression->op == TokenType::TOKEN_SLASH || expression->op == TokenType::TOKEN_MOD ||
+        expression->op == TokenType::TOKEN_MINUS)
     {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
         {
@@ -690,8 +712,8 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     }
 
     // math ops - numbers -> bool
-    if (expression->op.type == TokenType::TOKEN_LESS || expression->op.type == TokenType::TOKEN_GREATER ||
-        expression->op.type == TokenType::TOKEN_GREATER_EQUAL || expression->op.type == TokenType::TOKEN_LESS_EQUAL)
+    if (expression->op == TokenType::TOKEN_LESS || expression->op == TokenType::TOKEN_GREATER ||
+        expression->op == TokenType::TOKEN_GREATER_EQUAL || expression->op == TokenType::TOKEN_LESS_EQUAL)
     {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
         {
@@ -705,7 +727,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
     }
 
     // compare - any -> bool
-    if (expression->op.type == TokenType::TOKEN_EQUAL || expression->op.type == TokenType::TOKEN_NOT_EQUAL)
+    if (expression->op == TokenType::TOKEN_EQUAL || expression->op == TokenType::TOKEN_NOT_EQUAL)
     {
         info = this->builtin_type_table["bool"];
     }
@@ -823,13 +845,13 @@ void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expr
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL_VOID(type_check_expression(expression->expression, symbol_table));
 
-    if (expression->op.type == TokenType::TOKEN_AMPERSAND)
+    if (expression->op == TokenType::TOKEN_AMPERSAND)
     {
         expression->type_info = new PointerTypeInfo(expression->expression->type_info);
         return;
     }
 
-    if (expression->op.type == TokenType::TOKEN_STAR)
+    if (expression->op == TokenType::TOKEN_STAR)
     {
         if (expression->expression->type_info->type != TypeInfoType::POINTER)
         {
@@ -844,7 +866,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
         return;
     }
 
-    if (expression->op.type == TokenType::TOKEN_NOT)
+    if (expression->op == TokenType::TOKEN_NOT)
     {
         if (expression->expression->type_info->type != TypeInfoType::BOOLEAN)
         {

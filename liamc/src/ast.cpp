@@ -91,17 +91,6 @@ LetStatement::LetStatement(CompilationUnit *file, TokenIndex identifier, Express
     this->statement_type = StatementType::STATEMENT_LET;
 }
 
-StructStatement::StructStatement(
-    CompilationUnit *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask
-) {
-    this->file           = file;
-    this->identifier     = identifier;
-    this->generics       = generics;
-    this->members        = members;
-    this->flag_mask      = flag_mask;
-    this->statement_type = StatementType::STATEMENT_STRUCT;
-}
-
 AssigmentStatement::AssigmentStatement(CompilationUnit *file, Expression *lhs, ExpressionStatement *assigned_to) {
     this->file           = file;
     this->lhs            = lhs;
@@ -128,6 +117,17 @@ FnStatement::FnStatement(
     this->body           = body;
     this->flag_mask      = flag_mask;
     this->statement_type = StatementType::STATEMENT_FN;
+}
+
+StructStatement::StructStatement(
+    CompilationUnit *file, TokenIndex identifier, std::vector<Token> generics, CSV members, u8 flag_mask
+) {
+    this->file           = file;
+    this->identifier     = identifier;
+    this->generics       = generics;
+    this->members        = members;
+    this->flag_mask      = flag_mask;
+    this->statement_type = StatementType::STATEMENT_STRUCT;
 }
 
 ImportStatement::ImportStatement(CompilationUnit *file, StringLiteralExpression *path) {
@@ -184,18 +184,18 @@ std::ostream &Expression::format(std::ostream &os) const {
     return os;
 }
 
-BinaryExpression::BinaryExpression(Expression *left, Token op, Expression *right) {
+BinaryExpression::BinaryExpression(Expression *left, TokenType op, Expression *right) {
     this->left  = left;
     this->op    = op;
     this->right = right;
     this->type  = ExpressionType::EXPRESSION_BINARY;
 }
 
-UnaryExpression::UnaryExpression(Expression *expression, Token op) {
+UnaryExpression::UnaryExpression(Expression *expression, TokenType op) {
     this->expression = expression;
     this->op         = op;
     this->type       = ExpressionType::EXPRESSION_UNARY;
-    this->span       = Span{.line = expression->span.line, .start = op.span.start, .end = expression->span.end};
+    this->span       = expression->span;
 }
 
 SubscriptExpression::SubscriptExpression(Expression *lhs, Expression *expression) {
@@ -211,10 +211,11 @@ NumberLiteralExpression::NumberLiteralExpression(Token token) {
     this->span  = token.span;
 }
 
-StringLiteralExpression::StringLiteralExpression(Token token) {
+StringLiteralExpression::StringLiteralExpression(TokenIndex token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_STRING_LITERAL;
-    this->span  = Span{.line = token.span.line, .start = token.span.start, .end = token.span.end};
+    // TODO: fix this
+    this->span  = Span{};
 }
 
 BoolLiteralExpression::BoolLiteralExpression(Token value) {

@@ -1,6 +1,6 @@
 #include "token.h"
 
-const char *TokenTypeStrings[49] = {"int Literal", "string Literal",
+const char *TokenTypeStrings[49] = {"int literal", "str literal",
                                     "identifier",  "let",
                                     "fn",          "(",
                                     ")",           "{",

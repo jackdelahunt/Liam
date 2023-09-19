@@ -267,12 +267,14 @@ struct FnStatement : Statement {
 };
 
 struct StructStatement : Statement {
-    Token identifier;
+    TokenIndex identifier;
     std::vector<Token> generics;
     CSV members;
     u8 flag_mask;
 
-    StructStatement(CompilationUnit *file, Token identifier, std::vector<Token> generics, CSV members, u8 flag_mask);
+    StructStatement(
+        CompilationUnit *file, TokenIndex identifier, std::vector<Token> generics, CSV members, u8 flag_mask
+    );
 };
 
 struct AssigmentStatement : Statement {
@@ -342,17 +344,17 @@ std::ostream &operator<<(std::ostream &os, const Expression &expression);
 
 struct BinaryExpression : Expression {
     Expression *left;
-    Token op;
+    TokenType op;
     Expression *right;
 
-    BinaryExpression(Expression *left, Token op, Expression *right);
+    BinaryExpression(Expression *left, TokenType op, Expression *right);
 };
 
 struct UnaryExpression : Expression {
-    Token op;
+    TokenType op;
     Expression *expression;
 
-    UnaryExpression(Expression *expression, Token op);
+    UnaryExpression(Expression *expression, TokenType op);
 };
 
 struct SubscriptExpression : Expression {
@@ -370,9 +372,9 @@ struct NumberLiteralExpression : Expression {
 };
 
 struct StringLiteralExpression : Expression {
-    Token token;
+    TokenIndex token;
 
-    StringLiteralExpression(Token token);
+    StringLiteralExpression(TokenIndex token);
 };
 
 struct BoolLiteralExpression : Expression {

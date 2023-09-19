@@ -47,7 +47,7 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement) {
     std::string source = "";
 
     source.append(emit_cpp_template_declaration(&statement->generics));
-    source.append("struct " + statement->identifier.string + ";\n");
+    source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + ";\n");
 
     return source;
 }
@@ -262,7 +262,7 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
 
     source.append(emit_cpp_template_declaration(&statement->generics));
 
-    source.append("struct " + statement->identifier.string + " {");
+    source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + " {");
     // members
     for (auto [identifier, type] : statement->members)
     {
@@ -410,7 +410,7 @@ std::string CppBackend::emit_expression(Expression *expression) {
 std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
     auto source = std::string();
     source.append(emit_expression(expression->left));
-    switch (expression->op.type)
+    switch (expression->op)
     {
     case TokenType::TOKEN_PLUS:
         source.append(" + ");
@@ -461,8 +461,9 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
 }
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
-    return "LiamInternal::make_str((char*)\"" + expression->token.string + "\", " +
-           std::to_string(string_literal_length(&expression->token.string)) + ")";
+    std::string literal_string = this->current_file->get_token_string_from_index(expression->token);
+    return "LiamInternal::make_str((char*)\"" + literal_string + "\", " +
+           std::to_string(string_literal_length(&literal_string)) + ")";
 }
 
 std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression) {
@@ -510,15 +511,15 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
 }
 
 std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {
-    if (expression->op.type == TokenType::TOKEN_AMPERSAND)
+    if (expression->op == TokenType::TOKEN_AMPERSAND)
     {
         return "&(" + emit_expression(expression->expression) + ")";
     }
-    else if (expression->op.type == TokenType::TOKEN_STAR)
+    else if (expression->op == TokenType::TOKEN_STAR)
     {
         return "*(" + emit_expression(expression->expression) + ")";
     }
-    else if (expression->op.type == TokenType::TOKEN_NOT)
+    else if (expression->op == TokenType::TOKEN_NOT)
     {
         return "!(" + emit_expression(expression->expression) + ")";
     }
