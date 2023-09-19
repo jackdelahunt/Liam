@@ -462,7 +462,7 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
     std::string literal_string = this->current_file->get_token_string_from_index(expression->token);
-    return "LiamInternal::make_str((char*)\"" + literal_string + "\", " +
+    return "LiamInternal::make_str((char*)" + literal_string + ", " +
            std::to_string(string_literal_length(&literal_string)) + ")";
 }
 
