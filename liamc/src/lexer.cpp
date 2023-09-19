@@ -178,7 +178,7 @@ CompilationUnit *Lexer::lex() {
             this->token_buffer.emplace_back(TokenType::TOKEN_NOT, this->current_index, this->current_index);
             break;
         case '"': {
-            u64 start       = current_character;
+            u64 start       = this->current_index;
             std::string str = std::string();
 
             next_char();
