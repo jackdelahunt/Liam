@@ -95,7 +95,6 @@ struct TypeChecker {
     void type_check_null_literal_expression(NullLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_zero_literal_expression(ZeroLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_fn_expression(FnExpression *expression, SymbolTable *symbol_table);
-    void type_check_slice_literal_expression(SliceLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table);
     void type_check_struct_instance_expression(StructInstanceExpression *expression, SymbolTable *symbol_table);
 

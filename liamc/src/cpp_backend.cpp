@@ -391,9 +391,6 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_FN:
         return emit_fn_expression(dynamic_cast<FnExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_SLICE_LITERAL:
-        return emit_slice_literal_expression(dynamic_cast<SliceLiteralExpression *>(expression));
-        break;
     case ExpressionType::EXPRESSION_INSTANTIATION:
         return emit_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
         break;
@@ -644,31 +641,6 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
     }
     source.append(")");
     source.append(emit_scope_statement(expression->body));
-    return source;
-}
-
-std::string CppBackend::emit_slice_literal_expression(SliceLiteralExpression *expression) {
-    std::string source;
-    // LiamInternal::PointerSlice<T>{.ptr = (T[size]){...}, .size = size}
-    auto type_expression_source = emit_type_expression(expression->type_expression);
-    source.append("LiamInternal::PointerSlice<");
-    source.append(type_expression_source);
-    source.append(">{.ptr = (" + type_expression_source + "[" + std::to_string(expression->expressions.size()) + "]){");
-
-    int index = 0;
-
-    for (auto expr : expression->expressions)
-    {
-        source.append(emit_expression(expr));
-        if (index + 1 < expression->expressions.size())
-        {
-            source.append(", ");
-        }
-        index++;
-    }
-
-    source.append("}, .size = " + std::to_string(expression->expressions.size()) + "}");
-
     return source;
 }
 

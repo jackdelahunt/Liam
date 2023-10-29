@@ -33,7 +33,6 @@ struct GroupExpression;
 struct NullLiteralExpression;
 struct ZeroLiteralExpression;
 struct FnExpression;
-struct SliceLiteralExpression;
 struct InstantiateExpression;
 struct StructInstanceExpression;
 struct TypeExpression;
@@ -426,13 +425,6 @@ struct FnExpression : Expression {
     FnExpression(
         std::vector<std::tuple<Token, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
     );
-};
-
-struct SliceLiteralExpression : Expression {
-    TypeExpression *type_expression;
-    std::vector<Expression *> expressions;
-
-    SliceLiteralExpression(TypeExpression *type_expression, std::vector<Expression *> expressions);
 };
 
 struct InstantiateExpression : Expression {
