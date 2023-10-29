@@ -57,11 +57,6 @@ struct FnExpressionTypeInfo;
 
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
-enum Tags {
-    TAG_EXTERN  = 0b00000001,
-    TAG_PRIVATE = 0b00000010
-};
-
 enum class StatementType {
     STATEMENT_EXPRESSION,
     STATEMENT_LET,
@@ -171,13 +166,11 @@ struct TypeTypeInfo : TypeInfo {
 };
 
 struct StructTypeInfo : TypeInfo {
-    u8 flag_mask;
-
     std::vector<std::tuple<std::string, FnTypeInfo *>> member_functions;
     std::vector<std::tuple<std::string, TypeInfo *>> members;
 
     StructTypeInfo(
-        u8 flag_mask, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+        std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
         std::vector<std::tuple<std::string, TypeInfo *>> members);
 };
 
@@ -188,14 +181,12 @@ struct StructInstanceTypeInfo : TypeInfo {
 };
 
 struct FnTypeInfo : TypeInfo {
-    u8 flag_mask;
-
     StructTypeInfo *parent_type;
     TypeInfo *return_type;
     std::vector<TypeInfo *> args;
 
     FnTypeInfo(
-        u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args
+        StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args
     );
 };
 
@@ -241,21 +232,19 @@ struct FnStatement : Statement {
     CSV params;
     TypeExpression *return_type;
     ScopeStatement *body;
-    u8 flag_mask;
 
     FnStatement(
         CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier,
-        CSV params, TypeExpression *type, ScopeStatement *body, u8 flag_mask
+        CSV params, TypeExpression *type, ScopeStatement *body
     );
 };
 
 struct StructStatement : Statement {
     TokenIndex identifier;
     CSV members;
-    u8 flag_mask;
 
     StructStatement(
-        CompilationUnit *file, TokenIndex identifier, CSV members, u8 flag_mask
+        CompilationUnit *file, TokenIndex identifier, CSV members
     );
 };
 

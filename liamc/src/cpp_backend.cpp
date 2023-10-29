@@ -41,9 +41,6 @@ std::string CppBackend::emit(CompilationUnit *file) {
 }
 
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
-    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
-        return "";
-
     std::string source = "";
 
     source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + ";\n");
@@ -52,9 +49,6 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement) {
 }
 
 std::string CppBackend::forward_declare_function(FnStatement *statement) {
-    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
-        return "";
-
     std::string source = "";
 
     source.append(emit_type_expression(statement->return_type) + " ");
@@ -185,9 +179,6 @@ std::string CppBackend::emit_scope_statement(ScopeStatement *statement) {
 }
 
 std::string CppBackend::emit_fn_statement(FnStatement *statement) {
-    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
-        return "";
-
     auto source = std::string();
     source.append(emit_type_expression(statement->return_type) + " ");
 
@@ -237,9 +228,6 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 }
 
 std::string CppBackend::emit_struct_statement(StructStatement *statement) {
-    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
-        return "";
-
     auto source = std::string();
 
     source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + " {");
