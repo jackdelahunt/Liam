@@ -17,7 +17,7 @@ Lexer::Lexer(FileData *file_data) {
     this->current_index     = 0;
     this->current_line      = 1;
     this->current_character = 1;
-    this->token_buffer      = std::vector<TokenData>();
+    this->token_buffer      = std::vector<Token>();
 
     ASSERT(this->file_data->data);
 }
