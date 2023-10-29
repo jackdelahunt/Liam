@@ -83,9 +83,10 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
     }
 
     int index = 0;
-    for (auto [identifier, type] : statement->params)
+    for (auto [token_index, type] : statement->params)
     {
-        source.append(emit_type_expression(type) + " " + identifier.string);
+        std::string identifier_string = this->current_file->get_token_string_from_index(token_index);
+        source.append(emit_type_expression(type) + " " + identifier_string);
         if (index + 1 < statement->params.size())
         {
             source.append(", ");
@@ -215,7 +216,8 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 
     for (auto [identifier, type] : statement->params)
     {
-        source.append(emit_type_expression(type) + " " + identifier.string);
+        std::string identifier_string = this->current_file->get_token_string_from_index(identifier);
+        source.append(emit_type_expression(type) + " " + identifier_string);
         if (index + 1 < statement->params.size())
         {
             source.append(", ");
@@ -232,10 +234,10 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
 
     source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + " {");
     // members
-    for (auto [identifier, type] : statement->members)
+    for (auto [identifier_token_index, type] : statement->members)
     {
         source.append("\n" + emit_type_expression(type) + " ");
-        source.append(identifier.string + ";");
+        source.append(this->current_file->get_token_string_from_index(identifier_token_index) + ";");
     }
 
     source.append("};\n");
@@ -551,17 +553,20 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
 
     // TODO: verify this code makes sense I am re-reading it and I dont know how it works
     // to stop conflicts with members functions we emit __func for the get expression
+
+    std::string member_string = this->current_file->get_token_string_from_index(expression->member);
+
     if (expression->type_info->type == TypeInfoType::FN)
     {
-        return "__" + expression->member.string;
+        return "__" + member_string;
     }
 
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     {
-        return emit_expression(expression->lhs) + "->" + expression->member.string;
+        return emit_expression(expression->lhs) + "->" + member_string;
     }
 
-    return emit_expression(expression->lhs) + "." + expression->member.string;
+    return emit_expression(expression->lhs) + "." + member_string;
 }
 
 std::string CppBackend::emit_group_expression(GroupExpression *expression) {
@@ -583,7 +588,8 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
 
     for (auto [identifier, type] : expression->params)
     {
-        source.append(emit_type_expression(type) + " " + identifier.string);
+        std::string identifier_string = this->current_file->get_token_string_from_index(identifier);
+        source.append(emit_type_expression(type) + " " + identifier_string);
         if (index + 1 < expression->params.size())
         {
             source.append(", ");
@@ -618,7 +624,8 @@ std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression
         struct_type_info = ((StructInstanceTypeInfo *)expression->type_info)->struct_type;
     }
 
-    source.append(expression->identifier.string);
+    std::string identifier_string = this->current_file->get_token_string_from_index(expression->identifier);
+    source.append(identifier_string);
 
     source.append("{");
     int index = 0;
@@ -688,7 +695,7 @@ std::string CppBackend::emit_fn_type_expression(FnTypeExpression *type_expressio
 }
 
 std::string CppBackend::emit_identifier_type_expression(IdentifierTypeExpression *type_expression) {
-    return type_expression->identifier.string;
+    return this->current_file->get_token_string_from_index(type_expression->identifier);
 }
 
 std::string strip_semi_colon(std::string str) {

@@ -31,10 +31,7 @@ struct SymbolTable {
     SymbolTable(CompilationUnit *current_file);
     SymbolTable() = default; // removing this makes a compile error... why? lululul
 
-    void add_local_type(Token type, TypeInfo *type_info);
-    void add_identifier(Token identifier, TypeInfo *type_info);
     void add_identifier(std::string identifier, TypeInfo *type_info);
-    std::tuple<TypeInfo *, bool> get_identifier(Token identifier);
     std::tuple<TypeInfo *, bool> get_identifier(std::string identifier);
     void add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info);
     SymbolTable copy();
@@ -49,13 +46,9 @@ struct TypeChecker {
 
     TypeChecker();
 
-    void add_type(CompilationUnit *file, Token identifier, TypeInfo *type_info);
     void add_type(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info);
-    void add_function(CompilationUnit *file, Token identifier, TypeInfo *type_info);
     void add_function(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info);
-    std::tuple<TypeInfo *, bool> get_type(Token *identifier);
     std::tuple<TypeInfo *, bool> get_type(std::string identifier);
-    std::tuple<TypeInfo *, bool> get_function(Token *identifier);
     std::tuple<TypeInfo *, bool> get_function(std::string identifier);
 
     void type_check(CompilationUnit *file);
