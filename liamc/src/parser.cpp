@@ -167,18 +167,8 @@ FnStatement *Parser::eval_fn_statement() {
 
     auto type = TRY_CALL_RET(eval_type_expression(), NULL);
 
-    u8 tag_mask = TRY_CALL_RET(consume_tags(), NULL);
-
-    if (BIT_SET(tag_mask, TAG_EXTERN))
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-        return new FnStatement(compilation_unit, parent_type, identifier, params, type, NULL, tag_mask);
-    }
-    else
-    {
-        auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-        return new FnStatement(compilation_unit, parent_type, identifier, params, type, body, tag_mask);
-    }
+    auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
+    return new FnStatement(compilation_unit, parent_type, identifier, params, type, body);
 }
 
 StructStatement *Parser::eval_struct_statement() {
@@ -186,13 +176,11 @@ StructStatement *Parser::eval_struct_statement() {
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
-    u8 tag_mask = TRY_CALL_RET(consume_tags(), NULL);
-
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    return new StructStatement(compilation_unit, identifier, member, tag_mask);
+    return new StructStatement(compilation_unit, identifier, member );
 }
 
 ReturnStatement *Parser::eval_return_statement() {
@@ -808,51 +796,4 @@ std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_nam
     }
 
     return named_args;
-}
-
-// @extern @private
-u8 Parser::consume_tags() {
-    u8 flag_mask = 0;
-
-    // consume possible tage
-    while (peek()->type == TokenType::TOKEN_TAG)
-    {
-        Token tag = *TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_TAG), NULL);
-
-        if (compare_string(tag.string, "@extern"))
-        {
-            if (BIT_SET(flag_mask, TAG_EXTERN))
-            {
-                goto duplicate_error;
-            }
-
-            SET_BIT(flag_mask, TAG_EXTERN);
-            continue;
-        }
-        else if (compare_string(tag.string, "@private"))
-        {
-            if (BIT_SET(flag_mask, TAG_PRIVATE))
-            {
-                goto duplicate_error;
-            }
-
-            SET_BIT(flag_mask, TAG_PRIVATE);
-            continue;
-        }
-        else
-        {
-            ErrorReporter::report_parser_error(
-                this->compilation_unit->file_data->path.string(), tag.span, "Unknown tag give \"" + tag.string + "\""
-            );
-            return 0;
-        }
-
-    duplicate_error:
-        ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), tag.span, "Duplicate tag given for \"" + tag.string + "\""
-        );
-        return true;
-    }
-
-    return flag_mask;
 }

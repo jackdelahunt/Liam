@@ -244,7 +244,7 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
     this->add_function(
-        this->compilation_unit, statement->identifier, new FnTypeInfo(statement->flag_mask, NULL, NULL, {})
+        this->compilation_unit, statement->identifier, new FnTypeInfo(NULL, NULL, {})
     );
 }
 
@@ -267,7 +267,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
 
     this->add_type(
         this->compilation_unit, statement->identifier,
-        new StructTypeInfo(statement->flag_mask, {}, {})
+        new StructTypeInfo({}, {})
     );
 }
 
@@ -302,7 +302,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         parent_type_info->member_functions.push_back(
             {this->compilation_unit->get_token_string_from_index(statement->identifier),
              new FnTypeInfo(
-                 statement->flag_mask, parent_type_info, statement->return_type->type_info,
+                 parent_type_info, statement->return_type->type_info,
                  param_type_infos
              )}
         );
@@ -321,10 +321,6 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
 }
 
 void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
-
-    if (BIT_SET(statement->flag_mask, TAG_EXTERN))
-        return;
-
     SymbolTable symbol_table = SymbolTable(compilation_unit);
 
     // getting the already existing type info for the function is done in 2 ways

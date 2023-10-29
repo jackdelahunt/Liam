@@ -34,9 +34,8 @@ TypeTypeInfo::TypeTypeInfo() {
 }
 
 StructTypeInfo::StructTypeInfo(
-    u8 flag_mask, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
     std::vector<std::tuple<std::string, TypeInfo *>> members) {
-    this->flag_mask        = flag_mask;
     this->member_functions = memberFunctions;
     this->members          = members;
     this->type             = TypeInfoType::STRUCT;
@@ -48,10 +47,9 @@ StructInstanceTypeInfo::StructInstanceTypeInfo(StructTypeInfo *structType) {
 }
 
 FnTypeInfo::FnTypeInfo(
-    u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType,
+    StructTypeInfo *parentType, TypeInfo *returnType,
     std::vector<TypeInfo *> args
 ) {
-    this->flag_mask          = flag_mask;
     this->parent_type        = parentType;
     this->return_type        = returnType;
     this->args               = args;
@@ -97,7 +95,7 @@ ScopeStatement::ScopeStatement(CompilationUnit *file, std::vector<Statement *> s
 
 FnStatement::FnStatement(
     CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, CSV params,
-    TypeExpression *type, ScopeStatement *body, u8 flag_mask
+    TypeExpression *type, ScopeStatement *body
 ) {
     this->file           = file;
     this->parent_type    = parent_type;
@@ -105,17 +103,15 @@ FnStatement::FnStatement(
     this->return_type    = type;
     this->params         = params;
     this->body           = body;
-    this->flag_mask      = flag_mask;
     this->statement_type = StatementType::STATEMENT_FN;
 }
 
 StructStatement::StructStatement(
-    CompilationUnit *file, TokenIndex identifier, CSV members, u8 flag_mask
+    CompilationUnit *file, TokenIndex identifier, CSV members
 ) {
     this->file           = file;
     this->identifier     = identifier;
     this->members        = members;
-    this->flag_mask      = flag_mask;
     this->statement_type = StatementType::STATEMENT_STRUCT;
 }
 
