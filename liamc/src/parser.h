@@ -83,7 +83,6 @@ struct Parser {
     TokenIndex consume_token_with_index();
     i32 find_balance_point(TokenType push, TokenType pull, i32 from);
     TokenIndex consume_token_of_type_with_index(TokenType type);
-    Token *get_token_data(TokenIndex token_index);
     std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
     std::vector<TokenIndex > consume_comma_seperated_token_arguments(TokenType closer);
