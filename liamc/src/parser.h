@@ -79,19 +79,17 @@ struct Parser {
     TypeExpression *eval_type_fn();
 
     bool match(TokenType type);
-    inline Token *peek(i32 offset = 0);
-    Token *consume_token();
+    TokenData *peek(i32 offset = 0);
     TokenIndex consume_token_with_index();
     i32 find_balance_point(TokenType push, TokenType pull, i32 from);
-    Token *consume_token_of_type(TokenType type);
     TokenIndex consume_token_of_type_with_index(TokenType type);
     TokenData *get_token_data(TokenIndex token_index);
     std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
-    std::vector<Token> consume_comma_seperated_token_arguments(TokenType closer);
-    std::vector<std::tuple<Token, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
+    std::vector<TokenIndex > consume_comma_seperated_token_arguments(TokenType closer);
+    std::vector<std::tuple<TokenIndex, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
     u8 consume_tags();
 
     // this is what CSV is
-    std::vector<std::tuple<Token, TypeExpression *>> consume_comma_seperated_params();
+    std::vector<std::tuple<TokenIndex, TypeExpression *>> consume_comma_seperated_params();
 };

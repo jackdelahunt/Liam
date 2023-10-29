@@ -21,7 +21,6 @@ TypeCheckerError TypeCheckerError::make(std::string file) {
         .expr_2         = NULL,
         .type_expr_1    = NULL,
         .type_expr_2    = NULL,
-        .related_tokens = std::vector<Token>(),
         .error          = ""};
 
     return error;
@@ -44,11 +43,6 @@ TypeCheckerError &TypeCheckerError::set_type_expr_1(TypeExpression *type_express
 
 TypeCheckerError &TypeCheckerError::set_type_expr_2(TypeExpression *type_expression) {
     this->type_expr_2 = type_expression;
-    return *this;
-}
-
-TypeCheckerError &TypeCheckerError::add_related_token(Token token) {
-    this->related_tokens.push_back(token);
     return *this;
 }
 
@@ -83,11 +77,6 @@ void TypeCheckerError::print_error_message() {
     {
         write_error_annotation_at_span(&file, this->type_expr_2->span);
     }
-
-    for (auto &token : this->related_tokens)
-    {
-        write_error_annotation_at_span(&file, token.span);
-    }
 }
 
 ErrorReporter::ErrorReporter() {
@@ -107,7 +96,7 @@ void ErrorReporter::report_parser_error(std::string file, Span span, std::string
 
 void ErrorReporter::report_type_checker_error(
     std::string file, Expression *expr_1, Expression *expr_2, TypeExpression *type_expr_1, TypeExpression *type_expr_2,
-    std::vector<Token> related_tokens, std::string message
+    std::string message
 ) {
     if (ErrorReporter::singleton == nullptr)
     {
@@ -120,7 +109,6 @@ void ErrorReporter::report_type_checker_error(
         .expr_2         = expr_2,
         .type_expr_1    = type_expr_1,
         .type_expr_2    = type_expr_2,
-        .related_tokens = std::move(related_tokens),
         .error          = std::move(message)});
 
     ErrorReporter::singleton->error_reported_since_last_check = true;

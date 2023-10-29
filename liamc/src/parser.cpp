@@ -16,7 +16,7 @@ Parser::Parser(CompilationUnit *compilation_unit) {
 }
 
 void Parser::parse() {
-    while (current < this->compilation_unit->tokens.size())
+    while (current < this->compilation_unit->token_buffer.size())
     {
         auto errors_before = ErrorReporter::error_count();
         auto stmt          = TRY_CALL(eval_top_level_statement());
@@ -48,7 +48,7 @@ void Parser::parse() {
 }
 
 Statement *Parser::eval_statement() {
-    switch (peek()->type)
+    switch (peek()->token_type)
     {
     case TokenType::TOKEN_LET:
         return eval_let_statement();
@@ -78,7 +78,7 @@ Statement *Parser::eval_statement() {
 }
 
 Statement *Parser::eval_top_level_statement() {
-    switch (peek()->type)
+    switch (peek()->token_type)
     {
     case TokenType::TOKEN_FN:
         return eval_fn_statement();
@@ -91,10 +91,11 @@ Statement *Parser::eval_top_level_statement() {
         break;
 
     default: {
-        auto token = *consume_token();
+        auto token = consume_token_with_index();
+        auto token_data = this->get_token_data(token);
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), token.span,
-            std::format("Unexpected token used to declare new statement at top level '{}'", token.string)
+            this->compilation_unit->file_data->path.string(), token_data->span,
+            std::format("Unexpected token used to declare new statement at top level '{}'", this->compilation_unit->get_token_string_from_index(token))
         );
         return NULL;
     }
@@ -102,24 +103,25 @@ Statement *Parser::eval_top_level_statement() {
 }
 
 LetStatement *Parser::eval_let_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LET), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_LET), NULL);
     TokenIndex identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
     TypeExpression *type = NULL;
 
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
-    if (peek()->type != TokenType::TOKEN_ASSIGN)
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON), NULL);
+    if (peek()->token_type != TokenType::TOKEN_ASSIGN)
     {
         type = TRY_CALL_RET(eval_type_expression(), NULL);
     }
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ASSIGN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_ASSIGN), NULL);
     auto expression = TRY_CALL_RET(eval_expression_statement(), NULL);
     return new LetStatement(compilation_unit, identifier, expression->expression, type);
 }
 
 ScopeStatement *Parser::eval_scope_statement() {
     auto statements = std::vector<Statement *>();
-    auto open_brace = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+    TokenIndex open_brace_token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
+    TokenData* open_brace_token_data = this->get_token_data(open_brace_token_index);
     i32 closing_brace_index =
         find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, current - 1);
     // if (closing_brace_index == current + 1)
@@ -130,7 +132,7 @@ ScopeStatement *Parser::eval_scope_statement() {
     if (closing_brace_index < 0)
     {
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), open_brace->span, "No closing brace for scope found"
+            this->compilation_unit->file_data->path.string(), open_brace_token_data->span, "No closing brace for scope found"
         );
         return NULL;
     }
@@ -140,30 +142,30 @@ ScopeStatement *Parser::eval_scope_statement() {
         auto statement = TRY_CALL_RET(eval_statement(), NULL);
         statements.push_back(statement);
     }
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
     return new ScopeStatement(compilation_unit, statements);
 }
 
 FnStatement *Parser::eval_fn_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FN), NULL);
 
     TypeExpression *parent_type = NULL;
 
     // check if there is a ( identifier ), if so it means this is a member function
-    if (peek()->type == TokenType::TOKEN_PAREN_OPEN)
+    if (peek()->token_type == TokenType::TOKEN_PAREN_OPEN)
     {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
         parent_type = TRY_CALL_RET(eval_type_expression(), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
     }
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
 
     auto params = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
 
     auto type = TRY_CALL_RET(eval_type_expression(), NULL);
 
@@ -172,28 +174,28 @@ FnStatement *Parser::eval_fn_statement() {
 }
 
 StructStatement *Parser::eval_struct_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_STRUCT), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRUCT), NULL);
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
     return new StructStatement(compilation_unit, identifier, member );
 }
 
 ReturnStatement *Parser::eval_return_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_RETURN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_RETURN), NULL);
 
     Expression *expression = NULL;
 
-    if (peek()->type != TokenType::TOKEN_SEMI_COLON)
+    if (peek()->token_type != TokenType::TOKEN_SEMI_COLON)
     {
         expression = TRY_CALL_RET(eval_expression(), NULL);
     }
 
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
 
     return new ReturnStatement(compilation_unit, expression);
 }
@@ -201,15 +203,15 @@ ReturnStatement *Parser::eval_return_statement() {
 BreakStatement *Parser::eval_break_statement() {
     // might just use an expression statement for this but for now it is a
     // string lit
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BREAK), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BREAK), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
     return new BreakStatement(compilation_unit);
 }
 
 ImportStatement *Parser::eval_import_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IMPORT), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IMPORT), NULL);
     auto import_path = dynamic_cast<StringLiteralExpression *>(TRY_CALL_RET(eval_string_literal(), NULL));
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
 
     ASSERT_MSG(import_path != NULL, "Even though it is returning a expression we always assume it is a StringLiteral");
 
@@ -217,13 +219,13 @@ ImportStatement *Parser::eval_import_statement() {
 }
 
 ForStatement *Parser::eval_for_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FOR), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FOR), NULL);
 
     auto assign = TRY_CALL_RET(eval_statement(), NULL);
 
     auto condition = TRY_CALL_RET(eval_expression(), NULL);
 
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
     auto update = TRY_CALL_RET(eval_statement(), NULL);
 
     auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
@@ -232,14 +234,14 @@ ForStatement *Parser::eval_for_statement() {
 }
 
 IfStatement *Parser::eval_if_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IF), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IF), NULL);
     auto expression = TRY_CALL_RET(eval_expression(), NULL);
     auto body       = TRY_CALL_RET(eval_scope_statement(), NULL);
 
     // next statement might be else so check if the next token is an 'else'
     // if so capture it and own it else just leave the else statement as NULL
     ElseStatement *else_statement = NULL;
-    if (peek()->type == TokenType::TOKEN_ELSE)
+    if (peek()->token_type == TokenType::TOKEN_ELSE)
     {
         else_statement = TRY_CALL_RET(eval_else_statement(), NULL);
     }
@@ -248,10 +250,10 @@ IfStatement *Parser::eval_if_statement() {
 }
 
 ElseStatement *Parser::eval_else_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ELSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_ELSE), NULL);
 
     // check if it is an else if
-    if (peek()->type == TokenType::TOKEN_IF)
+    if (peek()->token_type == TokenType::TOKEN_IF)
     {
         auto if_statement = TRY_CALL_RET(eval_if_statement(), NULL);
         return new ElseStatement(if_statement, NULL);
@@ -263,30 +265,30 @@ ElseStatement *Parser::eval_else_statement() {
 
 ExpressionStatement *Parser::eval_expression_statement() {
     auto expression = TRY_CALL_RET(eval_expression(), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
 
     return new ExpressionStatement(compilation_unit, expression);
 }
 
 ContinueStatement *Parser::eval_continue_statement() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_CONTINUE), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_CONTINUE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
     return new ContinueStatement(compilation_unit);
 }
 
 Statement *Parser::eval_line_starting_expression() {
     auto lhs = TRY_CALL_RET(eval_expression(), NULL);
 
-    if (peek()->type == TokenType::TOKEN_ASSIGN)
+    if (peek()->token_type == TokenType::TOKEN_ASSIGN)
     {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_ASSIGN), NULL);
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_ASSIGN), NULL);
         auto rhs = TRY_CALL_RET(eval_expression_statement(), NULL);
 
         return new AssigmentStatement(compilation_unit, lhs, rhs);
     }
 
     // not assign, after eval expresion only semi colon is left
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
     return new ExpressionStatement(compilation_unit, lhs);
 }
 
@@ -407,23 +409,22 @@ Expression *Parser::eval_postfix() {
     {
         if (match(TokenType::TOKEN_PAREN_OPEN) || match(TokenType::TOKEN_COLON))
         {
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
             auto call_args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
 
             expr = new CallExpression(expr, call_args);
         }
         else if (match(TokenType::TOKEN_DOT))
         {
-            consume_token();
-            auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-            expr            = new GetExpression(expr, *identifier);
+            consume_token_with_index();
+            auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL); expr            = new GetExpression(expr, identifier);
         }
         else if (match(TokenType::TOKEN_BRACKET_OPEN))
         {
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN), NULL);
             auto subscript_by = TRY_CALL_RET(eval_postfix(), NULL);
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE), NULL);
 
             expr = new SubscriptExpression(expr, subscript_by);
         }
@@ -437,7 +438,7 @@ Expression *Parser::eval_postfix() {
 }
 
 Expression *Parser::eval_primary() {
-    auto type = peek()->type;
+    auto type = peek()->token_type;
 
     if (type == TokenType::TOKEN_NUMBER_LITERAL)
         return new NumberLiteralExpression(consume_token_with_index());
@@ -452,17 +453,18 @@ Expression *Parser::eval_primary() {
     else if (type == TokenType::TOKEN_PAREN_OPEN)
         return eval_group_expression();
     else if (type == TokenType::TOKEN_NULL)
-        return new NullLiteralExpression(*consume_token());
+        return new NullLiteralExpression(consume_token_with_index());
     else if (type == TokenType::TOKEN_ZERO)
-        return new ZeroLiteralExpression(*consume_token());
+        return new ZeroLiteralExpression(consume_token_with_index());
     else if (type == TokenType::TOKEN_FN)
         return TRY_CALL_RET(eval_fn(), NULL);
     else
     {
-        auto token = *consume_token();
+        auto token = consume_token_with_index();
+        auto token_data = this->get_token_data(token);
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), token.span,
-            std::format("Unexpected token when parsing expression '{}'", get_token_type_string(token.type))
+            this->compilation_unit->file_data->path.string(), token_data->span,
+            std::format("Unexpected token when parsing expression '{}'", get_token_type_string(this->compilation_unit->token_buffer[token].token_type))
         );
         return NULL;
     }
@@ -477,11 +479,11 @@ Expression *Parser::eval_string_literal() {
 }
 
 Expression *Parser::eval_fn() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FN), NULL);
 
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
     auto params = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
 
     auto type = TRY_CALL_RET(eval_type_expression(), NULL);
 
@@ -490,25 +492,25 @@ Expression *Parser::eval_fn() {
 }
 
 Expression *Parser::eval_instantiate_expression() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_NEW), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_NEW), NULL);
     Expression *expression = TRY_CALL_RET(eval_struct_instance_expression(), NULL);
     return new InstantiateExpression(expression);
 }
 
 Expression *Parser::eval_struct_instance_expression() {
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
+    auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
     auto named_expressions = TRY_CALL_RET(consume_comma_seperated_named_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new StructInstanceExpression(*identifier, named_expressions);
+    return new StructInstanceExpression(identifier, named_expressions);
 }
 
 Expression *Parser::eval_group_expression() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
     auto expr = TRY_CALL_RET(eval_expression(), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
     return new GroupExpression(expr);
 }
 
@@ -525,11 +527,11 @@ TypeExpression *Parser::eval_type_expression() {
 TypeExpression *Parser::eval_type_unary() {
 
     // ^..
-    if (match(TokenType::TOKEN_HAT) && peek(1)->type == TokenType::TOKEN_DOT && peek(2)->type == TokenType::TOKEN_DOT)
+    if (match(TokenType::TOKEN_HAT) && peek(1)->token_type == TokenType::TOKEN_DOT && peek(2)->token_type == TokenType::TOKEN_DOT)
     {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_HAT), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_DOT), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_DOT), NULL);
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_HAT), NULL);
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_DOT), NULL);
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_DOT), NULL);
 
         auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
         return new UnaryTypeExpression(UnaryType::POINTER_SLICE, type_expression);
@@ -538,7 +540,7 @@ TypeExpression *Parser::eval_type_unary() {
     // ^
     if (match(TokenType::TOKEN_HAT))
     {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_HAT), NULL);
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_HAT), NULL);
 
         auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
         return new UnaryTypeExpression(UnaryType::POINTER, type_expression);
@@ -549,20 +551,20 @@ TypeExpression *Parser::eval_type_unary() {
 
 TypeExpression *Parser::eval_type_primary() {
 
-    if (peek()->type == TokenType::TOKEN_FN)
+    if (peek()->token_type == TokenType::TOKEN_FN)
     {
         return TRY_CALL_RET(eval_type_fn(), NULL);
     }
 
-    auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
-    return new IdentifierTypeExpression(*identifier);
+    auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
+    return new IdentifierTypeExpression(identifier);
 }
 
 TypeExpression *Parser::eval_type_fn() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_FN), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FN), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
     auto params = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_PAREN_CLOSE), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
 
     auto return_type = TRY_CALL_RET(eval_type_expression(), NULL);
 
@@ -573,15 +575,15 @@ i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
     i32 current_index = from;
     i32 balance       = 0;
 
-    while (current_index < this->compilation_unit->tokens.size())
+    while (current_index < this->compilation_unit->token_buffer.size())
     {
-        if (this->compilation_unit->tokens.at(current_index).type == push)
+        if (this->compilation_unit->token_buffer.at(current_index).token_type == push)
         {
             balance++;
             if (balance == 0)
                 return current_index;
         }
-        if (this->compilation_unit->tokens.at(current_index).type == pull)
+        if (this->compilation_unit->token_buffer.at(current_index).token_type == pull)
         {
             balance--;
             if (balance == 0)
@@ -595,56 +597,25 @@ i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
 }
 
 bool Parser::match(TokenType type) {
-    if (this->compilation_unit->tokens.size() > 0)
-        return peek()->type == type;
+    if (this->compilation_unit->token_buffer.size() > 0)
+        return peek()->token_type == type;
 
     return false;
 }
 
-Token *Parser::peek(i32 offset) {
-    return &this->compilation_unit->tokens.at(current + offset);
-}
-
-Token *Parser::consume_token() {
-    if (current >= this->compilation_unit->tokens.size())
-        panic("No more tokens to consume");
-
-    return &this->compilation_unit->tokens.at(current++);
+TokenData *Parser::peek(i32 offset) {
+    return &this->compilation_unit->token_buffer.at(current + offset);
 }
 
 TokenIndex Parser::consume_token_with_index() {
-    if (current >= this->compilation_unit->tokens.size())
+    if (current >= this->compilation_unit->token_buffer.size())
         panic("No more tokens to consume");
 
     return this->current++;
 }
 
-Token *Parser::consume_token_of_type(TokenType type) {
-    if (current >= this->compilation_unit->tokens.size())
-    {
-        auto last_token = this->compilation_unit->tokens.at(this->compilation_unit->tokens.size() - 1);
-        ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), last_token.span,
-            std::format("Expected '{}' but got unexpected end of file", last_token.string)
-        );
-        return NULL;
-    }
-
-    auto t_ptr = &this->compilation_unit->tokens.at(current++);
-    if (t_ptr->type != type)
-    {
-        ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), t_ptr->span,
-            std::format("Expected '{}' got '{}'", get_token_type_string(type), t_ptr->string)
-        );
-        return NULL;
-    }
-
-    return t_ptr;
-}
-
 TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
-    if (this->current >= this->compilation_unit->tokens.size())
+    if (this->current >= this->compilation_unit->token_buffer.size())
     {
         TokenData last_token_data =
             this->compilation_unit->token_buffer.at(this->compilation_unit->token_buffer.size() - 1);
@@ -670,6 +641,7 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
 }
 
 TokenData *Parser::get_token_data(TokenIndex token_index) {
+    return &this->compilation_unit->token_buffer[token_index];
 }
 
 // e.g. (0, "hello sailor", ...)
@@ -697,8 +669,8 @@ std::vector<Expression *> Parser::consume_comma_seperated_arguments(TokenType cl
 }
 
 // e.g. [X, Y, Z, ...]
-std::vector<Token> Parser::consume_comma_seperated_token_arguments(TokenType closer) {
-    auto args     = std::vector<Token>();
+std::vector<TokenIndex> Parser::consume_comma_seperated_token_arguments(TokenType closer) {
+    auto args     = std::vector<TokenIndex>();
     bool is_first = true;
     if (!match(closer))
     {
@@ -708,8 +680,8 @@ std::vector<Token> Parser::consume_comma_seperated_token_arguments(TokenType clo
                 current++; // only iterate current by one when it is not the
                            // first time
 
-            auto token = consume_token();
-            args.push_back(*token);
+            auto token = consume_token_with_index();
+            args.push_back(token);
 
             if (is_first)
                 is_first = false;
@@ -746,21 +718,20 @@ std::vector<TypeExpression *> Parser::consume_comma_seperated_types(TokenType cl
 
 // e.g. (int x, int y, ...)
 CSV Parser::consume_comma_seperated_params() {
-    auto args_types = std::vector<std::tuple<Token, TypeExpression *>>();
+    auto args_types = std::vector<std::tuple<TokenIndex, TypeExpression *>>();
     bool is_first   = true;
     if (!match(TokenType::TOKEN_PAREN_CLOSE) && !match(TokenType::TOKEN_BRACE_CLOSE))
     {
         do
         {
             if (!is_first)
-                current++; // only iterate current by one when it is not the
-                           // first time
+                current++; // only iterate current by one when it is not the first time
 
-            auto arg = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), {});
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), {});
+            auto arg = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), {});
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON), {});
             auto type = TRY_CALL_RET(eval_type_expression(), {});
 
-            args_types.emplace_back(*arg, type);
+            args_types.emplace_back(arg, type);
 
             if (is_first)
                 is_first = false;
@@ -771,8 +742,8 @@ CSV Parser::consume_comma_seperated_params() {
     return args_types;
 }
 
-std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_named_arguments(TokenType closer) {
-    auto named_args = std::vector<std::tuple<Token, Expression *>>();
+std::vector<std::tuple<TokenIndex , Expression *>> Parser::consume_comma_seperated_named_arguments(TokenType closer) {
+    auto named_args = std::vector<std::tuple<TokenIndex , Expression *>>();
     bool is_first   = true;
     if (!match(closer))
     {
@@ -782,12 +753,12 @@ std::vector<std::tuple<Token, Expression *>> Parser::consume_comma_seperated_nam
                 this->current++; // only iterate current by one when it is not the
             // first time
 
-            auto name = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), {});
+            TokenIndex name = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), {});
 
-            TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), {});
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON), {});
 
             auto expression = TRY_CALL_RET(eval_expression(), {});
-            named_args.emplace_back(*name, expression);
+            named_args.emplace_back(name, expression);
 
             if (is_first)
                 is_first = false;

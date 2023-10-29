@@ -55,7 +55,7 @@ struct StructInstanceTypeInfo;
 struct FnTypeInfo;
 struct FnExpressionTypeInfo;
 
-typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
+typedef std::vector<std::tuple<TokenIndex, TypeExpression *>> CSV;
 
 enum class StatementType {
     STATEMENT_EXPRESSION,
@@ -369,9 +369,9 @@ struct CallExpression : Expression {
 
 struct GetExpression : Expression {
     Expression *lhs;
-    Token member;
+    TokenIndex member;
 
-    GetExpression(Expression *expression, Token member);
+    GetExpression(Expression *expression, TokenIndex member);
 };
 
 struct GroupExpression : Expression {
@@ -381,20 +381,20 @@ struct GroupExpression : Expression {
 };
 
 struct NullLiteralExpression : Expression {
-    NullLiteralExpression(Token token);
+    NullLiteralExpression(TokenIndex token);
 };
 
 struct ZeroLiteralExpression : Expression {
-    ZeroLiteralExpression(Token token);
+    ZeroLiteralExpression(TokenIndex token);
 };
 
 struct FnExpression : Expression {
-    std::vector<std::tuple<Token, TypeExpression *>> params;
+   std::vector<std::tuple<TokenIndex , TypeExpression *>> params;
     TypeExpression *return_type;
     ScopeStatement *body;
 
     FnExpression(
-        std::vector<std::tuple<Token, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
+        std::vector<std::tuple<TokenIndex , TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
     );
 };
 
@@ -405,12 +405,12 @@ struct InstantiateExpression : Expression {
 };
 
 struct StructInstanceExpression : Expression {
-    Token identifier;
-    std::vector<std::tuple<Token, Expression *>> named_expressions;
+    TokenIndex identifier;
+    std::vector<std::tuple<TokenIndex, Expression *>> named_expressions;
 
     StructInstanceExpression(
-        Token identifier,
-        std::vector<std::tuple<Token, Expression *>> named_expressions
+        TokenIndex identifier,
+        std::vector<std::tuple<TokenIndex , Expression *>> named_expressions
     );
 };
 
@@ -425,9 +425,9 @@ struct TypeExpression {
 };
 
 struct IdentifierTypeExpression : TypeExpression {
-    Token identifier;
+    TokenIndex identifier;
 
-    IdentifierTypeExpression(Token identifier);
+    IdentifierTypeExpression(TokenIndex identifier);
 };
 
 struct UnaryTypeExpression : TypeExpression {

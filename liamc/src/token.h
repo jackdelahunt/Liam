@@ -62,15 +62,6 @@ struct Span {
     u64 end;
 };
 
-struct Token {
-    TokenType type;
-    Span span;
-    std::string string;
-
-    Token() = default;
-    Token(TokenType type, std::string string, u32 line, u32 start);
-};
-
 typedef u64 TokenIndex;
 
 struct TokenData {
