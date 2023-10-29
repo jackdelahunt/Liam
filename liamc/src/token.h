@@ -64,11 +64,11 @@ struct Span {
 
 typedef u64 TokenIndex;
 
-struct TokenData {
+struct Token {
     TokenType token_type;
     Span span;
 
-    TokenData(TokenType token_type, u64 start, u64 end);
+    Token(TokenType token_type, u64 start, u64 end);
 };
 
 std::string get_token_type_string(TokenType type);

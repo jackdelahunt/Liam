@@ -17,7 +17,7 @@ struct Lexer {
     i32 current_line;
     i32 current_character;
 
-    std::vector<TokenData> token_buffer;
+    std::vector<Token> token_buffer;
 
     Lexer(FileData *file_data);
 

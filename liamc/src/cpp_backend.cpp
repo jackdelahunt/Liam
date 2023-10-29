@@ -8,29 +8,29 @@
 
 std::string CppBackend::emit(CompilationUnit *file) {
 
-    this->current_file = file;
+    this->compilation_unit = file;
 
     std::string source_generated = "#include <core.h>\n#include<liam_stdlib.h>\n\n";
 
     // forward declarations
-    for (auto stmt : this->current_file->top_level_struct_statements)
+    for (auto stmt : this->compilation_unit->top_level_struct_statements)
     {
         source_generated.append(forward_declare_struct(stmt));
     }
 
-    for (auto stmt : this->current_file->top_level_fn_statements)
+    for (auto stmt : this->compilation_unit->top_level_fn_statements)
     {
         source_generated.append(forward_declare_function(stmt));
     }
 
     // bodys
-    for (auto stmt : this->current_file->top_level_struct_statements)
+    for (auto stmt : this->compilation_unit->top_level_struct_statements)
     {
         source_generated.append(emit_struct_statement(stmt));
     }
 
     // function bodys
-    for (auto stmt : this->current_file->top_level_fn_statements)
+    for (auto stmt : this->compilation_unit->top_level_fn_statements)
     {
         source_generated.append(emit_fn_statement(stmt));
     }
@@ -43,7 +43,7 @@ std::string CppBackend::emit(CompilationUnit *file) {
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
     std::string source = "";
 
-    source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + ";\n");
+    source.append("struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) + ";\n");
 
     return source;
 }
@@ -54,7 +54,7 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
     source.append(emit_type_expression(statement->return_type) + " ");
 
     // TODO dont do this string from token here
-    std::string name_as_string = this->current_file->get_token_string_from_index(statement->identifier);
+    std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
 
     if (name_as_string == "main")
     {
@@ -85,7 +85,7 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
     int index = 0;
     for (auto [token_index, type] : statement->params)
     {
-        std::string identifier_string = this->current_file->get_token_string_from_index(token_index);
+        std::string identifier_string = this->compilation_unit->get_token_string_from_index(token_index);
         source.append(emit_type_expression(type) + " " + identifier_string);
         if (index + 1 < statement->params.size())
         {
@@ -162,7 +162,7 @@ std::string CppBackend::emit_let_statement(LetStatement *statement) {
     {
         source.append("auto ");
     }
-    source.append(this->current_file->get_token_string_from_index(statement->identifier));
+    source.append(this->compilation_unit->get_token_string_from_index(statement->identifier));
     source.append(" = ");
     source.append(emit_expression(statement->rhs) + ";\n");
     return source;
@@ -184,7 +184,7 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
     source.append(emit_type_expression(statement->return_type) + " ");
 
     // TODO remove this token to string thing
-    std::string name_as_string = this->current_file->get_token_string_from_index(statement->identifier);
+    std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
 
     if (name_as_string == "main")
     {
@@ -216,7 +216,7 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 
     for (auto [identifier, type] : statement->params)
     {
-        std::string identifier_string = this->current_file->get_token_string_from_index(identifier);
+        std::string identifier_string = this->compilation_unit->get_token_string_from_index(identifier);
         source.append(emit_type_expression(type) + " " + identifier_string);
         if (index + 1 < statement->params.size())
         {
@@ -232,12 +232,12 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     auto source = std::string();
 
-    source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + " {");
+    source.append("struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) + " {");
     // members
     for (auto [identifier_token_index, type] : statement->members)
     {
         source.append("\n" + emit_type_expression(type) + " ");
-        source.append(this->current_file->get_token_string_from_index(identifier_token_index) + ";");
+        source.append(this->compilation_unit->get_token_string_from_index(identifier_token_index) + ";");
     }
 
     source.append("};\n");
@@ -428,13 +428,13 @@ std::string CppBackend::emit_binary_expression(BinaryExpression *expression) {
 }
 
 std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
-    std::string literal_string = this->current_file->get_token_string_from_index(expression->token);
+    std::string literal_string = this->compilation_unit->get_token_string_from_index(expression->token);
     return "LiamInternal::make_str((char*)" + literal_string + ", " +
            std::to_string(string_literal_length(&literal_string)) + ")";
 }
 
 std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression) {
-    return this->current_file->get_token_string_from_index(expression->token);
+    return this->compilation_unit->get_token_string_from_index(expression->token);
 }
 
 std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
@@ -546,7 +546,7 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
 }
 
 std::string CppBackend::emit_identifier_expression(IdentifierExpression *expression) {
-    return this->current_file->get_token_string_from_index(expression->identifier);
+    return this->compilation_unit->get_token_string_from_index(expression->identifier);
 }
 
 std::string CppBackend::emit_get_expression(GetExpression *expression) {
@@ -554,7 +554,7 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     // TODO: verify this code makes sense I am re-reading it and I dont know how it works
     // to stop conflicts with members functions we emit __func for the get expression
 
-    std::string member_string = this->current_file->get_token_string_from_index(expression->member);
+    std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
 
     if (expression->type_info->type == TypeInfoType::FN)
     {
@@ -588,7 +588,7 @@ std::string CppBackend::emit_fn_expression(FnExpression *expression) {
 
     for (auto [identifier, type] : expression->params)
     {
-        std::string identifier_string = this->current_file->get_token_string_from_index(identifier);
+        std::string identifier_string = this->compilation_unit->get_token_string_from_index(identifier);
         source.append(emit_type_expression(type) + " " + identifier_string);
         if (index + 1 < expression->params.size())
         {
@@ -624,7 +624,7 @@ std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression
         struct_type_info = ((StructInstanceTypeInfo *)expression->type_info)->struct_type;
     }
 
-    std::string identifier_string = this->current_file->get_token_string_from_index(expression->identifier);
+    std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
     source.append(identifier_string);
 
     source.append("{");
@@ -695,7 +695,7 @@ std::string CppBackend::emit_fn_type_expression(FnTypeExpression *type_expressio
 }
 
 std::string CppBackend::emit_identifier_type_expression(IdentifierTypeExpression *type_expression) {
-    return this->current_file->get_token_string_from_index(type_expression->identifier);
+    return this->compilation_unit->get_token_string_from_index(type_expression->identifier);
 }
 
 std::string strip_semi_colon(std::string str) {

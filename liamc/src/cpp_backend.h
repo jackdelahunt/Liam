@@ -7,7 +7,7 @@
 #include "type_checker.h"
 
 struct CppBackend {
-    CompilationUnit *current_file = NULL;
+    CompilationUnit *compilation_unit = NULL;
     CppBackend()                  = default;
     std::string emit(CompilationUnit *file);
 

@@ -121,7 +121,7 @@ LetStatement *Parser::eval_let_statement() {
 ScopeStatement *Parser::eval_scope_statement() {
     auto statements = std::vector<Statement *>();
     TokenIndex open_brace_token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
-    TokenData* open_brace_token_data = this->get_token_data(open_brace_token_index);
+    Token * open_brace_token_data = this->get_token_data(open_brace_token_index);
     i32 closing_brace_index =
         find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, current - 1);
     // if (closing_brace_index == current + 1)
@@ -603,7 +603,7 @@ bool Parser::match(TokenType type) {
     return false;
 }
 
-TokenData *Parser::peek(i32 offset) {
+Token *Parser::peek(i32 offset) {
     return &this->compilation_unit->token_buffer.at(current + offset);
 }
 
@@ -617,7 +617,7 @@ TokenIndex Parser::consume_token_with_index() {
 TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
     if (this->current >= this->compilation_unit->token_buffer.size())
     {
-        TokenData last_token_data =
+        Token last_token_data =
             this->compilation_unit->token_buffer.at(this->compilation_unit->token_buffer.size() - 1);
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), last_token_data.span,
@@ -627,7 +627,7 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
     }
 
     TokenIndex current_token_index = this->current++;
-    TokenData *token_data_ptr      = &this->compilation_unit->token_buffer[current_token_index];
+    Token *token_data_ptr      = &this->compilation_unit->token_buffer[current_token_index];
     if (token_data_ptr->token_type != type)
     {
         ErrorReporter::report_parser_error(
@@ -640,7 +640,7 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
     return current_token_index;
 }
 
-TokenData *Parser::get_token_data(TokenIndex token_index) {
+Token *Parser::get_token_data(TokenIndex token_index) {
     return &this->compilation_unit->token_buffer[token_index];
 }
 
