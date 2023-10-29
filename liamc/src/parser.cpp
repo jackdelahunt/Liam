@@ -501,8 +501,6 @@ Expression *Parser::eval_primary() {
         return new ZeroLiteralExpression(*consume_token());
     else if (type == TokenType::TOKEN_FN)
         return TRY_CALL_RET(eval_fn(), NULL);
-    else if (type == TokenType::TOKEN_BRACKET_OPEN)
-        return TRY_CALL_RET(eval_slice_literal(), NULL);
     else
     {
         auto token = *consume_token();
@@ -533,19 +531,6 @@ Expression *Parser::eval_fn() {
 
     auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
     return new FnExpression(params, type, body);
-}
-
-Expression *Parser::eval_slice_literal() {
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_OPEN), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACKET_CLOSE), NULL);
-
-    auto type = TRY_CALL_RET(eval_type_expression(), NULL);
-
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
-    auto expressions = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
-
-    return new SliceLiteralExpression(type, expressions);
 }
 
 Expression *Parser::eval_instantiate_expression() {

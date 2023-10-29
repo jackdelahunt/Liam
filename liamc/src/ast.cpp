@@ -273,13 +273,6 @@ FnExpression::FnExpression(
     this->span        = return_type->span; // FIXME: use a better place to put the span for the fn expression
 }
 
-SliceLiteralExpression::SliceLiteralExpression(TypeExpression *type_expression, std::vector<Expression *> expressions) {
-    this->type_expression = type_expression;
-    this->expressions     = expressions;
-    this->type            = ExpressionType::EXPRESSION_SLICE_LITERAL;
-    this->span            = type_expression->span;
-}
-
 InstantiateExpression::InstantiateExpression(Expression *expression) {
     this->expression = expression;
     this->span       = expression->span;

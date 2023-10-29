@@ -652,9 +652,6 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_FN:
         return type_check_fn_expression(dynamic_cast<FnExpression *>(expression), symbol_table);
         break;
-    case ExpressionType::EXPRESSION_SLICE_LITERAL:
-        return type_check_slice_literal_expression(dynamic_cast<SliceLiteralExpression *>(expression), symbol_table);
-        break;
     case ExpressionType::EXPRESSION_INSTANTIATION:
         return type_check_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression), symbol_table);
         break;
@@ -1228,26 +1225,6 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
     }
 
     expression->type_info = new FnExpressionTypeInfo(expression->return_type->type_info, param_type_infos);
-}
-
-void TypeChecker::type_check_slice_literal_expression(SliceLiteralExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL_VOID(type_check_type_expression(expression->type_expression, symbol_table));
-
-    for (auto passed_expression : expression->expressions)
-    {
-        TRY_CALL_VOID(type_check_expression(passed_expression, symbol_table));
-
-        if (!type_match(expression->type_expression->type_info, passed_expression->type_info))
-        {
-            ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), passed_expression, NULL, expression->type_expression, NULL,
-                {}, "Mismatched types in slice literal expression, expression in slice literal must match type given"
-            );
-            return;
-        }
-    }
-
-    expression->type_info = new PointerSliceTypeInfo(expression->type_expression->type_info);
 }
 
 void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table) {

@@ -42,7 +42,6 @@ struct CppBackend {
     std::string emit_null_literal_expression(NullLiteralExpression *expression);
     std::string emit_zero_literal_expression(ZeroLiteralExpression *expression);
     std::string emit_fn_expression(FnExpression *expression);
-    std::string emit_slice_literal_expression(SliceLiteralExpression *expression);
     std::string emit_instantiate_expression(InstantiateExpression *expression);
     std::string emit_struct_instance_expression(StructInstanceExpression *expression);
 
