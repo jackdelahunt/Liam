@@ -35,6 +35,7 @@ struct SymbolTable {
     void add_identifier(Token identifier, TypeInfo *type_info);
     void add_identifier(std::string identifier, TypeInfo *type_info);
     std::tuple<TypeInfo *, bool> get_identifier(Token identifier);
+    std::tuple<TypeInfo *, bool> get_identifier(std::string identifier);
     void add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info);
     SymbolTable copy();
 };
@@ -109,6 +110,5 @@ struct TypeChecker {
     TypeInfo *create_type_from_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params);
 };
 
-bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce = false);
-bool type_coerce(TypeInfo *a, TypeInfo *b);
+bool type_match(TypeInfo *a, TypeInfo *b);
 StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info);

@@ -16,8 +16,6 @@ CompilationUnit *lex_parse(std::filesystem::path file_path) {
         i++;
     }
 
-
-
     if (ErrorReporter::has_parse_errors())
     {
         for (auto &error : ErrorReporter::singleton->parse_errors)

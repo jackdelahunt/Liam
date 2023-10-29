@@ -365,10 +365,10 @@ struct SubscriptExpression : Expression {
 };
 
 struct NumberLiteralExpression : Expression {
-    Token token;
+    TokenIndex token;
     i64 number;
 
-    NumberLiteralExpression(Token token);
+    NumberLiteralExpression(TokenIndex token);
 };
 
 struct StringLiteralExpression : Expression {
@@ -378,15 +378,15 @@ struct StringLiteralExpression : Expression {
 };
 
 struct BoolLiteralExpression : Expression {
-    Token value;
+    TokenIndex token;
 
-    BoolLiteralExpression(Token value);
+    BoolLiteralExpression(TokenIndex token);
 };
 
 struct IdentifierExpression : Expression {
-    Token identifier;
+    TokenIndex identifier;
 
-    IdentifierExpression(const Token identifier);
+    IdentifierExpression(TokenIndex identifier);
 };
 
 struct CallExpression : Expression {

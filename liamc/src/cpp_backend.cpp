@@ -467,7 +467,7 @@ std::string CppBackend::emit_string_literal_expression(StringLiteralExpression *
 }
 
 std::string CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression) {
-    return expression->value.string;
+    return this->current_file->get_token_string_from_index(expression->token);
 }
 
 std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
@@ -596,7 +596,7 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
 }
 
 std::string CppBackend::emit_identifier_expression(IdentifierExpression *expression) {
-    return expression->identifier.string;
+    return this->current_file->get_token_string_from_index(expression->identifier);
 }
 
 std::string CppBackend::emit_get_expression(GetExpression *expression) {
