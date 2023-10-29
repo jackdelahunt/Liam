@@ -47,13 +47,8 @@ struct CppBackend {
 
     std::string emit_type_expression(TypeExpression *type_expression);
     std::string emit_unary_type_expression(UnaryTypeExpression *type_expression);
-    std::string emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression);
     std::string emit_fn_type_expression(FnTypeExpression *type_expression);
     std::string emit_identifier_type_expression(IdentifierTypeExpression *type_expression);
-
-    std::string emit_cpp_template_declaration(std::vector<Token> *generics);
-    std::string emit_cpp_template_usage(std::vector<Token> *generics);
-    std::string emit_cpp_template_params(std::vector<TypeExpression *> *generics);
 };
 
 std::string strip_semi_colon(std::string str);

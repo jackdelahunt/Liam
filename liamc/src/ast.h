@@ -38,7 +38,6 @@ struct StructInstanceExpression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
 struct UnaryTypeExpression;
-struct SpecifiedGenericsTypeExpression;
 struct FnTypeExpression;
 
 struct CompilationUnit;
@@ -55,7 +54,6 @@ struct StructTypeInfo;
 struct StructInstanceTypeInfo;
 struct FnTypeInfo;
 struct FnExpressionTypeInfo;
-struct GenericTypeInfo;
 
 typedef std::vector<std::tuple<Token, TypeExpression *>> CSV;
 
@@ -107,7 +105,6 @@ enum class UnaryType {
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_UNARY,
-    TYPE_SPECIFIED_GENERICS,
     TYPE_FN,
 };
 
@@ -124,7 +121,6 @@ enum class TypeInfoType {
     POINTER,
     POINTER_SLICE,
     SLICE,
-    GENERIC,
 };
 
 enum class NumberType {
@@ -179,19 +175,16 @@ struct StructTypeInfo : TypeInfo {
 
     std::vector<std::tuple<std::string, FnTypeInfo *>> member_functions;
     std::vector<std::tuple<std::string, TypeInfo *>> members;
-    u64 generic_count;
 
     StructTypeInfo(
         u8 flag_mask, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
-        std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
-    );
+        std::vector<std::tuple<std::string, TypeInfo *>> members);
 };
 
 struct StructInstanceTypeInfo : TypeInfo {
     StructTypeInfo *struct_type;
-    std::vector<TypeInfo *> generic_types;
 
-    StructInstanceTypeInfo(StructTypeInfo *structType, std::vector<TypeInfo *> genericTypes);
+    StructInstanceTypeInfo(StructTypeInfo *structType);
 };
 
 struct FnTypeInfo : TypeInfo {
@@ -199,12 +192,10 @@ struct FnTypeInfo : TypeInfo {
 
     StructTypeInfo *parent_type;
     TypeInfo *return_type;
-    std::vector<TypeInfo *> generic_type_infos;
     std::vector<TypeInfo *> args;
 
     FnTypeInfo(
-        u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
-        std::vector<TypeInfo *> args
+        u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args
     );
 };
 
@@ -213,12 +204,6 @@ struct FnExpressionTypeInfo : TypeInfo {
     std::vector<TypeInfo *> args;
 
     FnExpressionTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args);
-};
-
-struct GenericTypeInfo : TypeInfo {
-    u64 id;
-
-    GenericTypeInfo(u64 id);
 };
 
 /*
@@ -253,26 +238,24 @@ struct ScopeStatement : Statement {
 struct FnStatement : Statement {
     TypeExpression *parent_type;
     TokenIndex identifier;
-    std::vector<Token> generics;
     CSV params;
     TypeExpression *return_type;
     ScopeStatement *body;
     u8 flag_mask;
 
     FnStatement(
-        CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, std::vector<Token> generics,
+        CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier,
         CSV params, TypeExpression *type, ScopeStatement *body, u8 flag_mask
     );
 };
 
 struct StructStatement : Statement {
     TokenIndex identifier;
-    std::vector<Token> generics;
     CSV members;
     u8 flag_mask;
 
     StructStatement(
-        CompilationUnit *file, TokenIndex identifier, std::vector<Token> generics, CSV members, u8 flag_mask
+        CompilationUnit *file, TokenIndex identifier, CSV members, u8 flag_mask
     );
 };
 
@@ -391,9 +374,8 @@ struct IdentifierExpression : Expression {
 struct CallExpression : Expression {
     Expression *callee;
     std::vector<Expression *> args;
-    std::vector<TypeExpression *> generics;
 
-    CallExpression(Expression *identifier, std::vector<Expression *> args, std::vector<TypeExpression *> generics);
+    CallExpression(Expression *identifier, std::vector<Expression *> args);
 };
 
 struct GetExpression : Expression {
@@ -435,11 +417,10 @@ struct InstantiateExpression : Expression {
 
 struct StructInstanceExpression : Expression {
     Token identifier;
-    std::vector<TypeExpression *> generics;
     std::vector<std::tuple<Token, Expression *>> named_expressions;
 
     StructInstanceExpression(
-        Token identifier, std::vector<TypeExpression *> generics,
+        Token identifier,
         std::vector<std::tuple<Token, Expression *>> named_expressions
     );
 };
@@ -465,13 +446,6 @@ struct UnaryTypeExpression : TypeExpression {
     TypeExpression *type_expression;
 
     UnaryTypeExpression(UnaryType unary_type, TypeExpression *type_expression);
-};
-
-struct SpecifiedGenericsTypeExpression : TypeExpression {
-    TypeExpression *struct_type;
-    std::vector<TypeExpression *> generics;
-
-    SpecifiedGenericsTypeExpression(TypeExpression *struct_type, std::vector<TypeExpression *> generics);
 };
 
 struct FnTypeExpression : TypeExpression {

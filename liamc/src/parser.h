@@ -75,7 +75,6 @@ struct Parser {
     /* return_type expressions */
     TypeExpression *eval_type_expression();
     TypeExpression *eval_type_unary();
-    TypeExpression *eval_type_specified_generics();
     TypeExpression *eval_type_primary();
     TypeExpression *eval_type_fn();
 

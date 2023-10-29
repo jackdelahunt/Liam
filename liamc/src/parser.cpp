@@ -160,16 +160,6 @@ FnStatement *Parser::eval_fn_statement() {
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
-    auto generics = std::vector<Token>();
-    if (peek()->type == TokenType::TOKEN_LESS)
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
-        auto types = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_GREATER), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
-
-        generics = types;
-    }
-
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
 
     auto params = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
@@ -182,12 +172,12 @@ FnStatement *Parser::eval_fn_statement() {
     if (BIT_SET(tag_mask, TAG_EXTERN))
     {
         TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_SEMI_COLON), NULL);
-        return new FnStatement(compilation_unit, parent_type, identifier, generics, params, type, NULL, tag_mask);
+        return new FnStatement(compilation_unit, parent_type, identifier, params, type, NULL, tag_mask);
     }
     else
     {
         auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-        return new FnStatement(compilation_unit, parent_type, identifier, generics, params, type, body, tag_mask);
+        return new FnStatement(compilation_unit, parent_type, identifier, params, type, body, tag_mask);
     }
 }
 
@@ -196,23 +186,13 @@ StructStatement *Parser::eval_struct_statement() {
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
-    auto generics = std::vector<Token>();
-    if (peek()->type == TokenType::TOKEN_LESS)
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
-
-        auto types = TRY_CALL_RET(consume_comma_seperated_token_arguments(TokenType::TOKEN_GREATER), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
-        generics = types;
-    }
-
     u8 tag_mask = TRY_CALL_RET(consume_tags(), NULL);
 
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    return new StructStatement(compilation_unit, identifier, generics, member, tag_mask);
+    return new StructStatement(compilation_unit, identifier, member, tag_mask);
 }
 
 ReturnStatement *Parser::eval_return_statement() {
@@ -439,23 +419,11 @@ Expression *Parser::eval_postfix() {
     {
         if (match(TokenType::TOKEN_PAREN_OPEN) || match(TokenType::TOKEN_COLON))
         {
-            auto generics = std::vector<TypeExpression *>();
-            if (peek()->type == TokenType::TOKEN_COLON)
-            {
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_COLON), NULL);
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
-                auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_GREATER), NULL);
-                TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
-
-                generics = types;
-            }
-
             TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_OPEN), NULL);
             auto call_args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
             TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_PAREN_CLOSE), NULL);
 
-            expr = new CallExpression(expr, call_args, generics);
+            expr = new CallExpression(expr, call_args);
         }
         else if (match(TokenType::TOKEN_DOT))
         {
@@ -542,21 +510,11 @@ Expression *Parser::eval_instantiate_expression() {
 Expression *Parser::eval_struct_instance_expression() {
     auto identifier = TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_IDENTIFIER), NULL);
 
-    auto generics = std::vector<TypeExpression *>();
-    if (peek()->type == TokenType::TOKEN_LESS)
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
-        auto types = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_GREATER), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
-
-        generics = types;
-    }
-
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_OPEN), NULL);
     auto named_expressions = TRY_CALL_RET(consume_comma_seperated_named_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
     TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new StructInstanceExpression(*identifier, generics, named_expressions);
+    return new StructInstanceExpression(*identifier, named_expressions);
 }
 
 Expression *Parser::eval_group_expression() {
@@ -598,22 +556,7 @@ TypeExpression *Parser::eval_type_unary() {
         return new UnaryTypeExpression(UnaryType::POINTER, type_expression);
     }
 
-    return eval_type_specified_generics();
-}
-
-TypeExpression *Parser::eval_type_specified_generics() {
-    auto primary = TRY_CALL_RET(eval_type_primary(), NULL);
-
-    if (match(TokenType::TOKEN_LESS))
-    {
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_LESS), NULL);
-        auto generics = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_GREATER), NULL);
-        TRY_CALL_RET(consume_token_of_type(TokenType::TOKEN_GREATER), NULL);
-
-        return new SpecifiedGenericsTypeExpression(primary, generics);
-    }
-
-    return primary;
+    return eval_type_primary();
 }
 
 TypeExpression *Parser::eval_type_primary() {
