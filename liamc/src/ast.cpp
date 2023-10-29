@@ -35,29 +35,25 @@ TypeTypeInfo::TypeTypeInfo() {
 
 StructTypeInfo::StructTypeInfo(
     u8 flag_mask, std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
-    std::vector<std::tuple<std::string, TypeInfo *>> members, u64 genericCount
-) {
+    std::vector<std::tuple<std::string, TypeInfo *>> members) {
     this->flag_mask        = flag_mask;
     this->member_functions = memberFunctions;
     this->members          = members;
-    this->generic_count    = genericCount;
     this->type             = TypeInfoType::STRUCT;
 }
 
-StructInstanceTypeInfo::StructInstanceTypeInfo(StructTypeInfo *structType, std::vector<TypeInfo *> genericTypes) {
+StructInstanceTypeInfo::StructInstanceTypeInfo(StructTypeInfo *structType) {
     this->struct_type   = structType;
-    this->generic_types = genericTypes;
     this->type          = TypeInfoType::STRUCT_INSTANCE;
 }
 
 FnTypeInfo::FnTypeInfo(
-    u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> genericTypeInfos,
+    u8 flag_mask, StructTypeInfo *parentType, TypeInfo *returnType,
     std::vector<TypeInfo *> args
 ) {
     this->flag_mask          = flag_mask;
     this->parent_type        = parentType;
     this->return_type        = returnType;
-    this->generic_type_infos = genericTypeInfos;
     this->args               = args;
     this->type               = TypeInfoType::FN;
 }
@@ -66,11 +62,6 @@ FnExpressionTypeInfo::FnExpressionTypeInfo(TypeInfo *returnType, std::vector<Typ
     this->return_type = returnType;
     this->args        = args;
     this->type        = TypeInfoType::FN_EXPRESSION;
-}
-
-GenericTypeInfo::GenericTypeInfo(u64 id) {
-    this->id   = id;
-    this->type = TypeInfoType::GENERIC;
 }
 
 std::ostream &Statement::format(std::ostream &os) const {
@@ -105,13 +96,12 @@ ScopeStatement::ScopeStatement(CompilationUnit *file, std::vector<Statement *> s
 }
 
 FnStatement::FnStatement(
-    CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, std::vector<Token> generics, CSV params,
+    CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, CSV params,
     TypeExpression *type, ScopeStatement *body, u8 flag_mask
 ) {
     this->file           = file;
     this->parent_type    = parent_type;
     this->identifier     = identifier;
-    this->generics       = generics;
     this->return_type    = type;
     this->params         = params;
     this->body           = body;
@@ -120,11 +110,10 @@ FnStatement::FnStatement(
 }
 
 StructStatement::StructStatement(
-    CompilationUnit *file, TokenIndex identifier, std::vector<Token> generics, CSV members, u8 flag_mask
+    CompilationUnit *file, TokenIndex identifier, CSV members, u8 flag_mask
 ) {
     this->file           = file;
     this->identifier     = identifier;
-    this->generics       = generics;
     this->members        = members;
     this->flag_mask      = flag_mask;
     this->statement_type = StatementType::STATEMENT_STRUCT;
@@ -231,11 +220,9 @@ IdentifierExpression::IdentifierExpression(TokenIndex identifier) {
 }
 
 CallExpression::CallExpression(
-    Expression *identifier, std::vector<Expression *> args, std::vector<TypeExpression *> generics
-) {
+    Expression *identifier, std::vector<Expression *> args) {
     this->callee   = identifier;
     this->args     = args;
-    this->generics = generics;
     this->type     = ExpressionType::EXPRESSION_CALL;
     this->span     = identifier->span;
 }
@@ -280,11 +267,9 @@ InstantiateExpression::InstantiateExpression(Expression *expression) {
 }
 
 StructInstanceExpression::StructInstanceExpression(
-    Token identifier, std::vector<TypeExpression *> generics,
-    std::vector<std::tuple<Token, Expression *>> named_expressions
+    Token identifier, std::vector<std::tuple<Token, Expression *>> named_expressions
 ) {
     this->identifier        = identifier;
-    this->generics          = generics;
     this->named_expressions = named_expressions;
     this->span              = identifier.span;
     this->type              = ExpressionType::EXPRESSION_STRUCT_INSTANCE;
@@ -310,15 +295,6 @@ UnaryTypeExpression::UnaryTypeExpression(UnaryType unary_type, TypeExpression *t
     this->type_expression = type_expression;
     this->type            = TypeExpressionType::TYPE_UNARY;
     this->span            = type_expression->span;
-}
-
-SpecifiedGenericsTypeExpression::SpecifiedGenericsTypeExpression(
-    TypeExpression *struct_type, std::vector<TypeExpression *> generics
-) {
-    this->struct_type = struct_type;
-    this->generics    = generics;
-    this->span = Span{.line = struct_type->span.line, .start = struct_type->span.start, .end = struct_type->span.end};
-    this->type = TypeExpressionType::TYPE_SPECIFIED_GENERICS;
 }
 
 FnTypeExpression::FnTypeExpression(std::vector<TypeExpression *> params, TypeExpression *return_type) {

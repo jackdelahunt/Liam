@@ -244,7 +244,7 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
     this->add_function(
-        this->compilation_unit, statement->identifier, new FnTypeInfo(statement->flag_mask, NULL, NULL, {}, {})
+        this->compilation_unit, statement->identifier, new FnTypeInfo(statement->flag_mask, NULL, NULL, {})
     );
 }
 
@@ -267,23 +267,12 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
 
     this->add_type(
         this->compilation_unit, statement->identifier,
-        new StructTypeInfo(statement->flag_mask, {}, {}, statement->generics.size())
+        new StructTypeInfo(statement->flag_mask, {}, {})
     );
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     SymbolTable symbol_table = SymbolTable(compilation_unit);
-
-    auto generic_type_infos = std::vector<TypeInfo *>();
-    if (!statement->generics.empty())
-    {
-        for (u64 i = 0; i < statement->generics.size(); i++)
-        {
-            auto generic_type = new GenericTypeInfo(i);
-            TRY_CALL_VOID(symbol_table.add_local_type(statement->generics[i], generic_type));
-            generic_type_infos.push_back(generic_type);
-        }
-    }
 
     auto param_type_infos = std::vector<TypeInfo *>();
     for (auto &[identifier, expr] : statement->params)
@@ -313,7 +302,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
         parent_type_info->member_functions.push_back(
             {this->compilation_unit->get_token_string_from_index(statement->identifier),
              new FnTypeInfo(
-                 statement->flag_mask, parent_type_info, statement->return_type->type_info, generic_type_infos,
+                 statement->flag_mask, parent_type_info, statement->return_type->type_info,
                  param_type_infos
              )}
         );
@@ -328,7 +317,6 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     auto current_type_info = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
 
     current_type_info->return_type        = statement->return_type->type_info;
-    current_type_info->generic_type_infos = generic_type_infos;
     current_type_info->args               = param_type_infos;
 }
 
@@ -398,11 +386,6 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
         TRY_CALL_VOID(symbol_table.add_identifier(identifier, type_info));
     }
 
-    for (u64 i = 0; i < statement->generics.size(); i++)
-    {
-        TRY_CALL_VOID(symbol_table.add_identifier(statement->generics[i], fn_type_info->generic_type_infos[i]));
-    }
-
     // type statements and check return exists if needed
     TRY_CALL_VOID(type_check_scope_statement(statement->body, &symbol_table, false));
     for (auto stmt : statement->body->statements)
@@ -441,11 +424,6 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
 
     SymbolTable symbol_table = SymbolTable(compilation_unit);
-
-    for (u64 i = 0; i < statement->generics.size(); i++)
-    {
-        TRY_CALL_VOID(symbol_table.add_local_type(statement->generics[i], new GenericTypeInfo(i)));
-    }
 
     auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
     members_type_info.reserve(statement->members.size());
@@ -971,18 +949,6 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
         return;
     }
 
-    if (fn_type_info->generic_type_infos.size() != expression->generics.size())
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), callee_expression, NULL, NULL, NULL, {},
-            std::format(
-                "Incorrect number of generic arguments in call expression, expected {} got {}",
-                fn_type_info->generic_type_infos.size(), expression->generics.size()
-            )
-        );
-        return;
-    }
-
     for (i32 i = 0; i < fn_type_info->args.size(); i++)
     {
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
@@ -995,12 +961,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
         }
     }
 
-    for (u64 i = 0; i < expression->generics.size(); i++)
-    {
-        TRY_CALL_VOID(type_check_type_expression(expression->generics.at(i), symbol_table));
-    }
-
-    expression->type_info = create_type_from_generics(fn_type_info->return_type, &expression->generics);
+    expression->type_info = fn_type_info->return_type;
 }
 
 void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
@@ -1038,15 +999,6 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
         }
     }
 
-    if (expression->generics.size() > 0)
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), callee_expression, NULL, NULL, NULL, {},
-            "Cannot pass generic params to functions created from expressions"
-        );
-        return;
-    }
-
     expression->type_info = fn_type_info->return_type;
 }
 
@@ -1072,8 +1024,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
     TypeInfo *member_type_info       = NULL; // populated every time
     StructTypeInfo *struct_type_info = NULL; // populated every time
     StructInstanceTypeInfo *struct_instance_type_info =
-        NULL; // populated when the lhs is a struct instance and we need to use generics
-
+        NULL; // populated when the lhs is a struct instance
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     {
         auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);
@@ -1147,13 +1098,6 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
             std::format("Cannot find member \"{}\" in struct", expression->member.string)
         );
         return;
-    }
-
-    // if it is generic then resolve the id of it in the struct instance
-    if (member_type_info->type == TypeInfoType::GENERIC)
-    {
-        auto generic_member_info = static_cast<GenericTypeInfo *>(member_type_info);
-        member_type_info         = struct_instance_type_info->generic_types[generic_member_info->id];
     }
 
     expression->type_info = member_type_info;
@@ -1247,7 +1191,6 @@ void TypeChecker::type_check_struct_instance_expression(
     StructInstanceExpression *expression, SymbolTable *symbol_table
 ) {
     // check its type
-
     auto [type_info, failed] = this->get_type(expression->identifier.string);
     if (failed)
     {
@@ -1278,14 +1221,6 @@ void TypeChecker::type_check_struct_instance_expression(
         calling_args_type_infos.emplace_back(name.string, expr->type_info);
     }
 
-    // collect generic types from new constructor
-    auto generic_type_infos = std::vector<TypeInfo *>();
-    for (auto type_expr : expression->generics)
-    {
-        TRY_CALL_VOID(type_check_type_expression(type_expr, symbol_table));
-        generic_type_infos.push_back(type_expr->type_info);
-    }
-
     // check counts
     if (struct_type_info->members.size() != calling_args_type_infos.size())
     {
@@ -1294,18 +1229,6 @@ void TypeChecker::type_check_struct_instance_expression(
             std::format(
                 "Incorrect number of arguments in new expression, expected {} got {}", struct_type_info->members.size(),
                 calling_args_type_infos.size()
-            )
-        );
-        return;
-    }
-
-    if (struct_type_info->generic_count != expression->generics.size())
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            std::format(
-                "Incorrect number of type param arguments in new expression, expected {} got {}",
-                struct_type_info->generic_count, expression->generics.size()
             )
         );
         return;
@@ -1320,7 +1243,6 @@ void TypeChecker::type_check_struct_instance_expression(
         // struct member and type info
         auto [member, type] = struct_type_info->members.at(i);
 
-        auto resolved_member_type = create_type_from_generics(type, &expression->generics);
         if (expression_member != member)
         {
             auto [name, expr] = expression->named_expressions.at(i);
@@ -1330,26 +1252,9 @@ void TypeChecker::type_check_struct_instance_expression(
             );
             return;
         }
-
-        if (!type_match(resolved_member_type, expression_type))
-        {
-            auto [name, expr] = expression->named_expressions.at(i);
-            ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression, expr, NULL, NULL, {},
-                "Mismatched types in new expression"
-            );
-            return;
-        }
     }
 
-    if (struct_type_info->generic_count > 0)
-    {
-        expression->type_info = new StructInstanceTypeInfo(struct_type_info, generic_type_infos);
-    }
-    else
-    {
-        expression->type_info = struct_type_info;
-    }
+    expression->type_info = struct_type_info;
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression, SymbolTable *symbol_table) {
@@ -1360,11 +1265,6 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression, Sy
         break;
     case TypeExpressionType::TYPE_UNARY:
         type_check_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression), symbol_table);
-        break;
-    case TypeExpressionType::TYPE_SPECIFIED_GENERICS:
-        type_check_specified_generics_type_expression(
-            dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression), symbol_table
-        );
         break;
     case TypeExpressionType::TYPE_FN:
         type_check_fn_type_expression(dynamic_cast<FnTypeExpression *>(type_expression), symbol_table);
@@ -1390,31 +1290,6 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
     }
 
     panic("Internal :: Cannot type check this operator yet...");
-}
-
-void TypeChecker::type_check_specified_generics_type_expression(
-    SpecifiedGenericsTypeExpression *type_expression, SymbolTable *symbol_table
-) {
-    TRY_CALL_VOID(type_check_type_expression(type_expression->struct_type, symbol_table));
-    if (type_expression->struct_type->type_info->type != TypeInfoType::STRUCT)
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), NULL, NULL, NULL, type_expression->struct_type, {},
-            "Can only use generic parameters on struct types"
-        );
-        return;
-    }
-
-    StructTypeInfo *struct_type_info = (StructTypeInfo *)type_expression->struct_type->type_info;
-
-    auto generic_types = std::vector<TypeInfo *>();
-    for (u64 i = 0; i < type_expression->generics.size(); i++)
-    {
-        TRY_CALL_VOID(type_check_type_expression(type_expression->generics.at(i), symbol_table));
-        generic_types.push_back(type_expression->generics.at(i)->type_info);
-    }
-
-    type_expression->type_info = new StructInstanceTypeInfo(struct_type_info, generic_types);
 }
 
 void TypeChecker::type_check_fn_type_expression(FnTypeExpression *type_expression, SymbolTable *symbol_table) {
@@ -1446,50 +1321,9 @@ void TypeChecker::type_check_identifier_type_expression(
     type_expression->type_info = type;
 }
 
-TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vector<TypeExpression *> *generic_params) {
-
-    if (type_info->type == TypeInfoType::POINTER)
-    {
-        auto pointer_type_info = static_cast<PointerTypeInfo *>(type_info);
-        return new PointerTypeInfo(create_type_from_generics(pointer_type_info->to, generic_params));
-    }
-
-    if (type_info->type == TypeInfoType::POINTER_SLICE)
-    {
-        auto pointer_type_info = static_cast<PointerSliceTypeInfo *>(type_info);
-        return new PointerSliceTypeInfo(create_type_from_generics(pointer_type_info->to, generic_params));
-    }
-
-    if (type_info->type == TypeInfoType::GENERIC)
-    {
-        auto generic_to_resolve = static_cast<GenericTypeInfo *>(type_info);
-        return generic_params->at(generic_to_resolve->id)->type_info;
-    }
-
-    if (type_info->type == TypeInfoType::STRUCT_INSTANCE)
-    {
-        auto instance_type_info = static_cast<StructInstanceTypeInfo *>(type_info);
-
-        auto new_type_info =
-            new StructInstanceTypeInfo(instance_type_info->struct_type, instance_type_info->generic_types);
-        for (int i = 0; i < new_type_info->generic_types.size(); i++)
-        {
-            new_type_info->generic_types[i] =
-                create_type_from_generics(new_type_info->generic_types[i], generic_params);
-        }
-
-        return new_type_info;
-    }
-
-    return type_info;
-}
-
 bool type_match(TypeInfo *a, TypeInfo *b) {
 
     ASSERT_MSG(!(a->type == TypeInfoType::ANY && b->type == TypeInfoType::ANY), "Cannot compare 2 any types");
-
-    if (a->type == TypeInfoType::GENERIC)
-        return true; // TODO: this might be a bug not checking b but not sure what to do here...
 
     if (a->type != b->type)
     {
@@ -1565,14 +1399,6 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         if (!type_match(ptr_a->struct_type, ptr_b->struct_type))
         {
             return false;
-        }
-
-        for (u64 i = 0; i < ptr_a->generic_types.size(); i++)
-        {
-            if (!type_match(ptr_a->generic_types.at(i), ptr_b->generic_types.at(i)))
-            {
-                return false;
-            }
         }
 
         return true;

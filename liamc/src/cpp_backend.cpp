@@ -46,7 +46,6 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement) {
 
     std::string source = "";
 
-    source.append(emit_cpp_template_declaration(&statement->generics));
     source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + ";\n");
 
     return source;
@@ -58,7 +57,6 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
 
     std::string source = "";
 
-    source.append(emit_cpp_template_declaration(&statement->generics));
     source.append(emit_type_expression(statement->return_type) + " ");
 
     // TODO dont do this string from token here
@@ -191,22 +189,6 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
         return "";
 
     auto source = std::string();
-    if (statement->generics.size() > 0)
-    {
-        int index = 0;
-        source.append("template <");
-        for (auto &generic : statement->generics)
-        {
-            source.append("typename " + generic.string);
-            if (index + 1 < statement->generics.size())
-            {
-                source.append(", ");
-            }
-            index++;
-        }
-        source.append(">\n");
-    }
-
     source.append(emit_type_expression(statement->return_type) + " ");
 
     // TODO remove this token to string thing
@@ -259,8 +241,6 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
         return "";
 
     auto source = std::string();
-
-    source.append(emit_cpp_template_declaration(&statement->generics));
 
     source.append("struct " + this->current_file->get_token_string_from_index(statement->identifier) + " {");
     // members
@@ -540,23 +520,6 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
     auto source = std::string();
     source.append(emit_expression(expression->callee));
 
-    if (expression->generics.size() > 0)
-    {
-        int index = 0;
-        source.append("<");
-        for (auto type : expression->generics)
-        {
-            source.append(emit_type_expression(type));
-
-            if (index + 1 < expression->generics.size())
-            {
-                source.append(", ");
-            }
-            index++;
-        }
-        source.append(">");
-    }
-
     int index = 0;
     source.append("(");
 
@@ -669,8 +632,6 @@ std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression
 
     source.append(expression->identifier.string);
 
-    source.append(emit_cpp_template_params(&expression->generics));
-
     source.append("{");
     int index = 0;
     for (auto [name, expr] : expression->named_expressions)
@@ -696,10 +657,6 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
     case TypeExpressionType::TYPE_UNARY:
         return emit_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression));
         break;
-    case TypeExpressionType::TYPE_SPECIFIED_GENERICS:
-        return emit_specified_generics_type_expression(dynamic_cast<SpecifiedGenericsTypeExpression *>(type_expression)
-        );
-        break;
     case TypeExpressionType::TYPE_FN:
         return emit_fn_type_expression(dynamic_cast<FnTypeExpression *>(type_expression));
         break;
@@ -723,28 +680,6 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
 
     panic("Cpp backend does not support this op yet...");
     return "";
-}
-
-std::string CppBackend::emit_specified_generics_type_expression(SpecifiedGenericsTypeExpression *type_expression) {
-    auto source = emit_type_expression(type_expression->struct_type);
-    if (type_expression->generics.size() > 0)
-    {
-        int index = 0;
-        source.append("<");
-        for (auto type : type_expression->generics)
-        {
-            source.append(emit_type_expression(type));
-
-            if (index + 1 < type_expression->generics.size())
-            {
-                source.append(", ");
-            }
-            index++;
-        }
-        source.append(">");
-    }
-
-    return source;
 }
 
 std::string CppBackend::emit_fn_type_expression(FnTypeExpression *type_expression) {
@@ -799,74 +734,4 @@ u64 string_literal_length(std::string *string) {
     }
 
     return length;
-}
-
-// template <typename T,  typename E, typename H>
-std::string CppBackend::emit_cpp_template_declaration(std::vector<Token> *generics) {
-    std::string source = "";
-
-    if (generics->size() > 0)
-    {
-        int index = 0;
-        source.append("template <");
-        for (auto &generic : *generics)
-        {
-            source.append("typename " + generic.string);
-            if (index + 1 < generics->size())
-            {
-                source.append(", ");
-            }
-            index++;
-        }
-        source.append(">\n");
-    }
-
-    return source;
-}
-
-// <T, E, H>
-std::string CppBackend::emit_cpp_template_usage(std::vector<Token> *generics) {
-    std::string source = "";
-
-    if (generics->size() > 0)
-    {
-        int index = 0;
-        source.append("<");
-        for (auto &generic : *generics)
-        {
-            source.append(generic.string);
-            if (index + 1 < generics->size())
-            {
-                source.append(", ");
-            }
-            index++;
-        }
-        source.append(">");
-    }
-
-    return source;
-}
-
-// <boolean, String, u64>
-std::string CppBackend::emit_cpp_template_params(std::vector<TypeExpression *> *generics) {
-    std::string source = "";
-
-    if (generics->size() > 0)
-    {
-        int index = 0;
-        source.append("<");
-        for (auto type : *generics)
-        {
-            source.append(emit_type_expression(type));
-
-            if (index + 1 < generics->size())
-            {
-                source.append(", ");
-            }
-            index++;
-        }
-        source.append(">");
-    }
-
-    return source;
 }
