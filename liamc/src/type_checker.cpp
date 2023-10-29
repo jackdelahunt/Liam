@@ -16,7 +16,7 @@ SymbolTable::SymbolTable(CompilationUnit *current_file) {
     this->identifier_table         = std::unordered_map<std::string, TypeInfo *>();
 }
 
-void SymbolTable::add_identifier(std::string identifier, TypeInfo *type_info) {
+void SymbolTable::add_identifier_type(std::string identifier, TypeInfo *type_info) {
     if (identifier_table.count(identifier) > 0)
     {
         TypeCheckerError::make(this->compilation_unit->file_data->path.string())
@@ -31,7 +31,7 @@ void SymbolTable::add_identifier(std::string identifier, TypeInfo *type_info) {
     identifier_table[identifier] = type_info;
 }
 
-std::tuple<TypeInfo *, bool> SymbolTable::get_identifier(std::string identifier) {
+std::tuple<TypeInfo *, bool> SymbolTable::get_identifier_type(std::string identifier) {
     if (identifier_table.count(identifier) > 0)
     {
         return {this->identifier_table[identifier], false};
@@ -314,7 +314,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     for (auto &[identifier, type_info] : args)
     {
         std::string identifier_string = this->compilation_unit->get_token_string_from_index(identifier);
-        TRY_CALL_VOID(symbol_table.add_identifier(identifier_string, type_info));
+        TRY_CALL_VOID(symbol_table.add_identifier_type(identifier_string, type_info));
     }
 
     // type statements and check return exists if needed
@@ -432,7 +432,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
     }
 
     auto string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-    TRY_CALL_VOID(symbol_table->add_identifier(string, statement->rhs->type_info));
+    TRY_CALL_VOID(symbol_table->add_identifier_type(string, statement->rhs->type_info));
 }
 
 void TypeChecker::type_check_scope_statement(
@@ -936,7 +936,7 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
 
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
     std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
-    auto [type_info, failed] = symbol_table->get_identifier(identifier_string);
+    auto [type_info, failed] = symbol_table->get_identifier_type(identifier_string);
 
     if (failed)
     {
@@ -1065,7 +1065,9 @@ void TypeChecker::type_check_fn_expression(FnExpression *expression, SymbolTable
 
     for (auto &[identifier, type_expression] : expression->params)
     {
-        TRY_CALL_VOID(copied_symbol_table.add_identifier(this->compilation_unit->get_token_string_from_index(identifier), type_expression->type_info));
+        TRY_CALL_VOID(copied_symbol_table.add_identifier_type(
+            this->compilation_unit->get_token_string_from_index(identifier), type_expression->type_info
+        ));
     }
 
     // type statements and check return exists if needed

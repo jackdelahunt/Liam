@@ -31,8 +31,8 @@ struct SymbolTable {
     SymbolTable(CompilationUnit *current_file);
     SymbolTable() = default; // removing this makes a compile error... why? lululul
 
-    void add_identifier(std::string identifier, TypeInfo *type_info);
-    std::tuple<TypeInfo *, bool> get_identifier(std::string identifier);
+    void add_identifier_type(std::string identifier, TypeInfo *type_info);
+    std::tuple<TypeInfo *, bool> get_identifier_type(std::string identifier);
     void add_compiler_generated_identifier(std::string identifier, TypeInfo *type_info);
     SymbolTable copy();
 };

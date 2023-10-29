@@ -21,6 +21,11 @@ struct CompilationUnit {
         this->top_level_fn_statements     = std::vector<FnStatement *>();
     }
 
+    Token *get_token(TokenIndex token_index) {
+        ASSERT(token_index >= 0 && token_index < this->token_buffer.size());
+        return &this->token_buffer[token_index];
+    }
+
     std::string get_token_string_from_index(TokenIndex token_index) {
         Token *token_data = &this->token_buffer[token_index];
 
