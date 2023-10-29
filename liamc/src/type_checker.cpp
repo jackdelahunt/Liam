@@ -49,9 +49,13 @@ void SymbolTable::add_identifier(std::string identifier, TypeInfo *type_info) {
 }
 
 std::tuple<TypeInfo *, bool> SymbolTable::get_identifier(Token identifier) {
-    if (identifier_table.count(identifier.string) > 0)
+    return this->get_identifier(identifier.string);
+}
+
+std::tuple<TypeInfo *, bool> SymbolTable::get_identifier(std::string identifier) {
+    if (identifier_table.count(identifier) > 0)
     {
-        return {this->identifier_table[identifier.string], false};
+        return {this->identifier_table[identifier], false};
     }
 
     return {NULL, true};
@@ -743,7 +747,9 @@ void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *
 
 void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *expression, SymbolTable *symbol_table) {
 
-    auto [number, type, size] = extract_number_literal_size(expression->token.string);
+    std::string token_string = this->compilation_unit->get_token_string_from_index(expression->token);
+
+    auto [number, type, size] = extract_number_literal_size(token_string);
 
     if (size == -1)
     {
@@ -1048,13 +1054,14 @@ void TypeChecker::type_check_fn_expression_call_expression(CallExpression *expre
 }
 
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
-    auto [type_info, failed] = symbol_table->get_identifier(expression->identifier);
+    std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
+    auto [type_info, failed] = symbol_table->get_identifier(identifier_string);
 
     if (failed)
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, {},
-            std::format("Unrecognized identifier \"{}\"", expression->identifier.string)
+            std::format("Unrecognized identifier \"{}\"", identifier_string)
         );
         return;
     }
@@ -1500,7 +1507,7 @@ TypeInfo *TypeChecker::create_type_from_generics(TypeInfo *type_info, std::vecto
     return type_info;
 }
 
-bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
+bool type_match(TypeInfo *a, TypeInfo *b) {
 
     ASSERT_MSG(!(a->type == TypeInfoType::ANY && b->type == TypeInfoType::ANY), "Cannot compare 2 any types");
 
@@ -1509,11 +1516,6 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
 
     if (a->type != b->type)
     {
-        if (type_coerce(a, b))
-        {
-            return true;
-        }
-
         if (a->type != TypeInfoType::ANY && b->type != TypeInfoType::ANY)
         {
             return false;
@@ -1535,13 +1537,8 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
         auto int_a = static_cast<NumberTypeInfo *>(a);
         auto int_b = static_cast<NumberTypeInfo *>(b);
 
-        if (int_a->size == int_b->size && int_a->type == int_b->type)
+        if (int_a->size == int_b->size && int_a->number_type == int_b->number_type)
             return true;
-
-        if (!dont_coerce && type_coerce(int_a, int_b))
-        {
-            return true;
-        }
 
         return false;
     }
@@ -1637,38 +1634,5 @@ bool type_match(TypeInfo *a, TypeInfo *b, bool dont_coerce) {
     }
 
     panic("Cannot type check this type info");
-    return false;
-}
-
-bool type_coerce(TypeInfo *a, TypeInfo *b) {
-
-    if (a->type == TypeInfoType::NUMBER && b->type == TypeInfoType::NUMBER)
-    {
-        auto a_number = static_cast<NumberTypeInfo *>(a);
-        auto b_number = static_cast<NumberTypeInfo *>(b);
-
-        if (a_number->type != b_number->type)
-            return false;
-
-        return a_number->size >= b_number->size;
-    }
-
-    if (a->type == TypeInfoType::POINTER && b->type == TypeInfoType::POINTER)
-    {
-        auto a_ptr = static_cast<PointerTypeInfo *>(a);
-        auto b_ptr = static_cast<PointerTypeInfo *>(b);
-
-        if (b_ptr->to->type == TypeInfoType::ANY)
-            return true; // if b is a null ptr then it can coerce
-    }
-
-    if (a->type == TypeInfoType::POINTER_SLICE && b->type == TypeInfoType::POINTER)
-    {
-        auto b_ptr = static_cast<PointerTypeInfo *>(b);
-
-        if (b_ptr->to->type == TypeInfoType::ANY)
-            return true; // if b is a null ptr then it can coerce to a null
-    }
-
     return false;
 }

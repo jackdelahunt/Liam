@@ -484,13 +484,13 @@ Expression *Parser::eval_primary() {
     auto type = peek()->type;
 
     if (type == TokenType::TOKEN_NUMBER_LITERAL)
-        return new NumberLiteralExpression(*consume_token());
+        return new NumberLiteralExpression(consume_token_with_index());
     else if (type == TokenType::TOKEN_STRING_LITERAL)
         return TRY_CALL_RET(eval_string_literal(), NULL);
     else if (type == TokenType::TOKEN_TRUE || type == TokenType::TOKEN_FALSE)
-        return new BoolLiteralExpression(*consume_token());
+        return new BoolLiteralExpression(consume_token_with_index());
     else if (type == TokenType::TOKEN_IDENTIFIER)
-        return new IdentifierExpression(*consume_token());
+        return new IdentifierExpression(consume_token_with_index());
     else if (type == TokenType::TOKEN_NEW)
         return TRY_CALL_RET(eval_instantiate_expression(), NULL);
     else if (type == TokenType::TOKEN_PAREN_OPEN)

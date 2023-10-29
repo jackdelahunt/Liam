@@ -205,10 +205,10 @@ SubscriptExpression::SubscriptExpression(Expression *lhs, Expression *expression
     this->type       = ExpressionType::EXPRESSION_SUBSCRIPT;
 }
 
-NumberLiteralExpression::NumberLiteralExpression(Token token) {
+NumberLiteralExpression::NumberLiteralExpression(TokenIndex token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_NUMBER_LITERAL;
-    this->span  = token.span;
+    this->span  = Span{}; // TODO
 }
 
 StringLiteralExpression::StringLiteralExpression(TokenIndex token) {
@@ -218,16 +218,16 @@ StringLiteralExpression::StringLiteralExpression(TokenIndex token) {
     this->span  = Span{};
 }
 
-BoolLiteralExpression::BoolLiteralExpression(Token value) {
-    this->value = value;
+BoolLiteralExpression::BoolLiteralExpression(TokenIndex token) {
+    this->token = token;
     this->type  = ExpressionType::EXPRESSION_BOOL_LITERAL;
-    this->span  = Span{.line = value.span.line, .start = value.span.start, .end = value.span.end};
+    this->span = Span{}; // TODO
 }
 
-IdentifierExpression::IdentifierExpression(const Token identifier) {
+IdentifierExpression::IdentifierExpression(TokenIndex identifier) {
     this->identifier = identifier;
     this->type       = ExpressionType::EXPRESSION_IDENTIFIER;
-    this->span       = identifier.span;
+    this->span = Span{}; // TODO
 }
 
 CallExpression::CallExpression(
