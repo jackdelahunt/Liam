@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <list>
 
 #include "parser.h"
 
@@ -40,11 +41,18 @@ struct SymbolTable {
 struct TypeChecker {
     CompilationUnit *compilation_unit;
 
+    std::list<std::unordered_map<std::string, TypeInfo *>> scopes;
+
     std::unordered_map<std::string, TypeInfo *> builtin_type_table;
     std::unordered_map<std::string, TopLevelDescriptor> top_level_type_table;
     std::unordered_map<std::string, TopLevelDescriptor> top_level_function_table;
 
     TypeChecker();
+
+    void new_scope();
+    void delete_scope();
+    void add_to_scope(TokenIndex token_index, TypeInfo *type_info);
+    TypeInfo *get_from_scope(TokenIndex token_index);
 
     void add_type(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info);
     void add_function(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info);

@@ -51,6 +51,8 @@ SymbolTable SymbolTable::copy() {
 TypeChecker::TypeChecker() {
     compilation_unit = NULL;
 
+    this->scopes =     std::list<std::unordered_map<std::string, TypeInfo *>>();
+
     this->builtin_type_table   = std::unordered_map<std::string, TypeInfo *>();
     this->top_level_type_table = std::unordered_map<std::string, TopLevelDescriptor>();
     this->top_level_type_table = std::unordered_map<std::string, TopLevelDescriptor>();
@@ -68,6 +70,27 @@ TypeChecker::TypeChecker() {
     this->builtin_type_table["u64"]  = new NumberTypeInfo(64, NumberType::UNSIGNED);
     this->builtin_type_table["i64"]  = new NumberTypeInfo(64, NumberType::SIGNED);
     this->builtin_type_table["f64"]  = new NumberTypeInfo(64, NumberType::FLOAT);
+}
+
+void TypeChecker::new_scope() {
+    this->scopes.emplace_back();
+}
+
+void TypeChecker::delete_scope() {
+    ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
+    this->scopes.pop_front();
+}
+
+void TypeChecker::add_to_scope(TokenIndex token_index, TypeInfo *type_info) {
+    ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
+    std::string identifier = this->compilation_unit->get_token_string_from_index(token_index);
+    this->scopes.front()[identifier] = type_info;
+}
+
+TypeInfo *TypeChecker::get_from_scope(TokenIndex token_index) {
+    ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
+    std::string identifier = this->compilation_unit->get_token_string_from_index(token_index);
+    return this->scopes.front()[identifier];
 }
 
 void TypeChecker::add_type(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info) {
@@ -284,7 +307,9 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     }
 
     // type statements and check return exists if needed
+    this->new_scope();
     TRY_CALL_VOID(type_check_scope_statement(statement->body, &symbol_table, false));
+    this->delete_scope();
     for (auto stmt : statement->body->statements)
     {
         if (stmt->statement_type == StatementType::STATEMENT_RETURN)
@@ -399,6 +424,8 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
 
     auto string = this->compilation_unit->get_token_string_from_index(statement->identifier);
     TRY_CALL_VOID(symbol_table->add_identifier_type(string, statement->rhs->type_info));
+
+    this->add_to_scope(statement->identifier, statement->rhs->type_info);
 }
 
 void TypeChecker::type_check_scope_statement(
@@ -792,7 +819,9 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
         return;
     }
 
-    expression->type_info = type_info;
+    TypeInfo *new_type = this->get_from_scope(expression->identifier);
+
+    expression->type_info = new_type;
 }
 
 void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table) {
