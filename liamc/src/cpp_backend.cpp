@@ -358,9 +358,6 @@ std::string CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_ZERO_LITERAL:
         return emit_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_FN:
-        return emit_fn_expression(dynamic_cast<FnExpression *>(expression));
-        break;
     case ExpressionType::EXPRESSION_INSTANTIATION:
         return emit_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
         break;
@@ -579,26 +576,6 @@ std::string CppBackend::emit_null_literal_expression(NullLiteralExpression *expr
 
 std::string CppBackend::emit_zero_literal_expression(ZeroLiteralExpression *expression) {
     return "{}";
-}
-
-std::string CppBackend::emit_fn_expression(FnExpression *expression) {
-    std::string source = "[](";
-
-    int index = 0;
-
-    for (auto [identifier, type] : expression->params)
-    {
-        std::string identifier_string = this->compilation_unit->get_token_string_from_index(identifier);
-        source.append(emit_type_expression(type) + " " + identifier_string);
-        if (index + 1 < expression->params.size())
-        {
-            source.append(", ");
-        }
-        index++;
-    }
-    source.append(")");
-    source.append(emit_scope_statement(expression->body));
-    return source;
 }
 
 std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expression) {

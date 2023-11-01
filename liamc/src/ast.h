@@ -32,7 +32,6 @@ struct GetExpression;
 struct GroupExpression;
 struct NullLiteralExpression;
 struct ZeroLiteralExpression;
-struct FnExpression;
 struct InstantiateExpression;
 struct StructInstanceExpression;
 struct TypeExpression;
@@ -53,7 +52,6 @@ struct TypeTypeInfo;
 struct StructTypeInfo;
 struct StructInstanceTypeInfo;
 struct FnTypeInfo;
-struct FnExpressionTypeInfo;
 
 typedef std::vector<std::tuple<TokenIndex, TypeExpression *>> CSV;
 
@@ -86,8 +84,6 @@ enum class ExpressionType {
     EXPRESSION_GROUP,
     EXPRESSION_NULL_LITERAL,
     EXPRESSION_ZERO_LITERAL,
-    EXPRESSION_FN,
-    EXPRESSION_SLICE_LITERAL,
     EXPRESSION_INSTANTIATION,
     EXPRESSION_STRUCT_INSTANCE,
 };
@@ -188,13 +184,6 @@ struct FnTypeInfo : TypeInfo {
     FnTypeInfo(
         StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args
     );
-};
-
-struct FnExpressionTypeInfo : TypeInfo {
-    TypeInfo *return_type;
-    std::vector<TypeInfo *> args;
-
-    FnExpressionTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args);
 };
 
 /*
@@ -386,16 +375,6 @@ struct NullLiteralExpression : Expression {
 
 struct ZeroLiteralExpression : Expression {
     ZeroLiteralExpression(TokenIndex token);
-};
-
-struct FnExpression : Expression {
-   std::vector<std::tuple<TokenIndex , TypeExpression *>> params;
-    TypeExpression *return_type;
-    ScopeStatement *body;
-
-    FnExpression(
-        std::vector<std::tuple<TokenIndex , TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
-    );
 };
 
 struct InstantiateExpression : Expression {

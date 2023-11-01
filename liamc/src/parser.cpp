@@ -456,8 +456,6 @@ Expression *Parser::eval_primary() {
         return new NullLiteralExpression(consume_token_with_index());
     else if (type == TokenType::TOKEN_ZERO)
         return new ZeroLiteralExpression(consume_token_with_index());
-    else if (type == TokenType::TOKEN_FN)
-        return TRY_CALL_RET(eval_fn(), NULL);
     else
     {
         auto token = consume_token_with_index();
@@ -476,19 +474,6 @@ Expression *Parser::eval_primary() {
 Expression *Parser::eval_string_literal() {
     auto literal = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRING_LITERAL), NULL);
     return new StringLiteralExpression(literal);
-}
-
-Expression *Parser::eval_fn() {
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FN), NULL);
-
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
-    auto params = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
-
-    auto type = TRY_CALL_RET(eval_type_expression(), NULL);
-
-    auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-    return new FnExpression(params, type, body);
 }
 
 Expression *Parser::eval_instantiate_expression() {
