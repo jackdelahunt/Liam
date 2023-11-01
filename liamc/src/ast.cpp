@@ -56,12 +56,6 @@ FnTypeInfo::FnTypeInfo(
     this->type               = TypeInfoType::FN;
 }
 
-FnExpressionTypeInfo::FnExpressionTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args) {
-    this->return_type = returnType;
-    this->args        = args;
-    this->type        = TypeInfoType::FN_EXPRESSION;
-}
-
 std::ostream &Statement::format(std::ostream &os) const {
     os << "()";
     return os;
@@ -244,16 +238,6 @@ NullLiteralExpression::NullLiteralExpression(TokenIndex token) {
 ZeroLiteralExpression::ZeroLiteralExpression(TokenIndex token) {
     this->type = ExpressionType::EXPRESSION_ZERO_LITERAL;
     this->span = Span{};
-}
-
-FnExpression::FnExpression(
-    std::vector<std::tuple<TokenIndex, TypeExpression *>> params, TypeExpression *return_type, ScopeStatement *body
-) {
-    this->params      = params;
-    this->return_type = return_type;
-    this->body        = body;
-    this->type        = ExpressionType::EXPRESSION_FN;
-    this->span        = return_type->span; // FIXME: use a better place to put the span for the fn expression
 }
 
 InstantiateExpression::InstantiateExpression(Expression *expression) {
