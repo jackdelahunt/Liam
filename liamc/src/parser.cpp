@@ -420,14 +420,6 @@ Expression *Parser::eval_postfix() {
             consume_token_with_index();
             auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL); expr            = new GetExpression(expr, identifier);
         }
-        else if (match(TokenType::TOKEN_BRACKET_OPEN))
-        {
-            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN), NULL);
-            auto subscript_by = TRY_CALL_RET(eval_postfix(), NULL);
-            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE), NULL);
-
-            expr = new SubscriptExpression(expr, subscript_by);
-        }
         else
         {
             break;
@@ -510,17 +502,6 @@ TypeExpression *Parser::eval_type_expression() {
 }
 
 TypeExpression *Parser::eval_type_unary() {
-
-    // ^..
-    if (match(TokenType::TOKEN_HAT) && peek(1)->token_type == TokenType::TOKEN_DOT && peek(2)->token_type == TokenType::TOKEN_DOT)
-    {
-        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_HAT), NULL);
-        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_DOT), NULL);
-        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_DOT), NULL);
-
-        auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
-        return new UnaryTypeExpression(UnaryType::POINTER_SLICE, type_expression);
-    }
 
     // ^
     if (match(TokenType::TOKEN_HAT))

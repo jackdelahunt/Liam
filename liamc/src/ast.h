@@ -22,7 +22,6 @@ struct ContinueStatement;
 struct Expression;
 struct BinaryExpression;
 struct UnaryExpression;
-struct SubscriptExpression;
 struct NumberLiteralExpression;
 struct StringLiteralExpression;
 struct BoolLiteralExpression;
@@ -46,7 +45,6 @@ struct VoidTypeInfo;
 struct NumberTypeInfo;
 struct BoolTypeInfo;
 struct PointerTypeInfo;
-struct PointerSliceTypeInfo;
 struct StrTypeInfo;
 struct TypeTypeInfo;
 struct StructTypeInfo;
@@ -90,7 +88,6 @@ enum class ExpressionType {
 
 enum class UnaryType {
     POINTER,
-    POINTER_SLICE
 };
 
 enum class TypeExpressionType {
@@ -106,12 +103,9 @@ enum class TypeInfoType {
     BOOLEAN,
     STRING,
     FN,
-    FN_EXPRESSION,
     STRUCT,
     STRUCT_INSTANCE,
     POINTER,
-    POINTER_SLICE,
-    SLICE,
 };
 
 enum class NumberType {
@@ -145,12 +139,6 @@ struct PointerTypeInfo : TypeInfo {
     TypeInfo *to;
 
     PointerTypeInfo(TypeInfo *to);
-};
-
-struct PointerSliceTypeInfo : TypeInfo {
-    TypeInfo *to;
-
-    PointerSliceTypeInfo(TypeInfo *to);
 };
 
 struct StrTypeInfo : TypeInfo {
@@ -315,13 +303,6 @@ struct UnaryExpression : Expression {
     Expression *expression;
 
     UnaryExpression(Expression *expression, TokenType op);
-};
-
-struct SubscriptExpression : Expression {
-    Expression *lhs;
-    Expression *expression;
-
-    SubscriptExpression(Expression *lhs, Expression *expression);
 };
 
 struct NumberLiteralExpression : Expression {
