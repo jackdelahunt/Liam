@@ -11,9 +11,7 @@ CompilationUnit *lex_parse(std::filesystem::path file_path) {
     if (ErrorReporter::has_parse_errors())
     {
         for (auto &error : ErrorReporter::singleton->parse_errors)
-        {
-            error.print_error_message();
-        }
+        { error.print_error_message(); }
 
         panic(
             "Cannot continue with errors :: count (" + std::to_string(ErrorReporter::singleton->parse_errors.size()) +
@@ -31,9 +29,7 @@ void type_check(CompilationUnit *file) {
     if (ErrorReporter::has_type_check_errors())
     {
         for (auto &error : ErrorReporter::singleton->type_check_errors)
-        {
-            error.print_error_message();
-        }
+        { error.print_error_message(); }
 
         panic(
             "Cannot continue with errors :: count (" +

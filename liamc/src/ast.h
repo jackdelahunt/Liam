@@ -155,7 +155,8 @@ struct StructTypeInfo : TypeInfo {
 
     StructTypeInfo(
         std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
-        std::vector<std::tuple<std::string, TypeInfo *>> members);
+        std::vector<std::tuple<std::string, TypeInfo *>> members
+    );
 };
 
 struct StructInstanceTypeInfo : TypeInfo {
@@ -169,9 +170,7 @@ struct FnTypeInfo : TypeInfo {
     TypeInfo *return_type;
     std::vector<TypeInfo *> args;
 
-    FnTypeInfo(
-        StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args
-    );
+    FnTypeInfo(StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args);
 };
 
 /*
@@ -211,8 +210,8 @@ struct FnStatement : Statement {
     ScopeStatement *body;
 
     FnStatement(
-        CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier,
-        CSV params, TypeExpression *type, ScopeStatement *body
+        CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, CSV params, TypeExpression *type,
+        ScopeStatement *body
     );
 };
 
@@ -220,9 +219,7 @@ struct StructStatement : Statement {
     TokenIndex identifier;
     CSV members;
 
-    StructStatement(
-        CompilationUnit *file, TokenIndex identifier, CSV members
-    );
+    StructStatement(CompilationUnit *file, TokenIndex identifier, CSV members);
 };
 
 struct AssigmentStatement : Statement {
@@ -369,8 +366,7 @@ struct StructInstanceExpression : Expression {
     std::vector<std::tuple<TokenIndex, Expression *>> named_expressions;
 
     StructInstanceExpression(
-        TokenIndex identifier,
-        std::vector<std::tuple<TokenIndex , Expression *>> named_expressions
+        TokenIndex identifier, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions
     );
 };
 

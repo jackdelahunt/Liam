@@ -29,26 +29,24 @@ TypeTypeInfo::TypeTypeInfo() {
 }
 
 StructTypeInfo::StructTypeInfo(
-std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
-    std::vector<std::tuple<std::string, TypeInfo *>> members) {
+    std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
+    std::vector<std::tuple<std::string, TypeInfo *>> members
+) {
     this->member_functions = memberFunctions;
     this->members          = members;
     this->type             = TypeInfoType::STRUCT;
 }
 
 StructInstanceTypeInfo::StructInstanceTypeInfo(StructTypeInfo *structType) {
-    this->struct_type   = structType;
-    this->type          = TypeInfoType::STRUCT_INSTANCE;
+    this->struct_type = structType;
+    this->type        = TypeInfoType::STRUCT_INSTANCE;
 }
 
-FnTypeInfo::FnTypeInfo(
-    StructTypeInfo *parentType, TypeInfo *returnType,
-    std::vector<TypeInfo *> args
-) {
-    this->parent_type        = parentType;
-    this->return_type        = returnType;
-    this->args               = args;
-    this->type               = TypeInfoType::FN;
+FnTypeInfo::FnTypeInfo(StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args) {
+    this->parent_type = parentType;
+    this->return_type = returnType;
+    this->args        = args;
+    this->type        = TypeInfoType::FN;
 }
 
 std::ostream &Statement::format(std::ostream &os) const {
@@ -83,8 +81,8 @@ ScopeStatement::ScopeStatement(CompilationUnit *file, std::vector<Statement *> s
 }
 
 FnStatement::FnStatement(
-    CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, CSV params,
-    TypeExpression *type, ScopeStatement *body
+    CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, CSV params, TypeExpression *type,
+    ScopeStatement *body
 ) {
     this->file           = file;
     this->parent_type    = parent_type;
@@ -95,9 +93,7 @@ FnStatement::FnStatement(
     this->statement_type = StatementType::STATEMENT_FN;
 }
 
-StructStatement::StructStatement(
-    CompilationUnit *file, TokenIndex identifier, CSV members
-) {
+StructStatement::StructStatement(CompilationUnit *file, TokenIndex identifier, CSV members) {
     this->file           = file;
     this->identifier     = identifier;
     this->members        = members;
@@ -182,27 +178,26 @@ StringLiteralExpression::StringLiteralExpression(TokenIndex token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_STRING_LITERAL;
     // TODO: fix this
-    this->span  = Span{};
+    this->span = Span{};
 }
 
 BoolLiteralExpression::BoolLiteralExpression(TokenIndex token) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_BOOL_LITERAL;
-    this->span = Span{}; // TODO
+    this->span  = Span{}; // TODO
 }
 
 IdentifierExpression::IdentifierExpression(TokenIndex identifier) {
     this->identifier = identifier;
     this->type       = ExpressionType::EXPRESSION_IDENTIFIER;
-    this->span = Span{}; // TODO
+    this->span       = Span{}; // TODO
 }
 
-CallExpression::CallExpression(
-    Expression *identifier, std::vector<Expression *> args) {
-    this->callee   = identifier;
-    this->args     = args;
-    this->type     = ExpressionType::EXPRESSION_CALL;
-    this->span     = identifier->span;
+CallExpression::CallExpression(Expression *identifier, std::vector<Expression *> args) {
+    this->callee = identifier;
+    this->args   = args;
+    this->type   = ExpressionType::EXPRESSION_CALL;
+    this->span   = identifier->span;
 }
 
 GetExpression::GetExpression(Expression *expression, TokenIndex member) {

@@ -15,9 +15,7 @@ u64 FileData::index_at(u32 line, u32 character) {
     {
 
         if (current_line == line && current_char == character)
-        {
-            return i;
-        }
+        { return i; }
 
         if (this->data[i] == '\n')
         {
@@ -25,9 +23,7 @@ u64 FileData::index_at(u32 line, u32 character) {
             current_char = 1;
         }
         else
-        {
-            current_char++;
-        }
+        { current_char++; }
     }
 
     ASSERT_MSG(0, "Could not find line and character in compilation_unit data");
@@ -70,14 +66,10 @@ FileManager *FileManager::singleton = NULL;
 
 FileData *FileManager::load(std::filesystem::path path) {
     if (FileManager::singleton == NULL)
-    {
-        singleton = new FileManager();
-    }
+    { singleton = new FileManager(); }
 
     if (FileManager::singleton->files.count(path) > 0)
-    {
-        return &FileManager::singleton->files[path];
-    }
+    { return &FileManager::singleton->files[path]; }
 
     u64 file_size_in_bytes = 0;
 
@@ -112,9 +104,7 @@ FileData *FileManager::load(std::filesystem::path path) {
         {
             char c = (char)i;
             if (c == '\n')
-            {
-                line_count++;
-            }
+            { line_count++; }
 
             data[index] = c;
             index++;
@@ -130,9 +120,7 @@ FileData *FileManager::load(std::filesystem::path path) {
 
 std::map<std::filesystem::path, FileData> *FileManager::get_files() {
     if (FileManager::singleton == NULL)
-    {
-        singleton = new FileManager();
-    }
+    { singleton = new FileManager(); }
 
     return &FileManager::singleton->files;
 }

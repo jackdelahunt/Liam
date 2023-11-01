@@ -32,9 +32,7 @@ struct CompilationUnit {
         // TODO: figure out what is best for this
         std::string token_string;
         for (u64 i = token_data->span.start; i <= token_data->span.end; i++)
-        {
-            token_string.push_back(this->file_data->data[i]);
-        }
+        { token_string.push_back(this->file_data->data[i]); }
 
         return token_string;
     }

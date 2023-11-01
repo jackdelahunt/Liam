@@ -27,9 +27,7 @@ i32 main(i32 argc, char **argv) {
     TIME_END(code_gen_time, "Code generation time");
 
     if (args->emit)
-    {
-        std::cout << code << "\n";
-    }
+    { std::cout << code << "\n"; }
 
     std::ofstream out_file;
     out_file = std::ofstream(args->out_path);
@@ -43,9 +41,7 @@ i32 main(i32 argc, char **argv) {
     {
         u64 total_line_count = 0;
         for (auto file_name_to_file_data : *FileManager::get_files())
-        {
-            total_line_count += file_name_to_file_data.second.line_count;
-        }
+        { total_line_count += file_name_to_file_data.second.line_count; }
 
         u64 total_time_in_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
                                              std::chrono::high_resolution_clock::now() - total_time

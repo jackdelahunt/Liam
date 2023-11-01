@@ -26,9 +26,7 @@ CompilationUnit *Lexer::lex() {
     // pre allocate some of the token vector
     u64 token_vec_start_size = this->file_data->data_length * 0.45;
     if (token_vec_start_size > this->token_buffer.capacity())
-    {
-        this->token_buffer.reserve(token_vec_start_size);
-    }
+    { this->token_buffer.reserve(token_vec_start_size); }
 
     for (; this->current_index < this->file_data->data_length; next_char())
     {
@@ -62,9 +60,7 @@ CompilationUnit *Lexer::lex() {
             {
                 while (this->current_index < this->file_data->data_length &&
                        this->file_data->data[this->current_index] != '\n')
-                {
-                    next_char();
-                }
+                { next_char(); }
                 current_line++;
                 break;
             }

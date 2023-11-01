@@ -14,9 +14,7 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     int literal_end = 0;
     while (literal_end < literal.size() &&
            (is_digit(literal.at(literal_end)) || literal.at(literal_end) == '-' || literal.at(literal_end) == '.'))
-    {
-        literal_end++;
-    }
+    { literal_end++; }
 
     // literal == 0..literal_end
     // type == literal_end..literal_end +1
@@ -50,21 +48,13 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     NumberType type;
 
     if (type_string == "u")
-    {
-        type = NumberType::UNSIGNED;
-    }
+    { type = NumberType::UNSIGNED; }
     else if (type_string == "f")
-    {
-        type = NumberType::FLOAT;
-    }
+    { type = NumberType::FLOAT; }
     else if (type_string == "i")
-    {
-        type = NumberType::SIGNED;
-    }
+    { type = NumberType::SIGNED; }
     else
-    {
-        return BAD_PARSE;
-    }
+    { return BAD_PARSE; }
 
     if (size == 8 || size == 16 || size == 32 || size == 64)
     {

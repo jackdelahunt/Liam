@@ -8,7 +8,7 @@
 
 struct CppBackend {
     CompilationUnit *compilation_unit = NULL;
-    CppBackend()                  = default;
+    CppBackend()                      = default;
     std::string emit(CompilationUnit *file);
 
     std::string forward_declare_struct(StructStatement *statement);

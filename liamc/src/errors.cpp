@@ -16,12 +16,7 @@ void ParserError::print_error_message() {
 
 TypeCheckerError TypeCheckerError::make(std::string file) {
     auto error = TypeCheckerError{
-        .file           = std::move(file),
-        .expr_1         = NULL,
-        .expr_2         = NULL,
-        .type_expr_1    = NULL,
-        .type_expr_2    = NULL,
-        .error          = ""};
+        .file = std::move(file), .expr_1 = NULL, .expr_2 = NULL, .type_expr_1 = NULL, .type_expr_2 = NULL, .error = ""};
 
     return error;
 }
@@ -59,24 +54,16 @@ void TypeCheckerError::print_error_message() {
     std::cerr << std::format("Type checking ERROR :: {}\n", error);
 
     if (this->expr_1)
-    {
-        write_error_annotation_at_span(&file, this->expr_1->span);
-    }
+    { write_error_annotation_at_span(&file, this->expr_1->span); }
 
     if (this->expr_2)
-    {
-        write_error_annotation_at_span(&file, this->expr_2->span);
-    }
+    { write_error_annotation_at_span(&file, this->expr_2->span); }
 
     if (this->type_expr_1)
-    {
-        write_error_annotation_at_span(&file, this->type_expr_1->span);
-    }
+    { write_error_annotation_at_span(&file, this->type_expr_1->span); }
 
     if (this->type_expr_2)
-    {
-        write_error_annotation_at_span(&file, this->type_expr_2->span);
-    }
+    { write_error_annotation_at_span(&file, this->type_expr_2->span); }
 }
 
 ErrorReporter::ErrorReporter() {
@@ -86,9 +73,7 @@ ErrorReporter::ErrorReporter() {
 
 void ErrorReporter::report_parser_error(std::string file, Span span, std::string message) {
     if (ErrorReporter::singleton == nullptr)
-    {
-        ErrorReporter::singleton = new ErrorReporter();
-    }
+    { ErrorReporter::singleton = new ErrorReporter(); }
 
     ErrorReporter::singleton->parse_errors.push_back(ParserError{std::move(file), span, std::move(message)});
     ErrorReporter::singleton->error_reported_since_last_check = true;
@@ -99,26 +84,22 @@ void ErrorReporter::report_type_checker_error(
     std::string message
 ) {
     if (ErrorReporter::singleton == nullptr)
-    {
-        ErrorReporter::singleton = new ErrorReporter();
-    }
+    { ErrorReporter::singleton = new ErrorReporter(); }
 
     ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
-        .file           = std::move(file),
-        .expr_1         = expr_1,
-        .expr_2         = expr_2,
-        .type_expr_1    = type_expr_1,
-        .type_expr_2    = type_expr_2,
-        .error          = std::move(message)});
+        .file        = std::move(file),
+        .expr_1      = expr_1,
+        .expr_2      = expr_2,
+        .type_expr_1 = type_expr_1,
+        .type_expr_2 = type_expr_2,
+        .error       = std::move(message)});
 
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
 
 void ErrorReporter::report_type_checker_error(TypeCheckerError error) {
     if (ErrorReporter::singleton == nullptr)
-    {
-        ErrorReporter::singleton = new ErrorReporter();
-    }
+    { ErrorReporter::singleton = new ErrorReporter(); }
 
     ErrorReporter::singleton->type_check_errors.push_back(error);
     ErrorReporter::singleton->error_reported_since_last_check = true;
@@ -188,14 +169,10 @@ std::string build_highlighter(u64 start, u64 length) {
 
     auto source = std::string();
     for (int i = 0; i < start - 1; i++)
-    {
-        source.append(" ");
-    }
+    { source.append(" "); }
 
     for (int i = 0; i < length; i++)
-    {
-        source.append("^");
-    }
+    { source.append("^"); }
 
     return source;
 }
