@@ -21,11 +21,6 @@ PointerTypeInfo::PointerTypeInfo(TypeInfo *to) {
     this->type = TypeInfoType::POINTER;
 }
 
-PointerSliceTypeInfo::PointerSliceTypeInfo(TypeInfo *to) {
-    this->to   = to;
-    this->type = TypeInfoType::POINTER_SLICE;
-}
-
 StrTypeInfo::StrTypeInfo() {
     this->type = TypeInfoType::STRING;
 }
@@ -175,13 +170,6 @@ UnaryExpression::UnaryExpression(Expression *expression, TokenType op) {
     this->op         = op;
     this->type       = ExpressionType::EXPRESSION_UNARY;
     this->span       = expression->span;
-}
-
-SubscriptExpression::SubscriptExpression(Expression *lhs, Expression *expression) {
-    this->expression = expression;
-    this->lhs        = lhs;
-    this->span       = lhs->span;
-    this->type       = ExpressionType::EXPRESSION_SUBSCRIPT;
 }
 
 NumberLiteralExpression::NumberLiteralExpression(TokenIndex token) {

@@ -34,7 +34,6 @@ struct CppBackend {
     std::string emit_bool_literal_expression(BoolLiteralExpression *expression);
     std::string emit_int_literal_expression(NumberLiteralExpression *expression);
     std::string emit_unary_expression(UnaryExpression *expression);
-    std::string emit_subscript_expression(SubscriptExpression *expression);
     std::string emit_call_expression(CallExpression *expression);
     std::string emit_identifier_expression(IdentifierExpression *expression);
     std::string emit_get_expression(GetExpression *expression);

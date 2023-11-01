@@ -544,9 +544,6 @@ void TypeChecker::type_check_expression(Expression *expression, SymbolTable *sym
     case ExpressionType::EXPRESSION_UNARY:
         return type_check_unary_expression(dynamic_cast<UnaryExpression *>(expression), symbol_table);
         break;
-    case ExpressionType::EXPRESSION_SUBSCRIPT:
-        return type_check_subscript_expression(dynamic_cast<SubscriptExpression *>(expression), symbol_table);
-        break;
     case ExpressionType::EXPRESSION_GET:
         return type_check_get_expression(dynamic_cast<GetExpression *>(expression), symbol_table);
         break;
@@ -792,44 +789,6 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression, Symbo
     }
 
     panic("Internal :: Unrecognised unary operator");
-}
-
-void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table) {
-    TRY_CALL_VOID(type_check_expression(expression->lhs, symbol_table));
-    TRY_CALL_VOID(type_check_expression(expression->expression, symbol_table));
-
-    if (expression->lhs->type_info->type != TypeInfoType::POINTER_SLICE)
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression->lhs, NULL, NULL, NULL,
-            "Trying to subscript on non-pointer slice type"
-        );
-
-        return;
-    }
-
-    if (expression->expression->type_info->type != TypeInfoType::NUMBER)
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression->expression, NULL, NULL, NULL,
-            "Trying to subscript with a non-number type"
-        );
-
-        return;
-    }
-    else
-    {
-        NumberTypeInfo *number_type_info = static_cast<NumberTypeInfo *>(expression->expression->type_info);
-        if (number_type_info->number_type == NumberType::FLOAT)
-        {
-            ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression->expression, NULL, NULL, NULL,
-                "Trying to subscript with a float type, can only use signed or unsigned numbers"
-            );
-        }
-    }
-
-    expression->type_info = static_cast<PointerSliceTypeInfo *>(expression->lhs->type_info)->to;
 }
 
 void TypeChecker::type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table) {
@@ -1112,13 +1071,6 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
         return;
     }
 
-    if (type_expression->unary_type == UnaryType::POINTER_SLICE)
-    {
-        TRY_CALL_VOID(type_check_type_expression(type_expression->type_expression, symbol_table));
-        type_expression->type_info = new PointerSliceTypeInfo(type_expression->type_expression->type_info);
-        return;
-    }
-
     panic("Internal :: Cannot type check this operator yet...");
 }
 
@@ -1220,13 +1172,6 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         }
 
         return true;
-    }
-    else if (a->type == TypeInfoType::POINTER_SLICE)
-    {
-        auto ptr_a = static_cast<PointerSliceTypeInfo *>(a);
-        auto ptr_b = static_cast<PointerSliceTypeInfo *>(b);
-
-        return type_match(ptr_a->to, ptr_b->to);
     }
 
     panic("Cannot type check this type info");

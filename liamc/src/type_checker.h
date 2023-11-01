@@ -79,7 +79,6 @@ struct TypeChecker {
     void type_check_number_literal_expression(NumberLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_bool_literal_expression(BoolLiteralExpression *expression, SymbolTable *symbol_table);
     void type_check_unary_expression(UnaryExpression *expression, SymbolTable *symbol_table);
-    void type_check_subscript_expression(SubscriptExpression *expression, SymbolTable *symbol_table);
     void type_check_call_expression(CallExpression *expression, SymbolTable *symbol_table);
     void type_check_fn_call_expression(CallExpression *expression, SymbolTable *symbol_table);
     void type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table);
