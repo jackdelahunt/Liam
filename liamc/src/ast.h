@@ -203,14 +203,13 @@ struct ScopeStatement : Statement {
 };
 
 struct FnStatement : Statement {
-    TypeExpression *parent_type;
     TokenIndex identifier;
     CSV params;
     TypeExpression *return_type;
     ScopeStatement *body;
 
     FnStatement(
-        CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, CSV params, TypeExpression *type,
+        CompilationUnit *file, TokenIndex identifier, CSV params, TypeExpression *type,
         ScopeStatement *body
     );
 };

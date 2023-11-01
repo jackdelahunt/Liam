@@ -81,11 +81,10 @@ ScopeStatement::ScopeStatement(CompilationUnit *file, std::vector<Statement *> s
 }
 
 FnStatement::FnStatement(
-    CompilationUnit *file, TypeExpression *parent_type, TokenIndex identifier, CSV params, TypeExpression *type,
+    CompilationUnit *file, TokenIndex identifier, CSV params, TypeExpression *type,
     ScopeStatement *body
 ) {
     this->file           = file;
-    this->parent_type    = parent_type;
     this->identifier     = identifier;
     this->return_type    = type;
     this->params         = params;

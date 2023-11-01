@@ -153,16 +153,6 @@ ScopeStatement *Parser::eval_scope_statement() {
 FnStatement *Parser::eval_fn_statement() {
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FN), NULL);
 
-    TypeExpression *parent_type = NULL;
-
-    // check if there is a ( identifier ), if so it means this is a member function
-    if (peek()->token_type == TokenType::TOKEN_PAREN_OPEN)
-    {
-        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
-        parent_type = TRY_CALL_RET(eval_type_expression(), NULL);
-        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
-    }
-
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
@@ -173,7 +163,7 @@ FnStatement *Parser::eval_fn_statement() {
     auto type = TRY_CALL_RET(eval_type_expression(), NULL);
 
     auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-    return new FnStatement(compilation_unit, parent_type, identifier, params, type, body);
+    return new FnStatement(compilation_unit, identifier, params, type, body);
 }
 
 StructStatement *Parser::eval_struct_statement() {

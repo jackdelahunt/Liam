@@ -50,23 +50,9 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
 
     if (name_as_string == "main")
     { source.append(" __liam__main__"); }
-    else if (statement->parent_type != NULL)
-    {
-        // add a __ to any member functions, this keeps the inclusion that they are scoped
-        // to the type even though they are not in the cpp generation
-        source.append("__" + name_as_string);
-    }
-    else
-    { source.append(name_as_string); }
 
+    source.append(name_as_string);
     source.append("(");
-
-    if (statement->parent_type != NULL)
-    {
-        source.append(emit_type_expression(statement->parent_type) + " *self");
-        if (statement->params.size() > 0)
-        { source.append(", "); }
-    }
 
     int index = 0;
     for (auto [token_index, type] : statement->params)
@@ -164,25 +150,11 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 
     if (name_as_string == "main")
     { source.append("__liam__main__"); }
-    else if (statement->parent_type != NULL)
-    {
-        // add a __ to any member functions, this keeps the illusion that they are scoped
-        // to the type even though they are not in the cpp generation
-        source.append("__" + name_as_string);
-    }
-    else
-    { source.append(name_as_string); }
 
+    source.append(name_as_string);
     source.append("(");
-    int index = 0;
 
-    // if this is a member function add the magic *self parameter
-    if (statement->parent_type != NULL)
-    {
-        source.append(emit_type_expression(statement->parent_type) + " *self");
-        if (statement->params.size() > 0)
-        { source.append(", "); }
-    }
+    int index = 0;
 
     for (auto [identifier, type] : statement->params)
     {

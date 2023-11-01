@@ -211,30 +211,6 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
 
     TRY_CALL_VOID(type_check_type_expression(statement->return_type, &symbol_table));
 
-    // this function is a part of a struct so it needs to be added to the struct type info
-    // of the parent if it has no parent type then it is apart of the parent symbol table
-    if (statement->parent_type != NULL)
-    {
-        TRY_CALL_VOID(type_check_type_expression(statement->parent_type, &symbol_table));
-
-        auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
-        if (parent_type_info == NULL)
-        {
-            TypeCheckerError::make(compilation_unit->file_data->path.string())
-                .set_type_expr_1(statement->parent_type)
-                .set_message("Member functions can only be used on struct types")
-                .report();
-            return;
-        }
-
-        parent_type_info->member_functions.push_back(
-            {this->compilation_unit->get_token_string_from_index(statement->identifier),
-             new FnTypeInfo(parent_type_info, statement->return_type->type_info, param_type_infos)}
-        );
-
-        return;
-    }
-
     // TODO remove this
     std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
 
@@ -253,39 +229,9 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     // 2. looking into the member functions of a type (member function)
     FnTypeInfo *fn_type_info = NULL;
 
-    if (statement->parent_type == NULL)
-    {
         std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
         fn_type_info               = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
         ASSERT(fn_type_info);
-    }
-    else
-    {
-
-        auto parent_type_info = get_struct_type_info_from_type_info(statement->parent_type->type_info);
-        if (parent_type_info == NULL)
-        {
-            TypeCheckerError::make(compilation_unit->file_data->path.string())
-                .set_type_expr_1(statement->parent_type)
-                .set_message("Member functions can only be used on struct types")
-                .report();
-
-            return;
-        }
-
-        for (auto [identifier, type_info] : parent_type_info->member_functions)
-        {
-            std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-            if (identifier == name_as_string)
-            {
-                fn_type_info = type_info;
-                break;
-            }
-        }
-        // we should always be able to find the fn type info in the struct as it is
-        // already been type checked if this does not happen then something has gone very wrong
-        ASSERT(statement->parent_type != NULL);
-    }
 
     // params and get type expressions
     auto args = std::vector<std::tuple<TokenIndex, TypeInfo *>>();
@@ -296,9 +242,6 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
         auto &[identifier, expr] = statement->params.at(i);
         args[i]                  = {identifier, fn_type_info->args.at(i)};
     }
-
-    if (statement->parent_type != NULL)
-    { symbol_table.add_compiler_generated_identifier("self", new PointerTypeInfo(statement->parent_type->type_info)); }
 
     for (auto &[identifier, type_info] : args)
     {
