@@ -91,11 +91,14 @@ Statement *Parser::eval_top_level_statement() {
         break;
 
     default: {
-        auto token = consume_token_with_index();
+        auto token      = consume_token_with_index();
         auto token_data = this->compilation_unit->get_token(token);
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), token_data->span,
-            std::format("Unexpected token used to declare new statement at top level '{}'", this->compilation_unit->get_token_string_from_index(token))
+            std::format(
+                "Unexpected token used to declare new statement at top level '{}'",
+                this->compilation_unit->get_token_string_from_index(token)
+            )
         );
         return NULL;
     }
@@ -110,9 +113,7 @@ LetStatement *Parser::eval_let_statement() {
 
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON), NULL);
     if (peek()->token_type != TokenType::TOKEN_ASSIGN)
-    {
-        type = TRY_CALL_RET(eval_type_expression(), NULL);
-    }
+    { type = TRY_CALL_RET(eval_type_expression(), NULL); }
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_ASSIGN), NULL);
     auto expression = TRY_CALL_RET(eval_expression_statement(), NULL);
     return new LetStatement(compilation_unit, identifier, expression->expression, type);
@@ -120,8 +121,9 @@ LetStatement *Parser::eval_let_statement() {
 
 ScopeStatement *Parser::eval_scope_statement() {
     auto statements = std::vector<Statement *>();
-    TokenIndex open_brace_token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
-    Token * open_brace_token_data = this->compilation_unit->get_token(open_brace_token_index);
+    TokenIndex open_brace_token_index =
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
+    Token *open_brace_token_data = this->compilation_unit->get_token(open_brace_token_index);
     i32 closing_brace_index =
         find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, current - 1);
     // if (closing_brace_index == current + 1)
@@ -132,7 +134,8 @@ ScopeStatement *Parser::eval_scope_statement() {
     if (closing_brace_index < 0)
     {
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), open_brace_token_data->span, "No closing brace for scope found"
+            this->compilation_unit->file_data->path.string(), open_brace_token_data->span,
+            "No closing brace for scope found"
         );
         return NULL;
     }
@@ -182,7 +185,7 @@ StructStatement *Parser::eval_struct_statement() {
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    return new StructStatement(compilation_unit, identifier, member );
+    return new StructStatement(compilation_unit, identifier, member);
 }
 
 ReturnStatement *Parser::eval_return_statement() {
@@ -191,9 +194,7 @@ ReturnStatement *Parser::eval_return_statement() {
     Expression *expression = NULL;
 
     if (peek()->token_type != TokenType::TOKEN_SEMI_COLON)
-    {
-        expression = TRY_CALL_RET(eval_expression(), NULL);
-    }
+    { expression = TRY_CALL_RET(eval_expression(), NULL); }
 
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
 
@@ -242,9 +243,7 @@ IfStatement *Parser::eval_if_statement() {
     // if so capture it and own it else just leave the else statement as NULL
     ElseStatement *else_statement = NULL;
     if (peek()->token_type == TokenType::TOKEN_ELSE)
-    {
-        else_statement = TRY_CALL_RET(eval_else_statement(), NULL);
-    }
+    { else_statement = TRY_CALL_RET(eval_else_statement(), NULL); }
 
     return new IfStatement(compilation_unit, expression, body, else_statement);
 }
@@ -315,9 +314,9 @@ Expression *Parser::eval_or() {
 
     while (match(TokenType::TOKEN_OR))
     {
-        TokenIndex token_index  = consume_token_with_index();
-        auto right = TRY_CALL_RET(eval_and(), NULL);
-        expr       = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
+        TokenIndex token_index = consume_token_with_index();
+        auto right             = TRY_CALL_RET(eval_and(), NULL);
+        expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
     return expr;
@@ -328,9 +327,9 @@ Expression *Parser::eval_and() {
 
     while (match(TokenType::TOKEN_AND))
     {
-        TokenIndex token_index  = consume_token_with_index();
-        auto right = TRY_CALL_RET(eval_equality(), NULL);
-        expr       = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
+        TokenIndex token_index = consume_token_with_index();
+        auto right             = TRY_CALL_RET(eval_equality(), NULL);
+        expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
     return expr;
@@ -341,9 +340,9 @@ Expression *Parser::eval_equality() {
 
     while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL))
     {
-        TokenIndex token_index  = consume_token_with_index();
-        auto right = TRY_CALL_RET(eval_relational(), NULL);
-        expr       = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
+        TokenIndex token_index = consume_token_with_index();
+        auto right             = TRY_CALL_RET(eval_relational(), NULL);
+        expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
     return expr;
@@ -355,9 +354,9 @@ Expression *Parser::eval_relational() {
     while (match(TokenType::TOKEN_LESS) || match(TokenType::TOKEN_GREATER) || match(TokenType::TOKEN_GREATER_EQUAL) ||
            match(TokenType::TOKEN_LESS_EQUAL))
     {
-        TokenIndex token_index  = consume_token_with_index();
-        auto right = TRY_CALL_RET(eval_term(), NULL);
-        expr       = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
+        TokenIndex token_index = consume_token_with_index();
+        auto right             = TRY_CALL_RET(eval_term(), NULL);
+        expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
     return expr;
@@ -368,9 +367,9 @@ Expression *Parser::eval_term() {
 
     while (match(TokenType::TOKEN_PLUS) || match(TokenType::TOKEN_MINUS))
     {
-        TokenIndex token_index  = consume_token_with_index();
-        auto right = TRY_CALL_RET(eval_factor(), NULL);
-        expr       = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
+        TokenIndex token_index = consume_token_with_index();
+        auto right             = TRY_CALL_RET(eval_factor(), NULL);
+        expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
     return expr;
@@ -382,8 +381,8 @@ Expression *Parser::eval_factor() {
     while (match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_SLASH) || match(TokenType::TOKEN_MOD))
     {
         TokenIndex token_index = consume_token_with_index();
-        auto right = TRY_CALL_RET(eval_unary(), NULL);
-        expr       = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
+        auto right             = TRY_CALL_RET(eval_unary(), NULL);
+        expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
     return expr;
@@ -393,8 +392,8 @@ Expression *Parser::eval_unary() {
 
     if (match(TokenType::TOKEN_AMPERSAND) || match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_NOT))
     {
-        TokenIndex token_index   = consume_token_with_index();
-        auto expr = TRY_CALL_RET(eval_unary(), NULL);
+        TokenIndex token_index = consume_token_with_index();
+        auto expr              = TRY_CALL_RET(eval_unary(), NULL);
 
         return new UnaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type);
     }
@@ -418,12 +417,11 @@ Expression *Parser::eval_postfix() {
         else if (match(TokenType::TOKEN_DOT))
         {
             consume_token_with_index();
-            auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL); expr            = new GetExpression(expr, identifier);
+            auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
+            expr            = new GetExpression(expr, identifier);
         }
         else
-        {
-            break;
-        }
+        { break; }
     }
 
     return expr;
@@ -450,11 +448,14 @@ Expression *Parser::eval_primary() {
         return new ZeroLiteralExpression(consume_token_with_index());
     else
     {
-        auto token = consume_token_with_index();
+        auto token      = consume_token_with_index();
         auto token_data = this->compilation_unit->get_token(token);
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), token_data->span,
-            std::format("Unexpected token when parsing expression '{}'", get_token_type_string(this->compilation_unit->get_token(token)->token_type))
+            std::format(
+                "Unexpected token when parsing expression '{}'",
+                get_token_type_string(this->compilation_unit->get_token(token)->token_type)
+            )
         );
         return NULL;
     }
@@ -518,9 +519,7 @@ TypeExpression *Parser::eval_type_unary() {
 TypeExpression *Parser::eval_type_primary() {
 
     if (peek()->token_type == TokenType::TOKEN_FN)
-    {
-        return TRY_CALL_RET(eval_type_fn(), NULL);
-    }
+    { return TRY_CALL_RET(eval_type_fn(), NULL); }
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
     return new IdentifierTypeExpression(identifier);
@@ -583,8 +582,7 @@ TokenIndex Parser::consume_token_with_index() {
 TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
     if (this->current >= this->compilation_unit->token_buffer.size())
     {
-        Token *last_token_data =
-            this->compilation_unit->get_token(this->compilation_unit->token_buffer.size() - 1);
+        Token *last_token_data = this->compilation_unit->get_token(this->compilation_unit->token_buffer.size() - 1);
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), last_token_data->span,
             std::format("Expected '{}' but got unexpected end of file", "TODO: add token string HERE!!")
@@ -593,7 +591,7 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
     }
 
     TokenIndex current_token_index = this->current++;
-    Token *token_data_ptr      = this->compilation_unit->get_token(current_token_index);
+    Token *token_data_ptr          = this->compilation_unit->get_token(current_token_index);
     if (token_data_ptr->token_type != type)
     {
         ErrorReporter::report_parser_error(
@@ -704,8 +702,8 @@ CSV Parser::consume_comma_seperated_params() {
     return args_types;
 }
 
-std::vector<std::tuple<TokenIndex , Expression *>> Parser::consume_comma_seperated_named_arguments(TokenType closer) {
-    auto named_args = std::vector<std::tuple<TokenIndex , Expression *>>();
+std::vector<std::tuple<TokenIndex, Expression *>> Parser::consume_comma_seperated_named_arguments(TokenType closer) {
+    auto named_args = std::vector<std::tuple<TokenIndex, Expression *>>();
     bool is_first   = true;
     if (!match(closer))
     {

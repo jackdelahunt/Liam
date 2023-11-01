@@ -34,9 +34,7 @@ void panic(const std::string &msg);
         auto end                                        = std::chrono::high_resolution_clock::now();                   \
         std::chrono::duration<double, std::milli> delta = end - name;                                                  \
         if (args->value<bool>("time"))                                                                                 \
-        {                                                                                                              \
-            std::cout << message << " :: " << delta.count() << "ms\n";                                                 \
-        }                                                                                                              \
+        { std::cout << message << " :: " << delta.count() << "ms\n"; }                                                 \
     }
 
 #define TRY(type, value, func)                                                                                         \
@@ -44,9 +42,7 @@ void panic(const std::string &msg);
     {                                                                                                                  \
         auto [ptr, error] = func;                                                                                      \
         if (error)                                                                                                     \
-        {                                                                                                              \
-            return {nullptr, true};                                                                                    \
-        }                                                                                                              \
+        { return {nullptr, true}; }                                                                                    \
         value = ptr;                                                                                                   \
     }
 
@@ -57,9 +53,7 @@ void panic(const std::string &msg);
         value          = std::get<0>(tuple);                                                                           \
         auto try_error = std::get<1>(tuple);                                                                           \
         if (try_error)                                                                                                 \
-        {                                                                                                              \
-            return {nullptr, true};                                                                                    \
-        }                                                                                                              \
+        { return {nullptr, true}; }                                                                                    \
     }
 
 #define WIN(value)                                                                                                     \
@@ -71,9 +65,7 @@ void panic(const std::string &msg);
         auto __start = ErrorReporter::error_count();                                                                   \
         auto __v     = func;                                                                                           \
         if (ErrorReporter::error_count() > __start)                                                                    \
-        {                                                                                                              \
-            return;                                                                                                    \
-        }                                                                                                              \
+        { return; }                                                                                                    \
         __v;                                                                                                           \
     })
 
@@ -84,9 +76,7 @@ void panic(const std::string &msg);
         auto __start = ErrorReporter::error_count();                                                                   \
         auto __v     = func;                                                                                           \
         if (ErrorReporter::error_count() > __start)                                                                    \
-        {                                                                                                              \
-            return ret;                                                                                                \
-        }                                                                                                              \
+        { return ret; }                                                                                                \
         __v;                                                                                                           \
     })
 
@@ -96,9 +86,7 @@ void panic(const std::string &msg);
         auto __start = ErrorReporter::error_count();                                                                   \
         func;                                                                                                          \
         if (ErrorReporter::error_count() > __start)                                                                    \
-        {                                                                                                              \
-            return;                                                                                                    \
-        }                                                                                                              \
+        { return; }                                                                                                    \
     }
 
 // call a func and if there is an error return with a given value from the function
@@ -107,9 +95,7 @@ void panic(const std::string &msg);
         auto __start = ErrorReporter::error_count();                                                                   \
         func;                                                                                                          \
         if (ErrorReporter::error_count() > __start)                                                                    \
-        {                                                                                                              \
-            return ret;                                                                                                \
-        }                                                                                                              \
+        { return ret; }                                                                                                \
     })
 
 #ifdef USE_ASSERTS

@@ -16,17 +16,14 @@ void Arguments::New(int argc, char **argv) {
     auto options = new cxxopts::Options("liamc", "Liam programming language compiler");
 
     // required fields
-    options->add_options()(
-        "i,in", "[REQUIRED] Input compilation_unit path", cxxopts::value<std::string>()->default_value("")
-    );
-    options->add_options()(
-        "s,stdlib", "[REQUIRED] Get the stdlib location", cxxopts::value<std::string>()->default_value("")
-    );
+    options->add_options(
+    )("i,in", "[REQUIRED] Input compilation_unit path", cxxopts::value<std::string>()->default_value(""));
+    options->add_options(
+    )("s,stdlib", "[REQUIRED] Get the stdlib location", cxxopts::value<std::string>()->default_value(""));
 
     // optionals with defaults
-    options->add_options()(
-        "o,out", "Output compilation_unit path", cxxopts::value<std::string>()->default_value("out.cpp")
-    );
+    options->add_options(
+    )("o,out", "Output compilation_unit path", cxxopts::value<std::string>()->default_value("out.cpp"));
     options->add_options()("e,emit", "Print emitted C++ to stdout", cxxopts::value<bool>()->default_value("false"));
     options->add_options()("t,time", "Print times", cxxopts::value<bool>()->default_value("false"));
     options->add_options()("h,help", "See this help screen", cxxopts::value<bool>()->default_value("false"));
@@ -59,12 +56,8 @@ void Arguments::New(int argc, char **argv) {
     args->test     = args->value<bool>("test");
 
     if (args->in_path.empty())
-    {
-        panic("--in is a required flag use --help for more info");
-    }
+    { panic("--in is a required flag use --help for more info"); }
 
     if (args->stdlib.empty())
-    {
-        panic("--stdlib is a required flag use --help for more info");
-    }
+    { panic("--stdlib is a required flag use --help for more info"); }
 }

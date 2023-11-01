@@ -33,9 +33,7 @@ void SymbolTable::add_identifier_type(std::string identifier, TypeInfo *type_inf
 
 std::tuple<TypeInfo *, bool> SymbolTable::get_identifier_type(std::string identifier) {
     if (identifier_table.count(identifier) > 0)
-    {
-        return {this->identifier_table[identifier], false};
-    }
+    { return {this->identifier_table[identifier], false}; }
 
     return {NULL, true};
 }
@@ -78,9 +76,7 @@ void TypeChecker::add_type(CompilationUnit *file, TokenIndex identifier, TypeInf
     std::string identifier_string = file->get_token_string_from_index(identifier);
 
     if (this->top_level_type_table.count(identifier_string) > 0)
-    {
-        panic("Duplicate creation of type: " + identifier_string);
-    }
+    { panic("Duplicate creation of type: " + identifier_string); }
 
     TopLevelDescriptor descriptor = TopLevelDescriptor{
         .identifier = identifier_string,
@@ -93,9 +89,7 @@ void TypeChecker::add_type(CompilationUnit *file, TokenIndex identifier, TypeInf
 void TypeChecker::add_function(CompilationUnit *file, TokenIndex token, TypeInfo *type_info) {
     std::string token_as_string = this->compilation_unit->get_token_string_from_index(token);
     if (this->top_level_function_table.count(token_as_string) > 0)
-    {
-        panic("Duplicate creation of function: " + token_as_string);
-    }
+    { panic("Duplicate creation of function: " + token_as_string); }
 
     TopLevelDescriptor descriptor = TopLevelDescriptor{
         .identifier = token_as_string,
@@ -107,23 +101,17 @@ void TypeChecker::add_function(CompilationUnit *file, TokenIndex token, TypeInfo
 
 std::tuple<TypeInfo *, bool> TypeChecker::get_type(std::string identifier) {
     if (this->top_level_type_table.count(identifier) > 0)
-    {
-        return {this->top_level_type_table[identifier].type_info, false};
-    }
+    { return {this->top_level_type_table[identifier].type_info, false}; }
 
     if (this->builtin_type_table.count(identifier) > 0)
-    {
-        return {this->builtin_type_table[identifier], false};
-    }
+    { return {this->builtin_type_table[identifier], false}; }
 
     return {nullptr, true};
 }
 
 std::tuple<TypeInfo *, bool> TypeChecker::get_function(std::string identifier) {
     if (this->top_level_function_table.count(identifier) > 0)
-    {
-        return {this->top_level_function_table[identifier].type_info, false};
-    }
+    { return {this->top_level_function_table[identifier].type_info, false}; }
 
     return {nullptr, true};
 }
@@ -134,39 +122,27 @@ void TypeChecker::type_check(CompilationUnit *file) {
 
     // add symbols for structs, enums and aliass
     for (auto stmt : this->compilation_unit->top_level_struct_statements)
-    {
-        TRY_CALL_VOID(type_check_struct_symbol(stmt));
-    }
+    { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
 
     for (auto stmt : this->compilation_unit->top_level_fn_statements)
-    {
-        TRY_CALL_VOID(type_check_fn_symbol(stmt));
-    }
+    { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
 
     for (auto stmt : this->compilation_unit->top_level_struct_statements)
-    {
-        TRY_CALL_VOID(type_check_struct_statement_full(stmt));
-    }
+    { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
 
     for (auto stmt : this->compilation_unit->top_level_fn_statements)
-    {
-        TRY_CALL_VOID(type_check_fn_decl(stmt));
-    }
+    { TRY_CALL_VOID(type_check_fn_decl(stmt)); }
 
     // finally do the function body pass
     for (auto stmt : this->compilation_unit->top_level_fn_statements)
-    {
-        TRY_CALL_VOID(type_check_fn_statement_full(stmt));
-    }
+    { TRY_CALL_VOID(type_check_fn_statement_full(stmt)); }
 }
 
 StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
     StructTypeInfo *parent_type_info = NULL;
 
     if (type_info->type == TypeInfoType::STRUCT)
-    {
-        parent_type_info = (StructTypeInfo *)type_info;
-    }
+    { parent_type_info = (StructTypeInfo *)type_info; }
     else if (type_info->type == TypeInfoType::STRUCT_INSTANCE)
     {
         auto struct_instance_type = (StructInstanceTypeInfo *)(type_info);
@@ -177,9 +153,7 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
 }
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
-    this->add_function(
-        this->compilation_unit, statement->identifier, new FnTypeInfo(NULL, NULL, {})
-    );
+    this->add_function(this->compilation_unit, statement->identifier, new FnTypeInfo(NULL, NULL, {}));
 }
 
 void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
@@ -199,10 +173,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
         return;
     }
 
-    this->add_type(
-        this->compilation_unit, statement->identifier,
-        new StructTypeInfo({}, {})
-    );
+    this->add_type(this->compilation_unit, statement->identifier, new StructTypeInfo({}, {}));
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
@@ -235,10 +206,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
 
         parent_type_info->member_functions.push_back(
             {this->compilation_unit->get_token_string_from_index(statement->identifier),
-             new FnTypeInfo(
-                 parent_type_info, statement->return_type->type_info,
-                 param_type_infos
-             )}
+             new FnTypeInfo(parent_type_info, statement->return_type->type_info, param_type_infos)}
         );
 
         return;
@@ -250,8 +218,8 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     // add this fn decl to parent symbol table
     auto current_type_info = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
 
-    current_type_info->return_type        = statement->return_type->type_info;
-    current_type_info->args               = param_type_infos;
+    current_type_info->return_type = statement->return_type->type_info;
+    current_type_info->args        = param_type_infos;
 }
 
 void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
@@ -297,7 +265,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     }
 
     // params and get type expressions
-    auto args = std::vector<std::tuple<TokenIndex , TypeInfo *>>();
+    auto args = std::vector<std::tuple<TokenIndex, TypeInfo *>>();
     args.reserve(fn_type_info->args.size());
     args.resize(fn_type_info->args.size());
     for (int i = 0; i < fn_type_info->args.size(); i++)
@@ -307,9 +275,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     }
 
     if (statement->parent_type != NULL)
-    {
-        symbol_table.add_compiler_generated_identifier("self", new PointerTypeInfo(statement->parent_type->type_info));
-    }
+    { symbol_table.add_compiler_generated_identifier("self", new PointerTypeInfo(statement->parent_type->type_info)); }
 
     for (auto &[identifier, type_info] : args)
     {
@@ -364,7 +330,7 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
         auto [member, expr] = statement->members.at(i);
         TRY_CALL_VOID(type_check_type_expression(expr, &symbol_table));
         std::string member_string = this->compilation_unit->get_token_string_from_index(member);
-        members_type_info[i] = {member_string, expr->type_info};
+        members_type_info[i]      = {member_string, expr->type_info};
     }
 
     std::string identifier_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
@@ -448,9 +414,7 @@ void TypeChecker::type_check_scope_statement(
     }
 
     for (auto stmt : statement->statements)
-    {
-        TRY_CALL_VOID(type_check_statement(stmt, scopes_symbol_table));
-    }
+    { TRY_CALL_VOID(type_check_statement(stmt, scopes_symbol_table)); }
 }
 
 void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable *symbol_table) {
@@ -460,9 +424,7 @@ void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable 
     TRY_CALL_VOID(type_check_statement(statement->update, &table_copy));
 
     if (statement->condition->type_info->type != TypeInfoType::BOOLEAN)
-    {
-        panic("Second statement in for loop needs to evaluate to a bool");
-    }
+    { panic("Second statement in for loop needs to evaluate to a bool"); }
 
     TRY_CALL_VOID(type_check_scope_statement(statement->body, &table_copy, false));
 }
@@ -475,9 +437,7 @@ void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *s
     TRY_CALL_VOID(type_check_expression(statement->expression, &copy));
 
     if (!type_match(statement->expression->type_info, this->builtin_type_table["bool"]))
-    {
-        panic("If statement must be passed a bool");
-    }
+    { panic("If statement must be passed a bool"); }
 
     TRY_CALL_VOID(type_check_scope_statement(statement->body, &copy));
 
@@ -492,14 +452,10 @@ void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *s
 
 void TypeChecker::type_check_else_statement(ElseStatement *statement, SymbolTable *symbol_table) {
     if (statement->if_statement)
-    {
-        TRY_CALL_VOID(type_check_if_statement(statement->if_statement, symbol_table));
-    }
+    { TRY_CALL_VOID(type_check_if_statement(statement->if_statement, symbol_table)); }
 
     if (statement->body)
-    {
-        TRY_CALL_VOID(type_check_scope_statement(statement->body, symbol_table));
-    }
+    { TRY_CALL_VOID(type_check_scope_statement(statement->body, symbol_table)); }
 }
 
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement, SymbolTable *symbol_table) {
@@ -633,9 +589,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression, Sym
 
     // compare - any -> bool
     if (expression->op == TokenType::TOKEN_EQUAL || expression->op == TokenType::TOKEN_NOT_EQUAL)
-    {
-        info = this->builtin_type_table["bool"];
-    }
+    { info = this->builtin_type_table["bool"]; }
 
     assert(info != NULL);
 
@@ -655,8 +609,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     if (size == -1)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
-            "Problem parsing number literal"
+            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, "Problem parsing number literal"
         );
         return;
     }
@@ -686,41 +639,25 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         }
 
         if (size == 8)
-        {
-            expression->type_info = this->builtin_type_table["u8"];
-        }
+        { expression->type_info = this->builtin_type_table["u8"]; }
         else if (size == 16)
-        {
-            expression->type_info = this->builtin_type_table["u16"];
-        }
+        { expression->type_info = this->builtin_type_table["u16"]; }
         else if (size == 32)
-        {
-            expression->type_info = this->builtin_type_table["u32"];
-        }
+        { expression->type_info = this->builtin_type_table["u32"]; }
         else if (size == 64)
-        {
-            expression->type_info = this->builtin_type_table["u64"];
-        }
+        { expression->type_info = this->builtin_type_table["u64"]; }
     }
     break;
     case NumberType::SIGNED: {
 
         if (size == 8)
-        {
-            expression->type_info = this->builtin_type_table["i8"];
-        }
+        { expression->type_info = this->builtin_type_table["i8"]; }
         else if (size == 16)
-        {
-            expression->type_info = this->builtin_type_table["i16"];
-        }
+        { expression->type_info = this->builtin_type_table["i16"]; }
         else if (size == 32)
-        {
-            expression->type_info = this->builtin_type_table["i32"];
-        }
+        { expression->type_info = this->builtin_type_table["i32"]; }
         else if (size == 64)
-        {
-            expression->type_info = this->builtin_type_table["i64"];
-        }
+        { expression->type_info = this->builtin_type_table["i64"]; }
     }
     break;
     case NumberType::FLOAT: {
@@ -733,13 +670,9 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
             return;
         }
         else if (size == 32)
-        {
-            expression->type_info = this->builtin_type_table["f32"];
-        }
+        { expression->type_info = this->builtin_type_table["f32"]; }
         else if (size == 64)
-        {
-            expression->type_info = this->builtin_type_table["f64"];
-        }
+        { expression->type_info = this->builtin_type_table["f64"]; }
     }
     break;
     }
@@ -848,7 +781,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
 
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
     std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
-    auto [type_info, failed] = symbol_table->get_identifier_type(identifier_string);
+    auto [type_info, failed]      = symbol_table->get_identifier_type(identifier_string);
 
     if (failed)
     {
@@ -865,18 +798,15 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
 void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table) {
     TRY_CALL_VOID(type_check_expression(expression->lhs, symbol_table));
 
-    TypeInfo *member_type_info       = NULL; // populated every time
-    StructTypeInfo *struct_type_info = NULL; // populated every time
-    StructInstanceTypeInfo *struct_instance_type_info =
-        NULL; // populated when the lhs is a struct instance
+    TypeInfo *member_type_info                        = NULL; // populated every time
+    StructTypeInfo *struct_type_info                  = NULL; // populated every time
+    StructInstanceTypeInfo *struct_instance_type_info = NULL; // populated when the lhs is a struct instance
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     {
         auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);
 
         if (ptr_type_info->to->type == TypeInfoType::STRUCT)
-        {
-            struct_type_info = (StructTypeInfo *)ptr_type_info->to;
-        }
+        { struct_type_info = (StructTypeInfo *)ptr_type_info->to; }
         else if (ptr_type_info->to->type == TypeInfoType::STRUCT_INSTANCE)
         {
             struct_instance_type_info = (StructInstanceTypeInfo *)(ptr_type_info->to);
@@ -892,9 +822,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTab
         }
     }
     else if (expression->lhs->type_info->type == TypeInfoType::STRUCT)
-    {
-        struct_type_info = static_cast<StructTypeInfo *>(expression->lhs->type_info);
-    }
+    { struct_type_info = static_cast<StructTypeInfo *>(expression->lhs->type_info); }
     else if (expression->lhs->type_info->type == TypeInfoType::STRUCT_INSTANCE)
     {
         struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
@@ -982,7 +910,7 @@ void TypeChecker::type_check_struct_instance_expression(
     StructInstanceExpression *expression, SymbolTable *symbol_table
 ) {
     std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
-    auto [type_info, failed] = this->get_type(identifier_string);
+    auto [type_info, failed]      = this->get_type(identifier_string);
     if (failed)
     {
         ErrorReporter::report_type_checker_error(
@@ -1078,7 +1006,7 @@ void TypeChecker::type_check_identifier_type_expression(
     IdentifierTypeExpression *type_expression, SymbolTable *symbol_table
 ) {
     std::string identifier_string = this->compilation_unit->get_token_string_from_index(type_expression->identifier);
-    auto [type, error] = this->get_type(identifier_string);
+    auto [type, error]            = this->get_type(identifier_string);
     if (error)
     {
         ErrorReporter::report_type_checker_error(
@@ -1098,9 +1026,7 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     if (a->type != b->type)
     {
         if (a->type != TypeInfoType::ANY && b->type != TypeInfoType::ANY)
-        {
-            return false;
-        }
+        { return false; }
     }
 
     if (a->type == TypeInfoType::ANY)
@@ -1135,9 +1061,7 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
                 if (type_match(fn_a->args.at(i), fn_b->args.at(i)))
                 {}
                 else
-                {
-                    return false;
-                }
+                { return false; }
             }
 
             return true;
@@ -1167,9 +1091,7 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         auto ptr_a = static_cast<StructInstanceTypeInfo *>(a);
         auto ptr_b = static_cast<StructInstanceTypeInfo *>(b);
         if (!type_match(ptr_a->struct_type, ptr_b->struct_type))
-        {
-            return false;
-        }
+        { return false; }
 
         return true;
     }

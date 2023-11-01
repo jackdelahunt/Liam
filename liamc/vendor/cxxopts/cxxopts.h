@@ -152,9 +152,7 @@ inline String &stringAppend(String &s, String a) {
 
 inline String &stringAppend(String &s, size_t n, UChar32 c) {
     for (size_t i = 0; i != n; ++i)
-    {
-        s.append(c);
-    }
+    { s.append(c); }
 
     return s;
 }
@@ -428,9 +426,7 @@ struct ArguDesc {
 #ifdef CXXOPTS_NO_REGEX
 inline IntegerDesc SplitInteger(const std::string &text) {
     if (text.empty())
-    {
-        throw_or_mimic<argument_incorrect_type>(text);
-    }
+    { throw_or_mimic<argument_incorrect_type>(text); }
     IntegerDesc desc;
     const char *pdata = text.c_str();
     if (*pdata == '-')
@@ -444,13 +440,9 @@ inline IntegerDesc SplitInteger(const std::string &text) {
         desc.base = "0x";
     }
     if (*pdata != '\0')
-    {
-        desc.value = std::string(pdata);
-    }
+    { desc.value = std::string(pdata); }
     else
-    {
-        throw_or_mimic<argument_incorrect_type>(text);
-    }
+    { throw_or_mimic<argument_incorrect_type>(text); }
     return desc;
 }
 
@@ -460,14 +452,10 @@ inline bool IsTrueText(const std::string &text) {
     {
         pdata += 1;
         if (strncmp(pdata, "rue\0", 4) == 0)
-        {
-            return true;
-        }
+        { return true; }
     }
     else if (strncmp(pdata, "1\0", 2) == 0)
-    {
-        return true;
-    }
+    { return true; }
     return false;
 }
 
@@ -477,14 +465,10 @@ inline bool IsFalseText(const std::string &text) {
     {
         pdata += 1;
         if (strncmp(pdata, "alse\0", 5) == 0)
-        {
-            return true;
-        }
+        { return true; }
     }
     else if (strncmp(pdata, "0\0", 2) == 0)
-    {
-        return true;
-    }
+    { return true; }
     return false;
 }
 
@@ -497,25 +481,17 @@ inline std::pair<std::string, std::string> SplitSwitchDef(const std::string &tex
         pdata += 2;
     }
     while (*pdata == ' ')
-    {
-        pdata += 1;
-    }
+    { pdata += 1; }
     if (isalnum(*pdata))
     {
         const char *store = pdata;
         pdata += 1;
         while (isalnum(*pdata) || *pdata == '-' || *pdata == '_')
-        {
-            pdata += 1;
-        }
+        { pdata += 1; }
         if (*pdata == '\0')
-        {
-            long_sw = std::string(store, pdata - store);
-        }
+        { long_sw = std::string(store, pdata - store); }
         else
-        {
-            throw_or_mimic<invalid_option_format_error>(text);
-        }
+        { throw_or_mimic<invalid_option_format_error>(text); }
     }
     return std::pair<std::string, std::string>(short_sw, long_sw);
 }
@@ -543,15 +519,11 @@ inline ArguDesc ParseArgument(const char *arg, bool &matched) {
                     argu_desc.set_value = true;
                     pdata += 1;
                     if (*pdata != '\0')
-                    {
-                        argu_desc.value = std::string(pdata);
-                    }
+                    { argu_desc.value = std::string(pdata); }
                     matched = true;
                 }
                 else if (*pdata == '\0')
-                {
-                    matched = true;
-                }
+                { matched = true; }
             }
         }
     }
@@ -587,9 +559,7 @@ inline IntegerDesc SplitInteger(const std::string &text) {
     std::regex_match(text, match, integer_pattern);
 
     if (match.length() == 0)
-    {
-        throw_or_mimic<argument_incorrect_type>(text);
-    }
+    { throw_or_mimic<argument_incorrect_type>(text); }
 
     IntegerDesc desc;
     desc.negative = match[1];
@@ -622,9 +592,7 @@ inline std::pair<std::string, std::string> SplitSwitchDef(const std::string &tex
     std::match_results<const char *> result;
     std::regex_match(text.c_str(), result, option_specifier);
     if (result.empty())
-    {
-        throw_or_mimic<invalid_option_format_error>(text);
-    }
+    { throw_or_mimic<invalid_option_format_error>(text); }
 
     const std::string &short_sw = result[2];
     const std::string &long_sw  = result[3];
@@ -665,16 +633,12 @@ template <typename T> struct SignedCheck<T, true> {
         if (negative)
         {
             if (u > static_cast<U>((std::numeric_limits<T>::min)()))
-            {
-                throw_or_mimic<argument_incorrect_type>(text);
-            }
+            { throw_or_mimic<argument_incorrect_type>(text); }
         }
         else
         {
             if (u > static_cast<U>((std::numeric_limits<T>::max)()))
-            {
-                throw_or_mimic<argument_incorrect_type>(text);
-            }
+            { throw_or_mimic<argument_incorrect_type>(text); }
         }
     }
 };
@@ -717,27 +681,17 @@ template <typename T> void integer_parser(const std::string &text, T &value) {
         US digit = 0;
 
         if (ch >= '0' && ch <= '9')
-        {
-            digit = static_cast<US>(ch - '0');
-        }
+        { digit = static_cast<US>(ch - '0'); }
         else if (base == 16 && ch >= 'a' && ch <= 'f')
-        {
-            digit = static_cast<US>(ch - 'a' + 10);
-        }
+        { digit = static_cast<US>(ch - 'a' + 10); }
         else if (base == 16 && ch >= 'A' && ch <= 'F')
-        {
-            digit = static_cast<US>(ch - 'A' + 10);
-        }
+        { digit = static_cast<US>(ch - 'A' + 10); }
         else
-        {
-            throw_or_mimic<argument_incorrect_type>(text);
-        }
+        { throw_or_mimic<argument_incorrect_type>(text); }
 
         const US next = static_cast<US>(result * base + digit);
         if (result > next)
-        {
-            throw_or_mimic<argument_incorrect_type>(text);
-        }
+        { throw_or_mimic<argument_incorrect_type>(text); }
 
         result = next;
     }
@@ -745,22 +699,16 @@ template <typename T> void integer_parser(const std::string &text, T &value) {
     detail::check_signed_range<T>(negative, result, text);
 
     if (negative)
-    {
-        checked_negate<T>(value, result, text, std::integral_constant<bool, is_signed>());
-    }
+    { checked_negate<T>(value, result, text, std::integral_constant<bool, is_signed>()); }
     else
-    {
-        value = static_cast<T>(result);
-    }
+    { value = static_cast<T>(result); }
 }
 
 template <typename T> void stringstream_parser(const std::string &text, T &value) {
     std::stringstream in(text);
     in >> value;
     if (!in)
-    {
-        throw_or_mimic<argument_incorrect_type>(text);
-    }
+    { throw_or_mimic<argument_incorrect_type>(text); }
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value>::type * = nullptr>
@@ -824,20 +772,14 @@ template <typename T> void parse_value(const std::string &text, std::optional<T>
 
 inline void parse_value(const std::string &text, char &c) {
     if (text.length() != 1)
-    {
-        throw_or_mimic<argument_incorrect_type>(text);
-    }
+    { throw_or_mimic<argument_incorrect_type>(text); }
 
     c = text[0];
 }
 
-template <typename T> struct type_is_container {
-    static constexpr bool value = false;
-};
+template <typename T> struct type_is_container { static constexpr bool value = false; };
 
-template <typename T> struct type_is_container<std::vector<T>> {
-    static constexpr bool value = true;
-};
+template <typename T> struct type_is_container<std::vector<T>> { static constexpr bool value = true; };
 
 template <typename T> class abstract_value : public Value {
     using Self = abstract_value<T>;
@@ -860,9 +802,7 @@ template <typename T> class abstract_value : public Value {
             m_store  = m_result.get();
         }
         else
-        {
-            m_store = rhs.m_store;
-        }
+        { m_store = rhs.m_store; }
 
         m_default        = rhs.m_default;
         m_implicit       = rhs.m_implicit;
@@ -921,9 +861,7 @@ template <typename T> class abstract_value : public Value {
 
     const T &get() const {
         if (m_store == nullptr)
-        {
-            return *m_result;
-        }
+        { return *m_result; }
         return *m_store;
     }
 
@@ -1097,9 +1035,7 @@ class OptionValue {
 
     template <typename T> const T &as() const {
         if (m_value == nullptr)
-        {
-            throw_or_mimic<option_has_no_value_exception>(m_long_name == nullptr ? "" : *m_long_name);
-        }
+        { throw_or_mimic<option_has_no_value_exception>(m_long_name == nullptr ? "" : *m_long_name); }
 
 #ifdef CXXOPTS_NO_RTTI
         return static_cast<const values::standard_value<T> &>(*m_value).get();
@@ -1111,9 +1047,7 @@ class OptionValue {
   private:
     void ensure_value(const std::shared_ptr<const OptionDetails> &details) {
         if (m_value == nullptr)
-        {
-            m_value = details->make_storage();
-        }
+        { m_value = details->make_storage(); }
     }
 
     const std::string *m_long_name = nullptr;
@@ -1172,16 +1106,12 @@ class ParseResult {
     size_t count(const std::string &o) const {
         auto iter = m_keys.find(o);
         if (iter == m_keys.end())
-        {
-            return 0;
-        }
+        { return 0; }
 
         auto viter = m_values.find(iter->second);
 
         if (viter == m_values.end())
-        {
-            return 0;
-        }
+        { return 0; }
 
         return viter->second.count();
     }
@@ -1190,16 +1120,12 @@ class ParseResult {
         auto iter = m_keys.find(option);
 
         if (iter == m_keys.end())
-        {
-            throw_or_mimic<option_not_present_exception>(option);
-        }
+        { throw_or_mimic<option_not_present_exception>(option); }
 
         auto viter = m_values.find(iter->second);
 
         if (viter == m_values.end())
-        {
-            throw_or_mimic<option_not_present_exception>(option);
-        }
+        { throw_or_mimic<option_not_present_exception>(option); }
 
         return viter->second;
     }
@@ -1411,32 +1337,22 @@ String format_option(const HelpOptionDetails &o) {
     {
         result += "-" + toLocalString(s);
         if (!l.empty())
-        {
-            result += ",";
-        }
+        { result += ","; }
     }
     else
-    {
-        result += "   ";
-    }
+    { result += "   "; }
 
     if (!l.empty())
-    {
-        result += " --" + toLocalString(l);
-    }
+    { result += " --" + toLocalString(l); }
 
     auto arg = !o.arg_help.empty() ? toLocalString(o.arg_help) : "arg";
 
     if (!o.is_boolean)
     {
         if (o.has_implicit)
-        {
-            result += " [=" + arg + "(=" + toLocalString(o.implicit_value) + ")]";
-        }
+        { result += " [=" + arg + "(=" + toLocalString(o.implicit_value) + ")]"; }
         else
-        {
-            result += " " + arg;
-        }
+        { result += " " + arg; }
     }
 
     return result;
@@ -1448,13 +1364,9 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
     if (o.has_default && (!o.is_boolean || o.default_value != "false"))
     {
         if (!o.default_value.empty())
-        {
-            desc += toLocalString(" (default: " + o.default_value + ")");
-        }
+        { desc += toLocalString(" (default: " + o.default_value + ")"); }
         else
-        {
-            desc += toLocalString(" (default: \"\")");
-        }
+        { desc += toLocalString(" (default: \"\")"); }
     }
 
     String result;
@@ -1502,14 +1414,10 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
         appendNewLine = false;
 
         if (std::isblank(*previous))
-        {
-            lastSpace = current;
-        }
+        { lastSpace = current; }
 
         if (!std::isblank(*current))
-        {
-            onlyWhiteSpace = false;
-        }
+        { onlyWhiteSpace = false; }
 
         while (*current == '\n')
         {
@@ -1535,16 +1443,12 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
             lastSpace = current;
 
             if (*previous != '\n')
-            {
-                stringAppend(result, "\n");
-            }
+            { stringAppend(result, "\n"); }
 
             stringAppend(result, start, ' ');
 
             if (*previous != '\n')
-            {
-                stringAppend(result, lastSpace, current);
-            }
+            { stringAppend(result, lastSpace, current); }
 
             onlyWhiteSpace = true;
             size           = 0;
@@ -1557,9 +1461,7 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
 
     // append whatever is left but ignore whitespace
     if (!onlyWhiteSpace)
-    {
-        stringAppend(result, startLine, previous);
-    }
+    { stringAppend(result, startLine, previous); }
 
     return result;
 }
@@ -1568,9 +1470,7 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
 inline void Options::add_options(const std::string &group, std::initializer_list<Option> options) {
     OptionAdder option_adder(*this, group);
     for (const auto &option : options)
-    {
-        option_adder(option.opts_, option.desc_, option.value_, option.arg_help_);
-    }
+    { option_adder(option.opts_, option.desc_, option.value_, option.arg_help_); }
 }
 
 inline OptionAdder Options::add_options(std::string group) {
@@ -1584,19 +1484,13 @@ inline OptionAdder &OptionAdder::operator()(
     std::tie(short_sw, long_sw) = values::parser_tool::SplitSwitchDef(opts);
 
     if (!short_sw.length() && !long_sw.length())
-    {
-        throw_or_mimic<invalid_option_format_error>(opts);
-    }
+    { throw_or_mimic<invalid_option_format_error>(opts); }
     else if (long_sw.length() == 1 && short_sw.length())
-    {
-        throw_or_mimic<invalid_option_format_error>(opts);
-    }
+    { throw_or_mimic<invalid_option_format_error>(opts); }
 
     auto option_names = [](const std::string &short_, const std::string &long_) {
         if (long_.length() == 1)
-        {
-            return std::make_tuple(long_, short_);
-        }
+        { return std::make_tuple(long_, short_); }
         return std::make_tuple(short_, long_);
     }(short_sw, long_sw);
 
@@ -1635,20 +1529,14 @@ inline void OptionParser::checked_parse_arg(
     if (current + 1 >= argc)
     {
         if (value->value().has_implicit())
-        {
-            parse_option(value, name, value->value().get_implicit_value());
-        }
+        { parse_option(value, name, value->value().get_implicit_value()); }
         else
-        {
-            throw_or_mimic<missing_argument_exception>(name);
-        }
+        { throw_or_mimic<missing_argument_exception>(name); }
     }
     else
     {
         if (value->value().has_implicit())
-        {
-            parse_option(value, name, value->value().get_implicit_value());
-        }
+        { parse_option(value, name, value->value().get_implicit_value()); }
         else
         {
             parse_option(value, name, argv[current + 1]);
@@ -1736,9 +1624,7 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
             if (argv[current][0] == '-' && argv[current][1] != '\0')
             {
                 if (!m_allow_unrecognised)
-                {
-                    throw_or_mimic<option_syntax_exception>(argv[current]);
-                }
+                { throw_or_mimic<option_syntax_exception>(argv[current]); }
             }
 
             // if true is returned here then it was consumed, otherwise it is
@@ -1746,9 +1632,7 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
             if (consume_positional(argv[current], next_positional))
             {}
             else
-            {
-                unmatched.emplace_back(argv[current]);
-            }
+            { unmatched.emplace_back(argv[current]); }
             // if we return from here then it was parsed successfully, so
             // continue
         }
@@ -1783,9 +1667,7 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
                         checked_parse_arg(argc, argv, current, value, name);
                     }
                     else if (value->value().has_implicit())
-                    {
-                        parse_option(value, name, value->value().get_implicit_value());
-                    }
+                    { parse_option(value, name, value->value().get_implicit_value()); }
                     else if (i + 1 < s.size())
                     {
                         std::string arg_value = s.substr(i + 1);
@@ -1849,14 +1731,10 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
         if (value.has_default())
         {
             if (!store.count() && !store.has_default())
-            {
-                parse_default(detail);
-            }
+            { parse_default(detail); }
         }
         else
-        {
-            parse_no_value(detail);
-        }
+        { parse_no_value(detail); }
     }
 
     if (consume_remaining)
@@ -1864,9 +1742,7 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
         while (current < argc)
         {
             if (!consume_positional(argv[current], next_positional))
-            {
-                break;
-            }
+            { break; }
             ++current;
         }
 
@@ -1908,14 +1784,10 @@ inline void Options::add_option(
     auto option     = std::make_shared<OptionDetails>(s, l, stringDesc, value);
 
     if (!s.empty())
-    {
-        add_one_option(s, option);
-    }
+    { add_one_option(s, option); }
 
     if (!l.empty())
-    {
-        add_one_option(l, option);
-    }
+    { add_one_option(l, option); }
 
     m_option_list.push_front(*option.get());
     auto iter       = m_option_list.begin();
@@ -1934,9 +1806,7 @@ inline void Options::add_one_option(const std::string &option, const std::shared
     auto in = m_options->emplace(option, details);
 
     if (!in.second)
-    {
-        throw_or_mimic<option_exists_error>(option);
-    }
+    { throw_or_mimic<option_exists_error>(option); }
 }
 
 inline String Options::help_one_group(const std::string &g) const {
@@ -1944,9 +1814,7 @@ inline String Options::help_one_group(const std::string &g) const {
 
     auto group = m_help.find(g);
     if (group == m_help.end())
-    {
-        return "";
-    }
+    { return ""; }
 
     OptionHelp format;
 
@@ -1955,16 +1823,12 @@ inline String Options::help_one_group(const std::string &g) const {
     String result;
 
     if (!g.empty())
-    {
-        result += toLocalString(" " + g + " options:\n");
-    }
+    { result += toLocalString(" " + g + " options:\n"); }
 
     for (const auto &o : group->second.options)
     {
         if (m_positional_set.find(o.l) != m_positional_set.end() && !m_show_positional)
-        {
-            continue;
-        }
+        { continue; }
 
         auto s  = format_option(o);
         longest = (std::max)(longest, stringLength(s));
@@ -1975,17 +1839,13 @@ inline String Options::help_one_group(const std::string &g) const {
     // widest allowed description -- min 10 chars for helptext/line
     size_t allowed = 10;
     if (m_width > allowed + longest + OPTION_DESC_GAP)
-    {
-        allowed = m_width - longest - OPTION_DESC_GAP;
-    }
+    { allowed = m_width - longest - OPTION_DESC_GAP; }
 
     auto fiter = format.begin();
     for (const auto &o : group->second.options)
     {
         if (m_positional_set.find(o.l) != m_positional_set.end() && !m_show_positional)
-        {
-            continue;
-        }
+        { continue; }
 
         auto d = format_description(o, longest + OPTION_DESC_GAP, allowed, m_tab_expansion);
 
@@ -1996,9 +1856,7 @@ inline String Options::help_one_group(const std::string &g) const {
             result += toLocalString(std::string(longest + OPTION_DESC_GAP, ' '));
         }
         else
-        {
-            result += toLocalString(std::string(longest + OPTION_DESC_GAP - stringLength(fiter->first), ' '));
-        }
+        { result += toLocalString(std::string(longest + OPTION_DESC_GAP - stringLength(fiter->first), ' ')); }
         result += d;
         result += '\n';
 
@@ -2013,14 +1871,10 @@ inline void Options::generate_group_help(String &result, const std::vector<std::
     {
         const String &group_help_text = help_one_group(print_groups[i]);
         if (empty(group_help_text))
-        {
-            continue;
-        }
+        { continue; }
         result += group_help_text;
         if (i < print_groups.size() - 1)
-        {
-            result += '\n';
-        }
+        { result += '\n'; }
     }
 }
 
@@ -2039,20 +1893,14 @@ inline std::string Options::help(const std::vector<std::string> &help_groups) co
     String result = m_help_string + "\nUsage:\n  " + toLocalString(m_program) + " " + toLocalString(m_custom_help);
 
     if (!m_positional.empty() && !m_positional_help.empty())
-    {
-        result += " " + toLocalString(m_positional_help);
-    }
+    { result += " " + toLocalString(m_positional_help); }
 
     result += "\n\n";
 
     if (help_groups.empty())
-    {
-        generate_all_groups_help(result);
-    }
+    { generate_all_groups_help(result); }
     else
-    {
-        generate_group_help(result, help_groups);
-    }
+    { generate_group_help(result, help_groups); }
 
     return toUTF8String(result);
 }

@@ -82,7 +82,7 @@ struct Parser {
     TokenIndex consume_token_of_type_with_index(TokenType type);
     std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
-    std::vector<TokenIndex > consume_comma_seperated_token_arguments(TokenType closer);
+    std::vector<TokenIndex> consume_comma_seperated_token_arguments(TokenType closer);
     std::vector<std::tuple<TokenIndex, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
     u8 consume_tags();
 
