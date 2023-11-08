@@ -51,25 +51,27 @@ SymbolTable SymbolTable::copy() {
 TypeChecker::TypeChecker() {
     compilation_unit = NULL;
 
-    this->scopes =     std::list<std::unordered_map<std::string, TypeInfo *>>();
+    this->global_type_scope = Scope();
+    this->global_fn_scope   = NULL; // set when type checking starts [:
+    this->scopes            = std::list<Scope>();
 
     this->builtin_type_table   = std::unordered_map<std::string, TypeInfo *>();
     this->top_level_type_table = std::unordered_map<std::string, TopLevelDescriptor>();
     this->top_level_type_table = std::unordered_map<std::string, TopLevelDescriptor>();
 
-    this->builtin_type_table["void"] = new VoidTypeInfo();
-    this->builtin_type_table["bool"] = new BoolTypeInfo();
-    this->builtin_type_table["str"]  = new StrTypeInfo();
-    this->builtin_type_table["u8"]   = new NumberTypeInfo(8, NumberType::UNSIGNED);
-    this->builtin_type_table["i8"]   = new NumberTypeInfo(8, NumberType::SIGNED);
-    this->builtin_type_table["u16"]  = new NumberTypeInfo(16, NumberType::UNSIGNED);
-    this->builtin_type_table["i16"]  = new NumberTypeInfo(16, NumberType::SIGNED);
-    this->builtin_type_table["u32"]  = new NumberTypeInfo(32, NumberType::UNSIGNED);
-    this->builtin_type_table["i32"]  = new NumberTypeInfo(32, NumberType::SIGNED);
-    this->builtin_type_table["f32"]  = new NumberTypeInfo(32, NumberType::FLOAT);
-    this->builtin_type_table["u64"]  = new NumberTypeInfo(64, NumberType::UNSIGNED);
-    this->builtin_type_table["i64"]  = new NumberTypeInfo(64, NumberType::SIGNED);
-    this->builtin_type_table["f64"]  = new NumberTypeInfo(64, NumberType::FLOAT);
+    this->global_type_scope["void"] = new VoidTypeInfo();
+    this->global_type_scope["bool"] = new BoolTypeInfo();
+    this->global_type_scope["str"]  = new StrTypeInfo();
+    this->global_type_scope["u8"]   = new NumberTypeInfo(8, NumberType::UNSIGNED);
+    this->global_type_scope["i8"]   = new NumberTypeInfo(8, NumberType::SIGNED);
+    this->global_type_scope["u16"]  = new NumberTypeInfo(16, NumberType::UNSIGNED);
+    this->global_type_scope["i16"]  = new NumberTypeInfo(16, NumberType::SIGNED);
+    this->global_type_scope["u32"]  = new NumberTypeInfo(32, NumberType::UNSIGNED);
+    this->global_type_scope["i32"]  = new NumberTypeInfo(32, NumberType::SIGNED);
+    this->global_type_scope["f32"]  = new NumberTypeInfo(32, NumberType::FLOAT);
+    this->global_type_scope["u64"]  = new NumberTypeInfo(64, NumberType::UNSIGNED);
+    this->global_type_scope["i64"]  = new NumberTypeInfo(64, NumberType::SIGNED);
+    this->global_type_scope["f64"]  = new NumberTypeInfo(64, NumberType::FLOAT);
 }
 
 void TypeChecker::new_scope() {
@@ -78,78 +80,63 @@ void TypeChecker::new_scope() {
 
 void TypeChecker::delete_scope() {
     ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
-    this->scopes.pop_front();
+    this->scopes.pop_back();
+}
+
+void TypeChecker::add_type_to_scope(TokenIndex token_index, TypeInfo *type_info) {
+    // TODO error checking at some point
+    std::string identifier              = this->compilation_unit->get_token_string_from_index(token_index);
+    this->global_type_scope[identifier] = type_info;
+}
+
+TypeInfo *TypeChecker::get_type_from_scope(TokenIndex token_index) {
+    // TODO error checking at some point
+    std::string identifier = this->compilation_unit->get_token_string_from_index(token_index);
+    return this->global_type_scope[identifier];
 }
 
 void TypeChecker::add_to_scope(TokenIndex token_index, TypeInfo *type_info) {
     ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
-    std::string identifier = this->compilation_unit->get_token_string_from_index(token_index);
+    std::string identifier           = this->compilation_unit->get_token_string_from_index(token_index);
     this->scopes.front()[identifier] = type_info;
 }
 
 TypeInfo *TypeChecker::get_from_scope(TokenIndex token_index) {
     ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
     std::string identifier = this->compilation_unit->get_token_string_from_index(token_index);
-    return this->scopes.front()[identifier];
+
+    for (auto iter = this->scopes.rbegin(); iter != this->scopes.rend(); iter++)
+    {
+        if (iter->count(identifier) > 0)
+        { return (*iter)[identifier]; }
+    }
+
+    return NULL;
 }
 
-void TypeChecker::add_type(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info) {
-    ASSERT(type_info->type == TypeInfoType::STRUCT);
-
-    std::string identifier_string = file->get_token_string_from_index(identifier);
-
-    if (this->top_level_type_table.count(identifier_string) > 0)
-    { panic("Duplicate creation of type: " + identifier_string); }
-
-    TopLevelDescriptor descriptor = TopLevelDescriptor{
-        .identifier = identifier_string,
-        .type_info  = type_info,
-    };
-
-    this->top_level_type_table[identifier_string] = descriptor;
-}
-
-void TypeChecker::add_function(CompilationUnit *file, TokenIndex token, TypeInfo *type_info) {
-    std::string token_as_string = this->compilation_unit->get_token_string_from_index(token);
-    if (this->top_level_function_table.count(token_as_string) > 0)
-    { panic("Duplicate creation of function: " + token_as_string); }
-
-    TopLevelDescriptor descriptor = TopLevelDescriptor{
-        .identifier = token_as_string,
-        .type_info  = type_info,
-    };
-
-    this->top_level_function_table[token_as_string] = descriptor;
-}
-
-std::tuple<TypeInfo *, bool> TypeChecker::get_type(std::string identifier) {
-    if (this->top_level_type_table.count(identifier) > 0)
-    { return {this->top_level_type_table[identifier].type_info, false}; }
-
-    if (this->builtin_type_table.count(identifier) > 0)
-    { return {this->builtin_type_table[identifier], false}; }
-
-    return {nullptr, true};
-}
-
-std::tuple<TypeInfo *, bool> TypeChecker::get_function(std::string identifier) {
-    if (this->top_level_function_table.count(identifier) > 0)
-    { return {this->top_level_function_table[identifier].type_info, false}; }
-
-    return {nullptr, true};
+void TypeChecker::print_fn_scope() {
+    std::cout << "Total scope count " << this->scopes.size() << "\n";
+    std::cout << "Total Fn count " << this->global_fn_scope->size() << "\n";
+    for (auto [identifier, type_info] : *this->global_fn_scope)
+    { std::cout << identifier << "\n"; }
+    std::cout << std::endl;
 }
 
 void TypeChecker::type_check(CompilationUnit *file) {
-
     this->compilation_unit = file;
 
-    // add symbols for structs, enums and aliass
+    this->new_scope();
+    this->global_fn_scope =
+        &this->scopes.front(); // the top most scope is the function scope, all other scopes can see it
+
+    // add symbols for structs and fns
     for (auto stmt : this->compilation_unit->top_level_struct_statements)
     { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
 
     for (auto stmt : this->compilation_unit->top_level_fn_statements)
     { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
 
+    // type the body of the structs and the declarations of the fns
     for (auto stmt : this->compilation_unit->top_level_struct_statements)
     { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
 
@@ -176,27 +163,15 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
 }
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
-    this->add_function(this->compilation_unit, statement->identifier, new FnTypeInfo(NULL, NULL, {}));
+    this->add_to_scope(statement->identifier, new FnTypeInfo(NULL, NULL, {}));
 }
 
 void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
-    // this type does exist but the type info has not been type checked yet so just
+    // we cannot be sure if we type check all of the struct that all members
+    // will be resolved. As structs after this one might be referenced
     // add it to the table and leave its type info blank until we type check it
 
-    std::string identifier_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-    auto [type_info, failed]      = this->get_type(identifier_string);
-    if (!failed)
-    {
-
-        TypeCheckerError::make(compilation_unit->file_data->path.string())
-            // TODO: replace this somehow
-            //            .add_related_token(statement->identifier)
-            .set_message("Re-declaration of type \"" + identifier_string + "\"")
-            .report();
-        return;
-    }
-
-    this->add_type(this->compilation_unit, statement->identifier, new StructTypeInfo({}, {}));
+    this->add_type_to_scope(statement->identifier, new StructTypeInfo({}, {}));
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
@@ -211,12 +186,11 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
 
     TRY_CALL_VOID(type_check_type_expression(statement->return_type, &symbol_table));
 
-    // TODO remove this
     std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
 
-    // add this fn decl to parent symbol table
-    auto current_type_info = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
-
+    // the current scope is always the fn scope
+    auto current_type_info = (FnTypeInfo *)this->get_from_scope(statement->identifier);
+    ASSERT(current_type_info);
     current_type_info->return_type = statement->return_type->type_info;
     current_type_info->args        = param_type_infos;
 }
@@ -229,9 +203,8 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     // 2. looking into the member functions of a type (member function)
     FnTypeInfo *fn_type_info = NULL;
 
-        std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-        fn_type_info               = (FnTypeInfo *)this->top_level_function_table[name_as_string].type_info;
-        ASSERT(fn_type_info);
+    fn_type_info = (FnTypeInfo *)this->get_from_scope(statement->identifier);
+    ASSERT(fn_type_info);
 
     // params and get type expressions
     auto args = std::vector<std::tuple<TokenIndex, TypeInfo *>>();
@@ -301,12 +274,9 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
         members_type_info[i]      = {member_string, expr->type_info};
     }
 
-    std::string identifier_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-
-    // this struct has not been fully typed until now just add to the type that already exists in the
-    // type table
-    StructTypeInfo *sti = (StructTypeInfo *)this->top_level_type_table[identifier_string].type_info;
-    sti->members        = members_type_info;
+    StructTypeInfo *struct_type_info = (StructTypeInfo *)this->get_type_from_scope(statement->identifier);
+    ASSERT(struct_type_info != NULL);
+    struct_type_info->members = members_type_info;
 }
 
 void TypeChecker::type_check_statement(Statement *statement, SymbolTable *symbol_table) {
@@ -365,8 +335,8 @@ void TypeChecker::type_check_let_statement(LetStatement *statement, SymbolTable 
         }
     }
 
-    auto string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-    TRY_CALL_VOID(symbol_table->add_identifier_type(string, statement->rhs->type_info));
+    //    auto string = this->compilation_unit->get_token_string_from_index(statement->identifier);
+    //    TRY_CALL_VOID(symbol_table->add_identifier_type(string, statement->rhs->type_info));
 
     this->add_to_scope(statement->identifier, statement->rhs->type_info);
 }
@@ -400,8 +370,6 @@ void TypeChecker::type_check_for_statement(ForStatement *statement, SymbolTable 
 }
 
 void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *symbol_table) {
-    // if may declare new varaibles that we do not want to leak into outher
-    // scope like with the is expression
     auto copy = symbol_table->copy();
 
     TRY_CALL_VOID(type_check_expression(statement->expression, &copy));
@@ -409,7 +377,9 @@ void TypeChecker::type_check_if_statement(IfStatement *statement, SymbolTable *s
     if (!type_match(statement->expression->type_info, this->builtin_type_table["bool"]))
     { panic("If statement must be passed a bool"); }
 
+    this->new_scope();
     TRY_CALL_VOID(type_check_scope_statement(statement->body, &copy));
+    this->delete_scope();
 
     if (statement->else_statement)
     {
@@ -575,7 +545,6 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     std::string token_string = this->compilation_unit->get_token_string_from_index(expression->token);
 
     auto [number, type, size] = extract_number_literal_size(token_string);
-
     if (size == -1)
     {
         ErrorReporter::report_type_checker_error(
@@ -584,6 +553,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         return;
     }
 
+    // TODO I have no idea what this does
     if (type != NumberType::FLOAT && number != (i64)number)
     {
         ErrorReporter::report_type_checker_error(
@@ -609,25 +579,25 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         }
 
         if (size == 8)
-        { expression->type_info = this->builtin_type_table["u8"]; }
+        { expression->type_info = this->global_type_scope["u8"]; }
         else if (size == 16)
-        { expression->type_info = this->builtin_type_table["u16"]; }
+        { expression->type_info = this->global_type_scope["u16"]; }
         else if (size == 32)
-        { expression->type_info = this->builtin_type_table["u32"]; }
+        { expression->type_info = this->global_type_scope["u32"]; }
         else if (size == 64)
-        { expression->type_info = this->builtin_type_table["u64"]; }
+        { expression->type_info = this->global_type_scope["u64"]; }
     }
     break;
     case NumberType::SIGNED: {
 
         if (size == 8)
-        { expression->type_info = this->builtin_type_table["i8"]; }
+        { expression->type_info = this->global_type_scope["i8"]; }
         else if (size == 16)
-        { expression->type_info = this->builtin_type_table["i16"]; }
+        { expression->type_info = this->global_type_scope["i16"]; }
         else if (size == 32)
-        { expression->type_info = this->builtin_type_table["i32"]; }
+        { expression->type_info = this->global_type_scope["i32"]; }
         else if (size == 64)
-        { expression->type_info = this->builtin_type_table["i64"]; }
+        { expression->type_info = this->global_type_scope["i64"]; }
     }
     break;
     case NumberType::FLOAT: {
@@ -640,9 +610,9 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
             return;
         }
         else if (size == 32)
-        { expression->type_info = this->builtin_type_table["f32"]; }
+        { expression->type_info = this->global_type_scope["f32"]; }
         else if (size == 64)
-        { expression->type_info = this->builtin_type_table["f64"]; }
+        { expression->type_info = this->global_type_scope["f64"]; }
     }
     break;
     }
@@ -750,21 +720,18 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression, Symb
 }
 
 void TypeChecker::type_check_identifier_expression(IdentifierExpression *expression, SymbolTable *symbol_table) {
-    std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
-    auto [type_info, failed]      = symbol_table->get_identifier_type(identifier_string);
-
-    if (failed)
+    TypeInfo *type_info = this->get_from_scope(expression->identifier);
+    if (type_info == NULL)
     {
+        std::string identifier = this->compilation_unit->get_token_string_from_index(expression->identifier);
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
-            std::format("Unrecognized identifier \"{}\"", identifier_string)
+            std::format("Unrecognized identifier \"{}\"", identifier)
         );
         return;
     }
 
-    TypeInfo *new_type = this->get_from_scope(expression->identifier);
-
-    expression->type_info = new_type;
+    expression->type_info = type_info;
 }
 
 void TypeChecker::type_check_get_expression(GetExpression *expression, SymbolTable *symbol_table) {
@@ -864,6 +831,11 @@ void TypeChecker::type_check_zero_literal_expression(ZeroLiteralExpression *expr
 
 void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expression, SymbolTable *symbol_table) {
 
+    // TODO
+    // remove the idea of an instantiate expression, we are parsing it
+    // as if we are always assuming it is a struct instance anyway
+    // just think of every as a "new Struct{...}" an no other type
+    // this is a leftover from "new Enum{...}"
     if (expression->expression->type != ExpressionType::EXPRESSION_STRUCT_INSTANCE)
     {
         ErrorReporter::report_type_checker_error(
@@ -881,9 +853,8 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
 void TypeChecker::type_check_struct_instance_expression(
     StructInstanceExpression *expression, SymbolTable *symbol_table
 ) {
-    std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
-    auto [type_info, failed]      = this->get_type(identifier_string);
-    if (failed)
+    TypeInfo *type_info = this->get_type_from_scope(expression->identifier);
+    if (type_info == NULL)
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
@@ -977,9 +948,8 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
 void TypeChecker::type_check_identifier_type_expression(
     IdentifierTypeExpression *type_expression, SymbolTable *symbol_table
 ) {
-    std::string identifier_string = this->compilation_unit->get_token_string_from_index(type_expression->identifier);
-    auto [type, error]            = this->get_type(identifier_string);
-    if (error)
+    TypeInfo *type_info = this->get_type_from_scope(type_expression->identifier);
+    if (type_info == NULL)
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->path.string(), NULL, NULL, type_expression, NULL,
@@ -988,7 +958,7 @@ void TypeChecker::type_check_identifier_type_expression(
         return;
     }
 
-    type_expression->type_info = type;
+    type_expression->type_info = type_info;
 }
 
 bool type_match(TypeInfo *a, TypeInfo *b) {
