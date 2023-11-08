@@ -1,6 +1,6 @@
 #pragma once
-#include <map>
 #include <list>
+#include <map>
 
 #include "parser.h"
 
@@ -38,10 +38,14 @@ struct SymbolTable {
     SymbolTable copy();
 };
 
+typedef std::unordered_map<std::string, TypeInfo *> Scope;
+
 struct TypeChecker {
     CompilationUnit *compilation_unit;
 
-    std::list<std::unordered_map<std::string, TypeInfo *>> scopes;
+    Scope global_type_scope;
+    Scope *global_fn_scope; // pointer as it is the bottom scope in the scope list
+    std::list<Scope> scopes;
 
     std::unordered_map<std::string, TypeInfo *> builtin_type_table;
     std::unordered_map<std::string, TopLevelDescriptor> top_level_type_table;
@@ -51,13 +55,12 @@ struct TypeChecker {
 
     void new_scope();
     void delete_scope();
+    void add_type_to_scope(TokenIndex token_index, TypeInfo *type_info);
+    TypeInfo *get_type_from_scope(TokenIndex token_index);
     void add_to_scope(TokenIndex token_index, TypeInfo *type_info);
     TypeInfo *get_from_scope(TokenIndex token_index);
 
-    void add_type(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info);
-    void add_function(CompilationUnit *file, TokenIndex identifier, TypeInfo *type_info);
-    std::tuple<TypeInfo *, bool> get_type(std::string identifier);
-    std::tuple<TypeInfo *, bool> get_function(std::string identifier);
+    void print_fn_scope();
 
     void type_check(CompilationUnit *file);
 

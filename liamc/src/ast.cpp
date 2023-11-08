@@ -81,8 +81,7 @@ ScopeStatement::ScopeStatement(CompilationUnit *file, std::vector<Statement *> s
 }
 
 FnStatement::FnStatement(
-    CompilationUnit *file, TokenIndex identifier, CSV params, TypeExpression *type,
-    ScopeStatement *body
+    CompilationUnit *file, TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body
 ) {
     this->file           = file;
     this->identifier     = identifier;

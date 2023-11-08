@@ -230,7 +230,7 @@ IfStatement *Parser::eval_if_statement() {
     auto body       = TRY_CALL_RET(eval_scope_statement(), NULL);
 
     // next statement might be else so check if the next token is an 'else'
-    // if so capture it and own it else just leave the else statement as NULL
+    // if so capture it and own it otherwise just leave the else statement as NULL
     ElseStatement *else_statement = NULL;
     if (peek()->token_type == TokenType::TOKEN_ELSE)
     { else_statement = TRY_CALL_RET(eval_else_statement(), NULL); }
@@ -666,7 +666,7 @@ std::vector<TypeExpression *> Parser::consume_comma_seperated_types(TokenType cl
     return types;
 }
 
-// e.g. (int x, int y, ...)
+// e.g. x: T, y: T
 CSV Parser::consume_comma_seperated_params() {
     auto args_types = std::vector<std::tuple<TokenIndex, TypeExpression *>>();
     bool is_first   = true;
