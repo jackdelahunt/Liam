@@ -32,10 +32,6 @@ struct TypeChecker {
     Scope *global_fn_scope; // pointer as it is the bottom scope in the scope list
     std::list<Scope> scopes;
 
-    std::unordered_map<std::string, TypeInfo *> builtin_type_table;
-    std::unordered_map<std::string, TopLevelDescriptor> top_level_type_table;
-    std::unordered_map<std::string, TopLevelDescriptor> top_level_function_table;
-
     TypeChecker();
 
     void new_scope();
@@ -59,9 +55,7 @@ struct TypeChecker {
     void type_check_return_statement(ReturnStatement *statement);
     void type_check_break_statement(BreakStatement *statement);
     void type_check_let_statement(LetStatement *statement);
-    void type_check_scope_statement(
-        ScopeStatement *statement, bool copy_symbol_table = true
-    );
+    void type_check_scope_statement(ScopeStatement *statement, bool copy_symbol_table = true);
     void type_check_for_statement(ForStatement *statement);
     void type_check_if_statement(IfStatement *statement);
     void type_check_else_statement(ElseStatement *statement);
