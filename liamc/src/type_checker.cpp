@@ -17,10 +17,6 @@ TypeChecker::TypeChecker() {
     this->global_fn_scope   = NULL; // set when type checking starts [:
     this->scopes            = std::list<Scope>();
 
-    this->builtin_type_table   = std::unordered_map<std::string, TypeInfo *>();
-    this->top_level_type_table = std::unordered_map<std::string, TopLevelDescriptor>();
-    this->top_level_type_table = std::unordered_map<std::string, TopLevelDescriptor>();
-
     this->global_type_scope["void"] = new VoidTypeInfo();
     this->global_type_scope["bool"] = new BoolTypeInfo();
     this->global_type_scope["str"]  = new StrTypeInfo();
@@ -175,9 +171,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     }
 
     for (auto &[token_index, type_info] : args)
-    {
-        this->add_to_scope(token_index, type_info);
-    }
+    { this->add_to_scope(token_index, type_info); }
 
     // type statements and check return exists if needed
     this->new_scope();
@@ -295,9 +289,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
     this->add_to_scope(statement->identifier, statement->rhs->type_info);
 }
 
-void TypeChecker::type_check_scope_statement(
-    ScopeStatement *statement, bool copy_symbol_table
-) {
+void TypeChecker::type_check_scope_statement(ScopeStatement *statement, bool copy_symbol_table) {
     for (auto stmt : statement->statements)
     { TRY_CALL_VOID(type_check_statement(stmt)); }
 }
@@ -316,8 +308,14 @@ void TypeChecker::type_check_for_statement(ForStatement *statement) {
 void TypeChecker::type_check_if_statement(IfStatement *statement) {
     TRY_CALL_VOID(type_check_expression(statement->expression));
 
-    if (!type_match(statement->expression->type_info, this->builtin_type_table["bool"]))
-    { panic("If statement must be passed a bool"); }
+    if (!type_match(statement->expression->type_info, this->global_type_scope["bool"]))
+    {
+        ErrorReporter::report_type_checker_error(
+            compilation_unit->file_data->path.string(), statement->expression, NULL, NULL, NULL,
+            "can only pass boolean expressions to if statements"
+        );
+        return;
+    }
 
     this->new_scope();
     TRY_CALL_VOID(type_check_scope_statement(statement->body));
@@ -398,9 +396,7 @@ void TypeChecker::type_check_expression(Expression *expression) {
         return type_check_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
-        return type_check_struct_instance_expression(
-            dynamic_cast<StructInstanceExpression *>(expression)
-        );
+        return type_check_struct_instance_expression(dynamic_cast<StructInstanceExpression *>(expression));
         break;
     default:
         panic("Expression not implemented in type checker");
@@ -435,7 +431,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
             return;
         }
 
-        info = this->builtin_type_table["bool"];
+        info = this->global_type_scope["bool"];
     }
 
     // math ops - numbers -> numbers
@@ -466,12 +462,12 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
             );
             return;
         }
-        info = this->builtin_type_table["bool"];
+        info = this->global_type_scope["bool"];
     }
 
     // compare - any -> bool
     if (expression->op == TokenType::TOKEN_EQUAL || expression->op == TokenType::TOKEN_NOT_EQUAL)
-    { info = this->builtin_type_table["bool"]; }
+    { info = this->global_type_scope["bool"]; }
 
     assert(info != NULL);
 
@@ -479,7 +475,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
 }
 
 void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *expression) {
-    expression->type_info = this->builtin_type_table["str"];
+    expression->type_info = this->global_type_scope["str"];
 }
 
 void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *expression) {
@@ -792,9 +788,7 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
     expression->type_info = expression->expression->type_info;
 }
 
-void TypeChecker::type_check_struct_instance_expression(
-    StructInstanceExpression *expression
-) {
+void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression *expression) {
     TypeInfo *type_info = this->get_type_from_scope(expression->identifier);
     if (type_info == NULL)
     {
@@ -887,9 +881,7 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
     panic("Internal :: Cannot type check this operator yet...");
 }
 
-void TypeChecker::type_check_identifier_type_expression(
-    IdentifierTypeExpression *type_expression
-) {
+void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression *type_expression) {
     TypeInfo *type_info = this->get_type_from_scope(type_expression->identifier);
     if (type_info == NULL)
     {
