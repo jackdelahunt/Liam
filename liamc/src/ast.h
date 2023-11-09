@@ -302,25 +302,25 @@ struct NumberLiteralExpression : Expression {
     TokenIndex token;
     i64 number;
 
-    NumberLiteralExpression(TokenIndex token);
+    NumberLiteralExpression(TokenIndex token, Span span);
 };
 
 struct StringLiteralExpression : Expression {
     TokenIndex token;
 
-    StringLiteralExpression(TokenIndex token);
+    StringLiteralExpression(TokenIndex token, Span span);
 };
 
 struct BoolLiteralExpression : Expression {
     TokenIndex token;
 
-    BoolLiteralExpression(TokenIndex token);
+    BoolLiteralExpression(TokenIndex token, Span span);
 };
 
 struct IdentifierExpression : Expression {
     TokenIndex identifier;
 
-    IdentifierExpression(TokenIndex identifier);
+    IdentifierExpression(TokenIndex identifier, Span span);
 };
 
 struct CallExpression : Expression {
@@ -344,11 +344,15 @@ struct GroupExpression : Expression {
 };
 
 struct NullLiteralExpression : Expression {
-    NullLiteralExpression(TokenIndex token);
+    TokenIndex token;
+
+    NullLiteralExpression(TokenIndex token, Span span);
 };
 
 struct ZeroLiteralExpression : Expression {
-    ZeroLiteralExpression(TokenIndex token);
+    TokenIndex token;
+
+    ZeroLiteralExpression(TokenIndex token, Span span);
 };
 
 struct InstantiateExpression : Expression {
@@ -362,7 +366,7 @@ struct StructInstanceExpression : Expression {
     std::vector<std::tuple<TokenIndex, Expression *>> named_expressions;
 
     StructInstanceExpression(
-        TokenIndex identifier, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions
+        TokenIndex identifier, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions, Span span
     );
 };
 
@@ -379,7 +383,7 @@ struct TypeExpression {
 struct IdentifierTypeExpression : TypeExpression {
     TokenIndex identifier;
 
-    IdentifierTypeExpression(TokenIndex identifier);
+    IdentifierTypeExpression(TokenIndex identifier, Span span);
 };
 
 struct UnaryTypeExpression : TypeExpression {

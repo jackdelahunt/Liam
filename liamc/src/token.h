@@ -57,7 +57,6 @@ enum class TokenType {
 struct Span {
     // lines start from 0 always
     // start which is the starting character of the span start from 0
-    u64 line;
     u64 start;
     u64 end;
 };

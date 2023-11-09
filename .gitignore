@@ -24,3 +24,4 @@ liamc/program/
 *.exe
 liamc/release
 **/compile_flags.txt
+**/build

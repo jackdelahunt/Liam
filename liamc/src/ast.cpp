@@ -166,29 +166,28 @@ UnaryExpression::UnaryExpression(Expression *expression, TokenType op) {
     this->span       = expression->span;
 }
 
-NumberLiteralExpression::NumberLiteralExpression(TokenIndex token) {
+NumberLiteralExpression::NumberLiteralExpression(TokenIndex token, Span span) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_NUMBER_LITERAL;
-    this->span  = Span{}; // TODO
+    this->span  = span;
 }
 
-StringLiteralExpression::StringLiteralExpression(TokenIndex token) {
+StringLiteralExpression::StringLiteralExpression(TokenIndex token, Span span) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_STRING_LITERAL;
-    // TODO: fix this
-    this->span = Span{};
+    this->span = span;
 }
 
-BoolLiteralExpression::BoolLiteralExpression(TokenIndex token) {
+BoolLiteralExpression::BoolLiteralExpression(TokenIndex token, Span span) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_BOOL_LITERAL;
-    this->span  = Span{}; // TODO
+    this->span  = span;
 }
 
-IdentifierExpression::IdentifierExpression(TokenIndex identifier) {
+IdentifierExpression::IdentifierExpression(TokenIndex identifier, Span span) {
     this->identifier = identifier;
     this->type       = ExpressionType::EXPRESSION_IDENTIFIER;
-    this->span       = Span{}; // TODO
+    this->span       = span;
 }
 
 CallExpression::CallExpression(Expression *identifier, std::vector<Expression *> args) {
@@ -202,7 +201,7 @@ GetExpression::GetExpression(Expression *expression, TokenIndex member) {
     this->lhs    = expression;
     this->member = member;
     this->type   = ExpressionType::EXPRESSION_GET;
-    this->span   = Span{}; // TODO
+    this->span   = expression->span;
 }
 
 GroupExpression::GroupExpression(Expression *expression) {
@@ -211,29 +210,31 @@ GroupExpression::GroupExpression(Expression *expression) {
     this->span       = expression->span;
 }
 
-NullLiteralExpression::NullLiteralExpression(TokenIndex token) {
+NullLiteralExpression::NullLiteralExpression(TokenIndex token, Span span) {
     this->type = ExpressionType::EXPRESSION_NULL_LITERAL;
-    this->span = Span{}; // TODO
+    this->token = token;
+    this->span = span;
 }
 
-ZeroLiteralExpression::ZeroLiteralExpression(TokenIndex token) {
+ZeroLiteralExpression::ZeroLiteralExpression(TokenIndex token, Span span) {
     this->type = ExpressionType::EXPRESSION_ZERO_LITERAL;
-    this->span = Span{};
+    this->token = token;
+    this->span = span;
 }
 
 InstantiateExpression::InstantiateExpression(Expression *expression) {
+    this->type       = ExpressionType::EXPRESSION_INSTANTIATION;
     this->expression = expression;
     this->span       = expression->span;
-    this->type       = ExpressionType::EXPRESSION_INSTANTIATION;
 }
 
 StructInstanceExpression::StructInstanceExpression(
-    TokenIndex identifier, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions
+    TokenIndex identifier, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions, Span span
 ) {
+    this->type              = ExpressionType::EXPRESSION_STRUCT_INSTANCE;
     this->identifier        = identifier;
     this->named_expressions = named_expressions;
-    this->span              = Span{};
-    this->type              = ExpressionType::EXPRESSION_STRUCT_INSTANCE;
+    this->span              = span;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {
@@ -245,10 +246,10 @@ std::ostream &operator<<(std::ostream &os, const TypeExpression &expression) {
     return expression.format(os);
 }
 
-IdentifierTypeExpression::IdentifierTypeExpression(TokenIndex identifier) {
+IdentifierTypeExpression::IdentifierTypeExpression(TokenIndex identifier, Span span) {
     this->identifier = identifier;
     this->type       = TypeExpressionType::TYPE_IDENTIFIER;
-    this->span       = Span{}; // TODO
+    this->span       = span;
 }
 
 UnaryTypeExpression::UnaryTypeExpression(UnaryType unary_type, TypeExpression *type_expression) {

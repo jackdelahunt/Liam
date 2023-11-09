@@ -54,4 +54,3 @@ struct ErrorReporter {
 };
 
 void write_error_annotation_at_span(std::string *file, Span span);
-std::string build_highlighter(u64 start, u64 length);
