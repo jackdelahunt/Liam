@@ -9,7 +9,7 @@ const char *TokenTypeStrings[49] = {
 
 Token::Token(TokenType token_type, u64 start, u64 end) {
     this->token_type = token_type;
-    this->span       = Span{.line = 1, .start = start, .end = end};
+    this->span       = Span{.start = start, .end = end};
 }
 
 std::string get_token_type_string(TokenType type) {

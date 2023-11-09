@@ -120,3 +120,7 @@ void panic(const std::string &msg);
 #define NOT_IMPLEMENTED()                                                                                              \
     std::cerr << "NOT IMPLEMENTED :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                            \
     exit(1);
+
+#define UNREACHABLE()                                                                                              \
+    std::cerr << "UNREACHABLE was reached:: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                            \
+    exit(1);

@@ -418,45 +418,55 @@ Expression *Parser::eval_postfix() {
 }
 
 Expression *Parser::eval_primary() {
-    auto type = peek()->token_type;
+    Token *token = peek();
 
-    if (type == TokenType::TOKEN_NUMBER_LITERAL)
-        return new NumberLiteralExpression(consume_token_with_index());
-    else if (type == TokenType::TOKEN_STRING_LITERAL)
-        return TRY_CALL_RET(eval_string_literal(), NULL);
-    else if (type == TokenType::TOKEN_TRUE || type == TokenType::TOKEN_FALSE)
-        return new BoolLiteralExpression(consume_token_with_index());
-    else if (type == TokenType::TOKEN_IDENTIFIER)
-        return new IdentifierExpression(consume_token_with_index());
-    else if (type == TokenType::TOKEN_NEW)
-        return TRY_CALL_RET(eval_instantiate_expression(), NULL);
-    else if (type == TokenType::TOKEN_PAREN_OPEN)
-        return eval_group_expression();
-    else if (type == TokenType::TOKEN_NULL)
-        return new NullLiteralExpression(consume_token_with_index());
-    else if (type == TokenType::TOKEN_ZERO)
-        return new ZeroLiteralExpression(consume_token_with_index());
-    else
+    switch (token->token_type)
     {
-        auto token      = consume_token_with_index();
-        auto token_data = this->compilation_unit->get_token(token);
+    case TokenType::TOKEN_NUMBER_LITERAL: {
+        return new NumberLiteralExpression(consume_token_with_index(), token->span);
+    } break;
+    case TokenType::TOKEN_FALSE: case TokenType::TOKEN_TRUE: {
+        return new BoolLiteralExpression(consume_token_with_index(), token->span);
+    } break;
+    case TokenType::TOKEN_STRING_LITERAL: {
+        return TRY_CALL_RET(eval_string_literal(), NULL);
+    } break;
+    case TokenType::TOKEN_IDENTIFIER: {
+        return new IdentifierExpression(consume_token_with_index(), token->span);
+    } break;
+    case TokenType::TOKEN_NEW: {
+        return TRY_CALL_RET(eval_instantiate_expression(), NULL);
+    } break;
+    case TokenType::TOKEN_PAREN_OPEN: {
+        return TRY_CALL_RET(eval_group_expression(), NULL);
+    } break;
+    case TokenType::TOKEN_NULL: {
+        return new NullLiteralExpression(consume_token_with_index(), token->span);
+    } break;
+    case TokenType::TOKEN_ZERO: {
+        return new ZeroLiteralExpression(consume_token_with_index(), token->span);
+    } break;
+    default:  {
+        auto token_index      = consume_token_with_index();
+        auto token_data = this->compilation_unit->get_token(token_index);
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), token_data->span,
             std::format(
-                "Unexpected token when parsing expression '{}'",
-                get_token_type_string(this->compilation_unit->get_token(token)->token_type)
+                "Unexpected token '{}' when parsing expression",
+                get_token_type_string(this->compilation_unit->get_token(token_index)->token_type)
             )
         );
         return NULL;
     }
+    }
 
-    return new Expression(); // empty expression found -- like when a
-                             // return has no expression
+    UNREACHABLE();
 }
 
 Expression *Parser::eval_string_literal() {
-    auto literal = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRING_LITERAL), NULL);
-    return new StringLiteralExpression(literal);
+    TokenIndex token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRING_LITERAL), NULL);
+    Token *token = this->compilation_unit->get_token(token_index);
+    return new StringLiteralExpression(token_index, token->span);
 }
 
 Expression *Parser::eval_instantiate_expression() {
@@ -466,13 +476,15 @@ Expression *Parser::eval_instantiate_expression() {
 }
 
 Expression *Parser::eval_struct_instance_expression() {
-    auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
+    TokenIndex identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
 
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
     auto named_expressions = TRY_CALL_RET(consume_comma_seperated_named_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new StructInstanceExpression(identifier, named_expressions);
+    Token *token = this->compilation_unit->get_token(identifier);
+
+    return new StructInstanceExpression(identifier, named_expressions, token->span);
 }
 
 Expression *Parser::eval_group_expression() {
@@ -485,7 +497,6 @@ Expression *Parser::eval_group_expression() {
 /*
  *  === type expression precedence === (lower is more precedence)
  * |
- * ^
  * identifier
  */
 TypeExpression *Parser::eval_type_expression() {
@@ -508,11 +519,13 @@ TypeExpression *Parser::eval_type_unary() {
 
 TypeExpression *Parser::eval_type_primary() {
 
-    if (peek()->token_type == TokenType::TOKEN_FN)
+    Token *token = peek();
+
+    if (token->token_type == TokenType::TOKEN_FN)
     { return TRY_CALL_RET(eval_type_fn(), NULL); }
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
-    return new IdentifierTypeExpression(identifier);
+    return new IdentifierTypeExpression(identifier, token->span);
 }
 
 TypeExpression *Parser::eval_type_fn() {
@@ -575,18 +588,18 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
         Token *last_token_data = this->compilation_unit->get_token(this->compilation_unit->token_buffer.size() - 1);
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), last_token_data->span,
-            std::format("Expected '{}' but got unexpected end of file", "TODO: add token string HERE!!")
+            std::format("Expected '{}' but got unexpected end of file", get_token_type_string(last_token_data->token_type))
         );
         return 0;
     }
 
     TokenIndex current_token_index = this->current++;
-    Token *token_data_ptr          = this->compilation_unit->get_token(current_token_index);
-    if (token_data_ptr->token_type != type)
+    Token *token          = this->compilation_unit->get_token(current_token_index);
+    if (token->token_type != type)
     {
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), token_data_ptr->span,
-            std::format("Expected '{}' got '{}'", get_token_type_string(type), "TODO: add token string HERE!!")
+            this->compilation_unit->file_data->path.string(), token->span,
+            std::format("Expected '{}' got '{}'", get_token_type_string(type), get_token_type_string(token->token_type))
         );
         return 0;
     }

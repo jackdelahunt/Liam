@@ -7,10 +7,16 @@
 #include "liam.h"
 #include "utils.h"
 
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define DEFAULT "\033[0m"
+
 ErrorReporter *ErrorReporter::singleton = NULL;
 
 void ParserError::print_error_message() {
-    std::cerr << std::format("Parsing ERROR :: {}\n", error);
+    std::cerr << std::format("{}Parsing error :: {}{}\n", RED, error, DEFAULT);
     write_error_annotation_at_span(&this->file, this->span);
 }
 
@@ -51,7 +57,7 @@ void TypeCheckerError::report() {
 }
 
 void TypeCheckerError::print_error_message() {
-    std::cerr << std::format("Type checking ERROR :: {}\n", error);
+    std::cerr << std::format("{}Type checking error :: {}{}\n", RED, error, DEFAULT);
 
     if (this->expr_1)
     { write_error_annotation_at_span(&file, this->expr_1->span); }
@@ -140,39 +146,57 @@ u64 ErrorReporter::error_count() {
 }
 
 void write_error_annotation_at_span(std::string *file, Span span) {
-    auto file_data = FileManager::load(*file);
+    // TODO add locations of errors
+    // right now we are not printing the line and character location
+    // of the error, this is kind of okay for type errors but
+    // in the parser it is a real pain
+    // to do this with spans, we can store the location each of the
+    // newlines in the file in a vector to then lcation the line number
+    // based of the spans location, e.g.
+    //  1   2   3   4   5   6   <--- where the new line is for each line
+    // [0, 15, 23, 45, 56, 58]
+    // compare this to the location of the span to find which it starts and
+    // ends at
 
-    std::string top    = "";
-    std::string middle = file_data->line(span.line);
-    std::string bottom = build_highlighter(span.start, span.end - span.start);
+    ASSERT(span.start <= span.end);
+    FileData *file_data = FileManager::load(*file);
 
-    if (span.line > 1)
-    {
-        top = file_data->line(span.line - 1);
-        trim(top);
+    // the span can point to any part of a line, maybe even and single character
+    // we move the start of the span the start of whatever line it is one
+    // and the same for the end, we move that to the end of the line
+    // if there is no start or end then it is left as the start of the file or the end
+    u64 line_start = span.start;
+    u64 line_end   = span.end;
+
+    while(line_start != 0 && file_data->data[line_start] != '\n') {
+        line_start--;
     }
 
-    rtrim(middle);
+    while(line_end != file_data->data_length && file_data->data[line_end] != '\n') {
+        line_end++;
+    }
+
+    // the message is split into 3 sections
+    // For example with the message below where we want to
+    // highlight the type in the let statement
+    // let x : i32 = false;
+    // ... this will break down into
+    // "let x : ", "i32", " = false;"
+    // with the middle section being printed in red text
+    // highlighting the problem
+    std::string message_left, message_error, message_right;
+
+    message_left.assign(file_data->data + line_start, span.start - line_start);
+    message_error.assign(file_data->data + span.start, (span.end - span.start) + 1);
+    message_right.assign(file_data->data + span.end + 1, line_end - span.end);
+
+    ltrim(message_left);
+    trim(message_error);
+    rtrim(message_right);
 
     std::cerr << std::format(
-        "--> {}:{}:{}\n"
-        "   |   {}\n"
-        "   |   {}\n"
-        "   |   {}\n",
-        *file, span.line, span.start, top, middle, bottom
+        "--> {}\n"
+        "   |   {}{}{}{}{}\n",
+        *file, message_left, RED, message_error, DEFAULT, message_right
     );
-}
-
-std::string build_highlighter(u64 start, u64 length) {
-
-    ASSERT_MSG(start > 0, "Character location should always start at 1");
-
-    auto source = std::string();
-    for (int i = 0; i < start - 1; i++)
-    { source.append(" "); }
-
-    for (int i = 0; i < length; i++)
-    { source.append("^"); }
-
-    return source;
 }
