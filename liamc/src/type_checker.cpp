@@ -164,7 +164,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     auto args = std::vector<std::tuple<TokenIndex, TypeInfo *>>();
     args.reserve(fn_type_info->args.size());
     args.resize(fn_type_info->args.size());
-    for (int i = 0; i < fn_type_info->args.size(); i++)
+    for (u64 i = 0; i < fn_type_info->args.size(); i++)
     {
         auto &[identifier, expr] = statement->params.at(i);
         args[i]                  = {identifier, fn_type_info->args.at(i)};
@@ -175,7 +175,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 
     // type statements and check return exists if needed
     this->new_scope();
-    TRY_CALL_VOID(type_check_scope_statement(statement->body, false));
+    TRY_CALL_VOID(type_check_scope_statement(statement->body));
     this->delete_scope();
     for (auto stmt : statement->body->statements)
     {
@@ -214,7 +214,7 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
     auto members_type_info = std::vector<std::tuple<std::string, TypeInfo *>>();
     members_type_info.reserve(statement->members.size());
     members_type_info.resize(statement->members.size());
-    for (i64 i = 0; i < statement->members.size(); i++)
+    for (u64 i = 0; i < statement->members.size(); i++)
     {
         auto [member, expr] = statement->members.at(i);
         TRY_CALL_VOID(type_check_type_expression(expr));
@@ -231,23 +231,22 @@ void TypeChecker::type_check_statement(Statement *statement) {
     switch (statement->statement_type)
     {
     case StatementType::STATEMENT_RETURN:
-        return type_check_return_statement(dynamic_cast<ReturnStatement *>(statement));
+        return type_check_return_statement(static_cast<ReturnStatement *>(statement));
     case StatementType::STATEMENT_BREAK:
-        return type_check_break_statement(dynamic_cast<BreakStatement *>(statement));
+        return type_check_break_statement(static_cast<BreakStatement *>(statement));
     case StatementType::STATEMENT_ASSIGNMENT:
-        return type_check_assigment_statement(dynamic_cast<AssigmentStatement *>(statement));
+        return type_check_assigment_statement(static_cast<AssigmentStatement *>(statement));
     case StatementType::STATEMENT_EXPRESSION:
-        return type_check_expression_statement(dynamic_cast<ExpressionStatement *>(statement));
+        return type_check_expression_statement(static_cast<ExpressionStatement *>(statement));
     case StatementType::STATEMENT_LET:
-        return type_check_let_statement(dynamic_cast<LetStatement *>(statement));
+        return type_check_let_statement(static_cast<LetStatement *>(statement));
     case StatementType::STATEMENT_FOR:
-        return type_check_for_statement(dynamic_cast<ForStatement *>(statement));
+        return type_check_for_statement(static_cast<ForStatement *>(statement));
     case StatementType::STATEMENT_IF:
-        return type_check_if_statement(dynamic_cast<IfStatement *>(statement));
+        return type_check_if_statement(static_cast<IfStatement *>(statement));
     case StatementType::STATEMENT_CONTINUE:
         break;
     case StatementType::STATEMENT_STRUCT:
-    case StatementType::STATEMENT_IMPORT:
     case StatementType::STATEMENT_FN:
         ASSERT_MSG(0, "These should of already been type checked in the first pass");
     default:
@@ -289,7 +288,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
     this->add_to_scope(statement->identifier, statement->rhs->type_info);
 }
 
-void TypeChecker::type_check_scope_statement(ScopeStatement *statement, bool copy_symbol_table) {
+void TypeChecker::type_check_scope_statement(ScopeStatement *statement) {
     for (auto stmt : statement->statements)
     { TRY_CALL_VOID(type_check_statement(stmt)); }
 }
@@ -302,7 +301,7 @@ void TypeChecker::type_check_for_statement(ForStatement *statement) {
     if (statement->condition->type_info->type != TypeInfoType::BOOLEAN)
     { panic("Second statement in for loop needs to evaluate to a bool"); }
 
-    TRY_CALL_VOID(type_check_scope_statement(statement->body, false));
+    TRY_CALL_VOID(type_check_scope_statement(statement->body));
 }
 
 void TypeChecker::type_check_if_statement(IfStatement *statement) {
@@ -360,43 +359,43 @@ void TypeChecker::type_check_expression(Expression *expression) {
     switch (expression->type)
     {
     case ExpressionType::EXPRESSION_STRING_LITERAL:
-        return type_check_string_literal_expression(dynamic_cast<StringLiteralExpression *>(expression));
+        return type_check_string_literal_expression(static_cast<StringLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_NUMBER_LITERAL:
-        return type_check_number_literal_expression(dynamic_cast<NumberLiteralExpression *>(expression));
+        return type_check_number_literal_expression(static_cast<NumberLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_BOOL_LITERAL:
-        return type_check_bool_literal_expression(dynamic_cast<BoolLiteralExpression *>(expression));
+        return type_check_bool_literal_expression(static_cast<BoolLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_CALL:
-        return type_check_call_expression(dynamic_cast<CallExpression *>(expression));
+        return type_check_call_expression(static_cast<CallExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_IDENTIFIER:
-        return type_check_identifier_expression(dynamic_cast<IdentifierExpression *>(expression));
+        return type_check_identifier_expression(static_cast<IdentifierExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_BINARY:
-        return type_check_binary_expression(dynamic_cast<BinaryExpression *>(expression));
+        return type_check_binary_expression(static_cast<BinaryExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_UNARY:
-        return type_check_unary_expression(dynamic_cast<UnaryExpression *>(expression));
+        return type_check_unary_expression(static_cast<UnaryExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_GET:
-        return type_check_get_expression(dynamic_cast<GetExpression *>(expression));
+        return type_check_get_expression(static_cast<GetExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_GROUP:
-        return type_check_group_expression(dynamic_cast<GroupExpression *>(expression));
+        return type_check_group_expression(static_cast<GroupExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_NULL_LITERAL:
-        return type_check_null_literal_expression(dynamic_cast<NullLiteralExpression *>(expression));
+        return type_check_null_literal_expression(static_cast<NullLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_ZERO_LITERAL:
-        return type_check_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression));
+        return type_check_zero_literal_expression(static_cast<ZeroLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_INSTANTIATION:
-        return type_check_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
+        return type_check_instantiate_expression(static_cast<InstantiateExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
-        return type_check_struct_instance_expression(dynamic_cast<StructInstanceExpression *>(expression));
+        return type_check_struct_instance_expression(static_cast<StructInstanceExpression *>(expression));
         break;
     default:
         panic("Expression not implemented in type checker");
@@ -642,7 +641,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression) {
         return;
     }
 
-    for (i32 i = 0; i < fn_type_info->args.size(); i++)
+    for (u64 i = 0; i < fn_type_info->args.size(); i++)
     {
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
@@ -834,7 +833,7 @@ void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression
     }
 
     // check types
-    for (i32 i = 0; i < calling_args_type_infos.size(); i++)
+    for (u64 i = 0; i < calling_args_type_infos.size(); i++)
     {
         // new expression member and type info
         auto [expression_member, expression_type] = calling_args_type_infos.at(i);
@@ -860,10 +859,10 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
     case TypeExpressionType::TYPE_IDENTIFIER:
-        type_check_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression));
+        type_check_identifier_type_expression(static_cast<IdentifierTypeExpression *>(type_expression));
         break;
     case TypeExpressionType::TYPE_UNARY:
-        type_check_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression));
+        type_check_unary_type_expression(static_cast<UnaryTypeExpression *>(type_expression));
         break;
     default:
         panic("Not implemented for type checker");
@@ -932,11 +931,9 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
 
         if (type_match(fn_a->return_type, fn_b->return_type))
         {
-            for (i32 i = 0; i < fn_a->args.size(); i++)
+            for (u64 i = 0; i < fn_a->args.size(); i++)
             {
-                if (type_match(fn_a->args.at(i), fn_b->args.at(i)))
-                {}
-                else
+                if (!type_match(fn_a->args.at(i), fn_b->args.at(i)))
                 { return false; }
             }
 

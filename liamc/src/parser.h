@@ -8,6 +8,7 @@
 #include "ast.h"
 #include "compilation_unit.h"
 #include "lexer.h"
+#include "utils.h"
 
 struct Statement;
 struct LetStatement;
@@ -18,7 +19,6 @@ struct ReturnStatement;
 struct BreakStatement;
 struct ExpressionStatement;
 struct AssigmentStatement;
-struct ImportStatement;
 struct ForStatement;
 struct IfStatement;
 struct ElseStatement;
@@ -45,7 +45,6 @@ struct Parser {
     FnStatement *eval_fn_statement();
     ReturnStatement *eval_return_statement();
     BreakStatement *eval_break_statement();
-    ImportStatement *eval_import_statement();
     ForStatement *eval_for_statement();
     IfStatement *eval_if_statement();
     ElseStatement *eval_else_statement();
@@ -78,7 +77,7 @@ struct Parser {
     bool match(TokenType type);
     Token *peek(i32 offset = 0);
     TokenIndex consume_token_with_index();
-    i32 find_balance_point(TokenType push, TokenType pull, i32 from);
+    Option<u64> find_balance_point(TokenType push, TokenType pull, u64 from);
     TokenIndex consume_token_of_type_with_index(TokenType type);
     std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);

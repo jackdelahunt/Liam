@@ -8,7 +8,6 @@
 #include "args.h"
 #include "errors.h"
 #include "liam.h"
-#include "utils.h"
 
 Parser::Parser(CompilationUnit *compilation_unit) {
     this->compilation_unit = compilation_unit;
@@ -25,25 +24,16 @@ void Parser::parse() {
 
         if (stmt->statement_type == StatementType::STATEMENT_FN)
         {
-            auto fn_stmt = dynamic_cast<FnStatement *>(stmt);
+            auto fn_stmt = static_cast<FnStatement *>(stmt);
             compilation_unit->top_level_fn_statements.push_back(fn_stmt);
         }
         else if (stmt->statement_type == StatementType::STATEMENT_STRUCT)
         {
-            auto struct_stmt = dynamic_cast<StructStatement *>(stmt);
+            auto struct_stmt = static_cast<StructStatement *>(stmt);
             compilation_unit->top_level_struct_statements.push_back(struct_stmt);
         }
-        else if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
-        {
-            auto import_stmt = dynamic_cast<ImportStatement *>(stmt);
-            compilation_unit->top_level_import_statements.push_back(import_stmt);
-        }
         else
-        {
-            ASSERT_MSG(
-                0, "Can only get the above statements from eval_top_level_statment, so this should never trigger"
-            );
-        }
+        { UNREACHABLE(); }
     }
 }
 
@@ -70,7 +60,6 @@ Statement *Parser::eval_statement() {
         break;
     case TokenType::TOKEN_FN:
     case TokenType::TOKEN_STRUCT:
-    case TokenType::TOKEN_IMPORT:
     default:
         return eval_line_starting_expression();
         break;
@@ -85,9 +74,6 @@ Statement *Parser::eval_top_level_statement() {
         break;
     case TokenType::TOKEN_STRUCT:
         return eval_struct_statement();
-        break;
-    case TokenType::TOKEN_IMPORT:
-        return eval_import_statement();
         break;
 
     default: {
@@ -116,7 +102,7 @@ LetStatement *Parser::eval_let_statement() {
     { type = TRY_CALL_RET(eval_type_expression(), NULL); }
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_ASSIGN), NULL);
     auto expression = TRY_CALL_RET(eval_expression_statement(), NULL);
-    return new LetStatement(compilation_unit, identifier, expression->expression, type);
+    return new LetStatement(identifier, expression->expression, type);
 }
 
 ScopeStatement *Parser::eval_scope_statement() {
@@ -124,14 +110,10 @@ ScopeStatement *Parser::eval_scope_statement() {
     TokenIndex open_brace_token_index =
         TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
     Token *open_brace_token_data = this->compilation_unit->get_token(open_brace_token_index);
-    i32 closing_brace_index =
-        find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, current - 1);
-    // if (closing_brace_index == current + 1)
-    // { // if this scope is empty
-    //     current++;
-    // }
-    // else
-    if (closing_brace_index < 0)
+    Option<u64> closing_brace_index =
+        find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, this->current - 1);
+
+    if (!closing_brace_index.is_some())
     {
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), open_brace_token_data->span,
@@ -140,14 +122,14 @@ ScopeStatement *Parser::eval_scope_statement() {
         return NULL;
     }
 
-    while (current < closing_brace_index)
+    while (this->current < closing_brace_index.value())
     {
         auto statement = TRY_CALL_RET(eval_statement(), NULL);
         statements.push_back(statement);
     }
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    return new ScopeStatement(compilation_unit, statements);
+    return new ScopeStatement(statements);
 }
 
 FnStatement *Parser::eval_fn_statement() {
@@ -163,7 +145,7 @@ FnStatement *Parser::eval_fn_statement() {
     auto type = TRY_CALL_RET(eval_type_expression(), NULL);
 
     auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
-    return new FnStatement(compilation_unit, identifier, params, type, body);
+    return new FnStatement(identifier, params, type, body);
 }
 
 StructStatement *Parser::eval_struct_statement() {
@@ -175,7 +157,7 @@ StructStatement *Parser::eval_struct_statement() {
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    return new StructStatement(compilation_unit, identifier, member);
+    return new StructStatement(identifier, member);
 }
 
 ReturnStatement *Parser::eval_return_statement() {
@@ -188,7 +170,7 @@ ReturnStatement *Parser::eval_return_statement() {
 
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
 
-    return new ReturnStatement(compilation_unit, expression);
+    return new ReturnStatement(expression);
 }
 
 BreakStatement *Parser::eval_break_statement() {
@@ -196,17 +178,7 @@ BreakStatement *Parser::eval_break_statement() {
     // string lit
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BREAK), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
-    return new BreakStatement(compilation_unit);
-}
-
-ImportStatement *Parser::eval_import_statement() {
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IMPORT), NULL);
-    auto import_path = dynamic_cast<StringLiteralExpression *>(TRY_CALL_RET(eval_string_literal(), NULL));
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
-
-    ASSERT_MSG(import_path != NULL, "Even though it is returning a expression we always assume it is a StringLiteral");
-
-    return new ImportStatement(compilation_unit, import_path);
+    return new BreakStatement();
 }
 
 ForStatement *Parser::eval_for_statement() {
@@ -221,7 +193,7 @@ ForStatement *Parser::eval_for_statement() {
 
     auto body = TRY_CALL_RET(eval_scope_statement(), NULL);
 
-    return new ForStatement(compilation_unit, assign, condition, update, body);
+    return new ForStatement(assign, condition, update, body);
 }
 
 IfStatement *Parser::eval_if_statement() {
@@ -235,7 +207,7 @@ IfStatement *Parser::eval_if_statement() {
     if (peek()->token_type == TokenType::TOKEN_ELSE)
     { else_statement = TRY_CALL_RET(eval_else_statement(), NULL); }
 
-    return new IfStatement(compilation_unit, expression, body, else_statement);
+    return new IfStatement(expression, body, else_statement);
 }
 
 ElseStatement *Parser::eval_else_statement() {
@@ -256,13 +228,13 @@ ExpressionStatement *Parser::eval_expression_statement() {
     auto expression = TRY_CALL_RET(eval_expression(), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
 
-    return new ExpressionStatement(compilation_unit, expression);
+    return new ExpressionStatement(expression);
 }
 
 ContinueStatement *Parser::eval_continue_statement() {
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_CONTINUE), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
-    return new ContinueStatement(compilation_unit);
+    return new ContinueStatement();
 }
 
 Statement *Parser::eval_line_starting_expression() {
@@ -273,12 +245,12 @@ Statement *Parser::eval_line_starting_expression() {
         TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_ASSIGN), NULL);
         auto rhs = TRY_CALL_RET(eval_expression_statement(), NULL);
 
-        return new AssigmentStatement(compilation_unit, lhs, rhs);
+        return new AssigmentStatement(lhs, rhs);
     }
 
     // not assign, after eval expresion only semi colon is left
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
-    return new ExpressionStatement(compilation_unit, lhs);
+    return new ExpressionStatement(lhs);
 }
 
 /*
@@ -539,9 +511,9 @@ TypeExpression *Parser::eval_type_fn() {
     return new FnTypeExpression(params, return_type);
 }
 
-i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
-    i32 current_index = from;
-    i32 balance       = 0;
+Option<u64> Parser::find_balance_point(TokenType push, TokenType pull, u64 from) {
+    u64 current_index = from;
+    u64 balance       = 0;
 
     while (current_index < this->compilation_unit->token_buffer.size())
     {
@@ -549,19 +521,19 @@ i32 Parser::find_balance_point(TokenType push, TokenType pull, i32 from) {
         {
             balance++;
             if (balance == 0)
-                return current_index;
+                return Option(current_index);
         }
         if (this->compilation_unit->get_token(current_index)->token_type == pull)
         {
             balance--;
             if (balance == 0)
-                return current_index;
+                return Option(current_index);
         }
 
         current_index++;
     }
 
-    return -1;
+    return Option<u64>();
 }
 
 bool Parser::match(TokenType type) {

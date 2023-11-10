@@ -49,41 +49,32 @@ FnTypeInfo::FnTypeInfo(StructTypeInfo *parentType, TypeInfo *returnType, std::ve
     this->type        = TypeInfoType::FN;
 }
 
-std::ostream &Statement::format(std::ostream &os) const {
-    os << "()";
-    return os;
-}
-
-ExpressionStatement::ExpressionStatement(CompilationUnit *file, Expression *expression) {
-    this->file           = file;
+ExpressionStatement::ExpressionStatement(Expression *expression) {
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_EXPRESSION;
 }
 
-LetStatement::LetStatement(CompilationUnit *file, TokenIndex identifier, Expression *expression, TypeExpression *type) {
+LetStatement::LetStatement(TokenIndex identifier, Expression *expression, TypeExpression *type) {
     this->identifier     = identifier;
     this->rhs            = expression;
     this->type           = type;
     this->statement_type = StatementType::STATEMENT_LET;
 }
 
-AssigmentStatement::AssigmentStatement(CompilationUnit *file, Expression *lhs, ExpressionStatement *assigned_to) {
-    this->file           = file;
+AssigmentStatement::AssigmentStatement(Expression *lhs, ExpressionStatement *assigned_to) {
     this->lhs            = lhs;
     this->assigned_to    = assigned_to;
     this->statement_type = StatementType::STATEMENT_ASSIGNMENT;
 }
 
-ScopeStatement::ScopeStatement(CompilationUnit *file, std::vector<Statement *> statements) {
-    this->file           = file;
+ScopeStatement::ScopeStatement(std::vector<Statement *> statements) {
     this->statements     = statements;
     this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 
 FnStatement::FnStatement(
-    CompilationUnit *file, TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body
+    TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body
 ) {
-    this->file           = file;
     this->identifier     = identifier;
     this->return_type    = type;
     this->params         = params;
@@ -91,23 +82,15 @@ FnStatement::FnStatement(
     this->statement_type = StatementType::STATEMENT_FN;
 }
 
-StructStatement::StructStatement(CompilationUnit *file, TokenIndex identifier, CSV members) {
-    this->file           = file;
+StructStatement::StructStatement(TokenIndex identifier, CSV members) {
     this->identifier     = identifier;
     this->members        = members;
     this->statement_type = StatementType::STATEMENT_STRUCT;
 }
 
-ImportStatement::ImportStatement(CompilationUnit *file, StringLiteralExpression *path) {
-    this->file           = file;
-    this->path           = path;
-    this->statement_type = StatementType::STATEMENT_IMPORT;
-}
-
 ForStatement::ForStatement(
-    CompilationUnit *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
+    Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
 ) {
-    this->file           = file;
     this->assign         = assign;
     this->condition      = condition;
     this->update         = update;
@@ -116,9 +99,8 @@ ForStatement::ForStatement(
 }
 
 IfStatement::IfStatement(
-    CompilationUnit *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement
+    Expression *expression, ScopeStatement *body, ElseStatement *else_statement
 ) {
-    this->file           = file;
     this->expression     = expression;
     this->body           = body;
     this->else_statement = else_statement;
@@ -131,19 +113,16 @@ ElseStatement::ElseStatement(IfStatement *if_statement, ScopeStatement *body) {
     this->statement_type = StatementType::STATEMENT_ELSE;
 }
 
-ReturnStatement::ReturnStatement(CompilationUnit *file, Expression *expression) {
-    this->file           = file;
+ReturnStatement::ReturnStatement(Expression *expression) {
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_RETURN;
 }
 
-BreakStatement::BreakStatement(CompilationUnit *file) {
-    this->file           = file;
+BreakStatement::BreakStatement() {
     this->statement_type = StatementType::STATEMENT_BREAK;
 }
 
-ContinueStatement::ContinueStatement(CompilationUnit *file) {
-    this->file           = file;
+ContinueStatement::ContinueStatement() {
     this->statement_type = StatementType::STATEMENT_CONTINUE;
 }
 

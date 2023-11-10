@@ -15,8 +15,6 @@ bool is_delim(char c) {
 Lexer::Lexer(FileData *file_data) {
     this->file_data         = file_data;
     this->current_index     = 0;
-    this->current_line      = 1;
-    this->current_character = 1;
     this->token_buffer      = std::vector<Token>();
 
     ASSERT(this->file_data->data);
@@ -34,14 +32,6 @@ CompilationUnit *Lexer::lex() {
         switch (c)
         {
         case '\n':
-            this->current_line++;
-
-            // while all character locations start at 1, we need to set this to 0
-            // because when we break from the switch and go to the next iteration
-            // it will iterate the current_character by 1 setting it back to the
-            // desired starting point
-            this->current_character = 0;
-            break;
         case ' ':
         case '\r':
         case '\t':
@@ -61,7 +51,6 @@ CompilationUnit *Lexer::lex() {
                 while (this->current_index < this->file_data->data_length &&
                        this->file_data->data[this->current_index] != '\n')
                 { next_char(); }
-                current_line++;
                 break;
             }
             this->token_buffer.emplace_back(TokenType::TOKEN_SLASH, this->current_index, this->current_index);
@@ -218,12 +207,6 @@ CompilationUnit *Lexer::lex() {
                 continue;
             }
 
-            if (compare_string(word, "import"))
-            {
-                this->token_buffer.emplace_back(TokenType::TOKEN_IMPORT, word_start, (word_start - 1) + word.length());
-                continue;
-            }
-
             if (compare_string(word, "for"))
             {
                 this->token_buffer.emplace_back(TokenType::TOKEN_FOR, word_start, (word_start - 1) + word.length());
@@ -318,7 +301,6 @@ CompilationUnit *Lexer::lex() {
 
 void Lexer::next_char() {
     this->current_index++;
-    this->current_character++;
 }
 
 char Lexer::peek() {
@@ -334,7 +316,5 @@ std::string Lexer::get_word() {
     }
 
     this->current_index--; // it will be iterated once after this
-    current_character--;   // it will be iterated once after this
-
     return word;
 }

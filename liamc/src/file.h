@@ -12,9 +12,6 @@ struct FileData {
     char *data;
     u64 data_length;
     u64 line_count;
-
-    u64 index_at(u32 line, u32 character);
-    std::string line(u64 line);
 };
 
 struct FileManager {

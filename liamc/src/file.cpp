@@ -4,64 +4,6 @@
 #include <cassert>
 #include <fstream>
 
-u64 FileData::index_at(u32 line, u32 character) {
-
-    ASSERT(line > 0);
-    ASSERT(character > 0);
-
-    u32 current_line = 1;
-    u32 current_char = 1;
-    for (i64 i = 0; i < this->data_length; i++)
-    {
-
-        if (current_line == line && current_char == character)
-        { return i; }
-
-        if (this->data[i] == '\n')
-        {
-            current_line++;
-            current_char = 1;
-        }
-        else
-        { current_char++; }
-    }
-
-    ASSERT_MSG(0, "Could not find line and character in compilation_unit data");
-}
-
-std::string FileData::line(u64 line) {
-
-    ASSERT(line > 0);
-    ASSERT(line <= this->line_count);
-    ASSERT(this->data);
-
-    auto start = index_at(line, 1);
-    auto end   = start;
-    std::string s;
-
-    s.push_back(this->data[end]);
-    end++;
-
-    if (s != "\n")
-    {
-        while (true)
-        {
-            if (end >= this->data_length)
-                break;
-            if (this->data[end] == '\n')
-                break;
-
-            s.push_back(this->data[end]);
-            end++;
-        }
-        // add new line
-        if (end < this->data_length)
-            s.push_back(this->data[end]);
-    }
-
-    return s;
-}
-
 FileManager *FileManager::singleton = NULL;
 
 FileData *FileManager::load(std::filesystem::path path) {
