@@ -29,7 +29,6 @@ enum class TokenType {
     TOKEN_DOT,                // .
     TOKEN_NEW,                // new
     TOKEN_BREAK,              // break
-    TOKEN_IMPORT,             // import
     TOKEN_BRACKET_OPEN,       // [
     TOKEN_BRACKET_CLOSE,      // ]
     TOKEN_FOR,                // for

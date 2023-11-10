@@ -12,7 +12,6 @@ struct ScopeStatement;
 struct FnStatement;
 struct StructStatement;
 struct AssigmentStatement;
-struct ImportStatement;
 struct ForStatement;
 struct IfStatement;
 struct ElseStatement;
@@ -60,7 +59,6 @@ enum class StatementType {
     STATEMENT_FN,
     STATEMENT_STRUCT,
     STATEMENT_ASSIGNMENT,
-    STATEMENT_IMPORT,
     STATEMENT_RETURN,
     STATEMENT_BREAK,
     STATEMENT_FOR,
@@ -178,14 +176,12 @@ struct FnTypeInfo : TypeInfo {
 */
 struct Statement {
     StatementType statement_type;
-    CompilationUnit *file = NULL;
-    virtual std::ostream &format(std::ostream &os) const;
 };
 
 struct ExpressionStatement : Statement {
     Expression *expression;
 
-    ExpressionStatement(CompilationUnit *file, Expression *expression);
+    ExpressionStatement(Expression *expression);
 };
 
 struct LetStatement : Statement {
@@ -193,13 +189,13 @@ struct LetStatement : Statement {
     Expression *rhs;
     TypeExpression *type;
 
-    LetStatement(CompilationUnit *file, TokenIndex identifier, Expression *expression, TypeExpression *type);
+    LetStatement(TokenIndex identifier, Expression *expression, TypeExpression *type);
 };
 
 struct ScopeStatement : Statement {
     std::vector<Statement *> statements;
 
-    ScopeStatement(CompilationUnit *file, std::vector<Statement *> statements);
+    ScopeStatement(std::vector<Statement *> statements);
 };
 
 struct FnStatement : Statement {
@@ -208,27 +204,21 @@ struct FnStatement : Statement {
     TypeExpression *return_type;
     ScopeStatement *body;
 
-    FnStatement(CompilationUnit *file, TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body);
+    FnStatement(TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body);
 };
 
 struct StructStatement : Statement {
     TokenIndex identifier;
     CSV members;
 
-    StructStatement(CompilationUnit *file, TokenIndex identifier, CSV members);
+    StructStatement(TokenIndex identifier, CSV members);
 };
 
 struct AssigmentStatement : Statement {
     Expression *lhs;
     ExpressionStatement *assigned_to;
 
-    AssigmentStatement(CompilationUnit *file, Expression *lhs, ExpressionStatement *assigned_to);
-};
-
-struct ImportStatement : Statement {
-    StringLiteralExpression *path;
-
-    ImportStatement(CompilationUnit *file, StringLiteralExpression *path);
+    AssigmentStatement(Expression *lhs, ExpressionStatement *assigned_to);
 };
 
 struct ForStatement : Statement {
@@ -238,7 +228,7 @@ struct ForStatement : Statement {
     ScopeStatement *body;
 
     ForStatement(
-        CompilationUnit *file, Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
+        Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
     );
 };
 
@@ -247,7 +237,7 @@ struct IfStatement : Statement {
     ScopeStatement *body;
     ElseStatement *else_statement;
 
-    IfStatement(CompilationUnit *file, Expression *expression, ScopeStatement *body, ElseStatement *else_statement);
+    IfStatement(Expression *expression, ScopeStatement *body, ElseStatement *else_statement);
 };
 
 struct ElseStatement : Statement {
@@ -260,15 +250,15 @@ struct ElseStatement : Statement {
 struct ReturnStatement : Statement {
     Expression *expression;
 
-    ReturnStatement(CompilationUnit *file, Expression *expression);
+    ReturnStatement(Expression *expression);
 };
 
 struct BreakStatement : Statement {
-    BreakStatement(CompilationUnit *file);
+    BreakStatement();
 };
 
 struct ContinueStatement : Statement {
-    ContinueStatement(CompilationUnit *file);
+    ContinueStatement();
 };
 
 /*

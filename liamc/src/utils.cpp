@@ -11,7 +11,7 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
 #define BAD_PARSE                                                                                                      \
     { 0, NumberType::UNSIGNED, -1 }
 
-    int literal_end = 0;
+    u64 literal_end = 0;
     while (literal_end < literal.size() &&
            (is_digit(literal.at(literal_end)) || literal.at(literal_end) == '-' || literal.at(literal_end) == '.'))
     { literal_end++; }

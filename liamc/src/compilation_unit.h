@@ -9,20 +9,18 @@
 struct CompilationUnit {
     FileData *file_data;
     std::vector<Token> token_buffer;
-    std::vector<ImportStatement *> top_level_import_statements;
     std::vector<StructStatement *> top_level_struct_statements;
     std::vector<FnStatement *> top_level_fn_statements;
 
     CompilationUnit(FileData *file_data, std::vector<Token> token_buffer) {
         this->file_data                   = file_data;
         this->token_buffer                = std::move(token_buffer);
-        this->top_level_import_statements = std::vector<ImportStatement *>();
         this->top_level_struct_statements = std::vector<StructStatement *>();
         this->top_level_fn_statements     = std::vector<FnStatement *>();
     }
 
     Token *get_token(TokenIndex token_index) {
-        ASSERT(token_index >= 0 && token_index < this->token_buffer.size());
+        ASSERT(token_index < this->token_buffer.size());
         return &this->token_buffer[token_index];
     }
 

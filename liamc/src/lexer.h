@@ -13,9 +13,7 @@ bool is_delim(char c);
 
 struct Lexer {
     FileData *file_data;
-    i32 current_index;
-    i32 current_line;
-    i32 current_character;
+    u64 current_index;
 
     std::vector<Token> token_buffer;
 

@@ -54,7 +54,7 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
     source.append(name_as_string);
     source.append("(");
 
-    int index = 0;
+    u64 index = 0;
     for (auto [token_index, type] : statement->params)
     {
         std::string identifier_string = this->compilation_unit->get_token_string_from_index(token_index);
@@ -71,42 +71,41 @@ std::string CppBackend::emit_statement(Statement *statement) {
     switch (statement->statement_type)
     {
     case StatementType::STATEMENT_RETURN:
-        return emit_return_statement(dynamic_cast<ReturnStatement *>(statement));
+        return emit_return_statement(static_cast<ReturnStatement *>(statement));
         break;
     case StatementType::STATEMENT_BREAK:
-        return emit_break_statement(dynamic_cast<BreakStatement *>(statement));
+        return emit_break_statement(static_cast<BreakStatement *>(statement));
         break;
     case StatementType::STATEMENT_LET:
-        return emit_let_statement(dynamic_cast<LetStatement *>(statement));
+        return emit_let_statement(static_cast<LetStatement *>(statement));
         break;
     case StatementType::STATEMENT_FN:
-        return emit_fn_statement(dynamic_cast<FnStatement *>(statement));
+        return emit_fn_statement(static_cast<FnStatement *>(statement));
         break;
     case StatementType::STATEMENT_SCOPE:
-        return emit_scope_statement(dynamic_cast<ScopeStatement *>(statement));
+        return emit_scope_statement(static_cast<ScopeStatement *>(statement));
         break;
     case StatementType::STATEMENT_STRUCT:
-        return emit_struct_statement(dynamic_cast<StructStatement *>(statement));
+        return emit_struct_statement(static_cast<StructStatement *>(statement));
         break;
     case StatementType::STATEMENT_ASSIGNMENT:
-        return emit_assigment_statement(dynamic_cast<AssigmentStatement *>(statement));
+        return emit_assigment_statement(static_cast<AssigmentStatement *>(statement));
         break;
     case StatementType::STATEMENT_EXPRESSION:
-        return emit_expression_statement(dynamic_cast<ExpressionStatement *>(statement));
+        return emit_expression_statement(static_cast<ExpressionStatement *>(statement));
         break;
     case StatementType::STATEMENT_FOR:
-        return emit_for_statement(dynamic_cast<ForStatement *>(statement));
+        return emit_for_statement(static_cast<ForStatement *>(statement));
         break;
     case StatementType::STATEMENT_IF:
-        return emit_if_statement(dynamic_cast<IfStatement *>(statement));
+        return emit_if_statement(static_cast<IfStatement *>(statement));
         break;
     case StatementType::STATEMENT_CONTINUE:
-        return emit_continue_statement(dynamic_cast<ContinueStatement *>(statement));
+        return emit_continue_statement(static_cast<ContinueStatement *>(statement));
         break;
     }
-
-    panic("Statement not implemented in cpp back end :[");
-    return "";
+    
+    UNREACHABLE();
 }
 
 std::string CppBackend::emit_return_statement(ReturnStatement *statement) {
@@ -154,8 +153,7 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
     source.append(name_as_string);
     source.append("(");
 
-    int index = 0;
-
+    u64 index = 0;
     for (auto [identifier, type] : statement->params)
     {
         std::string identifier_string = this->compilation_unit->get_token_string_from_index(identifier);
@@ -164,6 +162,7 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
         { source.append(", "); }
         index++;
     }
+
     source.append(")");
     source.append(emit_scope_statement(statement->body));
     return source;
@@ -241,43 +240,43 @@ std::string CppBackend::emit_expression(Expression *expression) {
     switch (expression->type)
     {
     case ExpressionType::EXPRESSION_STRING_LITERAL:
-        return emit_string_literal_expression(dynamic_cast<StringLiteralExpression *>(expression));
+        return emit_string_literal_expression(static_cast<StringLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_NUMBER_LITERAL:
-        return emit_int_literal_expression(dynamic_cast<NumberLiteralExpression *>(expression));
+        return emit_int_literal_expression(static_cast<NumberLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_BOOL_LITERAL:
-        return emit_bool_literal_expression(dynamic_cast<BoolLiteralExpression *>(expression));
+        return emit_bool_literal_expression(static_cast<BoolLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_CALL:
-        return emit_call_expression(dynamic_cast<CallExpression *>(expression));
+        return emit_call_expression(static_cast<CallExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_IDENTIFIER:
-        return emit_identifier_expression(dynamic_cast<IdentifierExpression *>(expression));
+        return emit_identifier_expression(static_cast<IdentifierExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_BINARY:
-        return emit_binary_expression(dynamic_cast<BinaryExpression *>(expression));
+        return emit_binary_expression(static_cast<BinaryExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_UNARY:
-        return emit_unary_expression(dynamic_cast<UnaryExpression *>(expression));
+        return emit_unary_expression(static_cast<UnaryExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_GET:
-        return emit_get_expression(dynamic_cast<GetExpression *>(expression));
+        return emit_get_expression(static_cast<GetExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_GROUP:
-        return emit_group_expression(dynamic_cast<GroupExpression *>(expression));
+        return emit_group_expression(static_cast<GroupExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_NULL_LITERAL:
-        return emit_null_literal_expression(dynamic_cast<NullLiteralExpression *>(expression));
+        return emit_null_literal_expression(static_cast<NullLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_ZERO_LITERAL:
-        return emit_zero_literal_expression(dynamic_cast<ZeroLiteralExpression *>(expression));
+        return emit_zero_literal_expression(static_cast<ZeroLiteralExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_INSTANTIATION:
-        return emit_instantiate_expression(dynamic_cast<InstantiateExpression *>(expression));
+        return emit_instantiate_expression(static_cast<InstantiateExpression *>(expression));
         break;
     case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
-        return emit_struct_instance_expression(dynamic_cast<StructInstanceExpression *>(expression));
+        return emit_struct_instance_expression(static_cast<StructInstanceExpression *>(expression));
         break;
     default: {
         panic("Cannot emit this expression in cpp backend");
@@ -391,12 +390,11 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
     auto source = std::string();
     source.append(emit_expression(expression->callee));
 
-    int index = 0;
     source.append("(");
 
     if (expression->callee->type == ExpressionType::EXPRESSION_GET)
     {
-        auto get_expression = dynamic_cast<GetExpression *>(expression->callee);
+        auto get_expression = static_cast<GetExpression *>(expression->callee);
 
         // because we can call members of a type T on ^T sometimes we do not need to add
         // a & as it is already a pointer, if it is not a pointer then add the &
@@ -408,6 +406,7 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
         { source.append(", "); }
     }
 
+    u64 index = 0;
     for (auto expr : expression->args)
     {
         source.append(emit_expression(expr));
@@ -461,23 +460,11 @@ std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expre
 std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression *expression) {
     std::string source;
 
-    // if the struct is in another module we need to prepend the identifier with a
-    // module_name::
-    StructTypeInfo *struct_type_info = NULL;
-
-    if (expression->type_info->type == TypeInfoType::STRUCT)
-    { struct_type_info = (StructTypeInfo *)expression->type_info; }
-    else
-    {
-        ASSERT(expression->type_info->type == TypeInfoType::STRUCT_INSTANCE);
-        struct_type_info = ((StructInstanceTypeInfo *)expression->type_info)->struct_type;
-    }
-
     std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
     source.append(identifier_string);
 
     source.append("{");
-    int index = 0;
+    u64 index = 0;
     for (auto [name, expr] : expression->named_expressions)
     {
         source.append(emit_expression(expr));
@@ -494,13 +481,13 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
     case TypeExpressionType::TYPE_IDENTIFIER:
-        return emit_identifier_type_expression(dynamic_cast<IdentifierTypeExpression *>(type_expression));
+        return emit_identifier_type_expression(static_cast<IdentifierTypeExpression *>(type_expression));
         break;
     case TypeExpressionType::TYPE_UNARY:
-        return emit_unary_type_expression(dynamic_cast<UnaryTypeExpression *>(type_expression));
+        return emit_unary_type_expression(static_cast<UnaryTypeExpression *>(type_expression));
         break;
     case TypeExpressionType::TYPE_FN:
-        return emit_fn_type_expression(dynamic_cast<FnTypeExpression *>(type_expression));
+        return emit_fn_type_expression(static_cast<FnTypeExpression *>(type_expression));
         break;
     default:
         panic("Cpp back end does not support this type expression");
@@ -520,7 +507,7 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
 std::string CppBackend::emit_fn_type_expression(FnTypeExpression *type_expression) {
     std::string source = "std::function<" + emit_type_expression(type_expression->return_type) + "(";
 
-    int index = 0;
+    u64 index = 0;
     for (auto type : type_expression->params)
     {
         source.append(emit_type_expression(type));
@@ -552,7 +539,7 @@ std::string strip_semi_colon(std::string str) {
 u64 string_literal_length(std::string *string) {
     u64 length = 0;
 
-    for (int i = 0; i < string->size(); i++)
+    for (u64 i = 0; i < string->size(); i++)
     {
         if (string->at(i) == '\\' && i + 1 < string->size())
         { i += 2; }

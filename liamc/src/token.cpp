@@ -1,9 +1,9 @@
 #include "token.h"
 
-const char *TokenTypeStrings[49] = {
+const char *TokenTypeStrings[48] = {
     "int literal", "str literal", "identifier", "let",   "fn",     "(",    ")",    "{",   "}",      "+",
     "-",           "*",           "/",          "%",     "=",      ";",    ",",    ":",   "return", "^",
-    "struct",      ".",           "new",        "break", "import", "[",    "]",    "for", "false",  "true",
+    "struct",      ".",           "new",        "break",  "[",    "]",    "for", "false",  "true",
     "if",          "else",        "or",         "and",   "==",     "!=",   "!",    "<",   ">",      ">=",
     "<=",          "null",        "continue",   "zero",  "&",      "@tag", "match"};
 

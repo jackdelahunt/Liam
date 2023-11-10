@@ -55,7 +55,7 @@ struct TypeChecker {
     void type_check_return_statement(ReturnStatement *statement);
     void type_check_break_statement(BreakStatement *statement);
     void type_check_let_statement(LetStatement *statement);
-    void type_check_scope_statement(ScopeStatement *statement, bool copy_symbol_table = true);
+    void type_check_scope_statement(ScopeStatement *statement);
     void type_check_for_statement(ForStatement *statement);
     void type_check_if_statement(IfStatement *statement);
     void type_check_else_statement(ElseStatement *statement);
