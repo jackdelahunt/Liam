@@ -168,13 +168,11 @@ void write_error_annotation_at_span(std::string *file, Span span) {
     u64 line_start = span.start;
     u64 line_end   = span.end;
 
-    while(line_start != 0 && file_data->data[line_start] != '\n') {
-        line_start--;
-    }
+    while (line_start != 0 && file_data->data[line_start] != '\n')
+    { line_start--; }
 
-    while(line_end != file_data->data_length && file_data->data[line_end] != '\n') {
-        line_end++;
-    }
+    while (line_end != file_data->data_length && file_data->data[line_end] != '\n')
+    { line_end++; }
 
     // the message is split into 3 sections
     // For example with the message below where we want to

@@ -121,6 +121,6 @@ void panic(const std::string &msg);
     std::cerr << "NOT IMPLEMENTED :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                            \
     exit(1);
 
-#define UNREACHABLE()                                                                                              \
-    std::cerr << "UNREACHABLE was reached:: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                            \
+#define UNREACHABLE()                                                                                                  \
+    std::cerr << "UNREACHABLE was reached:: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                     \
     exit(1);

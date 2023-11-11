@@ -5,9 +5,17 @@
 #include <iostream>
 
 #include "args.h"
-#include "compiler.h"
+#include "cpp_backend.h"
+#include "errors.h"
 #include "file.h"
+#include "lexer.h"
 #include "liam.h"
+#include "parser.h"
+#include "type_checker.h"
+
+CompilationUnit *lex_parse(std::filesystem::path file_path);
+void type_check(CompilationUnit *file);
+std::string code_gen(CompilationUnit *file);
 
 i32 main(i32 argc, char **argv) {
     TIME_START(total_time);
@@ -53,4 +61,45 @@ i32 main(i32 argc, char **argv) {
     }
 
     return 0;
+}
+
+CompilationUnit *lex_parse(std::filesystem::path file_path) {
+    FileData *file_data               = FileManager::load(file_path.string());
+    Lexer lexer                       = Lexer(file_data);
+    CompilationUnit *compilation_unit = lexer.lex();
+    Parser parser                     = Parser(compilation_unit);
+    parser.parse();
+
+    if (ErrorReporter::has_parse_errors())
+    {
+        for (auto &error : ErrorReporter::singleton->parse_errors)
+        { error.print_error_message(); }
+
+        panic(
+            "Cannot continue with errors :: count (" + std::to_string(ErrorReporter::singleton->parse_errors.size()) +
+            ")"
+        );
+    }
+
+    return parser.compilation_unit;
+}
+
+void type_check(CompilationUnit *file) {
+
+    TypeChecker().type_check(file);
+
+    if (ErrorReporter::has_type_check_errors())
+    {
+        for (auto &error : ErrorReporter::singleton->type_check_errors)
+        { error.print_error_message(); }
+
+        panic(
+            "Cannot continue with errors :: count (" +
+            std::to_string(ErrorReporter::singleton->type_check_errors.size()) + ")"
+        );
+    }
+}
+
+std::string code_gen(CompilationUnit *file) {
+    return CppBackend().emit(file);
 }
