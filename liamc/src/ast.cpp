@@ -72,9 +72,7 @@ ScopeStatement::ScopeStatement(std::vector<Statement *> statements) {
     this->statement_type = StatementType::STATEMENT_SCOPE;
 }
 
-FnStatement::FnStatement(
-    TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body
-) {
+FnStatement::FnStatement(TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body) {
     this->identifier     = identifier;
     this->return_type    = type;
     this->params         = params;
@@ -88,9 +86,7 @@ StructStatement::StructStatement(TokenIndex identifier, CSV members) {
     this->statement_type = StatementType::STATEMENT_STRUCT;
 }
 
-ForStatement::ForStatement(
-    Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
-) {
+ForStatement::ForStatement(Statement *assign, Expression *condition, Statement *update, ScopeStatement *body) {
     this->assign         = assign;
     this->condition      = condition;
     this->update         = update;
@@ -98,9 +94,7 @@ ForStatement::ForStatement(
     this->statement_type = StatementType::STATEMENT_FOR;
 }
 
-IfStatement::IfStatement(
-    Expression *expression, ScopeStatement *body, ElseStatement *else_statement
-) {
+IfStatement::IfStatement(Expression *expression, ScopeStatement *body, ElseStatement *else_statement) {
     this->expression     = expression;
     this->body           = body;
     this->else_statement = else_statement;
@@ -154,7 +148,7 @@ NumberLiteralExpression::NumberLiteralExpression(TokenIndex token, Span span) {
 StringLiteralExpression::StringLiteralExpression(TokenIndex token, Span span) {
     this->token = token;
     this->type  = ExpressionType::EXPRESSION_STRING_LITERAL;
-    this->span = span;
+    this->span  = span;
 }
 
 BoolLiteralExpression::BoolLiteralExpression(TokenIndex token, Span span) {
@@ -190,15 +184,15 @@ GroupExpression::GroupExpression(Expression *expression) {
 }
 
 NullLiteralExpression::NullLiteralExpression(TokenIndex token, Span span) {
-    this->type = ExpressionType::EXPRESSION_NULL_LITERAL;
+    this->type  = ExpressionType::EXPRESSION_NULL_LITERAL;
     this->token = token;
-    this->span = span;
+    this->span  = span;
 }
 
 ZeroLiteralExpression::ZeroLiteralExpression(TokenIndex token, Span span) {
-    this->type = ExpressionType::EXPRESSION_ZERO_LITERAL;
+    this->type  = ExpressionType::EXPRESSION_ZERO_LITERAL;
     this->token = token;
-    this->span = span;
+    this->span  = span;
 }
 
 InstantiateExpression::InstantiateExpression(Expression *expression) {

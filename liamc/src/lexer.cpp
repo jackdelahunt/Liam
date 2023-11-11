@@ -13,9 +13,9 @@ bool is_delim(char c) {
 }
 
 Lexer::Lexer(FileData *file_data) {
-    this->file_data         = file_data;
-    this->current_index     = 0;
-    this->token_buffer      = std::vector<Token>();
+    this->file_data     = file_data;
+    this->current_index = 0;
+    this->token_buffer  = std::vector<Token>();
 
     ASSERT(this->file_data->data);
 }

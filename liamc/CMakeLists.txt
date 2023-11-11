@@ -7,7 +7,6 @@ add_executable(liamc
         src/main.cpp
         src/args.cpp
         src/ast.cpp
-        src/compiler.cpp
         src/cpp_backend.cpp
         src/errors.cpp
         src/lexer.cpp

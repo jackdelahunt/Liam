@@ -104,7 +104,7 @@ std::string CppBackend::emit_statement(Statement *statement) {
         return emit_continue_statement(static_cast<ContinueStatement *>(statement));
         break;
     }
-    
+
     UNREACHABLE();
 }
 

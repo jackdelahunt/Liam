@@ -227,9 +227,7 @@ struct ForStatement : Statement {
     Statement *update;
     ScopeStatement *body;
 
-    ForStatement(
-        Statement *assign, Expression *condition, Statement *update, ScopeStatement *body
-    );
+    ForStatement(Statement *assign, Expression *condition, Statement *update, ScopeStatement *body);
 };
 
 struct IfStatement : Statement {

@@ -396,31 +396,40 @@ Expression *Parser::eval_primary() {
     {
     case TokenType::TOKEN_NUMBER_LITERAL: {
         return new NumberLiteralExpression(consume_token_with_index(), token->span);
-    } break;
-    case TokenType::TOKEN_FALSE: case TokenType::TOKEN_TRUE: {
+    }
+    break;
+    case TokenType::TOKEN_FALSE:
+    case TokenType::TOKEN_TRUE: {
         return new BoolLiteralExpression(consume_token_with_index(), token->span);
-    } break;
+    }
+    break;
     case TokenType::TOKEN_STRING_LITERAL: {
         return TRY_CALL_RET(eval_string_literal(), NULL);
-    } break;
+    }
+    break;
     case TokenType::TOKEN_IDENTIFIER: {
         return new IdentifierExpression(consume_token_with_index(), token->span);
-    } break;
+    }
+    break;
     case TokenType::TOKEN_NEW: {
         return TRY_CALL_RET(eval_instantiate_expression(), NULL);
-    } break;
+    }
+    break;
     case TokenType::TOKEN_PAREN_OPEN: {
         return TRY_CALL_RET(eval_group_expression(), NULL);
-    } break;
+    }
+    break;
     case TokenType::TOKEN_NULL: {
         return new NullLiteralExpression(consume_token_with_index(), token->span);
-    } break;
+    }
+    break;
     case TokenType::TOKEN_ZERO: {
         return new ZeroLiteralExpression(consume_token_with_index(), token->span);
-    } break;
-    default:  {
-        auto token_index      = consume_token_with_index();
-        auto token_data = this->compilation_unit->get_token(token_index);
+    }
+    break;
+    default: {
+        auto token_index = consume_token_with_index();
+        auto token_data  = this->compilation_unit->get_token(token_index);
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), token_data->span,
             std::format(
@@ -437,7 +446,7 @@ Expression *Parser::eval_primary() {
 
 Expression *Parser::eval_string_literal() {
     TokenIndex token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRING_LITERAL), NULL);
-    Token *token = this->compilation_unit->get_token(token_index);
+    Token *token           = this->compilation_unit->get_token(token_index);
     return new StringLiteralExpression(token_index, token->span);
 }
 
@@ -560,13 +569,15 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
         Token *last_token_data = this->compilation_unit->get_token(this->compilation_unit->token_buffer.size() - 1);
         ErrorReporter::report_parser_error(
             this->compilation_unit->file_data->path.string(), last_token_data->span,
-            std::format("Expected '{}' but got unexpected end of file", get_token_type_string(last_token_data->token_type))
+            std::format(
+                "Expected '{}' but got unexpected end of file", get_token_type_string(last_token_data->token_type)
+            )
         );
         return 0;
     }
 
     TokenIndex current_token_index = this->current++;
-    Token *token          = this->compilation_unit->get_token(current_token_index);
+    Token *token                   = this->compilation_unit->get_token(current_token_index);
     if (token->token_type != type)
     {
         ErrorReporter::report_parser_error(
