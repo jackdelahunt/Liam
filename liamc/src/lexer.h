@@ -9,8 +9,9 @@
 #include "file.h"
 #include "liam.h"
 
-bool is_delim(char c);
+struct FileData;
 
+bool is_delim(char c);
 struct Lexer {
     FileData *file_data;
     u64 current_index;

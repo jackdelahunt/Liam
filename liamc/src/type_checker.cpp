@@ -7,7 +7,6 @@
 #include "args.h"
 #include "errors.h"
 #include "liam.h"
-#include "parser.h"
 #include "utils.h"
 
 TypeChecker::TypeChecker() {
@@ -187,7 +186,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
             {
                 if (rt->expression != NULL)
                 {
-                    TypeCheckerError::make(compilation_unit->file_data->path.string())
+                    TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
                         .set_expr_1(rt->expression)
                         .set_message("found expression in return when return type is void")
                         .report();
@@ -200,8 +199,8 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
                 if (!type_match(fn_type_info->return_type, rt->expression->type_info))
                 {
                     ErrorReporter::report_type_checker_error(
-                        compilation_unit->file_data->path.string(), rt->expression, NULL, statement->return_type, NULL,
-                        "Mismatch types in function, return types do not match"
+                        compilation_unit->file_data->absolute_path.string(), rt->expression, NULL,
+                        statement->return_type, NULL, "Mismatch types in function, return types do not match"
                     );
                     return;
                 }
@@ -275,7 +274,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), statement->rhs, NULL, statement->type, NULL,
+                compilation_unit->file_data->absolute_path.string(), statement->rhs, NULL, statement->type, NULL,
                 "Mismatched types in let statement"
             );
             return;
@@ -310,7 +309,7 @@ void TypeChecker::type_check_if_statement(IfStatement *statement) {
     if (!type_match(statement->expression->type_info, this->global_type_scope["bool"]))
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), statement->expression, NULL, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), statement->expression, NULL, NULL, NULL,
             "can only pass boolean expressions to if statements"
         );
         return;
@@ -344,8 +343,8 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement) 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info))
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), statement->lhs, statement->assigned_to->expression, NULL, NULL,
-            "Type mismatch, trying to assign a identifier to an expression of different type"
+            compilation_unit->file_data->absolute_path.string(), statement->lhs, statement->assigned_to->expression,
+            NULL, NULL, "Type mismatch, trying to assign a identifier to an expression of different type"
         );
         return;
     }
@@ -409,7 +408,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
     if (!type_match(expression->left->type_info, expression->right->type_info))
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression->left, expression->right, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), expression->left, expression->right, NULL, NULL,
             "Type mismatch in binary expression"
         );
         return;
@@ -424,7 +423,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
             expression->right->type_info->type != TypeInfoType::BOOLEAN)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression->left, expression->right, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expression->left, expression->right, NULL, NULL,
                 "Cannot use logical operators on non bool type"
             );
             return;
@@ -441,7 +440,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression->left, expression->right, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expression->left, expression->right, NULL, NULL,
                 "Cannot use arithmatic operator on non number"
             );
             return;
@@ -456,7 +455,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
         if (expression->left->type_info->type != TypeInfoType::NUMBER)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression->left, expression->right, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expression->left, expression->right, NULL, NULL,
                 "Cannot use comparison operator on non number"
             );
             return;
@@ -485,7 +484,8 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     if (size == -1)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL, "Problem parsing number literal"
+            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
+            "Problem parsing number literal"
         );
         return;
     }
@@ -494,7 +494,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     if (type != NumberType::FLOAT && number != (i64)number)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
             "Cannot use decimal point on non float types"
         );
         return;
@@ -509,7 +509,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         if (number < 0)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
                 "Unsigned number cannot be negative"
             );
             return;
@@ -541,7 +541,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         if (size == 8 || size == 16)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
                 "Cannot create float of this size can only use 32 and 64 sizes"
             );
             return;
@@ -573,7 +573,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
         if (expression->expression->type_info->type != TypeInfoType::POINTER)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
                 "Cannot dereference non-pointer value"
             );
             return;
@@ -588,7 +588,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
         if (expression->expression->type_info->type != TypeInfoType::BOOLEAN)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
                 "Cannot use unary operator ! on non-boolean type"
             );
             return;
@@ -613,7 +613,8 @@ void TypeChecker::type_check_call_expression(CallExpression *expression) {
     }
 
     ErrorReporter::report_type_checker_error(
-        compilation_unit->file_data->path.string(), callee_expression, NULL, NULL, NULL, "Can only call functions"
+        compilation_unit->file_data->absolute_path.string(), callee_expression, NULL, NULL, NULL,
+        "Can only call functions"
     );
 }
 
@@ -632,7 +633,7 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression) {
     if (fn_type_info->args.size() != arg_type_infos.size())
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), callee_expression, NULL, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), callee_expression, NULL, NULL, NULL,
             std::format(
                 "Incorrect number of arguments in call expression, expected {} got {}", fn_type_info->args.size(),
                 arg_type_infos.size()
@@ -646,8 +647,8 @@ void TypeChecker::type_check_fn_call_expression(CallExpression *expression) {
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i)))
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), callee_expression, expression->args.at(i), NULL, NULL,
-                "Mismatched types function call"
+                compilation_unit->file_data->absolute_path.string(), callee_expression, expression->args.at(i), NULL,
+                NULL, "Mismatched types function call"
             );
             return;
         }
@@ -662,7 +663,7 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     {
         std::string identifier = this->compilation_unit->get_token_string_from_index(expression->identifier);
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
             std::format("Unrecognized identifier \"{}\"", identifier)
         );
         return;
@@ -691,7 +692,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         else
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expression->lhs, NULL, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expression->lhs, NULL, NULL, NULL,
                 "Cannot derive member from non struct type"
             );
             return;
@@ -708,7 +709,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
     else
     {
         ErrorReporter::report_type_checker_error(
-            this->compilation_unit->file_data->path, expression->lhs, NULL, NULL, NULL,
+            this->compilation_unit->file_data->absolute_path, expression->lhs, NULL, NULL, NULL,
             "Cannot derive member from non struct type"
         );
         return;
@@ -744,7 +745,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
     if (member_type_info == NULL)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
             std::format("Cannot find member \"{}\" in struct", member_string)
         );
         return;
@@ -776,7 +777,7 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
     if (expression->expression->type != ExpressionType::EXPRESSION_STRUCT_INSTANCE)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, expression->expression, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), expression, expression->expression, NULL, NULL,
             "Cannot instantiate non-struct type"
         );
         return;
@@ -792,7 +793,7 @@ void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression
     if (type_info == NULL)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
             "Unrecognised type in new expression"
         );
         return;
@@ -802,7 +803,7 @@ void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression
     if (type_info->type != TypeInfoType::STRUCT)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
             "Can only use struct types in new expression"
         );
         return;
@@ -823,7 +824,7 @@ void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression
     if (struct_type_info->members.size() != calling_args_type_infos.size())
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), expression, NULL, NULL, NULL,
+            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
             std::format(
                 "Incorrect number of arguments in new expression, expected {} got {}", struct_type_info->members.size(),
                 calling_args_type_infos.size()
@@ -845,7 +846,7 @@ void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression
         {
             auto [name, expr] = expression->named_expressions.at(i);
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->path.string(), expr, NULL, NULL, NULL,
+                compilation_unit->file_data->absolute_path.string(), expr, NULL, NULL, NULL,
                 "Incorrect name specifier in new expression"
             );
             return;
@@ -885,7 +886,7 @@ void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression
     if (type_info == NULL)
     {
         ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->path.string(), NULL, NULL, type_expression, NULL,
+            compilation_unit->file_data->absolute_path.string(), NULL, NULL, type_expression, NULL,
             "Unrecognised type in type expression"
         );
         return;
@@ -971,4 +972,69 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
 
     panic("Cannot type check this type info");
     return false;
+}
+
+
+std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal) {
+
+#define BAD_PARSE                                                                                                      \
+    { 0, NumberType::UNSIGNED, -1 }
+
+    int literal_end = 0;
+    while (literal_end < literal.size() &&
+           (is_digit(literal.at(literal_end)) || literal.at(literal_end) == '-' || literal.at(literal_end) == '.'))
+    { literal_end++; }
+
+    // literal == 0..literal_end
+    // type == literal_end..literal_end +1
+    // postfix == literal_end + 1..string_end
+
+    auto literal_string = literal.substr(0, literal_end);
+
+    std::string type_string    = "";
+    std::string postfix_string = "";
+
+    // if there is a postfix notation
+    // else just infer a i64
+    if (literal_end != literal.size())
+    {
+        type_string    = literal.substr(literal_end, 1);
+        postfix_string = literal.substr(literal_end + 1, literal.size() - literal_end);
+    }
+    else
+    {
+        auto n = std::stod(literal_string);
+        return {n, NumberType::SIGNED, 64};
+    }
+
+    int size;
+
+    try
+    { size = std::stoi(postfix_string); }
+    catch (std::exception &e)
+    { return BAD_PARSE; }
+
+    NumberType type;
+
+    if (type_string == "u")
+    { type = NumberType::UNSIGNED; }
+    else if (type_string == "f")
+    { type = NumberType::FLOAT; }
+    else if (type_string == "i")
+    { type = NumberType::SIGNED; }
+    else
+    { return BAD_PARSE; }
+
+    if (size == 8 || size == 16 || size == 32 || size == 64)
+    {
+        try
+        {
+            auto n = std::stod(literal_string);
+            return {n, type, size};
+        }
+        catch (std::exception &e)
+        {}
+    }
+
+    return BAD_PARSE;
 }

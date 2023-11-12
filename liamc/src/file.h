@@ -6,9 +6,10 @@
 #include <vector>
 
 #include "liam.h"
+#include "utils.h"
 
 struct FileData {
-    std::filesystem::path path;
+    std::filesystem::path absolute_path;
     char *data;
     u64 data_length;
     u64 line_count;
@@ -16,8 +17,12 @@ struct FileData {
 
 struct FileManager {
     static FileManager *singleton;
-    std::map<std::filesystem::path, FileData> files;
+    std::vector<FileData> files;
 
-    static FileData *load(std::filesystem::path path);
-    static std::map<std::filesystem::path, FileData> *get_files();
+    static Option<FileData *> load_relative_from_cwd(std::string path);
+    static Option<FileData *> load_relative_to(std::string relative_to, std::string path);
+    static std::vector<FileData> *get_files();
+
+  private:
+    FileManager();
 };
