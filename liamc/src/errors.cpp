@@ -159,7 +159,7 @@ void write_error_annotation_at_span(std::string *file, Span span) {
     // ends at
 
     ASSERT(span.start <= span.end);
-    FileData *file_data = FileManager::load(*file);
+    FileData *file_data = FileManager::load_relative_from_cwd(*file).value();
 
     // the span can point to any part of a line, maybe even and single character
     // we move the start of the span the start of whatever line it is one

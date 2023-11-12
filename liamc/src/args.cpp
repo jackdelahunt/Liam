@@ -1,4 +1,6 @@
 #include "args.h"
+#include "cxxopts/cxxopts.h"
+#include <vector>
 
 Arguments *args = NULL;
 
@@ -11,15 +13,9 @@ std::string zen_text = R"(
     * Errors are not exceptional
     * Reduce developer pain as much as possible)";
 
-void Arguments::New(int argc, char **argv) {
+void Arguments::make(int argc, char **argv) {
     args         = new Arguments{};
     auto options = new cxxopts::Options("liamc", "Liam programming language compiler");
-
-    // required fields
-    options->add_options(
-    )("i,in", "[REQUIRED] Input compilation_unit path", cxxopts::value<std::string>()->default_value(""));
-    options->add_options(
-    )("s,stdlib", "[REQUIRED] Get the stdlib location", cxxopts::value<std::string>()->default_value(""));
 
     // optionals with defaults
     options->add_options(
@@ -29,6 +25,10 @@ void Arguments::New(int argc, char **argv) {
     options->add_options()("h,help", "See this help screen", cxxopts::value<bool>()->default_value("false"));
     options->add_options()("z,zen", "See the zen of Liam", cxxopts::value<bool>()->default_value("false"));
     options->add_options()("T,test", "Build binary to run tests", cxxopts::value<bool>()->default_value("false"));
+    options->add_options(
+    )("f,files", "Input files to compile", cxxopts::value<std::vector<std::string>>()->default_value({}));
+
+    options->parse_positional({"files"});
 
     args->result  = options->parse(argc, argv);
     args->options = options;
@@ -45,19 +45,10 @@ void Arguments::New(int argc, char **argv) {
         exit(0);
     }
 
-    // required
-    args->stdlib  = args->value<std::string>("stdlib");
-    args->in_path = args->value<std::string>("in");
-
     // optional
     args->out_path = args->value<std::string>("out");
     args->emit     = args->value<bool>("emit");
     args->time     = args->value<bool>("time");
     args->test     = args->value<bool>("test");
-
-    if (args->in_path.empty())
-    { panic("--in is a required flag use --help for more info"); }
-
-    if (args->stdlib.empty())
-    { panic("--stdlib is a required flag use --help for more info"); }
+    args->files    = args->value<std::vector<std::string>>("files");
 }

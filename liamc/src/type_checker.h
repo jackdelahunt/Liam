@@ -1,8 +1,10 @@
 #pragma once
 #include <list>
 #include <map>
+#include <unordered_map>
 
-#include "parser.h"
+#include "ast.h"
+#include "compilation_unit.h"
 
 struct Statement;
 struct LetStatement;
@@ -17,11 +19,6 @@ struct NumberLiteralExpression;
 struct StringLiteralExpression;
 struct Expression;
 struct CompilationUnit;
-
-struct TopLevelDescriptor {
-    std::string identifier;
-    TypeInfo *type_info;
-};
 
 typedef std::unordered_map<std::string, TypeInfo *> Scope;
 
@@ -85,3 +82,4 @@ struct TypeChecker {
 
 bool type_match(TypeInfo *a, TypeInfo *b);
 StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info);
+std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal);

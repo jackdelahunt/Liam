@@ -1,6 +1,5 @@
 #pragma once
 
-#include "lexer.h"
 #include "liam.h"
 #include <string.h>
 #include <string>
@@ -9,7 +8,6 @@
 extern const char *ws;
 
 bool is_digit(char c);
-std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal);
 void rtrim(std::string &s, const char *t = ws);
 void ltrim(std::string &s, const char *t = ws);
 void trim(std::string &s, const char *t = ws);
@@ -39,6 +37,7 @@ template <typename T> struct Option {
     }
 
     T value() {
+        ASSERT(this->valid);
         return this->t;
     }
 

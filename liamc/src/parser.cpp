@@ -80,7 +80,7 @@ Statement *Parser::eval_top_level_statement() {
         auto token      = consume_token_with_index();
         auto token_data = this->compilation_unit->get_token(token);
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), token_data->span,
+            this->compilation_unit->file_data->absolute_path.string(), token_data->span,
             std::format(
                 "Unexpected token used to declare new statement at top level '{}'",
                 this->compilation_unit->get_token_string_from_index(token)
@@ -116,7 +116,7 @@ ScopeStatement *Parser::eval_scope_statement() {
     if (!closing_brace_index.is_some())
     {
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), open_brace_token_data->span,
+            this->compilation_unit->file_data->absolute_path.string(), open_brace_token_data->span,
             "No closing brace for scope found"
         );
         return NULL;
@@ -431,7 +431,7 @@ Expression *Parser::eval_primary() {
         auto token_index = consume_token_with_index();
         auto token_data  = this->compilation_unit->get_token(token_index);
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), token_data->span,
+            this->compilation_unit->file_data->absolute_path.string(), token_data->span,
             std::format(
                 "Unexpected token '{}' when parsing expression",
                 get_token_type_string(this->compilation_unit->get_token(token_index)->token_type)
@@ -568,7 +568,7 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
     {
         Token *last_token_data = this->compilation_unit->get_token(this->compilation_unit->token_buffer.size() - 1);
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), last_token_data->span,
+            this->compilation_unit->file_data->absolute_path.string(), last_token_data->span,
             std::format(
                 "Expected '{}' but got unexpected end of file", get_token_type_string(last_token_data->token_type)
             )
@@ -581,7 +581,7 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
     if (token->token_type != type)
     {
         ErrorReporter::report_parser_error(
-            this->compilation_unit->file_data->path.string(), token->span,
+            this->compilation_unit->file_data->absolute_path.string(), token->span,
             std::format("Expected '{}' got '{}'", get_token_type_string(type), get_token_type_string(token->token_type))
         );
         return 0;

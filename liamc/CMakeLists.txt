@@ -16,6 +16,7 @@ add_executable(liamc
         src/liam.cpp
         src/file.cpp
         src/type_checker.cpp
+        src/compilation_unit.cpp
 )
 
 target_include_directories(liamc PUBLIC vendor)
