@@ -30,8 +30,8 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
     for (u64 i = 0; i < singleton->files.size(); i++)
     {
 
-        if (singleton->files[i].absolute_path == absolute_path)
-        { return Option(&singleton->files[i]); }
+        if (singleton->files[i]->absolute_path == absolute_path)
+        { return Option(singleton->files[i]); }
     }
 
     u64 file_size_in_bytes = 0;
@@ -74,12 +74,12 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
 
     file.close();
 
-    FileManager::singleton->files.push_back(FileData{
+    FileManager::singleton->files.push_back(new FileData{
         .absolute_path = absolute_path, .data = data, .data_length = file_size_in_bytes, .line_count = line_count});
-    return Option(&singleton->files.back());
+    return Option(singleton->files.back());
 }
 
-std::vector<FileData> *FileManager::get_files() {
+std::vector<FileData *> *FileManager::get_files() {
     if (FileManager::singleton == NULL)
     { singleton = new FileManager(); }
 
@@ -87,5 +87,5 @@ std::vector<FileData> *FileManager::get_files() {
 }
 
 FileManager::FileManager() {
-    this->files = std::vector<FileData>();
+    this->files = std::vector<FileData *>();
 }

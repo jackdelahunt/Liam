@@ -40,7 +40,7 @@ struct TypeChecker {
 
     void print_fn_scope();
 
-    void type_check(CompilationUnit *file);
+    void type_check(CompilationBundle *bundle);
 
     void type_check_fn_symbol(FnStatement *statement);
     void type_check_struct_symbol(StructStatement *statement);

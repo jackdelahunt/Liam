@@ -52,8 +52,8 @@ i32 main(i32 argc, char **argv) {
     if (args->time)
     {
         u64 total_line_count = 0;
-        for (auto& file_data : *FileManager::get_files())
-        { total_line_count += file_data.line_count; }
+        for (auto &file_data : *FileManager::get_files())
+        { total_line_count += file_data->line_count; }
 
         u64 total_time_in_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
                                              std::chrono::high_resolution_clock::now() - total_time
@@ -97,9 +97,8 @@ CompilationBundle lex_parse() {
 }
 
 void type_check(CompilationBundle *bundle) {
-
-    for (CompilationUnit *compilation_unit : bundle->compilation_units)
-    { TypeChecker().type_check(compilation_unit); }
+    TypeChecker type_checker = TypeChecker();
+    type_checker.type_check(bundle);
 
     if (ErrorReporter::has_type_check_errors())
     {

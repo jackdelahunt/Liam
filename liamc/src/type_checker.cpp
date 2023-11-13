@@ -5,6 +5,7 @@
 #include <tuple>
 
 #include "args.h"
+#include "compilation_unit.h"
 #include "errors.h"
 #include "liam.h"
 #include "utils.h"
@@ -32,7 +33,7 @@ TypeChecker::TypeChecker() {
 }
 
 void TypeChecker::new_scope() {
-    this->scopes.emplace_back();
+    this->scopes.push_back(Scope());
 }
 
 void TypeChecker::delete_scope() {
@@ -79,30 +80,43 @@ void TypeChecker::print_fn_scope() {
     std::cout << std::endl;
 }
 
-void TypeChecker::type_check(CompilationUnit *file) {
-    this->compilation_unit = file;
-
+void TypeChecker::type_check(CompilationBundle *bundle) {
     this->new_scope();
-    this->global_fn_scope =
-        &this->scopes.front(); // the top most scope is the function scope, all other scopes can see it
+    // the top most scope is the function scope, all other scopes can see it
+    this->global_fn_scope = &this->scopes.front();
 
-    // add symbols for structs and fns
-    for (auto stmt : this->compilation_unit->top_level_struct_statements)
-    { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        this->compilation_unit = cu;
+        
+        // add symbols for structs and fns
+        for (auto stmt : this->compilation_unit->top_level_struct_statements)
+        { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
 
-    for (auto stmt : this->compilation_unit->top_level_fn_statements)
-    { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
+        for (auto stmt : this->compilation_unit->top_level_fn_statements)
+        { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
+    }
 
-    // type the body of the structs and the declarations of the fns
-    for (auto stmt : this->compilation_unit->top_level_struct_statements)
-    { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        this->compilation_unit = cu;
 
-    for (auto stmt : this->compilation_unit->top_level_fn_statements)
-    { TRY_CALL_VOID(type_check_fn_decl(stmt)); }
+        // type the body of the structs and the declarations of the fns
+        for (auto stmt : this->compilation_unit->top_level_struct_statements)
+        { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
 
-    // finally do the function body pass
-    for (auto stmt : this->compilation_unit->top_level_fn_statements)
-    { TRY_CALL_VOID(type_check_fn_statement_full(stmt)); }
+        for (auto stmt : this->compilation_unit->top_level_fn_statements)
+        { TRY_CALL_VOID(type_check_fn_decl(stmt)); }
+    }
+
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        this->compilation_unit = cu;
+
+        // finally do the function body pass
+        for (auto stmt : this->compilation_unit->top_level_fn_statements)
+        { TRY_CALL_VOID(type_check_fn_statement_full(stmt)); }
+    }
 }
 
 StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
@@ -973,7 +987,6 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     panic("Cannot type check this type info");
     return false;
 }
-
 
 std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal) {
 
