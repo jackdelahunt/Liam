@@ -5,31 +5,16 @@
 #include <tuple>
 
 #include "args.h"
+#include "ast.h"
 #include "compilation_unit.h"
 #include "errors.h"
 #include "liam.h"
 #include "utils.h"
 
 TypeChecker::TypeChecker() {
-    compilation_unit = NULL;
-
-    this->global_type_scope = Scope();
-    this->global_fn_scope   = NULL; // set when type checking starts [:
-    this->scopes            = std::list<Scope>();
-
-    this->global_type_scope["void"] = new VoidTypeInfo();
-    this->global_type_scope["bool"] = new BoolTypeInfo();
-    this->global_type_scope["str"]  = new StrTypeInfo();
-    this->global_type_scope["u8"]   = new NumberTypeInfo(8, NumberType::UNSIGNED);
-    this->global_type_scope["i8"]   = new NumberTypeInfo(8, NumberType::SIGNED);
-    this->global_type_scope["u16"]  = new NumberTypeInfo(16, NumberType::UNSIGNED);
-    this->global_type_scope["i16"]  = new NumberTypeInfo(16, NumberType::SIGNED);
-    this->global_type_scope["u32"]  = new NumberTypeInfo(32, NumberType::UNSIGNED);
-    this->global_type_scope["i32"]  = new NumberTypeInfo(32, NumberType::SIGNED);
-    this->global_type_scope["f32"]  = new NumberTypeInfo(32, NumberType::FLOAT);
-    this->global_type_scope["u64"]  = new NumberTypeInfo(64, NumberType::UNSIGNED);
-    this->global_type_scope["i64"]  = new NumberTypeInfo(64, NumberType::SIGNED);
-    this->global_type_scope["f64"]  = new NumberTypeInfo(64, NumberType::FLOAT);
+    this->compilation_unit   = NULL;
+    this->compilation_bundle = NULL;
+    this->scopes             = std::list<Scope>();
 }
 
 void TypeChecker::new_scope() {
@@ -39,18 +24,6 @@ void TypeChecker::new_scope() {
 void TypeChecker::delete_scope() {
     ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
     this->scopes.pop_back();
-}
-
-void TypeChecker::add_type_to_scope(TokenIndex token_index, TypeInfo *type_info) {
-    // TODO error checking at some point
-    std::string identifier              = this->compilation_unit->get_token_string_from_index(token_index);
-    this->global_type_scope[identifier] = type_info;
-}
-
-TypeInfo *TypeChecker::get_type_from_scope(TokenIndex token_index) {
-    // TODO error checking at some point
-    std::string identifier = this->compilation_unit->get_token_string_from_index(token_index);
-    return this->global_type_scope[identifier];
 }
 
 void TypeChecker::add_to_scope(TokenIndex token_index, TypeInfo *type_info) {
@@ -63,32 +36,33 @@ TypeInfo *TypeChecker::get_from_scope(TokenIndex token_index) {
     ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
     std::string identifier = this->compilation_unit->get_token_string_from_index(token_index);
 
+    // look into all of the local scopes going up
+    // the chain
     for (auto iter = this->scopes.rbegin(); iter != this->scopes.rend(); iter++)
     {
         if (iter->count(identifier) > 0)
         { return (*iter)[identifier]; }
     }
 
-    return NULL;
-}
-
-void TypeChecker::print_fn_scope() {
-    std::cout << "Total scope count " << this->scopes.size() << "\n";
-    std::cout << "Total Fn count " << this->global_fn_scope->size() << "\n";
-    for (auto [identifier, type_info] : *this->global_fn_scope)
-    { std::cout << identifier << "\n"; }
-    std::cout << std::endl;
+    // if there is nothing then check the fn scope
+    return this->compilation_unit->get_fn_from_scope(token_index);
 }
 
 void TypeChecker::type_check(CompilationBundle *bundle) {
-    this->new_scope();
-    // the top most scope is the function scope, all other scopes can see it
-    this->global_fn_scope = &this->scopes.front();
+    this->compilation_bundle = bundle;
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        this->compilation_unit = cu;
+
+        // add symbols for structs and fns
+        for (auto stmt : this->compilation_unit->top_level_import_statements)
+        { TRY_CALL_VOID(type_check_import_statement(stmt)); }
+    }
 
     for (CompilationUnit *cu : bundle->compilation_units)
     {
         this->compilation_unit = cu;
-        
+
         // add symbols for structs and fns
         for (auto stmt : this->compilation_unit->top_level_struct_statements)
         { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
@@ -133,8 +107,16 @@ StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
     return parent_type_info;
 }
 
+void TypeChecker::type_check_import_statement(ImportStatement *import_statement) {
+    u64 compilation_unit_index = 1;
+
+    this->compilation_unit->add_namespace_to_scope(
+        import_statement->identifier, new NamespaceTypeInfo(compilation_unit_index)
+    );
+}
+
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
-    this->add_to_scope(statement->identifier, new FnTypeInfo(NULL, NULL, {}));
+    this->compilation_unit->add_fn_to_scope(statement->identifier, new FnTypeInfo(NULL, NULL, {}));
 }
 
 void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
@@ -142,7 +124,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     // will be resolved. As structs after this one might be referenced
     // add it to the table and leave its type info blank until we type check it
 
-    this->add_type_to_scope(statement->identifier, new StructTypeInfo({}, {}));
+    this->compilation_unit->add_type_to_scope(statement->identifier, new StructTypeInfo({}, {}));
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
@@ -158,7 +140,7 @@ void TypeChecker::type_check_fn_decl(FnStatement *statement) {
     std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
 
     // the current scope is always the fn scope
-    auto current_type_info = (FnTypeInfo *)this->get_from_scope(statement->identifier);
+    auto current_type_info = (FnTypeInfo *)this->compilation_unit->get_fn_from_scope(statement->identifier);
     ASSERT(current_type_info);
     current_type_info->return_type = statement->return_type->type_info;
     current_type_info->args        = param_type_infos;
@@ -170,7 +152,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     // 2. looking into the member functions of a type (member function)
     FnTypeInfo *fn_type_info = NULL;
 
-    fn_type_info = (FnTypeInfo *)this->get_from_scope(statement->identifier);
+    fn_type_info = (FnTypeInfo *)this->compilation_unit->get_fn_from_scope(statement->identifier);
     ASSERT(fn_type_info);
 
     // params and get type expressions
@@ -235,7 +217,8 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
         members_type_info[i]      = {member_string, expr->type_info};
     }
 
-    StructTypeInfo *struct_type_info = (StructTypeInfo *)this->get_type_from_scope(statement->identifier);
+    StructTypeInfo *struct_type_info =
+        (StructTypeInfo *)this->compilation_unit->get_type_from_scope(statement->identifier);
     ASSERT(struct_type_info != NULL);
     struct_type_info->members = members_type_info;
 }
@@ -320,7 +303,7 @@ void TypeChecker::type_check_for_statement(ForStatement *statement) {
 void TypeChecker::type_check_if_statement(IfStatement *statement) {
     TRY_CALL_VOID(type_check_expression(statement->expression));
 
-    if (!type_match(statement->expression->type_info, this->global_type_scope["bool"]))
+    if (!type_match(statement->expression->type_info, this->compilation_unit->global_type_scope["bool"]))
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->absolute_path.string(), statement->expression, NULL, NULL, NULL,
@@ -443,7 +426,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
             return;
         }
 
-        info = this->global_type_scope["bool"];
+        info = this->compilation_unit->global_type_scope["bool"];
     }
 
     // math ops - numbers -> numbers
@@ -474,12 +457,12 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
             );
             return;
         }
-        info = this->global_type_scope["bool"];
+        info = this->compilation_unit->global_type_scope["bool"];
     }
 
     // compare - any -> bool
     if (expression->op == TokenType::TOKEN_EQUAL || expression->op == TokenType::TOKEN_NOT_EQUAL)
-    { info = this->global_type_scope["bool"]; }
+    { info = this->compilation_unit->global_type_scope["bool"]; }
 
     assert(info != NULL);
 
@@ -487,7 +470,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
 }
 
 void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *expression) {
-    expression->type_info = this->global_type_scope["str"];
+    expression->type_info = this->compilation_unit->global_type_scope["str"];
 }
 
 void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *expression) {
@@ -530,25 +513,25 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         }
 
         if (size == 8)
-        { expression->type_info = this->global_type_scope["u8"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["u8"]; }
         else if (size == 16)
-        { expression->type_info = this->global_type_scope["u16"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["u16"]; }
         else if (size == 32)
-        { expression->type_info = this->global_type_scope["u32"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["u32"]; }
         else if (size == 64)
-        { expression->type_info = this->global_type_scope["u64"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["u64"]; }
     }
     break;
     case NumberType::SIGNED: {
 
         if (size == 8)
-        { expression->type_info = this->global_type_scope["i8"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["i8"]; }
         else if (size == 16)
-        { expression->type_info = this->global_type_scope["i16"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["i16"]; }
         else if (size == 32)
-        { expression->type_info = this->global_type_scope["i32"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["i32"]; }
         else if (size == 64)
-        { expression->type_info = this->global_type_scope["i64"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["i64"]; }
     }
     break;
     case NumberType::FLOAT: {
@@ -561,9 +544,9 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
             return;
         }
         else if (size == 32)
-        { expression->type_info = this->global_type_scope["f32"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["f32"]; }
         else if (size == 64)
-        { expression->type_info = this->global_type_scope["f64"]; }
+        { expression->type_info = this->compilation_unit->global_type_scope["f64"]; }
     }
     break;
     }
@@ -803,16 +786,9 @@ void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expre
 }
 
 void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression *expression) {
-    TypeInfo *type_info = this->get_type_from_scope(expression->identifier);
-    if (type_info == NULL)
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
-            "Unrecognised type in new expression"
-        );
-        return;
-    }
+    TRY_CALL_VOID(type_check_type_expression(expression->type_expression));
 
+    TypeInfo *type_info = expression->type_expression->type_info;
     // check it's a struct
     if (type_info->type != TypeInfoType::STRUCT)
     {
@@ -879,6 +855,9 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression) {
     case TypeExpressionType::TYPE_UNARY:
         type_check_unary_type_expression(static_cast<UnaryTypeExpression *>(type_expression));
         break;
+    case TypeExpressionType::TYPE_GET:
+        type_check_get_type_expression(static_cast<GetTypeExpression *>(type_expression));
+        break;
     default:
         panic("Not implemented for type checker");
     }
@@ -896,16 +875,42 @@ void TypeChecker::type_check_unary_type_expression(UnaryTypeExpression *type_exp
 }
 
 void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression *type_expression) {
-    TypeInfo *type_info = this->get_type_from_scope(type_expression->identifier);
+    // first checking the type table then checking any namespaces
+    TypeInfo *type_info = this->compilation_unit->get_type_from_scope(type_expression->identifier);
+    if (type_info == NULL)
+    { type_info = this->compilation_unit->get_namespace_from_scope(type_expression->identifier); }
+
     if (type_info == NULL)
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->absolute_path.string(), NULL, NULL, type_expression, NULL,
-            "Unrecognised type in type expression"
+            "Unrecognised identifier in type expression, no type or namespace exists with this name"
         );
         return;
     }
 
+    type_expression->type_info = type_info;
+}
+
+void TypeChecker::type_check_get_type_expression(GetTypeExpression *type_expression) {
+    TRY_CALL_VOID(type_check_type_expression(type_expression->type_expression));
+    if (type_expression->type_expression->type_info->type != TypeInfoType::NAMESPACE)
+    {
+        ErrorReporter::report_type_checker_error(
+            compilation_unit->file_data->absolute_path.string(), NULL, NULL, type_expression->type_expression, NULL,
+            "Can only use '.' on namespace identifiers in type expressions"
+        );
+        return;
+    }
+
+    NamespaceTypeInfo *namespace_type_info = (NamespaceTypeInfo *)type_expression->type_expression->type_info;
+    CompilationUnit *compilation_unit =
+        this->compilation_bundle->compilation_units[namespace_type_info->compilation_unit_index];
+
+    // getting the string of the identifier from the current compilation unit
+    // but then looking that up in the other compilation unit
+    std::string identifier     = this->compilation_unit->get_token_string_from_index(type_expression->identifier);
+    TypeInfo *type_info        = compilation_unit->get_type_from_scope_with_string(identifier);
     type_expression->type_info = type_info;
 }
 

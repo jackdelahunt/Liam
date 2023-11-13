@@ -6,8 +6,10 @@
 #include <utility>
 
 #include "args.h"
+#include "ast.h"
 #include "errors.h"
 #include "liam.h"
+#include "token.h"
 
 Parser::Parser(CompilationUnit *compilation_unit) {
     this->compilation_unit = compilation_unit;
@@ -31,6 +33,11 @@ void Parser::parse() {
         {
             auto struct_stmt = static_cast<StructStatement *>(stmt);
             compilation_unit->top_level_struct_statements.push_back(struct_stmt);
+        }
+        else if (stmt->statement_type == StatementType::STATEMENT_IMPORT)
+        {
+            auto import_stmt = static_cast<ImportStatement *>(stmt);
+            compilation_unit->top_level_import_statements.push_back(import_stmt);
         }
         else
         { UNREACHABLE(); }
@@ -75,7 +82,9 @@ Statement *Parser::eval_top_level_statement() {
     case TokenType::TOKEN_STRUCT:
         return eval_struct_statement();
         break;
-
+    case TokenType::TOKEN_IMPORT:
+        return eval_import_statement();
+        break;
     default: {
         auto token      = consume_token_with_index();
         auto token_data = this->compilation_unit->get_token(token);
@@ -237,6 +246,14 @@ ContinueStatement *Parser::eval_continue_statement() {
     return new ContinueStatement();
 }
 
+ImportStatement *Parser::eval_import_statement() {
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IMPORT), NULL);
+    TokenIndex string_literal = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRING_LITERAL), NULL);
+    TokenIndex identifier     = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
+    return new ImportStatement(identifier, string_literal);
+}
+
 Statement *Parser::eval_line_starting_expression() {
     auto lhs = TRY_CALL_RET(eval_expression(), NULL);
 
@@ -368,7 +385,7 @@ Expression *Parser::eval_postfix() {
 
     while (true)
     {
-        if (match(TokenType::TOKEN_PAREN_OPEN) || match(TokenType::TOKEN_COLON))
+        if (match(TokenType::TOKEN_PAREN_OPEN))
         {
             TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
             auto call_args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
@@ -412,7 +429,7 @@ Expression *Parser::eval_primary() {
     }
     break;
     case TokenType::TOKEN_NEW: {
-        return TRY_CALL_RET(eval_instantiate_expression(), NULL);
+        return TRY_CALL_RET(eval_struct_instance_expression(), NULL);
     }
     break;
     case TokenType::TOKEN_PAREN_OPEN: {
@@ -450,22 +467,15 @@ Expression *Parser::eval_string_literal() {
     return new StringLiteralExpression(token_index, token->span);
 }
 
-Expression *Parser::eval_instantiate_expression() {
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_NEW), NULL);
-    Expression *expression = TRY_CALL_RET(eval_struct_instance_expression(), NULL);
-    return new InstantiateExpression(expression);
-}
-
 Expression *Parser::eval_struct_instance_expression() {
-    TokenIndex identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_NEW), NULL);
+    TypeExpression *type_expression = TRY_CALL_RET(eval_type_expression(), NULL);
 
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
     auto named_expressions = TRY_CALL_RET(consume_comma_seperated_named_arguments(TokenType::TOKEN_BRACE_CLOSE), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
 
-    Token *token = this->compilation_unit->get_token(identifier);
-
-    return new StructInstanceExpression(identifier, named_expressions, token->span);
+    return new StructInstanceExpression(type_expression, named_expressions);
 }
 
 Expression *Parser::eval_group_expression() {
@@ -495,29 +505,32 @@ TypeExpression *Parser::eval_type_unary() {
         return new UnaryTypeExpression(UnaryType::POINTER, type_expression);
     }
 
-    return eval_type_primary();
+    return eval_type_postfix();
+}
+
+TypeExpression *Parser::eval_type_postfix() {
+    auto expr = TRY_CALL_RET(eval_type_primary(), NULL);
+
+    while (true)
+    {
+        if (match(TokenType::TOKEN_DOT))
+        {
+            consume_token_with_index();
+            auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
+            expr            = new GetTypeExpression(expr, identifier);
+        }
+        else
+        { break; }
+    }
+
+    return expr;
 }
 
 TypeExpression *Parser::eval_type_primary() {
-
     Token *token = peek();
-
-    if (token->token_type == TokenType::TOKEN_FN)
-    { return TRY_CALL_RET(eval_type_fn(), NULL); }
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
     return new IdentifierTypeExpression(identifier, token->span);
-}
-
-TypeExpression *Parser::eval_type_fn() {
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FN), NULL);
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
-    auto params = TRY_CALL_RET(consume_comma_seperated_types(TokenType::TOKEN_PAREN_CLOSE), NULL);
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
-
-    auto return_type = TRY_CALL_RET(eval_type_expression(), NULL);
-
-    return new FnTypeExpression(params, return_type);
 }
 
 Option<u64> Parser::find_balance_point(TokenType push, TokenType pull, u64 from) {

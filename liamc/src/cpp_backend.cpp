@@ -5,6 +5,7 @@
 #include <string>
 
 #include "args.h"
+#include "ast.h"
 
 std::string CppBackend::emit(CompilationUnit *file) {
 
@@ -460,7 +461,7 @@ std::string CppBackend::emit_instantiate_expression(InstantiateExpression *expre
 std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression *expression) {
     std::string source;
 
-    std::string identifier_string = this->compilation_unit->get_token_string_from_index(expression->identifier);
+    std::string identifier_string = emit_type_expression(expression->type_expression);
     source.append(identifier_string);
 
     source.append("{");
@@ -486,9 +487,8 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
     case TypeExpressionType::TYPE_UNARY:
         return emit_unary_type_expression(static_cast<UnaryTypeExpression *>(type_expression));
         break;
-    case TypeExpressionType::TYPE_FN:
-        return emit_fn_type_expression(static_cast<FnTypeExpression *>(type_expression));
-        break;
+    case TypeExpressionType::TYPE_GET:
+        return emit_get_type_expression(static_cast<GetTypeExpression *>(type_expression));
     default:
         panic("Cpp back end does not support this type expression");
         return "";
@@ -504,23 +504,12 @@ std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_exp
     return "";
 }
 
-std::string CppBackend::emit_fn_type_expression(FnTypeExpression *type_expression) {
-    std::string source = "std::function<" + emit_type_expression(type_expression->return_type) + "(";
-
-    u64 index = 0;
-    for (auto type : type_expression->params)
-    {
-        source.append(emit_type_expression(type));
-        if (index + 1 < type_expression->params.size())
-        { source.append(", "); }
-        index++;
-    }
-    source.append(")>");
-    return source;
-}
-
 std::string CppBackend::emit_identifier_type_expression(IdentifierTypeExpression *type_expression) {
     return this->compilation_unit->get_token_string_from_index(type_expression->identifier);
+}
+
+std::string CppBackend::emit_get_type_expression(GetTypeExpression *type_expression) {
+    return "THIS IS A GET TYPE EXPRESSION.";
 }
 
 std::string strip_semi_colon(std::string str) {

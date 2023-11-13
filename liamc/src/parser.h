@@ -23,6 +23,7 @@ struct ForStatement;
 struct IfStatement;
 struct ElseStatement;
 struct ContinueStatement;
+struct ImportStatement;
 struct Expression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
@@ -50,6 +51,7 @@ struct Parser {
     ElseStatement *eval_else_statement();
     ExpressionStatement *eval_expression_statement();
     ContinueStatement *eval_continue_statement();
+    ImportStatement *eval_import_statement();
     Statement *eval_line_starting_expression();
 
     /* normal expressions */
@@ -71,6 +73,7 @@ struct Parser {
     /* return_type expressions */
     TypeExpression *eval_type_expression();
     TypeExpression *eval_type_unary();
+    TypeExpression *eval_type_postfix();
     TypeExpression *eval_type_primary();
     TypeExpression *eval_type_fn();
 

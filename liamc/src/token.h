@@ -49,8 +49,8 @@ enum class TokenType {
     TOKEN_CONTINUE,           // continue
     TOKEN_ZERO,               // zero
     TOKEN_AMPERSAND,          // &
-    TOKEN_TAG,                // @identifier
-    TOKEN_MATCH               // match
+    TOKEN_MATCH,              // match
+    TOKEN_IMPORT              // import
 };
 
 struct Span {
