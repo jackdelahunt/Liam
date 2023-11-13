@@ -45,8 +45,8 @@ struct CppBackend {
 
     std::string emit_type_expression(TypeExpression *type_expression);
     std::string emit_unary_type_expression(UnaryTypeExpression *type_expression);
-    std::string emit_fn_type_expression(FnTypeExpression *type_expression);
     std::string emit_identifier_type_expression(IdentifierTypeExpression *type_expression);
+    std::string emit_get_type_expression(GetTypeExpression *type_expression);
 };
 
 std::string strip_semi_colon(std::string str);

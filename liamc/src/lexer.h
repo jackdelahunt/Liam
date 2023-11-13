@@ -12,6 +12,7 @@
 struct FileData;
 
 bool is_delim(char c);
+
 struct Lexer {
     FileData *file_data;
     u64 current_index;

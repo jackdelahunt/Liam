@@ -162,12 +162,6 @@ CompilationUnit *Lexer::lex() {
 
             ASSERT(word.length() > 0);
 
-            if (word.data()[0] == '@')
-            {
-                this->token_buffer.emplace_back(TokenType::TOKEN_TAG, word_start, (word_start - 1) + word.length());
-                continue;
-            }
-
             // check keywords
             if (compare_string(word, "let"))
             {
@@ -270,6 +264,12 @@ CompilationUnit *Lexer::lex() {
             if (compare_string(word, "match"))
             {
                 this->token_buffer.emplace_back(TokenType::TOKEN_MATCH, word_start, (word_start - 1) + word.length());
+                continue;
+            }
+
+            if (compare_string(word, "import"))
+            {
+                this->token_buffer.emplace_back(TokenType::TOKEN_IMPORT, word_start, (word_start - 1) + word.length());
                 continue;
             }
 

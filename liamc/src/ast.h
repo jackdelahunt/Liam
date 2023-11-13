@@ -35,7 +35,6 @@ struct StructInstanceExpression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
 struct UnaryTypeExpression;
-struct FnTypeExpression;
 
 struct CompilationUnit;
 
@@ -49,6 +48,7 @@ struct TypeTypeInfo;
 struct StructTypeInfo;
 struct StructInstanceTypeInfo;
 struct FnTypeInfo;
+struct NamespaceTypeInfo;
 
 typedef std::vector<std::tuple<TokenIndex, TypeExpression *>> CSV;
 
@@ -65,6 +65,7 @@ enum class StatementType {
     STATEMENT_IF,
     STATEMENT_ELSE,
     STATEMENT_CONTINUE,
+    STATEMENT_IMPORT
 };
 
 enum class ExpressionType {
@@ -91,7 +92,7 @@ enum class UnaryType {
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_UNARY,
-    TYPE_FN,
+    TYPE_GET
 };
 
 enum class TypeInfoType {
@@ -104,6 +105,7 @@ enum class TypeInfoType {
     STRUCT,
     STRUCT_INSTANCE,
     POINTER,
+    NAMESPACE
 };
 
 enum class NumberType {
@@ -169,6 +171,12 @@ struct FnTypeInfo : TypeInfo {
     std::vector<TypeInfo *> args;
 
     FnTypeInfo(StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args);
+};
+
+struct NamespaceTypeInfo : TypeInfo {
+    u64 compilation_unit_index;
+
+    NamespaceTypeInfo(u64 compilation_unit_index);
 };
 
 /*
@@ -257,6 +265,13 @@ struct BreakStatement : Statement {
 
 struct ContinueStatement : Statement {
     ContinueStatement();
+};
+
+struct ImportStatement : Statement {
+    TokenIndex identifier;
+    TokenIndex string_literal;
+
+    ImportStatement(TokenIndex identifier, TokenIndex string_literal);
 };
 
 /*
@@ -350,11 +365,11 @@ struct InstantiateExpression : Expression {
 };
 
 struct StructInstanceExpression : Expression {
-    TokenIndex identifier;
+    TypeExpression *type_expression;
     std::vector<std::tuple<TokenIndex, Expression *>> named_expressions;
 
     StructInstanceExpression(
-        TokenIndex identifier, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions, Span span
+        TypeExpression *type_expression, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions
     );
 };
 
@@ -381,9 +396,9 @@ struct UnaryTypeExpression : TypeExpression {
     UnaryTypeExpression(UnaryType unary_type, TypeExpression *type_expression);
 };
 
-struct FnTypeExpression : TypeExpression {
-    std::vector<TypeExpression *> params;
-    TypeExpression *return_type;
+struct GetTypeExpression : TypeExpression {
+    TypeExpression *type_expression;
+    TokenIndex identifier;
 
-    FnTypeExpression(std::vector<TypeExpression *> params, TypeExpression *return_type);
+    GetTypeExpression(TypeExpression *type_expression, TokenIndex identifier);
 };

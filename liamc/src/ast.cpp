@@ -49,6 +49,11 @@ FnTypeInfo::FnTypeInfo(StructTypeInfo *parentType, TypeInfo *returnType, std::ve
     this->type        = TypeInfoType::FN;
 }
 
+NamespaceTypeInfo::NamespaceTypeInfo(u64 compilation_unit_index) {
+    this->compilation_unit_index = compilation_unit_index;
+    this->type                   = TypeInfoType::NAMESPACE;
+}
+
 ExpressionStatement::ExpressionStatement(Expression *expression) {
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_EXPRESSION;
@@ -118,6 +123,12 @@ BreakStatement::BreakStatement() {
 
 ContinueStatement::ContinueStatement() {
     this->statement_type = StatementType::STATEMENT_CONTINUE;
+}
+
+ImportStatement::ImportStatement(TokenIndex identifier, TokenIndex string_literal) {
+    this->statement_type = StatementType::STATEMENT_IMPORT;
+    this->identifier     = identifier;
+    this->string_literal = string_literal;
 }
 
 std::ostream &Expression::format(std::ostream &os) const {
@@ -202,12 +213,12 @@ InstantiateExpression::InstantiateExpression(Expression *expression) {
 }
 
 StructInstanceExpression::StructInstanceExpression(
-    TokenIndex identifier, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions, Span span
+    TypeExpression *type_expression, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions
 ) {
     this->type              = ExpressionType::EXPRESSION_STRUCT_INSTANCE;
-    this->identifier        = identifier;
+    this->type_expression   = type_expression;
     this->named_expressions = named_expressions;
-    this->span              = span;
+    this->span              = type_expression->span;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {
@@ -232,9 +243,9 @@ UnaryTypeExpression::UnaryTypeExpression(UnaryType unary_type, TypeExpression *t
     this->span            = type_expression->span;
 }
 
-FnTypeExpression::FnTypeExpression(std::vector<TypeExpression *> params, TypeExpression *return_type) {
-    this->params      = std::move(params);
-    this->return_type = return_type;
-    this->span        = return_type->span; // FIXME: this should be a better span, return type is just used for now
-    this->type        = TypeExpressionType::TYPE_FN;
+GetTypeExpression::GetTypeExpression(TypeExpression *type_expression, TokenIndex identifier) {
+    this->type_expression = type_expression;
+    this->identifier      = identifier;
+    this->type            = TypeExpressionType::TYPE_GET;
+    this->span            = type_expression->span;
 }

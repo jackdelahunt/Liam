@@ -21,11 +21,10 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
     { singleton = new FileManager(); }
 
     std::filesystem::path relative_slash_path = std::filesystem::path(relative_to) / path;
-    std::filesystem::path absolute_path = std::filesystem::weakly_canonical(relative_slash_path);
+    std::filesystem::path absolute_path       = std::filesystem::weakly_canonical(relative_slash_path);
 
-    if(!std::filesystem::exists(absolute_path)) {
-        return Option<FileData *>();
-    }
+    if (!std::filesystem::exists(absolute_path))
+    { return Option<FileData *>(); }
 
     for (u64 i = 0; i < singleton->files.size(); i++)
     {

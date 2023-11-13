@@ -20,28 +20,21 @@ struct StringLiteralExpression;
 struct Expression;
 struct CompilationUnit;
 
-typedef std::unordered_map<std::string, TypeInfo *> Scope;
-
 struct TypeChecker {
     CompilationUnit *compilation_unit;
-
-    Scope global_type_scope;
-    Scope *global_fn_scope; // pointer as it is the bottom scope in the scope list
+    CompilationBundle *compilation_bundle;
     std::list<Scope> scopes;
 
     TypeChecker();
 
     void new_scope();
     void delete_scope();
-    void add_type_to_scope(TokenIndex token_index, TypeInfo *type_info);
-    TypeInfo *get_type_from_scope(TokenIndex token_index);
     void add_to_scope(TokenIndex token_index, TypeInfo *type_info);
     TypeInfo *get_from_scope(TokenIndex token_index);
 
-    void print_fn_scope();
-
     void type_check(CompilationBundle *bundle);
 
+    void type_check_import_statement(ImportStatement *import_statement);
     void type_check_fn_symbol(FnStatement *statement);
     void type_check_struct_symbol(StructStatement *statement);
     void type_check_fn_decl(FnStatement *statement);
@@ -78,6 +71,7 @@ struct TypeChecker {
     void type_check_type_expression(TypeExpression *type_expression);
     void type_check_unary_type_expression(UnaryTypeExpression *type_expression);
     void type_check_identifier_type_expression(IdentifierTypeExpression *type_expression);
+    void type_check_get_type_expression(GetTypeExpression *type_expression);
 };
 
 bool type_match(TypeInfo *a, TypeInfo *b);
