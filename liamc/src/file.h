@@ -17,11 +17,13 @@ struct FileData {
 
 struct FileManager {
     static FileManager *singleton;
-    std::vector<FileData> files;
+    // heap allocated because then we can append to this
+    // list without worry of the ponters being invalidated
+    std::vector<FileData *> files;
 
     static Option<FileData *> load_relative_from_cwd(std::string path);
     static Option<FileData *> load_relative_to(std::string relative_to, std::string path);
-    static std::vector<FileData> *get_files();
+    static std::vector<FileData *> *get_files();
 
   private:
     FileManager();
