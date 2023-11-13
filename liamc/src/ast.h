@@ -46,7 +46,6 @@ struct PointerTypeInfo;
 struct StrTypeInfo;
 struct TypeTypeInfo;
 struct StructTypeInfo;
-struct StructInstanceTypeInfo;
 struct FnTypeInfo;
 struct NamespaceTypeInfo;
 
@@ -103,7 +102,6 @@ enum class TypeInfoType {
     STRING,
     FN,
     STRUCT,
-    STRUCT_INSTANCE,
     POINTER,
     NAMESPACE
 };
@@ -150,27 +148,18 @@ struct TypeTypeInfo : TypeInfo {
 };
 
 struct StructTypeInfo : TypeInfo {
-    std::vector<std::tuple<std::string, FnTypeInfo *>> member_functions;
     std::vector<std::tuple<std::string, TypeInfo *>> members;
 
     StructTypeInfo(
-        std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
         std::vector<std::tuple<std::string, TypeInfo *>> members
     );
 };
 
-struct StructInstanceTypeInfo : TypeInfo {
-    StructTypeInfo *struct_type;
-
-    StructInstanceTypeInfo(StructTypeInfo *structType);
-};
-
 struct FnTypeInfo : TypeInfo {
-    StructTypeInfo *parent_type;
     TypeInfo *return_type;
     std::vector<TypeInfo *> args;
 
-    FnTypeInfo(StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args);
+    FnTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args);
 };
 
 struct NamespaceTypeInfo : TypeInfo {

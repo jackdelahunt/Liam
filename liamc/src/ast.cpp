@@ -29,21 +29,13 @@ TypeTypeInfo::TypeTypeInfo() {
 }
 
 StructTypeInfo::StructTypeInfo(
-    std::vector<std::tuple<std::string, FnTypeInfo *>> memberFunctions,
     std::vector<std::tuple<std::string, TypeInfo *>> members
 ) {
-    this->member_functions = memberFunctions;
     this->members          = members;
     this->type             = TypeInfoType::STRUCT;
 }
 
-StructInstanceTypeInfo::StructInstanceTypeInfo(StructTypeInfo *structType) {
-    this->struct_type = structType;
-    this->type        = TypeInfoType::STRUCT_INSTANCE;
-}
-
-FnTypeInfo::FnTypeInfo(StructTypeInfo *parentType, TypeInfo *returnType, std::vector<TypeInfo *> args) {
-    this->parent_type = parentType;
+FnTypeInfo::FnTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args) {
     this->return_type = returnType;
     this->args        = args;
     this->type        = TypeInfoType::FN;

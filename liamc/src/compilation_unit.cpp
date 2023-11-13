@@ -79,10 +79,26 @@ TypeInfo *CompilationUnit::get_fn_from_scope(TokenIndex token_index) {
     return this->global_fn_scope[identifier];
 }
 
+TypeInfo *CompilationUnit::get_fn_from_scope_with_string(std::string identifier) {
+    return this->global_fn_scope[identifier];
+}
+
 TypeInfo *CompilationUnit::get_namespace_from_scope(TokenIndex token_index) {
     // TODO error checking
     std::string identifier = this->get_token_string_from_index(token_index);
     return this->global_namespace_scope[identifier];
+}
+
+TypeInfo * CompilationUnit::get_from_scope_with_string(std::string identifier) {
+    if(this->global_type_scope.count(identifier) > 0) {
+        return this->global_type_scope[identifier];
+    }
+
+    if(this->global_fn_scope.count(identifier) > 0) {
+        return this->global_fn_scope[identifier];
+    }
+
+    return NULL; 
 }
 
 CompilationBundle::CompilationBundle(std::vector<CompilationUnit *> compilation_units) {

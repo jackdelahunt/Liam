@@ -75,5 +75,4 @@ struct TypeChecker {
 };
 
 bool type_match(TypeInfo *a, TypeInfo *b);
-StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info);
 std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal);
