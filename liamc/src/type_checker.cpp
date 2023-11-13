@@ -45,7 +45,12 @@ TypeInfo *TypeChecker::get_from_scope(TokenIndex token_index) {
     }
 
     // if there is nothing then check the fn scope
-    return this->compilation_unit->get_fn_from_scope(token_index);
+    TypeInfo *type_info = this->compilation_unit->get_fn_from_scope(token_index);
+    if(type_info != NULL) {
+        return type_info;
+    }
+
+    return this->compilation_unit->get_namespace_from_scope(token_index);
 }
 
 void TypeChecker::type_check(CompilationBundle *bundle) {
@@ -93,20 +98,6 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
     }
 }
 
-StructTypeInfo *get_struct_type_info_from_type_info(TypeInfo *type_info) {
-    StructTypeInfo *parent_type_info = NULL;
-
-    if (type_info->type == TypeInfoType::STRUCT)
-    { parent_type_info = (StructTypeInfo *)type_info; }
-    else if (type_info->type == TypeInfoType::STRUCT_INSTANCE)
-    {
-        auto struct_instance_type = (StructInstanceTypeInfo *)(type_info);
-        parent_type_info          = (StructTypeInfo *)struct_instance_type->struct_type;
-    }
-
-    return parent_type_info;
-}
-
 void TypeChecker::type_check_import_statement(ImportStatement *import_statement) {
     u64 compilation_unit_index = 1;
 
@@ -116,7 +107,7 @@ void TypeChecker::type_check_import_statement(ImportStatement *import_statement)
 }
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
-    this->compilation_unit->add_fn_to_scope(statement->identifier, new FnTypeInfo(NULL, NULL, {}));
+    this->compilation_unit->add_fn_to_scope(statement->identifier, new FnTypeInfo(NULL, {}));
 }
 
 void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
@@ -124,7 +115,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     // will be resolved. As structs after this one might be referenced
     // add it to the table and leave its type info blank until we type check it
 
-    this->compilation_unit->add_type_to_scope(statement->identifier, new StructTypeInfo({}, {}));
+    this->compilation_unit->add_type_to_scope(statement->identifier, new StructTypeInfo({}));
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
@@ -165,13 +156,12 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
         args[i]                  = {identifier, fn_type_info->args.at(i)};
     }
 
+    this->new_scope();
     for (auto &[token_index, type_info] : args)
     { this->add_to_scope(token_index, type_info); }
-
-    // type statements and check return exists if needed
-    this->new_scope();
     TRY_CALL_VOID(type_check_scope_statement(statement->body));
     this->delete_scope();
+
     for (auto stmt : statement->body->statements)
     {
         if (stmt->statement_type == StatementType::STATEMENT_RETURN)
@@ -672,20 +662,36 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
 void TypeChecker::type_check_get_expression(GetExpression *expression) {
     TRY_CALL_VOID(type_check_expression(expression->lhs));
 
-    TypeInfo *member_type_info                        = NULL; // populated every time
-    StructTypeInfo *struct_type_info                  = NULL; // populated every time
-    StructInstanceTypeInfo *struct_instance_type_info = NULL; // populated when the lhs is a struct instance
+    // when the lhs expression is a namespace identifier
+    if(expression->lhs->type_info->type == TypeInfoType::NAMESPACE) {
+        NamespaceTypeInfo *namespace_type_info = (NamespaceTypeInfo *)expression->lhs->type_info;
+        CompilationUnit *namespace_compilation_unit = this->compilation_bundle->compilation_units[namespace_type_info->compilation_unit_index];
+
+        std::string identifier = this->compilation_unit->get_token_string_from_index(expression->member);
+        TypeInfo *member_type_info = namespace_compilation_unit->get_fn_from_scope_with_string(identifier);
+        
+        if(member_type_info == NULL) {
+            ErrorReporter::report_type_checker_error(
+                this->compilation_unit->file_data->absolute_path.string(), expression->lhs, NULL, NULL, NULL,
+                std::format("No symbol '{}' found in namespace", identifier)
+            );
+            return;
+        }
+
+        expression->type_info = member_type_info;
+        return;
+    }
+
+    // when the lhs expression is a struct or a pointer
+
+    TypeInfo *member_type_info                        = NULL;
+    StructTypeInfo *struct_type_info                  = NULL;
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     {
         auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);
 
         if (ptr_type_info->to->type == TypeInfoType::STRUCT)
         { struct_type_info = (StructTypeInfo *)ptr_type_info->to; }
-        else if (ptr_type_info->to->type == TypeInfoType::STRUCT_INSTANCE)
-        {
-            struct_instance_type_info = (StructInstanceTypeInfo *)(ptr_type_info->to);
-            struct_type_info          = (StructTypeInfo *)struct_instance_type_info->struct_type;
-        }
         else
         {
             ErrorReporter::report_type_checker_error(
@@ -697,12 +703,6 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
     }
     else if (expression->lhs->type_info->type == TypeInfoType::STRUCT)
     { struct_type_info = static_cast<StructTypeInfo *>(expression->lhs->type_info); }
-    else if (expression->lhs->type_info->type == TypeInfoType::STRUCT_INSTANCE)
-    {
-        struct_instance_type_info = static_cast<StructInstanceTypeInfo *>(expression->lhs->type_info);
-        ASSERT(struct_instance_type_info->struct_type->type == TypeInfoType::STRUCT);
-        struct_type_info = static_cast<StructTypeInfo *>(struct_instance_type_info->struct_type);
-    }
     else
     {
         ErrorReporter::report_type_checker_error(
@@ -723,19 +723,6 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         {
             member_type_info = member_type;
             break;
-        }
-    }
-
-    // identifier does not refer to a member in the struct type so check the function members
-    if (member_type_info == NULL)
-    {
-        for (auto [identifier, function_member_type] : struct_type_info->member_functions)
-        {
-            if (identifier == member_string)
-            {
-                member_type_info = function_member_type;
-                break;
-            }
         }
     }
 
@@ -978,15 +965,6 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         auto ptr_b = static_cast<PointerTypeInfo *>(b);
 
         return type_match(ptr_a->to, ptr_b->to);
-    }
-    else if (a->type == TypeInfoType::STRUCT_INSTANCE)
-    {
-        auto ptr_a = static_cast<StructInstanceTypeInfo *>(a);
-        auto ptr_b = static_cast<StructInstanceTypeInfo *>(b);
-        if (!type_match(ptr_a->struct_type, ptr_b->struct_type))
-        { return false; }
-
-        return true;
     }
 
     panic("Cannot type check this type info");
