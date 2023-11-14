@@ -28,11 +28,9 @@ StrTypeInfo::StrTypeInfo() {
 TypeTypeInfo::TypeTypeInfo() {
 }
 
-StructTypeInfo::StructTypeInfo(
-    std::vector<std::tuple<std::string, TypeInfo *>> members
-) {
-    this->members          = members;
-    this->type             = TypeInfoType::STRUCT;
+StructTypeInfo::StructTypeInfo(std::vector<std::tuple<std::string, TypeInfo *>> members) {
+    this->members = members;
+    this->type    = TypeInfoType::STRUCT;
 }
 
 FnTypeInfo::FnTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args) {
