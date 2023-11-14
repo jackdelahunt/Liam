@@ -46,9 +46,8 @@ TypeInfo *TypeChecker::get_from_scope(TokenIndex token_index) {
 
     // if there is nothing then check the fn scope
     TypeInfo *type_info = this->compilation_unit->get_fn_from_scope(token_index);
-    if(type_info != NULL) {
-        return type_info;
-    }
+    if (type_info != NULL)
+    { return type_info; }
 
     return this->compilation_unit->get_namespace_from_scope(token_index);
 }
@@ -99,15 +98,48 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 }
 
 void TypeChecker::type_check_import_statement(ImportStatement *import_statement) {
-    u64 compilation_unit_index = 1;
+    // trimming the " from either side of the token, this is becase it is a string literal
+    // and that means 
+    std::string import_path = this->compilation_unit->get_token_string_from_index(import_statement->string_literal);
+    trim(import_path, "\"");
 
-    this->compilation_unit->add_namespace_to_scope(
-        import_statement->identifier, new NamespaceTypeInfo(compilation_unit_index)
+    std::filesystem::path this_compilation_unit_parent_dir_path = this->compilation_unit->file_data->absolute_path.parent_path();
+    Option<u64> compilation_unit_index = this->compilation_bundle->get_compilation_unit_index_with_path_relative_from(this_compilation_unit_parent_dir_path.string(), import_path);
+
+    if(!compilation_unit_index.is_some()) {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message(std::format("Cannot find file with import path '{}' ", import_path))
+            .report();
+
+        return; 
+    }
+
+    ScopeActionStatus status = this->compilation_unit->add_namespace_to_scope(
+        import_statement->identifier, new NamespaceTypeInfo(compilation_unit_index.value())
     );
+
+    if (status == ScopeActionStatus::ALREADY_EXISTS)
+    {
+        std::string identifier = this->compilation_unit->get_token_string_from_index(import_statement->identifier);
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message(std::format("Duplicate creation of namespace identifier '{}' ", identifier))
+            .report();
+
+        return;
+    }
 }
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
-    this->compilation_unit->add_fn_to_scope(statement->identifier, new FnTypeInfo(NULL, {}));
+    ScopeActionStatus status = this->compilation_unit->add_fn_to_scope(statement->identifier, new FnTypeInfo(NULL, {}));
+    if (status == ScopeActionStatus::ALREADY_EXISTS)
+    {
+        std::string identifier = this->compilation_unit->get_token_string_from_index(statement->identifier);
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message(std::format("Duplicate creation of fn '{}' ", identifier))
+            .report();
+
+        return;
+    }
 }
 
 void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
@@ -115,7 +147,16 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     // will be resolved. As structs after this one might be referenced
     // add it to the table and leave its type info blank until we type check it
 
-    this->compilation_unit->add_type_to_scope(statement->identifier, new StructTypeInfo({}));
+    ScopeActionStatus status = this->compilation_unit->add_type_to_scope(statement->identifier, new StructTypeInfo({}));
+    if (status == ScopeActionStatus::ALREADY_EXISTS)
+    {
+        std::string identifier = this->compilation_unit->get_token_string_from_index(statement->identifier);
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message(std::format("Duplicate creation of type '{}' ", identifier))
+            .report();
+
+        return;
+    }
 }
 
 void TypeChecker::type_check_fn_decl(FnStatement *statement) {
@@ -663,14 +704,17 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
     TRY_CALL_VOID(type_check_expression(expression->lhs));
 
     // when the lhs expression is a namespace identifier
-    if(expression->lhs->type_info->type == TypeInfoType::NAMESPACE) {
+    if (expression->lhs->type_info->type == TypeInfoType::NAMESPACE)
+    {
         NamespaceTypeInfo *namespace_type_info = (NamespaceTypeInfo *)expression->lhs->type_info;
-        CompilationUnit *namespace_compilation_unit = this->compilation_bundle->compilation_units[namespace_type_info->compilation_unit_index];
+        CompilationUnit *namespace_compilation_unit =
+            this->compilation_bundle->compilation_units[namespace_type_info->compilation_unit_index];
 
-        std::string identifier = this->compilation_unit->get_token_string_from_index(expression->member);
+        std::string identifier     = this->compilation_unit->get_token_string_from_index(expression->member);
         TypeInfo *member_type_info = namespace_compilation_unit->get_fn_from_scope_with_string(identifier);
-        
-        if(member_type_info == NULL) {
+
+        if (member_type_info == NULL)
+        {
             ErrorReporter::report_type_checker_error(
                 this->compilation_unit->file_data->absolute_path.string(), expression->lhs, NULL, NULL, NULL,
                 std::format("No symbol '{}' found in namespace", identifier)
@@ -684,8 +728,8 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
 
     // when the lhs expression is a struct or a pointer
 
-    TypeInfo *member_type_info                        = NULL;
-    StructTypeInfo *struct_type_info                  = NULL;
+    TypeInfo *member_type_info       = NULL;
+    StructTypeInfo *struct_type_info = NULL;
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     {
         auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);

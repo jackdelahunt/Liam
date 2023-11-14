@@ -4,6 +4,7 @@
 
 #include "compilation_unit.h"
 #include "ast.h"
+#include "utils.h"
 
 CompilationUnit::CompilationUnit(FileData *file_data, std::vector<Token> token_buffer) {
     this->file_data                   = file_data;
@@ -45,22 +46,34 @@ std::string CompilationUnit::get_token_string_from_index(TokenIndex token_index)
     return token_string;
 }
 
-void CompilationUnit::add_type_to_scope(TokenIndex token_index, TypeInfo *type_info) {
-    // TODO error checking
-    std::string identifier              = this->get_token_string_from_index(token_index);
+ScopeActionStatus CompilationUnit::add_type_to_scope(TokenIndex token_index, TypeInfo *type_info) {
+    std::string identifier = this->get_token_string_from_index(token_index);
+
+    if (this->global_type_scope.count(identifier) > 0)
+    { return ScopeActionStatus::ALREADY_EXISTS; }
+
     this->global_type_scope[identifier] = type_info;
+    return ScopeActionStatus::OK;
 }
 
-void CompilationUnit::add_fn_to_scope(TokenIndex token_index, TypeInfo *type_info) {
-    // TODO error checking
-    std::string identifier            = this->get_token_string_from_index(token_index);
+ScopeActionStatus CompilationUnit::add_fn_to_scope(TokenIndex token_index, TypeInfo *type_info) {
+    std::string identifier = this->get_token_string_from_index(token_index);
+
+    if (this->global_fn_scope.count(identifier) > 0)
+    { return ScopeActionStatus::ALREADY_EXISTS; }
+
     this->global_fn_scope[identifier] = type_info;
+    return ScopeActionStatus::OK;
 }
 
-void CompilationUnit::add_namespace_to_scope(TokenIndex token_index, TypeInfo *type_info) {
-    // TODO error checking
-    std::string identifier                   = this->get_token_string_from_index(token_index);
+ScopeActionStatus CompilationUnit::add_namespace_to_scope(TokenIndex token_index, TypeInfo *type_info) {
+    std::string identifier = this->get_token_string_from_index(token_index);
+
+    if (this->global_namespace_scope.count(identifier) > 0)
+    { return ScopeActionStatus::ALREADY_EXISTS; }
+
     this->global_namespace_scope[identifier] = type_info;
+    return ScopeActionStatus::OK;
 }
 
 TypeInfo *CompilationUnit::get_type_from_scope(TokenIndex token_index) {
@@ -89,18 +102,32 @@ TypeInfo *CompilationUnit::get_namespace_from_scope(TokenIndex token_index) {
     return this->global_namespace_scope[identifier];
 }
 
-TypeInfo * CompilationUnit::get_from_scope_with_string(std::string identifier) {
-    if(this->global_type_scope.count(identifier) > 0) {
-        return this->global_type_scope[identifier];
-    }
+TypeInfo *CompilationUnit::get_from_scope_with_string(std::string identifier) {
+    if (this->global_type_scope.count(identifier) > 0)
+    { return this->global_type_scope[identifier]; }
 
-    if(this->global_fn_scope.count(identifier) > 0) {
-        return this->global_fn_scope[identifier];
-    }
+    if (this->global_fn_scope.count(identifier) > 0)
+    { return this->global_fn_scope[identifier]; }
 
-    return NULL; 
+    return NULL;
 }
 
 CompilationBundle::CompilationBundle(std::vector<CompilationUnit *> compilation_units) {
     this->compilation_units = compilation_units;
+}
+
+Option<u64> CompilationBundle::get_compilation_unit_index_with_path_relative_from(std::string relative_from, std::string path) {
+    std::filesystem::path relative_slash_path = std::filesystem::path(relative_from) / path;
+    std::filesystem::path absolute_path       = std::filesystem::weakly_canonical(relative_slash_path);
+
+    std::cout << absolute_path.string() << "\n";
+
+    for(u64 i = 0; i < this->compilation_units.size(); i++) {
+        CompilationUnit *compilation_unit = this->compilation_units[i];
+        if(compilation_unit->file_data->absolute_path == absolute_path) {
+            return Option(i);
+        }
+    }
+
+    return Option<u64>();
 }

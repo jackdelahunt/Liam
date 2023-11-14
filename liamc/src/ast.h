@@ -150,9 +150,7 @@ struct TypeTypeInfo : TypeInfo {
 struct StructTypeInfo : TypeInfo {
     std::vector<std::tuple<std::string, TypeInfo *>> members;
 
-    StructTypeInfo(
-        std::vector<std::tuple<std::string, TypeInfo *>> members
-    );
+    StructTypeInfo(std::vector<std::tuple<std::string, TypeInfo *>> members);
 };
 
 struct FnTypeInfo : TypeInfo {
