@@ -17,6 +17,10 @@ add_executable(liamc
         src/file.cpp
         src/type_checker.cpp
         src/compilation_unit.cpp
+
+        # base layer code
+        src/baseLayer/types.cpp
+        src/baseLayer/debug.h
 )
 
 target_include_directories(liamc PUBLIC vendor)

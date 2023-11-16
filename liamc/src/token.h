@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "baseLayer/types.h"
 #include "liam.h"
 
 enum class TokenType {
