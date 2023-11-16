@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 
+#include "baseLayer/types.h"
 #include "args.h"
 #include "compilation_unit.h"
 #include "cpp_backend.h"
@@ -20,6 +21,19 @@ void type_check(CompilationBundle *file);
 std::string code_gen(CompilationBundle *file);
 
 i32 main(i32 argc, char **argv) {
+
+    ScratchAllocator allocator = ScratchAllocator(8);
+    int *a = (int *)allocator.alloc(sizeof(int));
+    int *b = (int *)allocator.alloc(sizeof(int));
+    int *c = (int *)allocator.alloc(sizeof(int));
+
+    *a = 10;
+    *b = 20;
+    *c = 30;
+
+    std::cout << *a << ", " << *b << ", " << *c << "\n";
+
+
     TIME_START(total_time);
 
     Arguments::make(argc, argv);

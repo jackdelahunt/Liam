@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "baseLayer/types.h"
 #include "liam.h"
 #include "utils.h"
 

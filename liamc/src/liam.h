@@ -7,20 +7,6 @@
 
 #define USE_ASSERTS
 
-typedef int8_t i8;
-typedef uint8_t u8;
-
-typedef int16_t i16;
-typedef uint16_t u16;
-
-typedef int32_t i32;
-typedef uint32_t u32;
-typedef float f32;
-
-typedef int64_t i64;
-typedef uint64_t u64;
-typedef double f64;
-
 void panic(const std::string &msg);
 
 #define BIT_SET(mask, bit) ((mask & bit) == bit)
@@ -97,30 +83,3 @@ void panic(const std::string &msg);
         if (ErrorReporter::error_count() > __start)                                                                    \
         { return ret; }                                                                                                \
     })
-
-#ifdef USE_ASSERTS
-#define ASSERT_MSG(expr, message)                                                                                      \
-    if (!(expr))                                                                                                       \
-    {                                                                                                                  \
-        std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << " :: " << message << "\n";            \
-        exit(1);                                                                                                       \
-    }
-
-#define ASSERT(expr)                                                                                                   \
-    if (!(expr))                                                                                                       \
-    {                                                                                                                  \
-        std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                                 \
-        exit(1);                                                                                                       \
-    }
-#else
-#define ASSERT_MSG(expr, message)
-#define ASSERT(expr)
-#endif
-
-#define NOT_IMPLEMENTED()                                                                                              \
-    std::cerr << "NOT IMPLEMENTED :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                            \
-    exit(1);
-
-#define UNREACHABLE()                                                                                                  \
-    std::cerr << "UNREACHABLE was reached:: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                     \
-    exit(1);
