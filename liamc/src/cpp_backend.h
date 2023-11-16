@@ -8,8 +8,7 @@
 
 struct CppBackend {
     CompilationUnit *compilation_unit = NULL;
-    CppBackend()                      = default;
-    std::string emit(CompilationUnit *file);
+    std::string emit(CompilationBundle *bundle);
 
     std::string forward_declare_struct(StructStatement *statement);
     std::string forward_declare_function(FnStatement *statement);
@@ -51,3 +50,4 @@ struct CppBackend {
 
 std::string strip_semi_colon(std::string str);
 u64 string_literal_length(std::string *string);
+std::string get_namespace_name(CompilationUnit *compilation_unit);

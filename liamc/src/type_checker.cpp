@@ -99,19 +99,23 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 
 void TypeChecker::type_check_import_statement(ImportStatement *import_statement) {
     // trimming the " from either side of the token, this is becase it is a string literal
-    // and that means 
+    // and that means
     std::string import_path = this->compilation_unit->get_token_string_from_index(import_statement->string_literal);
     trim(import_path, "\"");
 
-    std::filesystem::path this_compilation_unit_parent_dir_path = this->compilation_unit->file_data->absolute_path.parent_path();
-    Option<u64> compilation_unit_index = this->compilation_bundle->get_compilation_unit_index_with_path_relative_from(this_compilation_unit_parent_dir_path.string(), import_path);
+    std::filesystem::path this_compilation_unit_parent_dir_path =
+        this->compilation_unit->file_data->absolute_path.parent_path();
+    Option<u64> compilation_unit_index = this->compilation_bundle->get_compilation_unit_index_with_path_relative_from(
+        this_compilation_unit_parent_dir_path.string(), import_path
+    );
 
-    if(!compilation_unit_index.is_some()) {
+    if (!compilation_unit_index.is_some())
+    {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
             .set_message(std::format("Cannot find file with import path '{}' ", import_path))
             .report();
 
-        return; 
+        return;
     }
 
     ScopeActionStatus status = this->compilation_unit->add_namespace_to_scope(

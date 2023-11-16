@@ -47,10 +47,6 @@ struct CompilationBundle {
     std::vector<CompilationUnit *> compilation_units;
 
     CompilationBundle(std::vector<CompilationUnit *> compilation_units);
-    
+
     Option<u64> get_compilation_unit_index_with_path_relative_from(std::string relative_from, std::string path);
 };
-
-
-
-

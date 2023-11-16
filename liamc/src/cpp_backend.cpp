@@ -7,28 +7,36 @@
 #include "args.h"
 #include "ast.h"
 
-std::string CppBackend::emit(CompilationUnit *file) {
-
-    this->compilation_unit = file;
-
+std::string CppBackend::emit(CompilationBundle *bundle) {
     std::string source_generated = "#include <core.h>\n#include<liam_stdlib.h>\n\n";
 
-    // forward declarations
-    for (auto stmt : this->compilation_unit->top_level_struct_statements)
-    { source_generated.append(forward_declare_struct(stmt)); }
+    source_generated.append("////////////////////////\n//\n// forward declarations\n//\n////////////////////////\n");
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        this->compilation_unit = cu;
+        // forward declarations
+        for (auto stmt : this->compilation_unit->top_level_struct_statements)
+        { source_generated.append(forward_declare_struct(stmt)); }
 
-    for (auto stmt : this->compilation_unit->top_level_fn_statements)
-    { source_generated.append(forward_declare_function(stmt)); }
+        for (auto stmt : this->compilation_unit->top_level_fn_statements)
+        { source_generated.append(forward_declare_function(stmt)); }
+    }
 
-    // bodys
-    for (auto stmt : this->compilation_unit->top_level_struct_statements)
-    { source_generated.append(emit_struct_statement(stmt)); }
+    source_generated.append("\n\n");
+    source_generated.append("///////////////////\n//\n// implementations \n//\n///////////////////\n");
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        this->compilation_unit = cu;
 
-    // function bodys
-    for (auto stmt : this->compilation_unit->top_level_fn_statements)
-    { source_generated.append(emit_fn_statement(stmt)); }
+        // struct bodys
+        for (auto stmt : this->compilation_unit->top_level_struct_statements)
+        { source_generated.append(emit_struct_statement(stmt)); }
 
-    source_generated.append("\nint main(int argc, char **argv) { __liam__main__(); return 0; }\n\n\n // GOODBYE");
+        // function bodys
+        for (auto stmt : this->compilation_unit->top_level_fn_statements)
+        { source_generated.append(emit_fn_statement(stmt)); }
+    }
+    source_generated.append("\nint main(int argc, char **argv) { main::main(); return 0; }\n\n\n // GOODBYE");
 
     return source_generated;
 }
@@ -36,23 +44,19 @@ std::string CppBackend::emit(CompilationUnit *file) {
 std::string CppBackend::forward_declare_struct(StructStatement *statement) {
     std::string source = "";
 
-    source.append("struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) + ";\n");
-
+    source.append(std::format("namespace {} {{", get_namespace_name(this->compilation_unit)));
+    source.append("struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) + ";");
+    source.append("}\n");
     return source;
 }
 
 std::string CppBackend::forward_declare_function(FnStatement *statement) {
     std::string source = "";
-
+    source.append(std::format("namespace {} {{", get_namespace_name(this->compilation_unit))); 
     source.append(emit_type_expression(statement->return_type) + " ");
 
-    // TODO dont do this string from token here
-    std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-
-    if (name_as_string == "main")
-    { source.append(" __liam__main__"); }
-
-    source.append(name_as_string);
+    std::string name = this->compilation_unit->get_token_string_from_index(statement->identifier);
+    source.append(name);
     source.append("(");
 
     u64 index = 0;
@@ -64,7 +68,8 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
         { source.append(", "); }
         index++;
     }
-    source.append(");\n");
+    source.append(");");
+    source.append("}\n");
     return source;
 }
 
@@ -137,21 +142,19 @@ std::string CppBackend::emit_scope_statement(ScopeStatement *statement) {
     source.append("{\n");
     for (auto stmt : statement->statements)
     { source.append(emit_statement(stmt)); }
-    source.append("\n}\n\n");
+    source.append("}");
     return source;
 }
 
 std::string CppBackend::emit_fn_statement(FnStatement *statement) {
     auto source = std::string();
+
+    source.append(std::format("namespace {} {{\n", get_namespace_name(this->compilation_unit))); 
     source.append(emit_type_expression(statement->return_type) + " ");
 
-    // TODO remove this token to string thing
-    std::string name_as_string = this->compilation_unit->get_token_string_from_index(statement->identifier);
+    std::string name = this->compilation_unit->get_token_string_from_index(statement->identifier);
 
-    if (name_as_string == "main")
-    { source.append("__liam__main__"); }
-
-    source.append(name_as_string);
+    source.append(name);
     source.append("(");
 
     u64 index = 0;
@@ -166,12 +169,14 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 
     source.append(")");
     source.append(emit_scope_statement(statement->body));
+    source.append("\n}\n");
     return source;
 }
 
 std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     auto source = std::string();
 
+    source.append(std::format("namespace {} {{\n", get_namespace_name(this->compilation_unit))); 
     source.append("struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) + " {");
     // members
     for (auto [identifier_token_index, type] : statement->members)
@@ -180,7 +185,7 @@ std::string CppBackend::emit_struct_statement(StructStatement *statement) {
         source.append(this->compilation_unit->get_token_string_from_index(identifier_token_index) + ";");
     }
 
-    source.append("};\n");
+    source.append("};\n}\n"); // extra } for the namespace closing
     return source;
 }
 
@@ -537,4 +542,8 @@ u64 string_literal_length(std::string *string) {
     }
 
     return length;
+}
+
+std::string get_namespace_name(CompilationUnit *compilation_unit) {
+    return compilation_unit->file_data->absolute_path.stem();
 }

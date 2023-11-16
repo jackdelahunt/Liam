@@ -113,8 +113,5 @@ void type_check(CompilationBundle *bundle) {
 }
 
 std::string code_gen(CompilationBundle *bundle) {
-    std::string source;
-    for (CompilationUnit *compilation_unit : bundle->compilation_units)
-    { source.append(CppBackend().emit(compilation_unit)); }
-    return source;
+    return CppBackend().emit(bundle);
 }
