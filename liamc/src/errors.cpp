@@ -22,7 +22,8 @@ void ParserError::print_error_message() {
 
 TypeCheckerError TypeCheckerError::make(std::string file) {
     auto error = TypeCheckerError{
-        .file = std::move(file), .expr_1 = NULL, .expr_2 = NULL, .type_expr_1 = NULL, .type_expr_2 = NULL, .error = ""};
+        .file = std::move(file), .expr_1 = NULL, .expr_2 = NULL, .type_expr_1 = NULL, .type_expr_2 = NULL, .error = ""
+    };
 
     return error;
 }
@@ -60,16 +61,24 @@ void TypeCheckerError::print_error_message() {
     std::cerr << std::format("{}Type checking error :: {}{}\n", RED, error, DEFAULT);
 
     if (this->expr_1)
-    { write_error_annotation_at_span(&file, this->expr_1->span); }
+    {
+        write_error_annotation_at_span(&file, this->expr_1->span);
+    }
 
     if (this->expr_2)
-    { write_error_annotation_at_span(&file, this->expr_2->span); }
+    {
+        write_error_annotation_at_span(&file, this->expr_2->span);
+    }
 
     if (this->type_expr_1)
-    { write_error_annotation_at_span(&file, this->type_expr_1->span); }
+    {
+        write_error_annotation_at_span(&file, this->type_expr_1->span);
+    }
 
     if (this->type_expr_2)
-    { write_error_annotation_at_span(&file, this->type_expr_2->span); }
+    {
+        write_error_annotation_at_span(&file, this->type_expr_2->span);
+    }
 }
 
 ErrorReporter::ErrorReporter() {
@@ -79,7 +88,9 @@ ErrorReporter::ErrorReporter() {
 
 void ErrorReporter::report_parser_error(std::string file, Span span, std::string message) {
     if (ErrorReporter::singleton == nullptr)
-    { ErrorReporter::singleton = new ErrorReporter(); }
+    {
+        ErrorReporter::singleton = new ErrorReporter();
+    }
 
     ErrorReporter::singleton->parse_errors.push_back(ParserError{std::move(file), span, std::move(message)});
     ErrorReporter::singleton->error_reported_since_last_check = true;
@@ -90,7 +101,9 @@ void ErrorReporter::report_type_checker_error(
     std::string message
 ) {
     if (ErrorReporter::singleton == nullptr)
-    { ErrorReporter::singleton = new ErrorReporter(); }
+    {
+        ErrorReporter::singleton = new ErrorReporter();
+    }
 
     ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
         .file        = std::move(file),
@@ -98,14 +111,17 @@ void ErrorReporter::report_type_checker_error(
         .expr_2      = expr_2,
         .type_expr_1 = type_expr_1,
         .type_expr_2 = type_expr_2,
-        .error       = std::move(message)});
+        .error       = std::move(message)
+    });
 
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
 
 void ErrorReporter::report_type_checker_error(TypeCheckerError error) {
     if (ErrorReporter::singleton == nullptr)
-    { ErrorReporter::singleton = new ErrorReporter(); }
+    {
+        ErrorReporter::singleton = new ErrorReporter();
+    }
 
     ErrorReporter::singleton->type_check_errors.push_back(error);
     ErrorReporter::singleton->error_reported_since_last_check = true;
@@ -169,10 +185,14 @@ void write_error_annotation_at_span(std::string *file, Span span) {
     u64 line_end   = span.end;
 
     while (line_start != 0 && file_data->data[line_start] != '\n')
-    { line_start--; }
+    {
+        line_start--;
+    }
 
     while (line_end != file_data->data_length && file_data->data[line_end] != '\n')
-    { line_end++; }
+    {
+        line_end++;
+    }
 
     // the message is split into 3 sections
     // For example with the message below where we want to

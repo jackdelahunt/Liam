@@ -41,13 +41,17 @@ TypeInfo *TypeChecker::get_from_scope(TokenIndex token_index) {
     for (auto iter = this->scopes.rbegin(); iter != this->scopes.rend(); iter++)
     {
         if (iter->count(identifier) > 0)
-        { return (*iter)[identifier]; }
+        {
+            return (*iter)[identifier];
+        }
     }
 
     // if there is nothing then check the fn scope
     TypeInfo *type_info = this->compilation_unit->get_fn_from_scope(token_index);
     if (type_info != NULL)
-    { return type_info; }
+    {
+        return type_info;
+    }
 
     return this->compilation_unit->get_namespace_from_scope(token_index);
 }
@@ -60,7 +64,9 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 
         // add symbols for structs and fns
         for (auto stmt : this->compilation_unit->top_level_import_statements)
-        { TRY_CALL_VOID(type_check_import_statement(stmt)); }
+        {
+            TRY_CALL_VOID(type_check_import_statement(stmt));
+        }
     }
 
     for (CompilationUnit *cu : bundle->compilation_units)
@@ -69,10 +75,14 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 
         // add symbols for structs and fns
         for (auto stmt : this->compilation_unit->top_level_struct_statements)
-        { TRY_CALL_VOID(type_check_struct_symbol(stmt)); }
+        {
+            TRY_CALL_VOID(type_check_struct_symbol(stmt));
+        }
 
         for (auto stmt : this->compilation_unit->top_level_fn_statements)
-        { TRY_CALL_VOID(type_check_fn_symbol(stmt)); }
+        {
+            TRY_CALL_VOID(type_check_fn_symbol(stmt));
+        }
     }
 
     for (CompilationUnit *cu : bundle->compilation_units)
@@ -81,10 +91,14 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 
         // type the body of the structs and the declarations of the fns
         for (auto stmt : this->compilation_unit->top_level_struct_statements)
-        { TRY_CALL_VOID(type_check_struct_statement_full(stmt)); }
+        {
+            TRY_CALL_VOID(type_check_struct_statement_full(stmt));
+        }
 
         for (auto stmt : this->compilation_unit->top_level_fn_statements)
-        { TRY_CALL_VOID(type_check_fn_decl(stmt)); }
+        {
+            TRY_CALL_VOID(type_check_fn_decl(stmt));
+        }
     }
 
     for (CompilationUnit *cu : bundle->compilation_units)
@@ -93,7 +107,9 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 
         // finally do the function body pass
         for (auto stmt : this->compilation_unit->top_level_fn_statements)
-        { TRY_CALL_VOID(type_check_fn_statement_full(stmt)); }
+        {
+            TRY_CALL_VOID(type_check_fn_statement_full(stmt));
+        }
     }
 }
 
@@ -203,7 +219,9 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
 
     this->new_scope();
     for (auto &[token_index, type_info] : args)
-    { this->add_to_scope(token_index, type_info); }
+    {
+        this->add_to_scope(token_index, type_info);
+    }
     TRY_CALL_VOID(type_check_scope_statement(statement->body));
     this->delete_scope();
 
@@ -321,7 +339,9 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
 
 void TypeChecker::type_check_scope_statement(ScopeStatement *statement) {
     for (auto stmt : statement->statements)
-    { TRY_CALL_VOID(type_check_statement(stmt)); }
+    {
+        TRY_CALL_VOID(type_check_statement(stmt));
+    }
 }
 
 void TypeChecker::type_check_for_statement(ForStatement *statement) {
@@ -330,7 +350,9 @@ void TypeChecker::type_check_for_statement(ForStatement *statement) {
     TRY_CALL_VOID(type_check_statement(statement->update));
 
     if (statement->condition->type_info->type != TypeInfoType::BOOLEAN)
-    { panic("Second statement in for loop needs to evaluate to a bool"); }
+    {
+        panic("Second statement in for loop needs to evaluate to a bool");
+    }
 
     TRY_CALL_VOID(type_check_scope_statement(statement->body));
 }
@@ -362,10 +384,14 @@ void TypeChecker::type_check_if_statement(IfStatement *statement) {
 
 void TypeChecker::type_check_else_statement(ElseStatement *statement) {
     if (statement->if_statement)
-    { TRY_CALL_VOID(type_check_if_statement(statement->if_statement)); }
+    {
+        TRY_CALL_VOID(type_check_if_statement(statement->if_statement));
+    }
 
     if (statement->body)
-    { TRY_CALL_VOID(type_check_scope_statement(statement->body)); }
+    {
+        TRY_CALL_VOID(type_check_scope_statement(statement->body));
+    }
 }
 
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement) {
@@ -497,7 +523,9 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
 
     // compare - any -> bool
     if (expression->op == TokenType::TOKEN_EQUAL || expression->op == TokenType::TOKEN_NOT_EQUAL)
-    { info = this->compilation_unit->global_type_scope["bool"]; }
+    {
+        info = this->compilation_unit->global_type_scope["bool"];
+    }
 
     assert(info != NULL);
 
@@ -548,25 +576,41 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         }
 
         if (size == 8)
-        { expression->type_info = this->compilation_unit->global_type_scope["u8"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["u8"];
+        }
         else if (size == 16)
-        { expression->type_info = this->compilation_unit->global_type_scope["u16"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["u16"];
+        }
         else if (size == 32)
-        { expression->type_info = this->compilation_unit->global_type_scope["u32"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["u32"];
+        }
         else if (size == 64)
-        { expression->type_info = this->compilation_unit->global_type_scope["u64"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["u64"];
+        }
     }
     break;
     case NumberType::SIGNED: {
 
         if (size == 8)
-        { expression->type_info = this->compilation_unit->global_type_scope["i8"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["i8"];
+        }
         else if (size == 16)
-        { expression->type_info = this->compilation_unit->global_type_scope["i16"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["i16"];
+        }
         else if (size == 32)
-        { expression->type_info = this->compilation_unit->global_type_scope["i32"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["i32"];
+        }
         else if (size == 64)
-        { expression->type_info = this->compilation_unit->global_type_scope["i64"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["i64"];
+        }
     }
     break;
     case NumberType::FLOAT: {
@@ -579,9 +623,13 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
             return;
         }
         else if (size == 32)
-        { expression->type_info = this->compilation_unit->global_type_scope["f32"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["f32"];
+        }
         else if (size == 64)
-        { expression->type_info = this->compilation_unit->global_type_scope["f64"]; }
+        {
+            expression->type_info = this->compilation_unit->global_type_scope["f64"];
+        }
     }
     break;
     }
@@ -739,7 +787,9 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);
 
         if (ptr_type_info->to->type == TypeInfoType::STRUCT)
-        { struct_type_info = (StructTypeInfo *)ptr_type_info->to; }
+        {
+            struct_type_info = (StructTypeInfo *)ptr_type_info->to;
+        }
         else
         {
             ErrorReporter::report_type_checker_error(
@@ -750,7 +800,9 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         }
     }
     else if (expression->lhs->type_info->type == TypeInfoType::STRUCT)
-    { struct_type_info = static_cast<StructTypeInfo *>(expression->lhs->type_info); }
+    {
+        struct_type_info = static_cast<StructTypeInfo *>(expression->lhs->type_info);
+    }
     else
     {
         ErrorReporter::report_type_checker_error(
@@ -913,7 +965,9 @@ void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression
     // first checking the type table then checking any namespaces
     TypeInfo *type_info = this->compilation_unit->get_type_from_scope(type_expression->identifier);
     if (type_info == NULL)
-    { type_info = this->compilation_unit->get_namespace_from_scope(type_expression->identifier); }
+    {
+        type_info = this->compilation_unit->get_namespace_from_scope(type_expression->identifier);
+    }
 
     if (type_info == NULL)
     {
@@ -956,7 +1010,9 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
     if (a->type != b->type)
     {
         if (a->type != TypeInfoType::ANY && b->type != TypeInfoType::ANY)
-        { return false; }
+        {
+            return false;
+        }
     }
 
     if (a->type == TypeInfoType::ANY)
@@ -989,7 +1045,9 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
             for (u64 i = 0; i < fn_a->args.size(); i++)
             {
                 if (!type_match(fn_a->args.at(i), fn_b->args.at(i)))
-                { return false; }
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -1027,7 +1085,9 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     int literal_end = 0;
     while (literal_end < literal.size() &&
            (is_digit(literal.at(literal_end)) || literal.at(literal_end) == '-' || literal.at(literal_end) == '.'))
-    { literal_end++; }
+    {
+        literal_end++;
+    }
 
     // literal == 0..literal_end
     // type == literal_end..literal_end +1
@@ -1061,13 +1121,21 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     NumberType type;
 
     if (type_string == "u")
-    { type = NumberType::UNSIGNED; }
+    {
+        type = NumberType::UNSIGNED;
+    }
     else if (type_string == "f")
-    { type = NumberType::FLOAT; }
+    {
+        type = NumberType::FLOAT;
+    }
     else if (type_string == "i")
-    { type = NumberType::SIGNED; }
+    {
+        type = NumberType::SIGNED;
+    }
     else
-    { return BAD_PARSE; }
+    {
+        return BAD_PARSE;
+    }
 
     if (size == 8 || size == 16 || size == 32 || size == 64)
     {

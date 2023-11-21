@@ -1,17 +1,23 @@
 #pragma once
 
+#include <iostream>
+
+#define USE_ASSERTS
+
 #ifdef USE_ASSERTS
 #define ASSERT_MSG(expr, message)                                                                                      \
     if (!(expr))                                                                                                       \
     {                                                                                                                  \
-        std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << " :: " << message << "\n";            \
+        std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n  --> (" << std::string(#expr)     \
+                  << ")\n  --> \"" << message << "\"";                                                                 \
         exit(1);                                                                                                       \
     }
 
 #define ASSERT(expr)                                                                                                   \
     if (!(expr))                                                                                                       \
     {                                                                                                                  \
-        std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n";                                 \
+        std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n  --> (" << std::string(#expr)     \
+                  << ")";                                                                                              \
         exit(1);                                                                                                       \
     }
 #else

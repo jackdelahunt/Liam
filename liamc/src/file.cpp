@@ -11,26 +11,34 @@ FileManager *FileManager::singleton = NULL;
 
 Option<FileData *> FileManager::load_relative_from_cwd(std::string path) {
     if (FileManager::singleton == NULL)
-    { singleton = new FileManager(); }
+    {
+        singleton = new FileManager();
+    }
 
     return singleton->load_relative_to(std::filesystem::current_path(), path);
 }
 
 Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::string path) {
     if (FileManager::singleton == NULL)
-    { singleton = new FileManager(); }
+    {
+        singleton = new FileManager();
+    }
 
     std::filesystem::path relative_slash_path = std::filesystem::path(relative_to) / path;
     std::filesystem::path absolute_path       = std::filesystem::weakly_canonical(relative_slash_path);
 
     if (!std::filesystem::exists(absolute_path))
-    { return Option<FileData *>(); }
+    {
+        return Option<FileData *>();
+    }
 
     for (u64 i = 0; i < singleton->files.size(); i++)
     {
 
         if (singleton->files[i]->absolute_path == absolute_path)
-        { return Option(singleton->files[i]); }
+        {
+            return Option(singleton->files[i]);
+        }
     }
 
     u64 file_size_in_bytes = 0;
@@ -64,7 +72,9 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
         {
             char c = (char)i;
             if (c == '\n')
-            { line_count++; }
+            {
+                line_count++;
+            }
 
             data[index] = c;
             index++;
@@ -74,13 +84,16 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
     file.close();
 
     FileManager::singleton->files.push_back(new FileData{
-        .absolute_path = absolute_path, .data = data, .data_length = file_size_in_bytes, .line_count = line_count});
+        .absolute_path = absolute_path, .data = data, .data_length = file_size_in_bytes, .line_count = line_count
+    });
     return Option(singleton->files.back());
 }
 
 std::vector<FileData *> *FileManager::get_files() {
     if (FileManager::singleton == NULL)
-    { singleton = new FileManager(); }
+    {
+        singleton = new FileManager();
+    }
 
     return &singleton->files;
 }
