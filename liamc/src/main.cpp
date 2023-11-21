@@ -5,8 +5,8 @@
 #include <iostream>
 #include <vector>
 
-#include "baseLayer/types.h"
 #include "args.h"
+#include "baseLayer/types.h"
 #include "compilation_unit.h"
 #include "cpp_backend.h"
 #include "errors.h"
@@ -22,17 +22,16 @@ std::string code_gen(CompilationBundle *file);
 
 i32 main(i32 argc, char **argv) {
 
-    ScratchAllocator allocator = ScratchAllocator(8);
-    int *a = (int *)allocator.alloc(sizeof(int));
-    int *b = (int *)allocator.alloc(sizeof(int));
-    int *c = (int *)allocator.alloc(sizeof(int));
+    Allocator *allocator = new ScratchAllocator(8);
+    int *a               = (int *)allocator->alloc(sizeof(int));
+    int *b               = (int *)allocator->alloc(sizeof(int));
+    int *c               = (int *)allocator->alloc(sizeof(int));
 
     *a = 10;
     *b = 20;
     *c = 30;
 
     std::cout << *a << ", " << *b << ", " << *c << "\n";
-
 
     TIME_START(total_time);
 
@@ -53,7 +52,9 @@ i32 main(i32 argc, char **argv) {
     TIME_END(code_gen_time, "Code generation time");
 
     if (args->emit)
-    { std::cout << code << "\n"; }
+    {
+        std::cout << code << "\n";
+    }
 
     std::ofstream out_file;
     out_file = std::ofstream(args->out_path);
@@ -67,7 +68,9 @@ i32 main(i32 argc, char **argv) {
     {
         u64 total_line_count = 0;
         for (auto &file_data : *FileManager::get_files())
-        { total_line_count += file_data->line_count; }
+        {
+            total_line_count += file_data->line_count;
+        }
 
         u64 total_time_in_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
                                              std::chrono::high_resolution_clock::now() - total_time
@@ -99,7 +102,9 @@ CompilationBundle lex_parse() {
     if (ErrorReporter::has_parse_errors())
     {
         for (auto &error : ErrorReporter::singleton->parse_errors)
-        { error.print_error_message(); }
+        {
+            error.print_error_message();
+        }
 
         panic(
             "Cannot continue with errors :: count (" + std::to_string(ErrorReporter::singleton->parse_errors.size()) +
@@ -117,7 +122,9 @@ void type_check(CompilationBundle *bundle) {
     if (ErrorReporter::has_type_check_errors())
     {
         for (auto &error : ErrorReporter::singleton->type_check_errors)
-        { error.print_error_message(); }
+        {
+            error.print_error_message();
+        }
 
         panic(
             "Cannot continue with errors :: count (" +

@@ -50,7 +50,9 @@ ScopeActionStatus CompilationUnit::add_type_to_scope(TokenIndex token_index, Typ
     std::string identifier = this->get_token_string_from_index(token_index);
 
     if (this->global_type_scope.count(identifier) > 0)
-    { return ScopeActionStatus::ALREADY_EXISTS; }
+    {
+        return ScopeActionStatus::ALREADY_EXISTS;
+    }
 
     this->global_type_scope[identifier] = type_info;
     return ScopeActionStatus::OK;
@@ -60,7 +62,9 @@ ScopeActionStatus CompilationUnit::add_fn_to_scope(TokenIndex token_index, TypeI
     std::string identifier = this->get_token_string_from_index(token_index);
 
     if (this->global_fn_scope.count(identifier) > 0)
-    { return ScopeActionStatus::ALREADY_EXISTS; }
+    {
+        return ScopeActionStatus::ALREADY_EXISTS;
+    }
 
     this->global_fn_scope[identifier] = type_info;
     return ScopeActionStatus::OK;
@@ -70,7 +74,9 @@ ScopeActionStatus CompilationUnit::add_namespace_to_scope(TokenIndex token_index
     std::string identifier = this->get_token_string_from_index(token_index);
 
     if (this->global_namespace_scope.count(identifier) > 0)
-    { return ScopeActionStatus::ALREADY_EXISTS; }
+    {
+        return ScopeActionStatus::ALREADY_EXISTS;
+    }
 
     this->global_namespace_scope[identifier] = type_info;
     return ScopeActionStatus::OK;
@@ -104,10 +110,14 @@ TypeInfo *CompilationUnit::get_namespace_from_scope(TokenIndex token_index) {
 
 TypeInfo *CompilationUnit::get_from_scope_with_string(std::string identifier) {
     if (this->global_type_scope.count(identifier) > 0)
-    { return this->global_type_scope[identifier]; }
+    {
+        return this->global_type_scope[identifier];
+    }
 
     if (this->global_fn_scope.count(identifier) > 0)
-    { return this->global_fn_scope[identifier]; }
+    {
+        return this->global_fn_scope[identifier];
+    }
 
     return NULL;
 }
@@ -128,7 +138,9 @@ Option<u64> CompilationBundle::get_compilation_unit_index_with_path_relative_fro
     {
         CompilationUnit *compilation_unit = this->compilation_units[i];
         if (compilation_unit->file_data->absolute_path == absolute_path)
-        { return Option(i); }
+        {
+            return Option(i);
+        }
     }
 
     return Option<u64>();

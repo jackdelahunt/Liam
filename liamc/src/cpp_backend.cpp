@@ -16,10 +16,14 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
         this->compilation_unit = cu;
         // forward declarations
         for (auto stmt : this->compilation_unit->top_level_struct_statements)
-        { source_generated.append(forward_declare_struct(stmt)); }
+        {
+            source_generated.append(forward_declare_struct(stmt));
+        }
 
         for (auto stmt : this->compilation_unit->top_level_fn_statements)
-        { source_generated.append(forward_declare_function(stmt)); }
+        {
+            source_generated.append(forward_declare_function(stmt));
+        }
     }
 
     source_generated.append("\n\n");
@@ -30,11 +34,15 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
 
         // struct bodys
         for (auto stmt : this->compilation_unit->top_level_struct_statements)
-        { source_generated.append(emit_struct_statement(stmt)); }
+        {
+            source_generated.append(emit_struct_statement(stmt));
+        }
 
         // function bodys
         for (auto stmt : this->compilation_unit->top_level_fn_statements)
-        { source_generated.append(emit_fn_statement(stmt)); }
+        {
+            source_generated.append(emit_fn_statement(stmt));
+        }
     }
     source_generated.append("\nint main(int argc, char **argv) { main::main(); return 0; }\n\n\n // GOODBYE");
 
@@ -52,7 +60,7 @@ std::string CppBackend::forward_declare_struct(StructStatement *statement) {
 
 std::string CppBackend::forward_declare_function(FnStatement *statement) {
     std::string source = "";
-    source.append(std::format("namespace {} {{", get_namespace_name(this->compilation_unit))); 
+    source.append(std::format("namespace {} {{", get_namespace_name(this->compilation_unit)));
     source.append(emit_type_expression(statement->return_type) + " ");
 
     std::string name = this->compilation_unit->get_token_string_from_index(statement->identifier);
@@ -65,7 +73,9 @@ std::string CppBackend::forward_declare_function(FnStatement *statement) {
         std::string identifier_string = this->compilation_unit->get_token_string_from_index(token_index);
         source.append(emit_type_expression(type) + " " + identifier_string);
         if (index + 1 < statement->params.size())
-        { source.append(", "); }
+        {
+            source.append(", ");
+        }
         index++;
     }
     source.append(");");
@@ -117,7 +127,9 @@ std::string CppBackend::emit_statement(Statement *statement) {
 std::string CppBackend::emit_return_statement(ReturnStatement *statement) {
     std::string source = "return ";
     if (statement->expression)
-    { source.append(emit_expression(statement->expression)); }
+    {
+        source.append(emit_expression(statement->expression));
+    }
     return source + ";";
 }
 
@@ -128,9 +140,13 @@ std::string CppBackend::emit_break_statement(BreakStatement *statement) {
 std::string CppBackend::emit_let_statement(LetStatement *statement) {
     auto source = std::string();
     if (statement->type)
-    { source.append(emit_type_expression(statement->type) + " "); }
+    {
+        source.append(emit_type_expression(statement->type) + " ");
+    }
     else
-    { source.append("auto "); }
+    {
+        source.append("auto ");
+    }
     source.append(this->compilation_unit->get_token_string_from_index(statement->identifier));
     source.append(" = ");
     source.append(emit_expression(statement->rhs) + ";\n");
@@ -141,7 +157,9 @@ std::string CppBackend::emit_scope_statement(ScopeStatement *statement) {
     auto source = std::string();
     source.append("{\n");
     for (auto stmt : statement->statements)
-    { source.append(emit_statement(stmt)); }
+    {
+        source.append(emit_statement(stmt));
+    }
     source.append("}");
     return source;
 }
@@ -149,7 +167,7 @@ std::string CppBackend::emit_scope_statement(ScopeStatement *statement) {
 std::string CppBackend::emit_fn_statement(FnStatement *statement) {
     auto source = std::string();
 
-    source.append(std::format("namespace {} {{\n", get_namespace_name(this->compilation_unit))); 
+    source.append(std::format("namespace {} {{\n", get_namespace_name(this->compilation_unit)));
     source.append(emit_type_expression(statement->return_type) + " ");
 
     std::string name = this->compilation_unit->get_token_string_from_index(statement->identifier);
@@ -163,7 +181,9 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
         std::string identifier_string = this->compilation_unit->get_token_string_from_index(identifier);
         source.append(emit_type_expression(type) + " " + identifier_string);
         if (index + 1 < statement->params.size())
-        { source.append(", "); }
+        {
+            source.append(", ");
+        }
         index++;
     }
 
@@ -176,7 +196,7 @@ std::string CppBackend::emit_fn_statement(FnStatement *statement) {
 std::string CppBackend::emit_struct_statement(StructStatement *statement) {
     auto source = std::string();
 
-    source.append(std::format("namespace {} {{\n", get_namespace_name(this->compilation_unit))); 
+    source.append(std::format("namespace {} {{\n", get_namespace_name(this->compilation_unit)));
     source.append("struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) + " {");
     // members
     for (auto [identifier_token_index, type] : statement->members)
@@ -223,7 +243,9 @@ std::string CppBackend::emit_if_statement(IfStatement *statement) {
     source.append(emit_scope_statement(statement->body));
 
     if (statement->else_statement)
-    { source.append(emit_else_statement(statement->else_statement)); }
+    {
+        source.append(emit_else_statement(statement->else_statement));
+    }
 
     return source;
 }
@@ -232,9 +254,13 @@ std::string CppBackend::emit_else_statement(ElseStatement *statement) {
     std::string source = "else ";
 
     if (statement->if_statement)
-    { source.append(emit_if_statement(statement->if_statement)); }
+    {
+        source.append(emit_if_statement(statement->if_statement));
+    }
     else if (statement->body)
-    { source.append(emit_scope_statement(statement->body)); }
+    {
+        source.append(emit_scope_statement(statement->body));
+    }
     return source;
 }
 
@@ -360,20 +386,34 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
     std::string func_call = "LiamInternal::__";
 
     if (number_type->number_type == NumberType::UNSIGNED)
-    { func_call.append("u"); }
+    {
+        func_call.append("u");
+    }
     else if (number_type->number_type == NumberType::SIGNED)
-    { func_call.append("i"); }
+    {
+        func_call.append("i");
+    }
     else if (number_type->number_type == NumberType::FLOAT)
-    { func_call.append("f"); }
+    {
+        func_call.append("f");
+    }
 
     if (number_type->size == 8)
-    { func_call.append("8"); }
+    {
+        func_call.append("8");
+    }
     else if (number_type->size == 16)
-    { func_call.append("16"); }
+    {
+        func_call.append("16");
+    }
     else if (number_type->size == 32)
-    { func_call.append("32"); }
+    {
+        func_call.append("32");
+    }
     else if (number_type->size == 64)
-    { func_call.append("64"); }
+    {
+        func_call.append("64");
+    }
 
     func_call.append("(" + std::to_string(expression->number) + ")");
 
@@ -382,11 +422,17 @@ std::string CppBackend::emit_int_literal_expression(NumberLiteralExpression *exp
 
 std::string CppBackend::emit_unary_expression(UnaryExpression *expression) {
     if (expression->op == TokenType::TOKEN_AMPERSAND)
-    { return "&(" + emit_expression(expression->expression) + ")"; }
+    {
+        return "&(" + emit_expression(expression->expression) + ")";
+    }
     else if (expression->op == TokenType::TOKEN_STAR)
-    { return "*(" + emit_expression(expression->expression) + ")"; }
+    {
+        return "*(" + emit_expression(expression->expression) + ")";
+    }
     else if (expression->op == TokenType::TOKEN_NOT)
-    { return "!(" + emit_expression(expression->expression) + ")"; }
+    {
+        return "!(" + emit_expression(expression->expression) + ")";
+    }
 
     panic("Got a unrecognized operand in cpp backend");
     return "";
@@ -405,11 +451,15 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
         // because we can call members of a type T on ^T sometimes we do not need to add
         // a & as it is already a pointer, if it is not a pointer then add the &
         if (get_expression->lhs->type_info->type != TypeInfoType::POINTER)
-        { source.append("&"); }
+        {
+            source.append("&");
+        }
 
         source.append(emit_expression(get_expression->lhs));
         if (expression->args.size() > 0)
-        { source.append(", "); }
+        {
+            source.append(", ");
+        }
     }
 
     u64 index = 0;
@@ -418,7 +468,9 @@ std::string CppBackend::emit_call_expression(CallExpression *expression) {
         source.append(emit_expression(expr));
 
         if (index + 1 < expression->args.size())
-        { source.append(", "); }
+        {
+            source.append(", ");
+        }
         index++;
     }
     source.append(")");
@@ -437,10 +489,14 @@ std::string CppBackend::emit_get_expression(GetExpression *expression) {
     std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
 
     if (expression->type_info->type == TypeInfoType::FN)
-    { return "__" + member_string; }
+    {
+        return "__" + member_string;
+    }
 
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
-    { return emit_expression(expression->lhs) + "->" + member_string; }
+    {
+        return emit_expression(expression->lhs) + "->" + member_string;
+    }
 
     return emit_expression(expression->lhs) + "." + member_string;
 }
@@ -475,7 +531,9 @@ std::string CppBackend::emit_struct_instance_expression(StructInstanceExpression
     {
         source.append(emit_expression(expr));
         if (index + 1 < expression->named_expressions.size())
-        { source.append(", "); }
+        {
+            source.append(", ");
+        }
         index++;
     }
     source.append("}");
@@ -503,7 +561,9 @@ std::string CppBackend::emit_type_expression(TypeExpression *type_expression) {
 std::string CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
 
     if (type_expression->unary_type == UnaryType::POINTER)
-    { return emit_type_expression(type_expression->type_expression) + "*"; }
+    {
+        return emit_type_expression(type_expression->type_expression) + "*";
+    }
 
     panic("Cpp backend does not support this op yet...");
     return "";
@@ -524,9 +584,13 @@ std::string strip_semi_colon(std::string str) {
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 
     if (str.back() == ';')
-    { return str.substr(0, str.size() - 1); }
+    {
+        return str.substr(0, str.size() - 1);
+    }
     else
-    { return str; }
+    {
+        return str;
+    }
     // return (str[str.size() - 1] == ';') ? str.substr(0, str.size()-1) : str;
 }
 
@@ -536,7 +600,9 @@ u64 string_literal_length(std::string *string) {
     for (u64 i = 0; i < string->size(); i++)
     {
         if (string->at(i) == '\\' && i + 1 < string->size())
-        { i += 2; }
+        {
+            i += 2;
+        }
 
         length++;
     }

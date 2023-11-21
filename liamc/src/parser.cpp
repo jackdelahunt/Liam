@@ -40,7 +40,9 @@ void Parser::parse() {
             compilation_unit->top_level_import_statements.push_back(import_stmt);
         }
         else
-        { UNREACHABLE(); }
+        {
+            UNREACHABLE();
+        }
     }
 }
 
@@ -108,7 +110,9 @@ LetStatement *Parser::eval_let_statement() {
 
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON), NULL);
     if (peek()->token_type != TokenType::TOKEN_ASSIGN)
-    { type = TRY_CALL_RET(eval_type_expression(), NULL); }
+    {
+        type = TRY_CALL_RET(eval_type_expression(), NULL);
+    }
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_ASSIGN), NULL);
     auto expression = TRY_CALL_RET(eval_expression_statement(), NULL);
     return new LetStatement(identifier, expression->expression, type);
@@ -175,7 +179,9 @@ ReturnStatement *Parser::eval_return_statement() {
     Expression *expression = NULL;
 
     if (peek()->token_type != TokenType::TOKEN_SEMI_COLON)
-    { expression = TRY_CALL_RET(eval_expression(), NULL); }
+    {
+        expression = TRY_CALL_RET(eval_expression(), NULL);
+    }
 
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
 
@@ -214,7 +220,9 @@ IfStatement *Parser::eval_if_statement() {
     // if so capture it and own it otherwise just leave the else statement as NULL
     ElseStatement *else_statement = NULL;
     if (peek()->token_type == TokenType::TOKEN_ELSE)
-    { else_statement = TRY_CALL_RET(eval_else_statement(), NULL); }
+    {
+        else_statement = TRY_CALL_RET(eval_else_statement(), NULL);
+    }
 
     return new IfStatement(expression, body, else_statement);
 }
@@ -400,7 +408,9 @@ Expression *Parser::eval_postfix() {
             expr            = new GetExpression(expr, identifier);
         }
         else
-        { break; }
+        {
+            break;
+        }
     }
 
     return expr;
@@ -520,7 +530,9 @@ TypeExpression *Parser::eval_type_postfix() {
             expr            = new GetTypeExpression(expr, identifier);
         }
         else
-        { break; }
+        {
+            break;
+        }
     }
 
     return expr;

@@ -19,8 +19,8 @@ typedef uint64_t u64;
 typedef double f64;
 
 struct Allocator {
-    virtual void *alloc(u64 size) = 0;
-    virtual void free(void *ptr) = 0;
+    virtual void *alloc(u64 size)                  = 0;
+    virtual void free(void *ptr)                   = 0;
     virtual void *realloc(void *ptr, u64 new_size) = 0;
 };
 
@@ -29,9 +29,8 @@ struct ScratchAllocator : Allocator {
     u64 size;
     void *data;
 
-
     ScratchAllocator(u64 size);
-    
+
     void *alloc(u64 size) override;
     void free(void *ptr) override;
     void *realloc(void *ptr, u64 new_size) override;
