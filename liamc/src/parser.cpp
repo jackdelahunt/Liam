@@ -259,7 +259,7 @@ ImportStatement *Parser::eval_import_statement() {
     TokenIndex string_literal = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRING_LITERAL), NULL);
     TokenIndex identifier     = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON), NULL);
-    return new ImportStatement(identifier, string_literal);
+    return new ImportStatement(identifier, string_literal, NULL);
 }
 
 Statement *Parser::eval_line_starting_expression() {
