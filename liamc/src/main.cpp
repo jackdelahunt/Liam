@@ -1,12 +1,10 @@
 #include <chrono>
 #include <filesystem>
 #include <format>
-#include <functional>
 #include <iostream>
 #include <vector>
 
 #include "args.h"
-#include "baseLayer/types.h"
 #include "compilation_unit.h"
 #include "cpp_backend.h"
 #include "errors.h"
@@ -21,18 +19,6 @@ void type_check(CompilationBundle *file);
 std::string code_gen(CompilationBundle *file);
 
 i32 main(i32 argc, char **argv) {
-
-    Allocator *allocator = new ScratchAllocator(8);
-    int *a               = (int *)allocator->alloc(sizeof(int));
-    int *b               = (int *)allocator->alloc(sizeof(int));
-    int *c               = (int *)allocator->alloc(sizeof(int));
-
-    *a = 10;
-    *b = 20;
-    *c = 30;
-
-    std::cout << *a << ", " << *b << ", " << *c << "\n";
-
     TIME_START(total_time);
 
     Arguments::make(argc, argv);
@@ -42,7 +28,6 @@ i32 main(i32 argc, char **argv) {
     TIME_START(lex_parse_time);
     CompilationBundle bundle = lex_parse();
     TIME_END(lex_parse_time, "Lex and parsing time");
-
     TIME_START(type_time);
     type_check(&bundle);
     TIME_END(type_time, "Type checking time");

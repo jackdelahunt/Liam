@@ -22,8 +22,7 @@ void ParserError::print_error_message() {
 
 TypeCheckerError TypeCheckerError::make(std::string file) {
     auto error = TypeCheckerError{
-        .file = std::move(file), .expr_1 = NULL, .expr_2 = NULL, .type_expr_1 = NULL, .type_expr_2 = NULL, .error = ""
-    };
+        .file = std::move(file), .expr_1 = NULL, .expr_2 = NULL, .type_expr_1 = NULL, .type_expr_2 = NULL, .error = ""};
 
     return error;
 }
@@ -111,8 +110,7 @@ void ErrorReporter::report_type_checker_error(
         .expr_2      = expr_2,
         .type_expr_1 = type_expr_1,
         .type_expr_2 = type_expr_2,
-        .error       = std::move(message)
-    });
+        .error       = std::move(message)});
 
     ErrorReporter::singleton->error_reported_since_last_check = true;
 }
