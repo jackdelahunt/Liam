@@ -33,7 +33,9 @@ bool operator==(const str &l, const str &r) {
 
 std::ostream &operator<<(std::ostream &os, const str &obj) {
     for (int i = 0; i < obj.length; i++)
-    { os << obj.chars[i]; }
+    {
+        os << obj.chars[i];
+    }
     return os;
 }
 

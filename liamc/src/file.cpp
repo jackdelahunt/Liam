@@ -84,8 +84,7 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
     file.close();
 
     FileManager::singleton->files.push_back(new FileData{
-        .absolute_path = absolute_path, .data = data, .data_length = file_size_in_bytes, .line_count = line_count
-    });
+        .absolute_path = absolute_path, .data = data, .data_length = file_size_in_bytes, .line_count = line_count});
     return Option(singleton->files.back());
 }
 

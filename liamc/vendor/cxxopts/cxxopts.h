@@ -1927,8 +1927,7 @@ inline void Options::add_option(
 
     options.options.emplace_back(HelpOptionDetails{
         s, l, stringDesc, value->has_default(), value->get_default_value(), value->has_implicit(),
-        value->get_implicit_value(), std::move(arg_help), value->is_container(), value->is_boolean()
-    });
+        value->get_implicit_value(), std::move(arg_help), value->is_container(), value->is_boolean()});
 }
 
 inline void Options::add_one_option(const std::string &option, const std::shared_ptr<OptionDetails> &details) {

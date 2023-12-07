@@ -24,18 +24,6 @@ struct Allocator {
     virtual void *realloc(void *ptr, u64 new_size) = 0;
 };
 
-struct ScratchAllocator : Allocator {
-    u64 used;
-    u64 size;
-    void *data;
-
-    ScratchAllocator(u64 size);
-
-    void *alloc(u64 size) override;
-    void free(void *ptr) override;
-    void *realloc(void *ptr, u64 new_size) override;
-};
-
 template <typename T> struct Option {
     explicit Option() {
         this->t     = {};
