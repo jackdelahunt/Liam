@@ -132,8 +132,6 @@ Option<u64> CompilationBundle::get_compilation_unit_index_with_path_relative_fro
     std::filesystem::path relative_slash_path = std::filesystem::path(relative_from) / path;
     std::filesystem::path absolute_path       = std::filesystem::weakly_canonical(relative_slash_path);
 
-    std::cout << absolute_path.string() << "\n";
-
     for (u64 i = 0; i < this->compilation_units.size(); i++)
     {
         CompilationUnit *compilation_unit = this->compilation_units[i];

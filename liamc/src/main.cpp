@@ -1,6 +1,5 @@
 #include <chrono>
 #include <filesystem>
-#include <format>
 #include <iostream>
 #include <vector>
 
@@ -36,11 +35,6 @@ i32 main(i32 argc, char **argv) {
     auto code = code_gen(&bundle);
     TIME_END(code_gen_time, "Code generation time");
 
-    if (args->emit)
-    {
-        std::cout << code << "\n";
-    }
-
     std::ofstream out_file;
     out_file = std::ofstream(args->out_path);
 
@@ -64,6 +58,11 @@ i32 main(i32 argc, char **argv) {
 
         std::cout << "Total line count :: " << total_line_count
                   << " :: LOC/s :: " << (f64)total_line_count / ((f64)total_time_in_milliseconds / 1000.0) << "\n";
+    }
+
+    if (args->emit)
+    {
+        std::cout << code << "\n";
     }
 
     return 0;

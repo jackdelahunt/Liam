@@ -704,6 +704,7 @@ void CppBackend::emit_type_expression(TypeExpression *type_expression) {
         break;
     case TypeExpressionType::TYPE_GET:
         emit_get_type_expression(static_cast<GetTypeExpression *>(type_expression));
+        break;
     default:
         UNREACHABLE();
     }
@@ -726,7 +727,21 @@ void CppBackend::emit_identifier_type_expression(IdentifierTypeExpression *type_
 }
 
 void CppBackend::emit_get_type_expression(GetTypeExpression *type_expression) {
-    this->builder.append("THIS IS A GET TYPE EXPRESSION.");
+    std::string identifier = this->compilation_unit->get_token_string_from_index(type_expression->identifier);
+
+    emit_type_expression(type_expression->type_expression);
+
+    if (type_expression->type_expression->type_info->type == TypeInfoType::NAMESPACE)
+    {
+        this->builder.append("::");
+    }
+    else
+    {
+        UNREACHABLE();
+    }
+
+    this->builder.append(identifier);
+
 }
 
 std::string strip_semi_colon(std::string str) {
