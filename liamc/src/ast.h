@@ -257,8 +257,9 @@ struct ContinueStatement : Statement {
 struct ImportStatement : Statement {
     TokenIndex identifier;
     TokenIndex string_literal;
+    NamespaceTypeInfo *namespace_type_info;
 
-    ImportStatement(TokenIndex identifier, TokenIndex string_literal);
+    ImportStatement(TokenIndex identifier, TokenIndex string_literal, NamespaceTypeInfo *namespace_type_info);
 };
 
 /*

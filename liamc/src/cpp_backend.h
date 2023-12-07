@@ -28,16 +28,19 @@ struct CppBuilder {
 
 struct CppBackend {
     CompilationUnit *compilation_unit;
+    CompilationBundle *compilation_bundle;
     CppBuilder builder;
 
     CppBackend();
 
     std::string emit(CompilationBundle *bundle);
 
+    void forward_declare_namespace(CompilationUnit *compilation_unit);
     void forward_declare_struct(StructStatement *statement);
     void forward_declare_function(FnStatement *statement);
 
     void emit_statement(Statement *statement);
+    void emit_import_statement(ImportStatement *statement);
     void emit_return_statement(ReturnStatement *statement);
     void emit_break_statement(BreakStatement *statement);
     void emit_let_statement(LetStatement *statement);

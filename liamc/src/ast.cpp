@@ -115,10 +115,11 @@ ContinueStatement::ContinueStatement() {
     this->statement_type = StatementType::STATEMENT_CONTINUE;
 }
 
-ImportStatement::ImportStatement(TokenIndex identifier, TokenIndex string_literal) {
+ImportStatement::ImportStatement(TokenIndex identifier, TokenIndex string_literal, NamespaceTypeInfo *namespace_type_info) {
     this->statement_type = StatementType::STATEMENT_IMPORT;
     this->identifier     = identifier;
     this->string_literal = string_literal;
+    this->namespace_type_info = namespace_type_info;
 }
 
 std::ostream &Expression::format(std::ostream &os) const {

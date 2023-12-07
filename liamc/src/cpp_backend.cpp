@@ -70,8 +70,26 @@ CppBackend::CppBackend() {
 }
 
 std::string CppBackend::emit(CompilationBundle *bundle) {
+    this->compilation_bundle = bundle; 
+
     this->builder.append_line("#include <core.h>");
     this->builder.append_line("#include <liam_stdlib.h>");
+
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        this->compilation_unit = cu;
+        forward_declare_namespace(cu); 
+    }
+
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        this->compilation_unit = cu;
+        // namespace imports
+        for (auto stmt : this->compilation_unit->top_level_import_statements)
+        {
+            emit_import_statement(stmt);
+        }
+    }
 
     for (CompilationUnit *cu : bundle->compilation_units)
     {
@@ -107,6 +125,13 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
     }
     this->builder.append_line("\nint main(int argc, char **argv) { start::main(); return 0; }");
     return this->builder.source;
+}
+
+void CppBackend::forward_declare_namespace(CompilationUnit *compilation_unit) {
+    // namespace main {}
+    this->builder.start_line();
+    this->builder.append(std::format("namespace {} {{ }}", get_namespace_name(this->compilation_unit)));
+    this->builder.end_line();
 }
 
 void CppBackend::forward_declare_struct(StructStatement *statement) {
@@ -194,6 +219,28 @@ void CppBackend::emit_statement(Statement *statement) {
     default:
         UNREACHABLE();
     }
+}
+
+void CppBackend::emit_import_statement(ImportStatement *statement) {
+    // namespace main { namespace new_name = other; }
+    this->builder.start_line();
+
+    // namespace main { namespace
+    this->builder.append(std::format("namespace {} {{ namespace ", get_namespace_name(this->compilation_unit)));
+
+    // new_name = 
+    std::string new_name = this->compilation_unit->get_token_string_from_index(statement->identifier);
+    this->builder.append(new_name);
+    this->builder.append(" = ");
+
+    std::string other_namespace_name = get_namespace_name(this->compilation_bundle->compilation_units[statement->namespace_type_info->compilation_unit_index]);
+
+    // other
+    this->builder.append(other_namespace_name);
+
+    // ; }
+    this->builder.append("; }");
+    this->builder.end_line();
 }
 
 void CppBackend::emit_return_statement(ReturnStatement *statement) {
@@ -594,18 +641,22 @@ void CppBackend::emit_identifier_expression(IdentifierExpression *expression) {
 
 void CppBackend::emit_get_expression(GetExpression *expression) {
     std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
+
+    emit_expression(expression->lhs);
+
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     {
-        emit_expression(expression->lhs);
         this->builder.append("->");
-        this->builder.append(member_string);
+    } else if (expression->lhs->type_info->type == TypeInfoType::NAMESPACE)
+    {
+        this->builder.append("::");
     }
     else
     {
-        emit_expression(expression->lhs);
         this->builder.append(".");
-        this->builder.append(member_string);
     }
+
+    this->builder.append(member_string);
 }
 
 void CppBackend::emit_group_expression(GroupExpression *expression) {

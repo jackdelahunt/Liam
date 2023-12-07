@@ -113,10 +113,10 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
     }
 }
 
-void TypeChecker::type_check_import_statement(ImportStatement *import_statement) {
+void TypeChecker::type_check_import_statement(ImportStatement *statement) {
     // trimming the " from either side of the token, this is becase it is a string literal
     // and that means
-    std::string import_path = this->compilation_unit->get_token_string_from_index(import_statement->string_literal);
+    std::string import_path = this->compilation_unit->get_token_string_from_index(statement->string_literal);
     trim(import_path, "\"");
 
     std::filesystem::path this_compilation_unit_parent_dir_path =
@@ -134,19 +134,23 @@ void TypeChecker::type_check_import_statement(ImportStatement *import_statement)
         return;
     }
 
+    NamespaceTypeInfo *type_info = new NamespaceTypeInfo(compilation_unit_index.value());
+
     ScopeActionStatus status = this->compilation_unit->add_namespace_to_scope(
-        import_statement->identifier, new NamespaceTypeInfo(compilation_unit_index.value())
+        statement->identifier, type_info
     );
 
     if (status == ScopeActionStatus::ALREADY_EXISTS)
     {
-        std::string identifier = this->compilation_unit->get_token_string_from_index(import_statement->identifier);
+        std::string identifier = this->compilation_unit->get_token_string_from_index(statement->identifier);
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
             .set_message(std::format("Duplicate creation of namespace identifier '{}' ", identifier))
             .report();
 
         return;
     }
+
+    statement->namespace_type_info = type_info; 
 }
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
