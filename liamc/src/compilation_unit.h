@@ -6,7 +6,7 @@
 
 #include "ast.h"
 #include "file.h"
-#include "utils.h"
+#include "sorting_node.h"
 
 struct FileData;
 
@@ -45,6 +45,7 @@ struct CompilationUnit {
 
 struct CompilationBundle {
     std::vector<CompilationUnit *> compilation_units;
+    std::vector<SortingNode> sorted_types;
 
     CompilationBundle(std::vector<CompilationUnit *> compilation_units);
 
