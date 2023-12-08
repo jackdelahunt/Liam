@@ -7,6 +7,7 @@
 
 #include "ast.h"
 #include "baseLayer/debug.h"
+#include "sorting_node.h"
 
 CppBuilder::CppBuilder() {
     this->source      = std::string();
@@ -107,21 +108,12 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
         }
     }
 
-    // emit struct bodies based on a topological sort
-    std::vector<StructStatement *> all_struct_statements;
-    for (CompilationUnit *cu : bundle->compilation_units)
-    {
-        for (StructStatement *stmt : cu->top_level_struct_statements)
-        {
-            all_struct_statements.push_back(stmt);
-        }
-    }
-
-    std::vector<SortingNode> nodes = topilogical_sort(all_struct_statements);
-
-    for (SortingNode &node : nodes)
+    this->builder.insert_new_line();
+    for (SortingNode& node : bundle->sorted_types)
     {
         this->compilation_unit = node.type_info->defined_location->compilation_unit;
+
+        // struct bodies
         emit_struct_statement(node.type_info->defined_location);
     }
 
@@ -796,105 +788,4 @@ std::string get_namespace_name(CompilationUnit *compilation_unit) {
     return compilation_unit->file_data->absolute_path.stem();
 }
 
-SortingNode::SortingNode(StructTypeInfo *type_info) {
-    this->type_info      = type_info;
-    this->depends_on     = std::vector<SortingNode *>();
-    this->permenent_mark = false;
-    this->temperory_mark = false;
-}
 
-void add_type_info_to_map(
-    std::vector<SortingNode> *nodes, std::unordered_map<StructTypeInfo *, u64> *type_info_to_node_index_map,
-    StructTypeInfo *type_info
-) {
-    // already added to the map, so exit
-    if (type_info_to_node_index_map->count(type_info) > 0)
-    {
-        return;
-    }
-
-    SortingNode node = SortingNode(type_info);
-    u64 node_index   = nodes->size();
-    nodes->push_back(node);
-    (*type_info_to_node_index_map)[type_info] = node_index;
-
-    for (auto &child : type_info->members)
-    {
-        auto [name, child_type_info] = child;
-
-        if (child_type_info->type == TypeInfoType::STRUCT)
-        {
-            add_type_info_to_map(nodes, type_info_to_node_index_map, (StructTypeInfo *)child_type_info);
-        }
-    }
-}
-
-void resolve_dependencies(
-    std::vector<SortingNode> *nodes, std::unordered_map<StructTypeInfo *, u64> *type_info_to_node_index_map,
-    SortingNode &current_node
-) {
-    for (auto &child : current_node.type_info->members)
-    {
-        auto [name, child_type_info] = child;
-
-        if (child_type_info->type == TypeInfoType::STRUCT)
-        {
-            ASSERT_MSG(
-                type_info_to_node_index_map->count((StructTypeInfo *)child_type_info) > 0,
-                "All struct type infos should be in this map"
-            );
-
-            u64 child_index         = (*type_info_to_node_index_map)[(StructTypeInfo *)child_type_info];
-            SortingNode *child_node = &nodes->at(child_index);
-            current_node.depends_on.push_back(child_node);
-        }
-    }
-}
-
-void topological_visit(std::vector<SortingNode> *L, SortingNode *node) {
-    if (node->permenent_mark)
-        return;
-
-    if (node->temperory_mark)
-    {
-        panic("UH OH THERE IS A CYCLE");
-    }
-
-    node->temperory_mark = true;
-
-    for (SortingNode *child : node->depends_on)
-    {
-        topological_visit(L, child);
-    }
-
-    node->temperory_mark = false;
-    node->permenent_mark = true;
-    L->push_back(*node); // TODO maybe we dont need to do a copy here????
-}
-
-std::vector<SortingNode> topilogical_sort(std::vector<StructStatement *> statements) {
-    std::vector<SortingNode> nodes;
-    std::unordered_map<StructTypeInfo *, u64> type_info_to_node_index_map;
-
-    // convert all struct statements into the nodes we need for the graph
-    for (auto struct_statement : statements)
-    {
-        add_type_info_to_map(&nodes, &type_info_to_node_index_map, struct_statement->type_info);
-    }
-
-    // fill in the dependency vector for each sorting node
-    for (SortingNode &sorting_node : nodes)
-    {
-        resolve_dependencies(&nodes, &type_info_to_node_index_map, sorting_node);
-    }
-
-    // Depth-first search
-    // https://en.wikipedia.org/wiki/Topological_sorting
-    std::vector<SortingNode> L;
-    for (SortingNode &sorting_node : nodes)
-    {
-        topological_visit(&L, &sorting_node);
-    }
-
-    return L;
-}

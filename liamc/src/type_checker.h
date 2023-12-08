@@ -6,6 +6,7 @@
 
 #include "ast.h"
 #include "compilation_unit.h"
+#include "sorting_node.h"
 
 struct Statement;
 struct LetStatement;
@@ -20,6 +21,7 @@ struct NumberLiteralExpression;
 struct StringLiteralExpression;
 struct Expression;
 struct CompilationUnit;
+struct CompilationBundle;
 
 struct TypeChecker {
     CompilationUnit *compilation_unit;
@@ -77,3 +79,5 @@ struct TypeChecker {
 
 bool type_match(TypeInfo *a, TypeInfo *b);
 std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal);
+
+std::vector<SortingNode> topilogical_sort(std::vector<StructStatement *> structs);

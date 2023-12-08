@@ -103,6 +103,19 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
         }
     }
 
+    // type check struct bodies looking for recursive types
+    // and then use a topological sort
+    std::vector<StructStatement *> all_struct_statements;
+    for (CompilationUnit *cu : bundle->compilation_units)
+    {
+        for (StructStatement *stmt : cu->top_level_struct_statements)
+        {
+            all_struct_statements.push_back(stmt);
+        }
+    }
+
+    this->compilation_bundle->sorted_types = TRY_CALL(topilogical_sort(all_struct_statements));
+
     for (CompilationUnit *cu : bundle->compilation_units)
     {
         this->compilation_unit = cu;
@@ -776,7 +789,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         {
             ErrorReporter::report_type_checker_error(
                 this->compilation_unit->file_data->absolute_path.string(), expression->lhs, NULL, NULL, NULL,
-                std::format("No symbol '{}' found in namespace", identifier)
+                std::format("no symbol '{}' found in namespace", identifier)
             );
             return;
         }
@@ -1000,13 +1013,22 @@ void TypeChecker::type_check_get_type_expression(GetTypeExpression *type_express
     }
 
     NamespaceTypeInfo *namespace_type_info = (NamespaceTypeInfo *)type_expression->type_expression->type_info;
-    CompilationUnit *compilation_unit =
+    CompilationUnit *other_compilation_unit =
         this->compilation_bundle->compilation_units[namespace_type_info->compilation_unit_index];
 
     // getting the string of the identifier from the current compilation unit
     // but then looking that up in the other compilation unit
     std::string identifier     = this->compilation_unit->get_token_string_from_index(type_expression->identifier);
-    TypeInfo *type_info        = compilation_unit->get_type_from_scope_with_string(identifier);
+    TypeInfo *type_info        = other_compilation_unit->get_type_from_scope_with_string(identifier);
+
+    if(type_info == NULL) {
+        ErrorReporter::report_type_checker_error(
+            this->compilation_unit->file_data->absolute_path.string(), NULL, NULL, type_expression->type_expression, NULL,
+            std::format("no symbol '{}' found in namespace", identifier)
+        );
+        return;
+    }
+
     type_expression->type_info = type_info;
 }
 
@@ -1156,4 +1178,106 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     }
 
     return BAD_PARSE;
+}
+
+void add_type_info_to_map(
+    std::vector<SortingNode> *nodes, std::unordered_map<StructTypeInfo *, u64> *type_info_to_node_index_map,
+    StructTypeInfo *type_info
+) {
+    // already added to the map, so exit
+    if (type_info_to_node_index_map->count(type_info) > 0)
+    {
+        return;
+    }
+
+    SortingNode node = SortingNode(type_info);
+    u64 node_index   = nodes->size();
+    nodes->push_back(node);
+    (*type_info_to_node_index_map)[type_info] = node_index;
+
+    for (auto &child : type_info->members)
+    {
+        auto [name, child_type_info] = child;
+
+        if (child_type_info->type == TypeInfoType::STRUCT)
+        {
+            add_type_info_to_map(nodes, type_info_to_node_index_map, (StructTypeInfo *)child_type_info);
+        }
+    }
+}
+
+void resolve_dependencies(
+    std::vector<SortingNode> *nodes, std::unordered_map<StructTypeInfo *, u64> *type_info_to_node_index_map,
+    SortingNode &current_node
+) {
+    for (auto &child : current_node.type_info->members)
+    {
+        auto [name, child_type_info] = child;
+
+        if (child_type_info->type == TypeInfoType::STRUCT)
+        {
+            ASSERT_MSG(
+                type_info_to_node_index_map->count((StructTypeInfo *)child_type_info) > 0,
+                "All struct type infos should be in this map"
+            );
+
+            u64 child_index         = (*type_info_to_node_index_map)[(StructTypeInfo *)child_type_info];
+            SortingNode *child_node = &nodes->at(child_index);
+            current_node.depends_on.push_back(child_node);
+        }
+    }
+}
+
+void topological_visit(std::vector<SortingNode> *L, SortingNode *node) {
+    if (node->permenent_mark)
+        return;
+
+    if (node->temperory_mark)
+    {
+        // TODO this error is terrible 
+        CompilationUnit *compilation_unit = node->type_info->defined_location->compilation_unit; 
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message(std::format("recursive type found in {}", compilation_unit->get_token_string_from_index(node->type_info->defined_location->identifier)))
+            .report();
+
+        return;
+    }
+
+    node->temperory_mark = true;
+
+    for (SortingNode *child : node->depends_on)
+    {
+        topological_visit(L, child);
+    }
+
+    node->temperory_mark = false;
+    node->permenent_mark = true;
+    L->push_back(*node); // TODO maybe we dont need to do a copy here????
+}
+
+std::vector<SortingNode> topilogical_sort(std::vector<StructStatement *> statements) {
+    std::vector<SortingNode> nodes;
+    std::unordered_map<StructTypeInfo *, u64> type_info_to_node_index_map;
+
+    // convert all struct statements into the nodes we need for the graph
+    for (auto struct_statement : statements)
+    {
+        add_type_info_to_map(&nodes, &type_info_to_node_index_map, struct_statement->type_info);
+    }
+
+    // fill in the dependency vector for each sorting node
+    for (SortingNode &sorting_node : nodes)
+    {
+        resolve_dependencies(&nodes, &type_info_to_node_index_map, sorting_node);
+    }
+
+    // Depth-first search
+    // https://en.wikipedia.org/wiki/Topological_sorting
+    std::vector<SortingNode> L;
+    for (SortingNode &sorting_node : nodes)
+    {
+        topological_visit(&L, &sorting_node);
+    }
+
+    return L;
 }
