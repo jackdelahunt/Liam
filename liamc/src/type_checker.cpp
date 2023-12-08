@@ -3,9 +3,11 @@
 #include <assert.h>
 #include <format>
 #include <tuple>
+#include <unordered_map>
+#include <vector>
 
-#include "args.h"
 #include "ast.h"
+#include "baseLayer/debug.h"
 #include "compilation_unit.h"
 #include "errors.h"
 #include "liam.h"
@@ -136,9 +138,7 @@ void TypeChecker::type_check_import_statement(ImportStatement *statement) {
 
     NamespaceTypeInfo *type_info = new NamespaceTypeInfo(compilation_unit_index.value());
 
-    ScopeActionStatus status = this->compilation_unit->add_namespace_to_scope(
-        statement->identifier, type_info
-    );
+    ScopeActionStatus status = this->compilation_unit->add_namespace_to_scope(statement->identifier, type_info);
 
     if (status == ScopeActionStatus::ALREADY_EXISTS)
     {
@@ -150,7 +150,7 @@ void TypeChecker::type_check_import_statement(ImportStatement *statement) {
         return;
     }
 
-    statement->namespace_type_info = type_info; 
+    statement->namespace_type_info = type_info;
 }
 
 void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
@@ -171,7 +171,8 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     // will be resolved. As structs after this one might be referenced
     // add it to the table and leave its type info blank until we type check it
 
-    ScopeActionStatus status = this->compilation_unit->add_type_to_scope(statement->identifier, new StructTypeInfo({}));
+    ScopeActionStatus status =
+        this->compilation_unit->add_type_to_scope(statement->identifier, new StructTypeInfo(statement, {}));
     if (status == ScopeActionStatus::ALREADY_EXISTS)
     {
         std::string identifier = this->compilation_unit->get_token_string_from_index(statement->identifier);
@@ -278,6 +279,8 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
         (StructTypeInfo *)this->compilation_unit->get_type_from_scope(statement->identifier);
     ASSERT(struct_type_info != NULL);
     struct_type_info->members = members_type_info;
+
+    statement->type_info = struct_type_info;
 }
 
 void TypeChecker::type_check_statement(Statement *statement) {

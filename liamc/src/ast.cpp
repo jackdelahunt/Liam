@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "compilation_unit.h"
 
 #include <tuple>
 
@@ -28,9 +29,12 @@ StrTypeInfo::StrTypeInfo() {
 TypeTypeInfo::TypeTypeInfo() {
 }
 
-StructTypeInfo::StructTypeInfo(std::vector<std::tuple<std::string, TypeInfo *>> members) {
-    this->members = members;
-    this->type    = TypeInfoType::STRUCT;
+StructTypeInfo::StructTypeInfo(
+    StructStatement *defined_location, std::vector<std::tuple<std::string, TypeInfo *>> members
+) {
+    this->defined_location = defined_location;
+    this->members          = members;
+    this->type             = TypeInfoType::STRUCT;
 }
 
 FnTypeInfo::FnTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args) {
@@ -75,10 +79,14 @@ FnStatement::FnStatement(TokenIndex identifier, CSV params, TypeExpression *type
     this->statement_type = StatementType::STATEMENT_FN;
 }
 
-StructStatement::StructStatement(TokenIndex identifier, CSV members) {
-    this->identifier     = identifier;
-    this->members        = members;
-    this->statement_type = StatementType::STATEMENT_STRUCT;
+StructStatement::StructStatement(
+    CompilationUnit *compilation_unit, TokenIndex identifier, CSV members, StructTypeInfo *type_info
+) {
+    this->compilation_unit = compilation_unit;
+    this->identifier       = identifier;
+    this->members          = members;
+    this->type_info        = type_info;
+    this->statement_type   = StatementType::STATEMENT_STRUCT;
 }
 
 ForStatement::ForStatement(Statement *assign, Expression *condition, Statement *update, ScopeStatement *body) {
@@ -115,10 +123,12 @@ ContinueStatement::ContinueStatement() {
     this->statement_type = StatementType::STATEMENT_CONTINUE;
 }
 
-ImportStatement::ImportStatement(TokenIndex identifier, TokenIndex string_literal, NamespaceTypeInfo *namespace_type_info) {
-    this->statement_type = StatementType::STATEMENT_IMPORT;
-    this->identifier     = identifier;
-    this->string_literal = string_literal;
+ImportStatement::ImportStatement(
+    TokenIndex identifier, TokenIndex string_literal, NamespaceTypeInfo *namespace_type_info
+) {
+    this->statement_type      = StatementType::STATEMENT_IMPORT;
+    this->identifier          = identifier;
+    this->string_literal      = string_literal;
     this->namespace_type_info = namespace_type_info;
 }
 

@@ -170,7 +170,7 @@ StructStatement *Parser::eval_struct_statement() {
 
     auto member = TRY_CALL_RET(consume_comma_seperated_params(), NULL);
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
-    return new StructStatement(identifier, member);
+    return new StructStatement(this->compilation_unit, identifier, member, NULL);
 }
 
 ReturnStatement *Parser::eval_return_statement() {
