@@ -78,3 +78,14 @@ struct CppBackend {
 std::string strip_semi_colon(std::string str);
 u64 string_literal_length(std::string *string);
 std::string get_namespace_name(CompilationUnit *compilation_unit);
+
+struct SortingNode {
+    StructTypeInfo *type_info;
+    std::vector<SortingNode *> depends_on;
+    bool permenent_mark;
+    bool temperory_mark;
+
+    SortingNode(StructTypeInfo *type_info);
+};
+
+std::vector<SortingNode> topilogical_sort(std::vector<StructStatement *> structs);

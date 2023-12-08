@@ -148,9 +148,10 @@ struct TypeTypeInfo : TypeInfo {
 };
 
 struct StructTypeInfo : TypeInfo {
+    StructStatement *defined_location;
     std::vector<std::tuple<std::string, TypeInfo *>> members;
 
-    StructTypeInfo(std::vector<std::tuple<std::string, TypeInfo *>> members);
+    StructTypeInfo(StructStatement *defined_location, std::vector<std::tuple<std::string, TypeInfo *>> members);
 };
 
 struct FnTypeInfo : TypeInfo {
@@ -203,10 +204,12 @@ struct FnStatement : Statement {
 };
 
 struct StructStatement : Statement {
+    CompilationUnit *compilation_unit;
     TokenIndex identifier;
     CSV members;
+    StructTypeInfo *type_info;
 
-    StructStatement(TokenIndex identifier, CSV members);
+    StructStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV members, StructTypeInfo *type_info);
 };
 
 struct AssigmentStatement : Statement {
