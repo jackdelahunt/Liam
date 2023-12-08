@@ -5,7 +5,7 @@ import subprocess
 import os
 
 source_dir = os.path.dirname(__file__) + "/liam/"
-compiler_path = os.path.dirname(__file__) + "/../zig-out/bin/liamc"
+compiler_path = os.path.dirname(__file__) + "/../build/release/liamc"
 stdlib_path = os.path.dirname(__file__) + "/../stdlib"
 core_path = os.path.dirname(__file__) + "/../core"
 
