@@ -405,10 +405,10 @@ Expression *Parser::eval_postfix() {
         if (match(TokenType::TOKEN_BRACKET_OPEN))
         {
             TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN), NULL);
-            Expression *expression = TRY_CALL_RET(eval_expression(), NULL);
+            Expression *subscripter = TRY_CALL_RET(eval_expression(), NULL);
             TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE), NULL);
 
-            expr = new SubscriptExpression(expr, call_args);
+            expr = new SubscriptExpression(expr, subscripter);
         }
         else if (match(TokenType::TOKEN_DOT))
         {

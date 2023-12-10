@@ -69,6 +69,7 @@ struct CppBackend {
     void emit_instantiate_expression(InstantiateExpression *expression);
     void emit_struct_instance_expression(StructInstanceExpression *expression);
     void emit_static_array_literal_expression(StaticArrayExpression *expression);
+    void emit_subscript_expression(SubscriptExpression *expression);
 
     void emit_type_expression(TypeExpression *type_expression);
     void emit_unary_type_expression(UnaryTypeExpression *type_expression);

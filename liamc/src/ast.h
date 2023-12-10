@@ -384,6 +384,13 @@ struct StaticArrayExpression : Expression {
     );
 };
 
+struct SubscriptExpression : Expression {
+    Expression *subscriptee;
+    Expression *subscripter;
+
+    SubscriptExpression(Expression *subscriptee, Expression *subscripter);
+};
+
 /*
     ======= TYPE EXPRESSIONS ========
 */

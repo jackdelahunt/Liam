@@ -477,6 +477,9 @@ void TypeChecker::type_check_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_STATIC_ARRAY:
         return type_check_static_array_literal_expression(static_cast<StaticArrayExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_SUBSCRIPT:
+        return type_check_subscript_expression(static_cast<SubscriptExpression *>(expression));
+        break;
     default:
         UNREACHABLE();
     }
@@ -992,6 +995,46 @@ void TypeChecker::type_check_static_array_literal_expression(StaticArrayExpressi
     expression->type_info = new StaticArrayTypeInfo(expression->number->number, expression->type_expression->type_info);
 }
 
+void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression) {
+    TRY_CALL_VOID(type_check_expression(expression->subscriptee));
+    TRY_CALL_VOID(type_check_expression(expression->subscripter));
+
+    if (expression->subscriptee->type_info->type != TypeInfoType::STATIC_ARRAY)
+    {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("can only subscript array types")
+            .set_expr_1(expression->subscriptee)
+            .set_expr_2(expression->subscripter)
+            .report();
+
+        return;
+    }
+
+    if (expression->subscripter->type_info->type != TypeInfoType::NUMBER)
+    {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("can only subscript with number types")
+            .set_expr_2(expression->subscripter)
+            .report();
+
+        return;
+    }
+
+    NumberTypeInfo *number_type_info = (NumberTypeInfo *)expression->subscripter->type_info;
+    if (number_type_info->number_type == NumberType::FLOAT)
+    {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("cannot use a float type to subscript an array")
+            .set_expr_2(expression->subscripter)
+            .report();
+
+        return;
+    }
+
+    StaticArrayTypeInfo *array_type_info = (StaticArrayTypeInfo *)expression->subscriptee->type_info;
+    expression->type_info                = array_type_info->base_type;
+}
+
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
@@ -1247,25 +1290,25 @@ void add_type_info_to_map(
     std::vector<SortingNode> *nodes, std::unordered_map<StructTypeInfo *, u64> *type_info_to_node_index_map,
     StructTypeInfo *type_info
 ) {
-    // already added to the map, so exit
-    if (type_info_to_node_index_map->count(type_info) > 0)
-    {
-        return;
-    }
-
     SortingNode node = SortingNode(type_info);
     u64 node_index   = nodes->size();
     nodes->push_back(node);
     (*type_info_to_node_index_map)[type_info] = node_index;
+}
 
-    for (auto &child : type_info->members)
+void add_dependent_types_to_list(TypeInfo *type_info, std::vector<StructTypeInfo *> *dependent_types) {
+    if (type_info->type == TypeInfoType::STRUCT)
     {
-        auto [name, child_type_info] = child;
-
-        if (child_type_info->type == TypeInfoType::STRUCT)
+        dependent_types->push_back((StructTypeInfo *)type_info);
+        for (auto [_, child] : ((StructTypeInfo *)type_info)->members)
         {
-            add_type_info_to_map(nodes, type_info_to_node_index_map, (StructTypeInfo *)child_type_info);
+            add_dependent_types_to_list(child, dependent_types);
         }
+    }
+    else if (type_info->type == TypeInfoType::STATIC_ARRAY)
+    {
+        TypeInfo *child_type_info = ((StaticArrayTypeInfo *)type_info)->base_type;
+        add_dependent_types_to_list(child_type_info, dependent_types);
     }
 }
 
@@ -1273,21 +1316,20 @@ void resolve_dependencies(
     std::vector<SortingNode> *nodes, std::unordered_map<StructTypeInfo *, u64> *type_info_to_node_index_map,
     SortingNode &current_node
 ) {
+    std::vector<StructTypeInfo *> dependent_types;
     for (auto &child : current_node.type_info->members)
     {
         auto [name, child_type_info] = child;
+        add_dependent_types_to_list(child_type_info, &dependent_types);
+    }
 
-        if (child_type_info->type == TypeInfoType::STRUCT)
-        {
-            ASSERT_MSG(
-                type_info_to_node_index_map->count((StructTypeInfo *)child_type_info) > 0,
-                "All struct type infos should be in this map"
-            );
+    for (StructTypeInfo *child : dependent_types)
+    {
+        ASSERT(type_info_to_node_index_map->count(child) > 0);
 
-            u64 child_index         = (*type_info_to_node_index_map)[(StructTypeInfo *)child_type_info];
-            SortingNode *child_node = &nodes->at(child_index);
-            current_node.depends_on.push_back(child_node);
-        }
+        u64 child_index         = (*type_info_to_node_index_map)[child];
+        SortingNode *child_node = &nodes->at(child_index);
+        current_node.depends_on.push_back(child_node);
     }
 }
 

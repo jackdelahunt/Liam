@@ -72,6 +72,7 @@ struct TypeChecker {
     void type_check_instantiate_expression(InstantiateExpression *expression);
     void type_check_struct_instance_expression(StructInstanceExpression *expression);
     void type_check_static_array_literal_expression(StaticArrayExpression *expression);
+    void type_check_subscript_expression(SubscriptExpression *expression);
 
     void type_check_type_expression(TypeExpression *type_expression);
     void type_check_unary_type_expression(UnaryTypeExpression *type_expression);

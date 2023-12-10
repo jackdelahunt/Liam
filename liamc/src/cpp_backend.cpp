@@ -388,9 +388,10 @@ void CppBackend::emit_assigment_statement(AssigmentStatement *statement) {
 }
 
 void CppBackend::emit_expression_statement(ExpressionStatement *statement) {
+    this->builder.start_line();
     emit_expression(statement->expression);
     this->builder.append(";");
-    this->builder.insert_new_line();
+    this->builder.end_line();
 }
 
 void CppBackend::emit_for_statement(ForStatement *statement) {
@@ -493,6 +494,9 @@ void CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_STATIC_ARRAY:
         emit_static_array_literal_expression(static_cast<StaticArrayExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_SUBSCRIPT:
+        emit_subscript_expression(static_cast<SubscriptExpression *>(expression));
+        break;
     default: {
         UNREACHABLE();
     }
@@ -555,7 +559,7 @@ void CppBackend::emit_binary_expression(BinaryExpression *expression) {
 void CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
     std::string literal_string = this->compilation_unit->get_token_string_from_index(expression->token);
 
-    this->builder.append("LiamInternal::make_str((char*)");
+    this->builder.append("Liam::make_str((char*)");
     this->builder.append(literal_string);
     this->builder.append(std::format(", {})", std::to_string(string_literal_length(&literal_string))));
 }
@@ -567,7 +571,7 @@ void CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression)
 void CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
     auto number_type = static_cast<NumberTypeInfo *>(expression->type_info);
 
-    this->builder.append("LiamInternal::make_");
+    this->builder.append("Liam::make_");
 
     if (number_type->number_type == NumberType::UNSIGNED)
     {
@@ -705,7 +709,7 @@ void CppBackend::emit_struct_instance_expression(StructInstanceExpression *expre
 }
 
 void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *expression) {
-    this->builder.append("LiamInternal::StaticArray<");
+    this->builder.append("Liam::StaticArray<");
     emit_int_literal_expression(expression->number);
     this->builder.append(", ");
     emit_type_expression(expression->type_expression);
@@ -727,6 +731,13 @@ void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *exp
     }
 
     this->builder.append("}))");
+}
+
+void CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
+    emit_expression(expression->subscriptee);
+    this->builder.append("[");
+    emit_expression(expression->subscripter);
+    this->builder.append("]");
 }
 
 void CppBackend::emit_type_expression(TypeExpression *type_expression) {
@@ -783,7 +794,7 @@ void CppBackend::emit_get_type_expression(GetTypeExpression *type_expression) {
 }
 
 void CppBackend::emit_static_array_type_expression(StaticArrayTypeExpression *type_expression) {
-    this->builder.append("LiamInternal::StaticArray<");
+    this->builder.append("Liam::StaticArray<");
     emit_int_literal_expression(type_expression->size);
     this->builder.append(", ");
     emit_type_expression(type_expression->base_type);

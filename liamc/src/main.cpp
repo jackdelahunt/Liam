@@ -18,6 +18,11 @@ void type_check(CompilationBundle *file);
 std::string code_gen(CompilationBundle *file);
 
 i32 main(i32 argc, char **argv) {
+
+    int buffer[10];
+
+    auto x = &buffer[1];
+
     TIME_START(total_time);
 
     Arguments::make(argc, argv);

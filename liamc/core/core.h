@@ -32,7 +32,7 @@ struct str {
 
 std::ostream &operator<<(std::ostream &os, const str &obj);
 
-namespace LiamInternal {
+namespace Liam {
 constexpr u8 make_u8(u8 n) {
     return n;
 }
@@ -80,7 +80,12 @@ template <u64 size, typename T> struct StaticArray {
         }
     }
 
-    T operator[](u64 index) {
+    // we need to use T& to make Array[n] assignable i.e. we need a
+    // lvalue as just using rvalue will not work. This si fine but
+    // is not represented in the compiler so it is kind of magic
+    // generated cpp code as the compiler doesn't know about
+    // l or r values
+    T &operator[](u64 index) {
         // TODO we should have bounds checking in this for debug builds
         return this->array[index];
     }
@@ -104,6 +109,6 @@ template <typename T> struct PointerSlice {
 */
 str make_str(char *chars, uint64_t length);
 str make_str(const char *c_str);
-} // namespace LiamInternal
+} // namespace Liam
 
 #include "core.cpp"
