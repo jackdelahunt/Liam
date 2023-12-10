@@ -1,9 +1,6 @@
 #include "lexer.h"
 
-#include <filesystem>
-
 #include "file.h"
-#include "liam.h"
 #include "utils.h"
 
 bool is_delim(char c) {

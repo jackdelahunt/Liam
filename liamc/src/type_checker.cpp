@@ -474,8 +474,11 @@ void TypeChecker::type_check_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
         return type_check_struct_instance_expression(static_cast<StructInstanceExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_STATIC_ARRAY:
+        return type_check_static_array_literal_expression(static_cast<StaticArrayExpression *>(expression));
+        break;
     default:
-        panic("Expression not implemented in type checker");
+        UNREACHABLE();
     }
 }
 
@@ -953,6 +956,42 @@ void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression
     expression->type_info = struct_type_info;
 }
 
+void TypeChecker::type_check_static_array_literal_expression(StaticArrayExpression *expression) {
+    TRY_CALL_VOID(type_check_expression(expression->number));
+    TRY_CALL_VOID(type_check_type_expression(expression->type_expression));
+
+    if (expression->expressions.size() != expression->number->number)
+    {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message(std::format(
+                "static array literal expects {} values but got {}", expression->number->number,
+                expression->expressions.size()
+            ))
+            .set_expr_1(expression->number)
+            .set_type_expr_1(expression->type_expression)
+            .report();
+
+        return;
+    }
+
+    for (Expression *expr : expression->expressions)
+    {
+        TRY_CALL_VOID(type_check_expression(expr));
+        if (!type_match(expression->type_expression->type_info, expr->type_info))
+        {
+            TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+                .set_message("mistmaatched types in static array literal")
+                .set_expr_1(expr)
+                .set_type_expr_1(expression->type_expression)
+                .report();
+
+            return;
+        }
+    }
+
+    expression->type_info = new StaticArrayTypeInfo(expression->number->number, expression->type_expression->type_info);
+}
+
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
@@ -965,8 +1004,11 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression) {
     case TypeExpressionType::TYPE_GET:
         type_check_get_type_expression(static_cast<GetTypeExpression *>(type_expression));
         break;
+    case TypeExpressionType::TYPE_STATIC_ARRAY:
+        type_check_static_array_type_expression(static_cast<StaticArrayTypeExpression *>(type_expression));
+        break;
     default:
-        panic("Not implemented for type checker");
+        UNREACHABLE();
     }
 }
 
@@ -1018,18 +1060,27 @@ void TypeChecker::type_check_get_type_expression(GetTypeExpression *type_express
 
     // getting the string of the identifier from the current compilation unit
     // but then looking that up in the other compilation unit
-    std::string identifier     = this->compilation_unit->get_token_string_from_index(type_expression->identifier);
-    TypeInfo *type_info        = other_compilation_unit->get_type_from_scope_with_string(identifier);
+    std::string identifier = this->compilation_unit->get_token_string_from_index(type_expression->identifier);
+    TypeInfo *type_info    = other_compilation_unit->get_type_from_scope_with_string(identifier);
 
-    if(type_info == NULL) {
+    if (type_info == NULL)
+    {
         ErrorReporter::report_type_checker_error(
-            this->compilation_unit->file_data->absolute_path.string(), NULL, NULL, type_expression->type_expression, NULL,
-            std::format("no symbol '{}' found in namespace", identifier)
+            this->compilation_unit->file_data->absolute_path.string(), NULL, NULL, type_expression->type_expression,
+            NULL, std::format("no symbol '{}' found in namespace", identifier)
         );
         return;
     }
 
     type_expression->type_info = type_info;
+}
+
+void TypeChecker::type_check_static_array_type_expression(StaticArrayTypeExpression *type_expression) {
+    TRY_CALL_VOID(type_check_type_expression(type_expression->base_type));
+    TRY_CALL_VOID(type_check_number_literal_expression(type_expression->size));
+
+    type_expression->type_info =
+        new StaticArrayTypeInfo(type_expression->size->number, type_expression->base_type->type_info);
 }
 
 bool type_match(TypeInfo *a, TypeInfo *b) {
@@ -1100,6 +1151,18 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
         auto ptr_b = static_cast<PointerTypeInfo *>(b);
 
         return type_match(ptr_a->to, ptr_b->to);
+    }
+    else if (a->type == TypeInfoType::STATIC_ARRAY)
+    {
+        auto array_a = static_cast<StaticArrayTypeInfo *>(a);
+        auto array_b = static_cast<StaticArrayTypeInfo *>(b);
+
+        if (array_a->size != array_b->size)
+        {
+            return false;
+        }
+
+        return type_match(array_a->base_type, array_b->base_type);
     }
 
     panic("Cannot type check this type info");
@@ -1234,10 +1297,13 @@ void topological_visit(std::vector<SortingNode> *L, SortingNode *node) {
 
     if (node->temperory_mark)
     {
-        // TODO this error is terrible 
-        CompilationUnit *compilation_unit = node->type_info->defined_location->compilation_unit; 
+        // TODO this error is terrible
+        CompilationUnit *compilation_unit = node->type_info->defined_location->compilation_unit;
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(std::format("recursive type found in {}", compilation_unit->get_token_string_from_index(node->type_info->defined_location->identifier)))
+            .set_message(std::format(
+                "recursive type found in {}",
+                compilation_unit->get_token_string_from_index(node->type_info->defined_location->identifier)
+            ))
             .report();
 
         return;

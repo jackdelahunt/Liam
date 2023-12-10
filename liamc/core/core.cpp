@@ -40,38 +40,6 @@ std::ostream &operator<<(std::ostream &os, const str &obj) {
 }
 
 namespace LiamInternal {
-u8 __u8(u8 n) {
-    return n;
-}
-
-i8 __i8(i8 n) {
-    return n;
-}
-
-u32 __u32(u32 n) {
-    return n;
-}
-
-i32 __i32(i32 n) {
-    return n;
-}
-
-f32 __f32(f32 n) {
-    return n;
-}
-
-u64 __u64(u64 n) {
-    return n;
-}
-
-i64 __i64(i64 n) {
-    return n;
-}
-
-f64 __f64(f64 n) {
-    return n;
-}
-
 str make_str(char *chars, uint64_t length) {
     return str{chars, length};
 }

@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include "liam.h"
 #include "token.h"
 
 struct Statement;
@@ -32,6 +31,7 @@ struct NullLiteralExpression;
 struct ZeroLiteralExpression;
 struct InstantiateExpression;
 struct StructInstanceExpression;
+struct StaticArrayExpression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
 struct UnaryTypeExpression;
@@ -82,6 +82,7 @@ enum class ExpressionType {
     EXPRESSION_ZERO_LITERAL,
     EXPRESSION_INSTANTIATION,
     EXPRESSION_STRUCT_INSTANCE,
+    EXPRESSION_STATIC_ARRAY
 };
 
 enum class UnaryType {
@@ -91,7 +92,8 @@ enum class UnaryType {
 enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_UNARY,
-    TYPE_GET
+    TYPE_GET,
+    TYPE_STATIC_ARRAY
 };
 
 enum class TypeInfoType {
@@ -103,7 +105,8 @@ enum class TypeInfoType {
     FN,
     STRUCT,
     POINTER,
-    NAMESPACE
+    NAMESPACE,
+    STATIC_ARRAY
 };
 
 enum class NumberType {
@@ -165,6 +168,13 @@ struct NamespaceTypeInfo : TypeInfo {
     u64 compilation_unit_index;
 
     NamespaceTypeInfo(u64 compilation_unit_index);
+};
+
+struct StaticArrayTypeInfo : TypeInfo {
+    u64 size;
+    TypeInfo *base_type;
+
+    StaticArrayTypeInfo(u64 size, TypeInfo *base_type);
 };
 
 /*
@@ -364,6 +374,16 @@ struct StructInstanceExpression : Expression {
     );
 };
 
+struct StaticArrayExpression : Expression {
+    NumberLiteralExpression *number;
+    TypeExpression *type_expression;
+    std::vector<Expression *> expressions;
+
+    StaticArrayExpression(
+        NumberLiteralExpression *number, TypeExpression *type_expression, std::vector<Expression *> expression
+    );
+};
+
 /*
     ======= TYPE EXPRESSIONS ========
 */
@@ -392,4 +412,11 @@ struct GetTypeExpression : TypeExpression {
     TokenIndex identifier;
 
     GetTypeExpression(TypeExpression *type_expression, TokenIndex identifier);
+};
+
+struct StaticArrayTypeExpression : TypeExpression {
+    NumberLiteralExpression *size;
+    TypeExpression *base_type;
+
+    StaticArrayTypeExpression(NumberLiteralExpression *size, TypeExpression *base_type);
 };

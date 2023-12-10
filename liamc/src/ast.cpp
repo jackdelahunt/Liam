@@ -48,6 +48,12 @@ NamespaceTypeInfo::NamespaceTypeInfo(u64 compilation_unit_index) {
     this->type                   = TypeInfoType::NAMESPACE;
 }
 
+StaticArrayTypeInfo::StaticArrayTypeInfo(u64 size, TypeInfo *base_type) {
+    this->base_type = base_type;
+    this->size      = size;
+    this->type      = TypeInfoType::STATIC_ARRAY;
+}
+
 ExpressionStatement::ExpressionStatement(Expression *expression) {
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_EXPRESSION;
@@ -222,6 +228,15 @@ StructInstanceExpression::StructInstanceExpression(
     this->span              = type_expression->span;
 }
 
+StaticArrayExpression::StaticArrayExpression(
+    NumberLiteralExpression *number, TypeExpression *type_expression, std::vector<Expression *> expressions
+) {
+    this->number          = number;
+    this->type_expression = type_expression;
+    this->expressions     = expressions;
+    this->type            = ExpressionType::EXPRESSION_STATIC_ARRAY;
+}
+
 std::ostream &TypeExpression::format(std::ostream &os) const {
     os << "()";
     return os;
@@ -249,4 +264,11 @@ GetTypeExpression::GetTypeExpression(TypeExpression *type_expression, TokenIndex
     this->identifier      = identifier;
     this->type            = TypeExpressionType::TYPE_GET;
     this->span            = type_expression->span;
+}
+
+StaticArrayTypeExpression::StaticArrayTypeExpression(NumberLiteralExpression *size, TypeExpression *base_type) {
+    this->size      = size;
+    this->base_type = base_type;
+    this->type      = TypeExpressionType::TYPE_STATIC_ARRAY;
+    this->span      = base_type->span;
 }
