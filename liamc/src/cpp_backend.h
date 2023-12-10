@@ -68,15 +68,15 @@ struct CppBackend {
     void emit_zero_literal_expression(ZeroLiteralExpression *expression);
     void emit_instantiate_expression(InstantiateExpression *expression);
     void emit_struct_instance_expression(StructInstanceExpression *expression);
+    void emit_static_array_literal_expression(StaticArrayExpression *expression);
 
     void emit_type_expression(TypeExpression *type_expression);
     void emit_unary_type_expression(UnaryTypeExpression *type_expression);
     void emit_identifier_type_expression(IdentifierTypeExpression *type_expression);
     void emit_get_type_expression(GetTypeExpression *type_expression);
+    void emit_static_array_type_expression(StaticArrayTypeExpression *type_expression);
 };
 
 std::string strip_semi_colon(std::string str);
 u64 string_literal_length(std::string *string);
 std::string get_namespace_name(CompilationUnit *compilation_unit);
-
-

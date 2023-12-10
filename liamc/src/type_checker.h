@@ -19,6 +19,7 @@ struct ExpressionStatement;
 struct AssigmentStatement;
 struct NumberLiteralExpression;
 struct StringLiteralExpression;
+struct StaticArrayExpression;
 struct Expression;
 struct CompilationUnit;
 struct CompilationBundle;
@@ -70,11 +71,13 @@ struct TypeChecker {
     void type_check_zero_literal_expression(ZeroLiteralExpression *expression);
     void type_check_instantiate_expression(InstantiateExpression *expression);
     void type_check_struct_instance_expression(StructInstanceExpression *expression);
+    void type_check_static_array_literal_expression(StaticArrayExpression *expression);
 
     void type_check_type_expression(TypeExpression *type_expression);
     void type_check_unary_type_expression(UnaryTypeExpression *type_expression);
     void type_check_identifier_type_expression(IdentifierTypeExpression *type_expression);
     void type_check_get_type_expression(GetTypeExpression *type_expression);
+    void type_check_static_array_type_expression(StaticArrayTypeExpression *type_expression);
 };
 
 bool type_match(TypeInfo *a, TypeInfo *b);

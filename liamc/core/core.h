@@ -1,10 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <cstdlib>
+#include <initializer_list>
 #include <iostream>
-#include <string>
-#include <variant>
 
 #define __panic(message)                                                                                               \
     std::cout << "PANIC " << __FILE__ << " (" << __LINE__ << ") :: " << message << "\n";                               \
@@ -35,14 +33,58 @@ struct str {
 std::ostream &operator<<(std::ostream &os, const str &obj);
 
 namespace LiamInternal {
-u8 __u8(u8 n);
-i8 __i8(i8 n);
-u32 __u32(u32 n);
-i32 __i32(i32 n);
-f32 __f32(f32 n);
-u64 __u64(u64 n);
-i64 __i64(i64 n);
-f64 __f64(f64 n);
+constexpr u8 make_u8(u8 n) {
+    return n;
+}
+
+constexpr i8 make_i8(i8 n) {
+    return n;
+}
+
+constexpr u32 make_u32(u32 n) {
+    return n;
+}
+
+constexpr i32 make_i32(i32 n) {
+    return n;
+}
+
+constexpr f32 make_f32(f32 n) {
+    return n;
+}
+
+constexpr u64 make_u64(u64 n) {
+    return n;
+}
+
+constexpr i64 make_i64(i64 n) {
+    return n;
+}
+
+constexpr f64 make_f64(f64 n) {
+    return n;
+}
+
+template <u64 size, typename T> struct StaticArray {
+    T array[size];
+
+    StaticArray() {
+    }
+
+    explicit StaticArray(std::initializer_list<T> list) {
+        u64 index = 0;
+        for (auto iter = list.begin(); iter != list.end(); iter++)
+        {
+            this->array[index] = *iter;
+            index++;
+        }
+    }
+
+    T operator[](u64 index) {
+        // TODO we should have bounds checking in this for debug builds
+        return this->array[index];
+    }
+};
 
 template <typename T> struct PointerSlice {
     u64 size;

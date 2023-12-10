@@ -109,7 +109,7 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
     }
 
     this->builder.insert_new_line();
-    for (SortingNode& node : bundle->sorted_types)
+    for (SortingNode &node : bundle->sorted_types)
     {
         this->compilation_unit = node.type_info->defined_location->compilation_unit;
 
@@ -490,6 +490,9 @@ void CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
         emit_struct_instance_expression(static_cast<StructInstanceExpression *>(expression));
         break;
+    case ExpressionType::EXPRESSION_STATIC_ARRAY:
+        emit_static_array_literal_expression(static_cast<StaticArrayExpression *>(expression));
+        break;
     default: {
         UNREACHABLE();
     }
@@ -564,7 +567,7 @@ void CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression)
 void CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
     auto number_type = static_cast<NumberTypeInfo *>(expression->type_info);
 
-    this->builder.append("LiamInternal::__");
+    this->builder.append("LiamInternal::make_");
 
     if (number_type->number_type == NumberType::UNSIGNED)
     {
@@ -701,6 +704,31 @@ void CppBackend::emit_struct_instance_expression(StructInstanceExpression *expre
     this->builder.append("}");
 }
 
+void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *expression) {
+    this->builder.append("LiamInternal::StaticArray<");
+    emit_int_literal_expression(expression->number);
+    this->builder.append(", ");
+    emit_type_expression(expression->type_expression);
+    this->builder.append(">(std::initializer_list<");
+    emit_type_expression(expression->type_expression);
+    this->builder.append(">({");
+
+    // expression list
+    u64 index = 0;
+    for (auto expr : expression->expressions)
+    {
+        emit_expression(expr);
+
+        if (index + 1 < expression->expressions.size())
+        {
+            this->builder.append(", ");
+        }
+        index++;
+    }
+
+    this->builder.append("}))");
+}
+
 void CppBackend::emit_type_expression(TypeExpression *type_expression) {
     switch (type_expression->type)
     {
@@ -712,6 +740,9 @@ void CppBackend::emit_type_expression(TypeExpression *type_expression) {
         break;
     case TypeExpressionType::TYPE_GET:
         emit_get_type_expression(static_cast<GetTypeExpression *>(type_expression));
+        break;
+    case TypeExpressionType::TYPE_STATIC_ARRAY:
+        emit_static_array_type_expression(static_cast<StaticArrayTypeExpression *>(type_expression));
         break;
     default:
         UNREACHABLE();
@@ -751,6 +782,14 @@ void CppBackend::emit_get_type_expression(GetTypeExpression *type_expression) {
     this->builder.append(identifier);
 }
 
+void CppBackend::emit_static_array_type_expression(StaticArrayTypeExpression *type_expression) {
+    this->builder.append("LiamInternal::StaticArray<");
+    emit_int_literal_expression(type_expression->size);
+    this->builder.append(", ");
+    emit_type_expression(type_expression->base_type);
+    this->builder.append(">");
+}
+
 std::string strip_semi_colon(std::string str) {
     if (str.size() == 0)
         return str;
@@ -787,5 +826,3 @@ u64 string_literal_length(std::string *string) {
 std::string get_namespace_name(CompilationUnit *compilation_unit) {
     return compilation_unit->file_data->absolute_path.stem();
 }
-
-

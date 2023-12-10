@@ -7,6 +7,7 @@
 
 #include "args.h"
 #include "ast.h"
+#include "baseLayer/debug.h"
 #include "errors.h"
 #include "liam.h"
 #include "token.h"
@@ -396,10 +397,18 @@ Expression *Parser::eval_postfix() {
         if (match(TokenType::TOKEN_PAREN_OPEN))
         {
             TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_OPEN), NULL);
-            auto call_args = TRY_CALL_RET(consume_comma_seperated_arguments(TokenType::TOKEN_PAREN_CLOSE), NULL);
+            auto call_args = TRY_CALL_RET(consume_comma_seperated_expressions(TokenType::TOKEN_PAREN_CLOSE), NULL);
             TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PAREN_CLOSE), NULL);
 
             expr = new CallExpression(expr, call_args);
+        }
+        if (match(TokenType::TOKEN_BRACKET_OPEN))
+        {
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN), NULL);
+            Expression *expression = TRY_CALL_RET(eval_expression(), NULL);
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+
+            expr = new SubscriptExpression(expr, call_args);
         }
         else if (match(TokenType::TOKEN_DOT))
         {
@@ -422,7 +431,7 @@ Expression *Parser::eval_primary() {
     switch (token->token_type)
     {
     case TokenType::TOKEN_NUMBER_LITERAL: {
-        return new NumberLiteralExpression(consume_token_with_index(), token->span);
+        return eval_number_literal();
     }
     break;
     case TokenType::TOKEN_FALSE:
@@ -454,6 +463,10 @@ Expression *Parser::eval_primary() {
         return new ZeroLiteralExpression(consume_token_with_index(), token->span);
     }
     break;
+    case TokenType::TOKEN_BRACKET_OPEN: {
+        return TRY_CALL_RET(eval_static_array_literal(), NULL);
+    }
+    break;
     default: {
         auto token_index = consume_token_with_index();
         auto token_data  = this->compilation_unit->get_token(token_index);
@@ -469,6 +482,12 @@ Expression *Parser::eval_primary() {
     }
 
     UNREACHABLE();
+}
+
+Expression *Parser::eval_number_literal() {
+    TokenIndex token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_NUMBER_LITERAL), NULL);
+    Token *token           = this->compilation_unit->get_token(token_index);
+    return new NumberLiteralExpression(token_index, token->span);
 }
 
 Expression *Parser::eval_string_literal() {
@@ -495,10 +514,23 @@ Expression *Parser::eval_group_expression() {
     return new GroupExpression(expr);
 }
 
+Expression *Parser::eval_static_array_literal() {
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN), NULL);
+    NumberLiteralExpression *size = (NumberLiteralExpression *)TRY_CALL_RET(eval_number_literal(), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+    TypeExpression *type_expression = TRY_CALL_RET(eval_type_expression(), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN), NULL);
+    std::vector<Expression *> expressions =
+        TRY_CALL_RET(consume_comma_seperated_expressions(TokenType::TOKEN_BRACE_CLOSE), NULL);
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE), NULL);
+
+    return new StaticArrayExpression(size, type_expression, expressions);
+}
+
 /*
  *  === type expression precedence === (lower is more precedence)
- * |
- * identifier
+ * T
+ * ^T, []T
  */
 TypeExpression *Parser::eval_type_expression() {
     return eval_type_unary();
@@ -513,6 +545,21 @@ TypeExpression *Parser::eval_type_unary() {
 
         auto type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
         return new UnaryTypeExpression(UnaryType::POINTER, type_expression);
+    }
+
+    // [100], even though static arrays are not unary we can do them here also
+    if (match(TokenType::TOKEN_BRACKET_OPEN))
+    {
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN), NULL);
+        NumberLiteralExpression *expression = (NumberLiteralExpression *)TRY_CALL_RET(eval_number_literal(), NULL);
+        ASSERT_MSG(
+            expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL,
+            "assuming all expression from eval_number_literal are number literals"
+        );
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE), NULL);
+
+        TypeExpression *type_expression = TRY_CALL_RET(eval_type_unary(), NULL);
+        return new StaticArrayTypeExpression(expression, type_expression);
     }
 
     return eval_type_postfix();
@@ -616,7 +663,7 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
 }
 
 // e.g. (0, "hello sailor", ...)
-std::vector<Expression *> Parser::consume_comma_seperated_arguments(TokenType closer) {
+std::vector<Expression *> Parser::consume_comma_seperated_expressions(TokenType closer) {
     auto args     = std::vector<Expression *>();
     bool is_first = true;
     if (!match(closer))

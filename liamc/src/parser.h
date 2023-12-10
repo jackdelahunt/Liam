@@ -1,14 +1,8 @@
 #pragma once
-#include <filesystem>
-#include <iostream>
-#include <sstream>
-#include <unordered_map>
 #include <vector>
 
 #include "ast.h"
 #include "compilation_unit.h"
-#include "lexer.h"
-#include "utils.h"
 
 struct Statement;
 struct LetStatement;
@@ -37,7 +31,7 @@ struct Parser {
 
     void parse();
 
-    /* statements */
+    // statements
     Statement *eval_statement();
     Statement *eval_top_level_statement();
     LetStatement *eval_let_statement();
@@ -54,7 +48,7 @@ struct Parser {
     ImportStatement *eval_import_statement();
     Statement *eval_line_starting_expression();
 
-    /* normal expressions */
+    // normal expressions
     Expression *eval_expression();
     Expression *eval_or();
     Expression *eval_and();
@@ -65,12 +59,14 @@ struct Parser {
     Expression *eval_unary();
     Expression *eval_postfix();
     Expression *eval_primary();
+    Expression *eval_number_literal();
     Expression *eval_string_literal();
     Expression *eval_instantiate_expression();
     Expression *eval_struct_instance_expression();
     Expression *eval_group_expression();
+    Expression *eval_static_array_literal();
 
-    /* return_type expressions */
+    // type expressions
     TypeExpression *eval_type_expression();
     TypeExpression *eval_type_unary();
     TypeExpression *eval_type_postfix();
@@ -82,7 +78,7 @@ struct Parser {
     TokenIndex consume_token_with_index();
     Option<u64> find_balance_point(TokenType push, TokenType pull, u64 from);
     TokenIndex consume_token_of_type_with_index(TokenType type);
-    std::vector<Expression *> consume_comma_seperated_arguments(TokenType closer);
+    std::vector<Expression *> consume_comma_seperated_expressions(TokenType closer);
     std::vector<TypeExpression *> consume_comma_seperated_types(TokenType closer);
     std::vector<TokenIndex> consume_comma_seperated_token_arguments(TokenType closer);
     std::vector<std::tuple<TokenIndex, Expression *>> consume_comma_seperated_named_arguments(TokenType closer);
