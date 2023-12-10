@@ -237,6 +237,13 @@ StaticArrayExpression::StaticArrayExpression(
     this->type            = ExpressionType::EXPRESSION_STATIC_ARRAY;
 }
 
+SubscriptExpression::SubscriptExpression(Expression *subscriptee, Expression *subscripter) {
+    this->subscriptee = subscriptee;
+    this->subscripter = subscripter;
+    this->span        = subscripter->span;
+    this->type        = ExpressionType::EXPRESSION_SUBSCRIPT;
+}
+
 std::ostream &TypeExpression::format(std::ostream &os) const {
     os << "()";
     return os;

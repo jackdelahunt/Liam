@@ -22,9 +22,7 @@ bool operator==(const str &l, const str &r) {
 
     for (uint64_t i = 0; i < l.length; i++)
     {
-        if (l.chars[i] == r.chars[i])
-        {}
-        else
+        if (l.chars[i] != r.chars[i])
             return false;
     }
 
@@ -39,7 +37,7 @@ std::ostream &operator<<(std::ostream &os, const str &obj) {
     return os;
 }
 
-namespace LiamInternal {
+namespace Liam {
 str make_str(char *chars, uint64_t length) {
     return str{chars, length};
 }
@@ -48,4 +46,4 @@ str make_str(const char *c_str) {
     u64 length = strlen(c_str);
     return str{.chars = (char *)c_str, .length = length};
 }
-} // namespace LiamInternal
+} // namespace Liam
