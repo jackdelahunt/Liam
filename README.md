@@ -102,6 +102,7 @@ fn main() void {
 - [x] builtin `str` type
 
 ### Maybe 
+- [ ] control flow (while, better for loops for types)
 - [ ] generic arguments for structs
 - [ ] generics arguments for functions
 - [ ] tagged union style enums (like rust enums)
@@ -120,6 +121,11 @@ fn main() void {
     - [ ] memory management
 - [ ] bounds checking for container types only in debug mode
 - [ ] member functions for structs
+- [ ] global variables (const or maybe not)
+- [ ] `defer` keyword
+- [ ] some kind of optional types (either with tagged unions or builtin like zig)
+- [ ] calling into C/C++ from liam
+- [ ] inline custom struct types
     
 
 ## Documentation
