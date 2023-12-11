@@ -13,7 +13,9 @@
 **.vcxproj
 **.vcxproj.filters
 **.vcxproj.user
-liamc/main.liam
+liamc/*.liam
+**/*.out
+**/*.dSYM
 liamc/Code
 liamc/src/Makefile
 **.DS_Store
@@ -21,7 +23,6 @@ liamc/src/Makefile
 **/target/
 liamc/tests/out.cpp
 liamc/out.cpp
-liamc/program/
 **/build-debug/
 *.exe
 liamc/release
