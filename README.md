@@ -89,6 +89,39 @@ fn main() void {
 }
 ```
 
+## Features and possbile future ones
+### Added
+- [x] control flow (if, c-stlye for, continue, break, return)
+- [x] basic structs (no generics, or member functions)
+- [x] basic functions (no generics)
+- [x] size specific builting data types (u8, u16, u32, u64)
+- [x] stack allocated non-dynamic arrays of arbitrarty types
+- [x] multiple files using `import`
+- [x] non-polluting import statements with namespace identifiers
+- [x] out-of-order top level definitions
+- [x] builtin `str` type
+
+### Maybe 
+- [ ] generic arguments for structs
+- [ ] generics arguments for functions
+- [ ] tagged union style enums (like rust enums)
+- [ ] enum pattern mathcing with a `match` keyword
+- [ ] iterators (non concreate idea no how these will work yet)
+    - [ ] for static arrays
+    - [ ] a range given
+    - [ ] user defined types
+- [ ] number types coercing
+- [ ] `const` and `var` types
+- [ ] some error handling solution (zig, rust and go are all nice)
+- [ ] better stdlib
+    - [ ] dynamic array
+    - [ ] `String` type
+    - [ ] I/O
+    - [ ] memory management
+- [ ] bounds checking for container types only in debug mode
+- [ ] member functions for structs
+    
+
 ## Documentation
 #### [Learning the basics](docs/Learning-the-basics.md)
 Some helpful documentation for getting started learning Liam.
