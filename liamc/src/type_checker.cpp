@@ -781,7 +781,6 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
 void TypeChecker::type_check_get_expression(GetExpression *expression) {
     TRY_CALL_VOID(type_check_expression(expression->lhs));
 
-    // when the lhs expression is a namespace identifier
     if (expression->lhs->type_info->type == TypeInfoType::NAMESPACE)
     {
         NamespaceTypeInfo *namespace_type_info = (NamespaceTypeInfo *)expression->lhs->type_info;
@@ -804,64 +803,66 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         return;
     }
 
-    // when the lhs expression is a struct or a pointer
+    TypeInfo *using_type = expression->lhs->type_info;
 
-    TypeInfo *member_type_info       = NULL;
-    StructTypeInfo *struct_type_info = NULL;
+    // if it is a pointer then we dereference it one layer deep
+    // ^T.get() --> T.get()
+    // ^^T.get() --> ^T.get() :: won't go all the layers down
     if (expression->lhs->type_info->type == TypeInfoType::POINTER)
     {
-        auto ptr_type_info = static_cast<PointerTypeInfo *>(expression->lhs->type_info);
+        using_type = ((PointerTypeInfo *)expression->lhs->type_info)->to;
+    }
 
-        if (ptr_type_info->to->type == TypeInfoType::STRUCT)
+    if (using_type->type == TypeInfoType::STRUCT)
+    {
+        StructTypeInfo *struct_type_info = (StructTypeInfo *)using_type;
+
+        std::string member_string  = this->compilation_unit->get_token_string_from_index(expression->member);
+        TypeInfo *member_type_info = NULL;
+        for (auto [identifier, member_type] : struct_type_info->members)
         {
-            struct_type_info = (StructTypeInfo *)ptr_type_info->to;
+            if (identifier == member_string)
+            {
+                member_type_info = member_type;
+                break;
+            }
         }
-        else
+
+        if (member_type_info == NULL)
         {
             ErrorReporter::report_type_checker_error(
-                compilation_unit->file_data->absolute_path.string(), expression->lhs, NULL, NULL, NULL,
-                "Cannot derive member from non struct type"
+                compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
+                std::format("Cannot find member \"{}\" in struct", member_string)
             );
             return;
         }
-    }
-    else if (expression->lhs->type_info->type == TypeInfoType::STRUCT)
-    {
-        struct_type_info = static_cast<StructTypeInfo *>(expression->lhs->type_info);
-    }
-    else
-    {
-        ErrorReporter::report_type_checker_error(
-            this->compilation_unit->file_data->absolute_path, expression->lhs, NULL, NULL, NULL,
-            "Cannot derive member from non struct type"
-        );
+
+        expression->type_info = member_type_info;
         return;
     }
 
-    // find the type info of the member we are looking for in the struct
-    // definition, here it could be a base type or it could be a generic type
-    // we are also checking if it is a member or a function member
-    std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
-
-    for (auto [identifier, member_type] : struct_type_info->members)
+    if (using_type->type == TypeInfoType::STATIC_ARRAY)
     {
-        if (identifier == member_string)
-        {
-            member_type_info = member_type;
-            break;
+        std::string member_string  = this->compilation_unit->get_token_string_from_index(expression->member);
+        
+        if(compare_string(member_string, "size")) {
+            expression->type_info = this->compilation_unit->global_type_scope["u64"];
+            return; 
         }
-    }
 
-    if (member_type_info == NULL)
-    {
-        ErrorReporter::report_type_checker_error(
-            compilation_unit->file_data->absolute_path.string(), expression, NULL, NULL, NULL,
-            std::format("Cannot find member \"{}\" in struct", member_string)
-        );
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message(std::format("can only use 'size' builtin member for static arrays '{}' does not exist", member_string))
+            .set_expr_1(expression) 
+            .report();
+
         return;
     }
 
-    expression->type_info = member_type_info;
+    ErrorReporter::report_type_checker_error(
+        this->compilation_unit->file_data->absolute_path, expression->lhs, NULL, NULL, NULL,
+        "Cannot derive member from non struct/namespace/array type"
+    );
+    return;
 }
 
 void TypeChecker::type_check_group_expression(GroupExpression *expression) {

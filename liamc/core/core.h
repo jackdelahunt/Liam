@@ -65,10 +65,12 @@ constexpr f64 make_f64(f64 n) {
     return n;
 }
 
-template <u64 size, typename T> struct StaticArray {
-    T array[size];
+template <u64 N, typename T> struct StaticArray {
+    T array[N];
+    u64 size;
 
     StaticArray() {
+        this->size = N; 
     }
 
     explicit StaticArray(std::initializer_list<T> list) {
