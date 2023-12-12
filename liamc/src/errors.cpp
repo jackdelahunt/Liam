@@ -81,8 +81,9 @@ void TypeCheckerError::print_error_message() {
 }
 
 ErrorReporter::ErrorReporter() {
-    parse_errors      = std::vector<ParserError>();
-    type_check_errors = std::vector<TypeCheckerError>();
+    parse_errors            = std::vector<ParserError>();
+    type_check_errors       = std::vector<TypeCheckerError>();
+    errors_since_last_check = 0;
 }
 
 void ErrorReporter::report_parser_error(std::string file, Span span, std::string message) {
@@ -92,7 +93,7 @@ void ErrorReporter::report_parser_error(std::string file, Span span, std::string
     }
 
     ErrorReporter::singleton->parse_errors.push_back(ParserError{std::move(file), span, std::move(message)});
-    ErrorReporter::singleton->error_reported_since_last_check = true;
+    ErrorReporter::singleton->errors_since_last_check++;
 }
 
 void ErrorReporter::report_type_checker_error(
@@ -112,7 +113,7 @@ void ErrorReporter::report_type_checker_error(
         .type_expr_2 = type_expr_2,
         .error       = std::move(message)});
 
-    ErrorReporter::singleton->error_reported_since_last_check = true;
+    ErrorReporter::singleton->errors_since_last_check++;
 }
 
 void ErrorReporter::report_type_checker_error(TypeCheckerError error) {
@@ -122,7 +123,7 @@ void ErrorReporter::report_type_checker_error(TypeCheckerError error) {
     }
 
     ErrorReporter::singleton->type_check_errors.push_back(error);
-    ErrorReporter::singleton->error_reported_since_last_check = true;
+    ErrorReporter::singleton->errors_since_last_check++;
 }
 
 bool ErrorReporter::has_parse_errors() {
@@ -143,13 +144,9 @@ bool ErrorReporter::has_error_since_last_check() {
     if (ErrorReporter::singleton == nullptr)
         return false;
 
-    if (ErrorReporter::singleton->error_reported_since_last_check)
-    {
-        ErrorReporter::singleton->error_reported_since_last_check = false;
-        return true;
-    }
-
-    return false;
+    u64 error_count                                   = ErrorReporter::singleton->errors_since_last_check;
+    ErrorReporter::singleton->errors_since_last_check = 0;
+    return error_count > 0;
 }
 
 u64 ErrorReporter::error_count() {

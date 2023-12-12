@@ -53,35 +53,30 @@ void panic(const std::string &msg);
 
 // call a func and if there is an error return else get the value from the function
 #define TRY_CALL(func)                                                                                                 \
-    ({                                                                                                                 \
-        auto __start = ErrorReporter::error_count();                                                                   \
-        auto __v     = func;                                                                                           \
-        if (ErrorReporter::error_count() > __start)                                                                    \
+    func;                                                                                                              \
+    {                                                                                                                  \
+        if (ErrorReporter::has_error_since_last_check())                                                               \
         {                                                                                                              \
             return;                                                                                                    \
         }                                                                                                              \
-        __v;                                                                                                           \
-    })
+    }
 
-// call a func and if there is an error return with a given value
+// call a func and if there is an error return with §a given value
 // return the value from the func
 #define TRY_CALL_RET(func, ret)                                                                                        \
-    ({                                                                                                                 \
-        auto __start = ErrorReporter::error_count();                                                                   \
-        auto __v     = func;                                                                                           \
-        if (ErrorReporter::error_count() > __start)                                                                    \
+    func;                                                                                                              \
+    {                                                                                                                  \
+        if (ErrorReporter::has_error_since_last_check())                                                               \
         {                                                                                                              \
             return ret;                                                                                                \
         }                                                                                                              \
-        __v;                                                                                                           \
-    })
+    }
 
 // call a void func and if there is an error return
 #define TRY_CALL_VOID(func)                                                                                            \
+    func;                                                                                                              \
     {                                                                                                                  \
-        auto __start = ErrorReporter::error_count();                                                                   \
-        func;                                                                                                          \
-        if (ErrorReporter::error_count() > __start)                                                                    \
+        if (ErrorReporter::has_error_since_last_check())                                                               \
         {                                                                                                              \
             return;                                                                                                    \
         }                                                                                                              \
@@ -89,11 +84,10 @@ void panic(const std::string &msg);
 
 // call a func and if there is an error return with a given value from the function
 #define TRY_CALL_RET_VOID(func, ret)                                                                                   \
-    ({                                                                                                                 \
-        auto __start = ErrorReporter::error_count();                                                                   \
-        func;                                                                                                          \
-        if (ErrorReporter::error_count() > __start)                                                                    \
+    func;                                                                                                              \
+    {                                                                                                                  \
+        if (ErrorReporter::has_error_since_last_check())                                                               \
         {                                                                                                              \
-            return ret;                                                                                                \
+            return;                                                                                                    \
         }                                                                                                              \
-    })
+    }

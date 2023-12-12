@@ -70,7 +70,7 @@ template <u64 N, typename T> struct StaticArray {
     u64 size;
 
     StaticArray() {
-        this->size = N; 
+        this->size = N;
     }
 
     explicit StaticArray(std::initializer_list<T> list) {

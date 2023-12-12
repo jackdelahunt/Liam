@@ -843,16 +843,19 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
 
     if (using_type->type == TypeInfoType::STATIC_ARRAY)
     {
-        std::string member_string  = this->compilation_unit->get_token_string_from_index(expression->member);
-        
-        if(compare_string(member_string, "size")) {
+        std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
+
+        if (compare_string(member_string, "size"))
+        {
             expression->type_info = this->compilation_unit->global_type_scope["u64"];
-            return; 
+            return;
         }
 
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(std::format("can only use 'size' builtin member for static arrays '{}' does not exist", member_string))
-            .set_expr_1(expression) 
+            .set_message(
+                std::format("can only use 'size' builtin member for static arrays '{}' does not exist", member_string)
+            )
+            .set_expr_1(expression)
             .report();
 
         return;
