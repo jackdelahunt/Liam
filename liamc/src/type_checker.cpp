@@ -38,8 +38,7 @@ TypeInfo *TypeChecker::get_from_scope(TokenIndex token_index) {
     ASSERT_MSG(this->scopes.size() > 0, "Must be an active scope to add to");
     std::string identifier = this->compilation_unit->get_token_string_from_index(token_index);
 
-    // look into all of the local scopes going up
-    // the chain
+    // look into all of the local scopes going up the chain
     for (auto iter = this->scopes.rbegin(); iter != this->scopes.rend(); iter++)
     {
         if (iter->count(identifier) > 0)
@@ -338,7 +337,7 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
 
     // if let type is there type match both and set var type
     // to the let type... else just set it to the rhs
-    if (statement->type)
+    if (statement->type != NULL)
     {
         TRY_CALL_VOID(type_check_type_expression(statement->type));
         if (!type_match(statement->type->type_info, statement->rhs->type_info))
@@ -349,12 +348,20 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
             );
             return;
         }
+    } else if (statement->rhs->type_info->type == TypeInfoType::ANY)
+    {
+        ErrorReporter::report_type_checker_error(
+            compilation_unit->file_data->absolute_path.string(), statement->rhs, NULL, NULL, NULL,
+            "Cannot infer type of expression in let statement"
+        );
+        return;
     }
 
-    //    auto string = this->compilation_unit->get_token_string_from_index(statement->identifier);
-    //    TRY_CALL_VOID(symbol_table->add_identifier_type(string, statement->rhs->type_info));
-
-    this->add_to_scope(statement->identifier, statement->rhs->type_info);
+    if (statement->type != NULL) {
+        this->add_to_scope(statement->identifier, statement->type->type_info);
+    } else {
+        this->add_to_scope(statement->identifier, statement->rhs->type_info);
+    }
 }
 
 void TypeChecker::type_check_scope_statement(ScopeStatement *statement) {
