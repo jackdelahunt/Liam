@@ -114,7 +114,7 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
         }
     }
 
-    this->compilation_bundle->sorted_types = TRY_CALL(topilogical_sort(all_struct_statements));
+    this->compilation_bundle->sorted_types = TRY_CALL_VOID(topilogical_sort(all_struct_statements));
 
     for (CompilationUnit *cu : bundle->compilation_units)
     {
