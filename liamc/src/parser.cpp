@@ -120,10 +120,9 @@ LetStatement *Parser::eval_let_statement() {
 }
 
 ScopeStatement *Parser::eval_scope_statement() {
-    auto statements = std::vector<Statement *>();
-    TokenIndex open_brace_token_index =
-        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN));
-    Token *open_brace_token_data = this->compilation_unit->get_token(open_brace_token_index);
+    auto statements                   = std::vector<Statement *>();
+    TokenIndex open_brace_token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN));
+    Token *open_brace_token_data      = this->compilation_unit->get_token(open_brace_token_index);
     Option<u64> closing_brace_index =
         find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, this->current - 1);
 
@@ -550,19 +549,10 @@ TypeExpression *Parser::eval_type_unary() {
     // [100], even though static arrays are not unary we can do them here also
     if (match(TokenType::TOKEN_BRACKET_OPEN))
     {
-        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN));
-        NumberLiteralExpression *expression = (NumberLiteralExpression *)TRY_CALL_RET(eval_number_literal());
-        ASSERT_MSG(
-            expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL,
-            "assuming all expression from eval_number_literal are number literals"
-        );
-        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE));
-
-        TypeExpression *type_expression = TRY_CALL_RET(eval_type_unary());
-        return new StaticArrayTypeExpression(expression, type_expression);
+        return TRY_CALL_RET(eval_type_staic_or_slice());
     }
 
-    return eval_type_postfix();
+    return TRY_CALL_RET(eval_type_postfix());
 }
 
 TypeExpression *Parser::eval_type_postfix() {
@@ -590,6 +580,26 @@ TypeExpression *Parser::eval_type_primary() {
 
     auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER));
     return new IdentifierTypeExpression(identifier, token->span);
+}
+
+TypeExpression *Parser::eval_type_staic_or_slice() {
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN));
+
+    if(!match(TokenType::TOKEN_BRACKET_CLOSE)) { // static array type
+        NumberLiteralExpression *expression = (NumberLiteralExpression *)TRY_CALL_RET(eval_number_literal());
+        ASSERT_MSG(
+            expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL,
+            "assuming all expression from eval_number_literal are number literals"
+        );
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE));
+
+        TypeExpression *type_expression = TRY_CALL_RET(eval_type_unary());
+        return new StaticArrayTypeExpression(expression, type_expression);
+    } else { // slice type
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE));
+        TypeExpression *type_expression = TRY_CALL_RET(eval_type_unary());
+        return new SliceTypeExpression(type_expression);
+    }
 }
 
 Option<u64> Parser::find_balance_point(TokenType push, TokenType pull, u64 from) {

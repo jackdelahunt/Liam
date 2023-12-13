@@ -107,7 +107,8 @@ enum class TypeInfoType {
     STRUCT,
     POINTER,
     NAMESPACE,
-    STATIC_ARRAY
+    STATIC_ARRAY,
+    SLICE
 };
 
 enum class NumberType {
@@ -176,6 +177,12 @@ struct StaticArrayTypeInfo : TypeInfo {
     TypeInfo *base_type;
 
     StaticArrayTypeInfo(u64 size, TypeInfo *base_type);
+};
+
+struct SliceTypeInfo : TypeInfo {
+    TypeInfo *base_type;
+
+    SliceTypeInfo(TypeInfo *base_type);
 };
 
 /*

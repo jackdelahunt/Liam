@@ -65,6 +65,12 @@ constexpr f64 make_f64(f64 n) {
     return n;
 }
 
+template <typename T>
+struct Slice {
+    T *data;
+    u64 length;
+};
+
 template <u64 N, typename T> struct StaticArray {
     T array[N];
     u64 size;

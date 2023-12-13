@@ -76,6 +76,7 @@ struct CppBackend {
     void emit_identifier_type_expression(IdentifierTypeExpression *type_expression);
     void emit_get_type_expression(GetTypeExpression *type_expression);
     void emit_static_array_type_expression(StaticArrayTypeExpression *type_expression);
+    void emit_slice_type_expression(SliceTypeExpression *type_expression);
 };
 
 std::string strip_semi_colon(std::string str);

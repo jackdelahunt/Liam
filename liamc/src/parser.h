@@ -72,6 +72,7 @@ struct Parser {
     TypeExpression *eval_type_postfix();
     TypeExpression *eval_type_primary();
     TypeExpression *eval_type_fn();
+    TypeExpression *eval_type_staic_or_slice();
 
     bool match(TokenType type);
     Token *peek(i32 offset = 0);

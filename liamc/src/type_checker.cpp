@@ -1054,6 +1054,9 @@ void TypeChecker::type_check_type_expression(TypeExpression *type_expression) {
     case TypeExpressionType::TYPE_STATIC_ARRAY:
         type_check_static_array_type_expression(static_cast<StaticArrayTypeExpression *>(type_expression));
         break;
+    case TypeExpressionType::TYPE_SLICE:
+        type_check_slice_type_expression(static_cast<SliceTypeExpression *>(type_expression));
+        break;
     default:
         UNREACHABLE();
     }
@@ -1128,6 +1131,13 @@ void TypeChecker::type_check_static_array_type_expression(StaticArrayTypeExpress
 
     type_expression->type_info =
         new StaticArrayTypeInfo(type_expression->size->number, type_expression->base_type->type_info);
+}
+
+void TypeChecker::type_check_slice_type_expression(SliceTypeExpression *type_expression) {
+    TRY_CALL_VOID(type_check_type_expression(type_expression->base_type));
+
+    type_expression->type_info =
+        new SliceTypeInfo(type_expression->base_type->type_info);
 }
 
 bool type_match(TypeInfo *a, TypeInfo *b) {

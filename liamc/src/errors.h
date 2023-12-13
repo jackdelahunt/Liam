@@ -50,6 +50,7 @@ struct ErrorReporter {
     static bool has_parse_errors();
     static bool has_type_check_errors();
     static bool has_error_since_last_check();
+    static void reset_errors();
     static u64 error_count();
 };
 

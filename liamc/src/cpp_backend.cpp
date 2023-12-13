@@ -755,6 +755,9 @@ void CppBackend::emit_type_expression(TypeExpression *type_expression) {
     case TypeExpressionType::TYPE_STATIC_ARRAY:
         emit_static_array_type_expression(static_cast<StaticArrayTypeExpression *>(type_expression));
         break;
+    case TypeExpressionType::TYPE_SLICE:
+        emit_slice_type_expression(static_cast<SliceTypeExpression *>(type_expression));
+        break;
     default:
         UNREACHABLE();
     }
@@ -797,6 +800,12 @@ void CppBackend::emit_static_array_type_expression(StaticArrayTypeExpression *ty
     this->builder.append("Liam::StaticArray<");
     emit_int_literal_expression(type_expression->size);
     this->builder.append(", ");
+    emit_type_expression(type_expression->base_type);
+    this->builder.append(">");
+}
+
+void CppBackend::emit_slice_type_expression(SliceTypeExpression *type_expression) {
+    this->builder.append("Liam::Slice<");
     emit_type_expression(type_expression->base_type);
     this->builder.append(">");
 }
