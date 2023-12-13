@@ -144,9 +144,19 @@ bool ErrorReporter::has_error_since_last_check() {
     if (ErrorReporter::singleton == nullptr)
         return false;
 
-    u64 error_count                                   = ErrorReporter::singleton->errors_since_last_check;
-    ErrorReporter::singleton->errors_since_last_check = 0;
+    u64 error_count = ErrorReporter::singleton->errors_since_last_check;
     return error_count > 0;
+}
+
+void ErrorReporter::reset_errors() {
+    // TODO this shouod be called to reset the error state to keep compiling
+    // even after we have an erroe. Right now if there is an error it will 
+    // stop everything. Use this for example after each fn in type checking
+    // to have multiple errors
+    if (ErrorReporter::singleton == nullptr)
+        return;
+
+    ErrorReporter::singleton->errors_since_last_check = 0;
 }
 
 u64 ErrorReporter::error_count() {

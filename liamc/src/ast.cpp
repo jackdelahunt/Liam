@@ -54,6 +54,11 @@ StaticArrayTypeInfo::StaticArrayTypeInfo(u64 size, TypeInfo *base_type) {
     this->type      = TypeInfoType::STATIC_ARRAY;
 }
 
+SliceTypeInfo::SliceTypeInfo(TypeInfo *base_type) {
+    this->base_type = base_type;
+    this->type      = TypeInfoType::SLICE;
+}
+
 ExpressionStatement::ExpressionStatement(Expression *expression) {
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_EXPRESSION;
@@ -282,6 +287,6 @@ StaticArrayTypeExpression::StaticArrayTypeExpression(NumberLiteralExpression *si
 
 SliceTypeExpression::SliceTypeExpression(TypeExpression *base_type) {
     this->base_type = base_type;
-    this->span = base_type->span;
+    this->span      = base_type->span;
     this->type      = TypeExpressionType::TYPE_SLICE;
 }

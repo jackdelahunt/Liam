@@ -55,7 +55,7 @@ void panic(const std::string &msg);
     {                                                                                                                  \
         if (ErrorReporter::has_error_since_last_check())                                                               \
         {                                                                                                              \
-            return {};                                                                                                \
+            return {};                                                                                                 \
         }                                                                                                              \
     }
 
