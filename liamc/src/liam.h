@@ -48,42 +48,19 @@ void panic(const std::string &msg);
         }                                                                                                              \
     }
 
-#define WIN(value)                                                                                                     \
-    { value, false }
-
-// call a func and if there is an error return else get the value from the function
-#define TRY_CALL(func)                                                                                                 \
-    func;                                                                                                              \
-    {                                                                                                                  \
-        if (ErrorReporter::has_error_since_last_check())                                                               \
-        {                                                                                                              \
-            return;                                                                                                    \
-        }                                                                                                              \
-    }
-
-// call a func and if there is an error return with §a given value
+// call a func and ifthere is an error return with §a given value
 // return the value from the func
-#define TRY_CALL_RET(func, ret)                                                                                        \
+#define TRY_CALL_RET(func)                                                                                             \
     func;                                                                                                              \
     {                                                                                                                  \
         if (ErrorReporter::has_error_since_last_check())                                                               \
         {                                                                                                              \
-            return ret;                                                                                                \
+            return {};                                                                                                \
         }                                                                                                              \
     }
 
 // call a void func and if there is an error return
 #define TRY_CALL_VOID(func)                                                                                            \
-    func;                                                                                                              \
-    {                                                                                                                  \
-        if (ErrorReporter::has_error_since_last_check())                                                               \
-        {                                                                                                              \
-            return;                                                                                                    \
-        }                                                                                                              \
-    }
-
-// call a func and if there is an error return with a given value from the function
-#define TRY_CALL_RET_VOID(func, ret)                                                                                   \
     func;                                                                                                              \
     {                                                                                                                  \
         if (ErrorReporter::has_error_since_last_check())                                                               \

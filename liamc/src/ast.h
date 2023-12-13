@@ -35,7 +35,7 @@ struct StaticArrayExpression;
 struct TypeExpression;
 struct IdentifierTypeExpression;
 struct UnaryTypeExpression;
-
+struct StaticArrayTypeExpression;
 struct CompilationUnit;
 
 struct TypeInfo;
@@ -93,7 +93,8 @@ enum class TypeExpressionType {
     TYPE_IDENTIFIER,
     TYPE_UNARY,
     TYPE_GET,
-    TYPE_STATIC_ARRAY
+    TYPE_STATIC_ARRAY,
+    TYPE_SLICE
 };
 
 enum class TypeInfoType {
@@ -426,4 +427,10 @@ struct StaticArrayTypeExpression : TypeExpression {
     TypeExpression *base_type;
 
     StaticArrayTypeExpression(NumberLiteralExpression *size, TypeExpression *base_type);
+};
+
+struct SliceTypeExpression : TypeExpression {
+    TypeExpression *base_type;
+
+    SliceTypeExpression(TypeExpression *base_type);
 };

@@ -279,3 +279,9 @@ StaticArrayTypeExpression::StaticArrayTypeExpression(NumberLiteralExpression *si
     this->type      = TypeExpressionType::TYPE_STATIC_ARRAY;
     this->span      = base_type->span;
 }
+
+SliceTypeExpression::SliceTypeExpression(TypeExpression *base_type) {
+    this->base_type = base_type;
+    this->span = base_type->span;
+    this->type      = TypeExpressionType::TYPE_SLICE;
+}
