@@ -47,3 +47,18 @@ if condition or another_condition {
 let x_ptr: ^type = &x;
 let y: type = *x_ptr;
 ```
+
+### Arrays
+```rust
+// size known at compile time, exists on the stack
+let array : [3]i64 = [3]i64{1, 2, 3};
+let n := array[0];
+```
+
+### Slices
+```rust
+let array : [3]i64 = [3]i64{1, 2, 3};
+let full_slice : []i64 = array[$:$];
+let first_element : []i64 = array[$:1];
+let last_element : []i64 = array[array.size - 1u64:$];
+```
