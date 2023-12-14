@@ -17,6 +17,9 @@ struct ElseStatement;
 struct ReturnStatement;
 struct BreakStatement;
 struct ContinueStatement;
+struct ImportStatement;
+struct PrintStatement;
+
 struct Expression;
 struct BinaryExpression;
 struct UnaryExpression;
@@ -70,7 +73,8 @@ enum class StatementType {
     STATEMENT_IF,
     STATEMENT_ELSE,
     STATEMENT_CONTINUE,
-    STATEMENT_IMPORT
+    STATEMENT_IMPORT,
+    STATEMENT_PRINT
 };
 
 enum class ExpressionType {
@@ -303,6 +307,12 @@ struct ImportStatement : Statement {
     NamespaceTypeInfo *namespace_type_info;
 
     ImportStatement(TokenIndex identifier, TokenIndex string_literal, NamespaceTypeInfo *namespace_type_info);
+};
+
+struct PrintStatement : Statement {
+    Expression *expression;
+
+    PrintStatement(Expression *expression);
 };
 
 /*

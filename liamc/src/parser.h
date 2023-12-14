@@ -46,6 +46,7 @@ struct Parser {
     ExpressionStatement *eval_expression_statement();
     ContinueStatement *eval_continue_statement();
     ImportStatement *eval_import_statement();
+    PrintStatement *eval_print_statement();
     Statement *eval_line_starting_expression();
 
     // presendence order of how we parse expressions

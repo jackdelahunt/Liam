@@ -68,8 +68,21 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_CONTINUE:
         return eval_continue_statement();
         break;
+    case TokenType::TOKEN_PRINT:
+        return eval_print_statement();
+        break;
     case TokenType::TOKEN_FN:
     case TokenType::TOKEN_STRUCT:
+    case TokenType::TOKEN_IMPORT: {
+        ErrorReporter::report_parser_error(
+            this->compilation_unit->file_data->absolute_path.string(), peek()->span,
+            std::format(
+                "unexpected token used to declare new statement in scope '{}'",
+                this->compilation_unit->get_token_string_from_index(consume_token_with_index())
+            )
+        );
+    }
+    break;
     default:
         return eval_line_starting_expression();
         break;
@@ -260,6 +273,13 @@ ImportStatement *Parser::eval_import_statement() {
     TokenIndex identifier     = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER));
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON));
     return new ImportStatement(identifier, string_literal, NULL);
+}
+
+PrintStatement *Parser::eval_print_statement() {
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_PRINT));
+    Expression *expression = TRY_CALL_RET(eval_expression());
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON));
+    return new PrintStatement(expression);
 }
 
 Statement *Parser::eval_line_starting_expression() {

@@ -221,6 +221,9 @@ void CppBackend::emit_statement(Statement *statement) {
     case StatementType::STATEMENT_CONTINUE:
         emit_continue_statement(static_cast<ContinueStatement *>(statement));
         break;
+    case StatementType::STATEMENT_PRINT:
+        emit_print_statement(static_cast<PrintStatement *>(statement));
+        break;
     default:
         UNREACHABLE();
     }
@@ -447,6 +450,14 @@ void CppBackend::emit_else_statement(ElseStatement *statement) {
 
 void CppBackend::emit_continue_statement(ContinueStatement *statement) {
     this->builder.append_line("continue;");
+}
+
+void CppBackend::emit_print_statement(PrintStatement *statement) {
+    this->builder.start_line();
+    this->builder.append("std::cout << ");
+    emit_expression(statement->expression);
+    this->builder.append(";");
+    this->builder.end_line();
 }
 
 void CppBackend::emit_expression(Expression *expression) {

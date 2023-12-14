@@ -54,6 +54,7 @@ enum class TokenType {
     TOKEN_IMPORT,             // import
     TOKEN_DOLLAR,             // $
     TOKEN_RANGE_LITERAL,      // ..
+    TOKEN_PRINT,              // print
 };
 
 struct Span {
