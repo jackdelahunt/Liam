@@ -289,7 +289,7 @@ Statement *Parser::eval_line_starting_expression() {
  *  * / %
  *  @ * !
  *  call() slice[0]
- *  literal () new "" null true false []u64{}
+ *  literal (group) new "" null true false []u64{} $0..10
  */
 
 Expression *Parser::eval_expression() {
@@ -466,6 +466,10 @@ Expression *Parser::eval_primary() {
         return TRY_CALL_RET(eval_static_array_literal());
     }
     break;
+    case TokenType::TOKEN_DOLLAR: {
+        return TRY_CALL_RET(eval_range_expression());
+    }
+    break;
     default: {
         auto token_index = consume_token_with_index();
         auto token_data  = this->compilation_unit->get_token(token_index);
@@ -524,6 +528,15 @@ Expression *Parser::eval_static_array_literal() {
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_CLOSE));
 
     return new StaticArrayExpression(size, type_expression, expressions);
+}
+
+Expression *Parser::eval_range_expression() {
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_DOLLAR));
+    Expression *start = TRY_CALL_RET(eval_expression());
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_RANGE_LITERAL));
+    Expression *end = TRY_CALL_RET(eval_expression());
+
+    return new RangeExpression(start, end);
 }
 
 /*
@@ -585,7 +598,8 @@ TypeExpression *Parser::eval_type_primary() {
 TypeExpression *Parser::eval_type_staic_or_slice() {
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_OPEN));
 
-    if(!match(TokenType::TOKEN_BRACKET_CLOSE)) { // static array type
+    if (!match(TokenType::TOKEN_BRACKET_CLOSE))
+    { // static array type
         NumberLiteralExpression *expression = (NumberLiteralExpression *)TRY_CALL_RET(eval_number_literal());
         ASSERT_MSG(
             expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL,
@@ -595,7 +609,9 @@ TypeExpression *Parser::eval_type_staic_or_slice() {
 
         TypeExpression *type_expression = TRY_CALL_RET(eval_type_unary());
         return new StaticArrayTypeExpression(expression, type_expression);
-    } else { // slice type
+    }
+    else
+    { // slice type
         TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE));
         TypeExpression *type_expression = TRY_CALL_RET(eval_type_unary());
         return new SliceTypeExpression(type_expression);

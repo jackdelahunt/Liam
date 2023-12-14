@@ -734,10 +734,22 @@ void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *exp
 }
 
 void CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
+    if (expression->subscripter->type != ExpressionType::EXPRESSION_RANGE)
+    {
+        emit_expression(expression->subscriptee);
+        this->builder.append("[");
+        emit_expression(expression->subscripter);
+        this->builder.append("]");
+        return;
+    }
+
+    auto range_expression = static_cast<RangeExpression *>(expression->subscripter);
     emit_expression(expression->subscriptee);
-    this->builder.append("[");
-    emit_expression(expression->subscripter);
-    this->builder.append("]");
+    this->builder.append(".slice(");
+    emit_expression(range_expression->start);
+    this->builder.append(", ");
+    emit_expression(range_expression->end);
+    this->builder.append(")");
 }
 
 void CppBackend::emit_type_expression(TypeExpression *type_expression) {

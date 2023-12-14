@@ -51,7 +51,9 @@ enum class TokenType {
     TOKEN_ZERO,               // zero
     TOKEN_AMPERSAND,          // &
     TOKEN_MATCH,              // match
-    TOKEN_IMPORT              // import
+    TOKEN_IMPORT,             // import
+    TOKEN_DOLLAR,             // $
+    TOKEN_RANGE_LITERAL,      // ..
 };
 
 struct Span {

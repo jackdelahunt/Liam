@@ -48,7 +48,7 @@ struct Parser {
     ImportStatement *eval_import_statement();
     Statement *eval_line_starting_expression();
 
-    // normal expressions
+    // presendence order of how we parse expressions
     Expression *eval_expression();
     Expression *eval_or();
     Expression *eval_and();
@@ -59,12 +59,15 @@ struct Parser {
     Expression *eval_unary();
     Expression *eval_postfix();
     Expression *eval_primary();
+
+    // specific expression parsing when needed
     Expression *eval_number_literal();
     Expression *eval_string_literal();
     Expression *eval_instantiate_expression();
     Expression *eval_struct_instance_expression();
     Expression *eval_group_expression();
     Expression *eval_static_array_literal();
+    Expression *eval_range_expression();
 
     // type expressions
     TypeExpression *eval_type_expression();

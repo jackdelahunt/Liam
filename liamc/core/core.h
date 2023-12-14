@@ -65,8 +65,7 @@ constexpr f64 make_f64(f64 n) {
     return n;
 }
 
-template <typename T>
-struct Slice {
+template <typename T> struct Slice {
     T *data;
     u64 length;
 };
@@ -88,6 +87,11 @@ template <u64 N, typename T> struct StaticArray {
         }
     }
 
+    // pass in a start and and end index and we return right exclusive slice
+    Slice<T> slice(u64 start, u64 end) {
+        return Slice<T>{.data = &this->array[start], .length = end - start};
+    }
+
     // we need to use T& to make Array[n] assignable i.e. we need a
     // lvalue as just using rvalue will not work. This si fine but
     // is not represented in the compiler so it is kind of magic
@@ -96,19 +100,6 @@ template <u64 N, typename T> struct StaticArray {
     T &operator[](u64 index) {
         // TODO we should have bounds checking in this for debug builds
         return this->array[index];
-    }
-};
-
-template <typename T> struct PointerSlice {
-    u64 size;
-    T *ptr;
-
-    T subscript(u64 index) {
-        return this->ptr[index];
-    }
-
-    void set(u64 index, T t) {
-        this->ptr[index] = t;
     }
 };
 

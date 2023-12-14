@@ -348,7 +348,8 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
             );
             return;
         }
-    } else if (statement->rhs->type_info->type == TypeInfoType::ANY)
+    }
+    else if (statement->rhs->type_info->type == TypeInfoType::ANY)
     {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->absolute_path.string(), statement->rhs, NULL, NULL, NULL,
@@ -357,9 +358,12 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
         return;
     }
 
-    if (statement->type != NULL) {
+    if (statement->type != NULL)
+    {
         this->add_to_scope(statement->identifier, statement->type->type_info);
-    } else {
+    }
+    else
+    {
         this->add_to_scope(statement->identifier, statement->rhs->type_info);
     }
 }
@@ -486,6 +490,9 @@ void TypeChecker::type_check_expression(Expression *expression) {
         break;
     case ExpressionType::EXPRESSION_SUBSCRIPT:
         return type_check_subscript_expression(static_cast<SubscriptExpression *>(expression));
+        break;
+    case ExpressionType::EXPRESSION_RANGE:
+        return type_check_range_expression(static_cast<RangeExpression *>(expression));
         break;
     default:
         UNREACHABLE();
@@ -1021,21 +1028,11 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
         return;
     }
 
-    if (expression->subscripter->type_info->type != TypeInfoType::NUMBER)
+    if (expression->subscripter->type_info->type != TypeInfoType::NUMBER &&
+        expression->subscripter->type_info->type != TypeInfoType::RANGE)
     {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("can only subscript with number types")
-            .set_expr_2(expression->subscripter)
-            .report();
-
-        return;
-    }
-
-    NumberTypeInfo *number_type_info = (NumberTypeInfo *)expression->subscripter->type_info;
-    if (number_type_info->number_type == NumberType::FLOAT)
-    {
-        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("cannot use a float type to subscript an array")
+            .set_message("can only subscript with number and range expressions")
             .set_expr_2(expression->subscripter)
             .report();
 
@@ -1043,7 +1040,89 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
     }
 
     StaticArrayTypeInfo *array_type_info = (StaticArrayTypeInfo *)expression->subscriptee->type_info;
-    expression->type_info                = array_type_info->base_type;
+
+    { // when the subscripter is a number
+        if (expression->subscripter->type_info->type == TypeInfoType::NUMBER)
+        {
+            NumberTypeInfo *number_type_info = (NumberTypeInfo *)expression->subscripter->type_info;
+            if (number_type_info->number_type == NumberType::FLOAT)
+            {
+                TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+                    .set_message("cannot use a float type to subscript an array")
+                    .set_expr_2(expression->subscripter)
+                    .report();
+
+                return;
+            }
+
+            expression->type_info = array_type_info->base_type;
+        }
+    }
+
+    { // when the subscripter is a range
+        if (expression->subscripter->type_info->type == TypeInfoType::RANGE)
+        {
+            expression->type_info = new SliceTypeInfo(array_type_info->base_type);
+            return;
+        }
+    }
+
+    // can only subscript with number types and range types
+    UNREACHABLE();
+}
+
+void TypeChecker::type_check_range_expression(RangeExpression *expression) {
+    TRY_CALL_VOID(type_check_expression(expression->start));
+    TRY_CALL_VOID(type_check_expression(expression->end));
+
+    if (expression->start->type_info->type != TypeInfoType::NUMBER)
+    {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("can only use number types in range expression")
+            .set_expr_1(expression->start)
+            .set_expr_2(expression)
+            .report();
+
+        return;
+    }
+
+    if (expression->end->type_info->type != TypeInfoType::NUMBER)
+    {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("can only use number types in range expression")
+            .set_expr_2(expression->end)
+            .set_expr_2(expression)
+            .report();
+
+        return;
+    }
+
+    NumberTypeInfo *start_type_info = (NumberTypeInfo *)expression->start->type_info;
+    NumberTypeInfo *end_type_info   = (NumberTypeInfo *)expression->end->type_info;
+
+    if (start_type_info->number_type != end_type_info->number_type)
+    {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("cannot use different number types in range expression")
+            .set_expr_1(expression->start)
+            .set_expr_2(expression->end)
+            .report();
+
+        return;
+    }
+
+    if (start_type_info->number_type == NumberType::FLOAT)
+    {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("cannot use float types in range expression")
+            .set_expr_1(expression->start)
+            .set_expr_2(expression->end)
+            .report();
+
+        return;
+    }
+
+    expression->type_info = new RangeTypeInfo();
 }
 
 void TypeChecker::type_check_type_expression(TypeExpression *type_expression) {
@@ -1143,8 +1222,7 @@ void TypeChecker::type_check_static_array_type_expression(StaticArrayTypeExpress
 void TypeChecker::type_check_slice_type_expression(SliceTypeExpression *type_expression) {
     TRY_CALL_VOID(type_check_type_expression(type_expression->base_type));
 
-    type_expression->type_info =
-        new SliceTypeInfo(type_expression->base_type->type_info);
+    type_expression->type_info = new SliceTypeInfo(type_expression->base_type->type_info);
 }
 
 bool type_match(TypeInfo *a, TypeInfo *b) {
@@ -1228,8 +1306,15 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
 
         return type_match(array_a->base_type, array_b->base_type);
     }
+    else if (a->type == TypeInfoType::SLICE)
+    {
+        auto slice_a = static_cast<SliceTypeInfo *>(a);
+        auto slice_b = static_cast<SliceTypeInfo *>(b);
 
-    panic("Cannot type check this type info");
+        return type_match(slice_a->base_type, slice_b->base_type);
+    }
+
+    UNREACHABLE();
     return false;
 }
 

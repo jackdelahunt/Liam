@@ -59,6 +59,10 @@ SliceTypeInfo::SliceTypeInfo(TypeInfo *base_type) {
     this->type      = TypeInfoType::SLICE;
 }
 
+RangeTypeInfo::RangeTypeInfo() {
+    this->type = TypeInfoType::RANGE;
+}
+
 ExpressionStatement::ExpressionStatement(Expression *expression) {
     this->expression     = expression;
     this->statement_type = StatementType::STATEMENT_EXPRESSION;
@@ -247,6 +251,13 @@ SubscriptExpression::SubscriptExpression(Expression *subscriptee, Expression *su
     this->subscripter = subscripter;
     this->span        = subscripter->span;
     this->type        = ExpressionType::EXPRESSION_SUBSCRIPT;
+}
+
+RangeExpression::RangeExpression(Expression *start, Expression *end) {
+    this->start = start;
+    this->end   = end;
+    this->span  = Span(start->span.start, end->span.end);
+    this->type  = ExpressionType::EXPRESSION_RANGE;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {

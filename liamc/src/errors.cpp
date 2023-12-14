@@ -150,7 +150,7 @@ bool ErrorReporter::has_error_since_last_check() {
 
 void ErrorReporter::reset_errors() {
     // TODO this shouod be called to reset the error state to keep compiling
-    // even after we have an erroe. Right now if there is an error it will 
+    // even after we have an erroe. Right now if there is an error it will
     // stop everything. Use this for example after each fn in type checking
     // to have multiple errors
     if (ErrorReporter::singleton == nullptr)
