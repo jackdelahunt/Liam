@@ -435,6 +435,22 @@ Expression *Parser::eval_postfix() {
             auto identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER));
             expr            = new GetExpression(expr, identifier);
         }
+        else if (match(TokenType::TOKEN_COLON))
+        {
+            // this is for range expressions, if we are here it means the start of the range is a valid expression
+            // and not $
+            TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON));
+            if (match(TokenType::TOKEN_DOLLAR))
+            {
+                TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_DOLLAR));
+                expr = new RangeExpression(expr, NULL);
+            }
+            else
+            {
+                Expression *end = TRY_CALL_RET(eval_expression());
+                expr            = new RangeExpression(expr, end);
+            }
+        }
         else
         {
             break;
@@ -551,12 +567,24 @@ Expression *Parser::eval_static_array_literal() {
 }
 
 Expression *Parser::eval_range_expression() {
+    // if the range exprsssion starts with a valid expression i.e. 10:20
+    // then we parse it as a postfix above. If we are here it means
+    // that the range expression starts with a $ i.e. $:20
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_DOLLAR));
-    Expression *start = TRY_CALL_RET(eval_expression());
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_RANGE_LITERAL));
-    Expression *end = TRY_CALL_RET(eval_expression());
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON));
 
-    return new RangeExpression(start, end);
+    Expression *end = NULL;
+
+    if (!match(TokenType::TOKEN_DOLLAR))
+    {
+        end = TRY_CALL_RET(eval_expression());
+    }
+    else
+    {
+        TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_DOLLAR));
+    }
+
+    return new RangeExpression(NULL, end);
 }
 
 /*

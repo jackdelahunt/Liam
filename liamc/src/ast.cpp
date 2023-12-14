@@ -261,8 +261,9 @@ SubscriptExpression::SubscriptExpression(Expression *subscriptee, Expression *su
 RangeExpression::RangeExpression(Expression *start, Expression *end) {
     this->start = start;
     this->end   = end;
-    this->span  = Span(start->span.start, end->span.end);
-    this->type  = ExpressionType::EXPRESSION_RANGE;
+    this->span =
+        Span{}; // TODO: each expression might be null here so we need to figure out what to do here, maybe use the : ??
+    this->type = ExpressionType::EXPRESSION_RANGE;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {

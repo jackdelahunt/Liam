@@ -1,6 +1,7 @@
 #include "cpp_backend.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <format>
 #include <string>
 #include <vector>
@@ -756,11 +757,36 @@ void CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
 
     auto range_expression = static_cast<RangeExpression *>(expression->subscripter);
     emit_expression(expression->subscriptee);
-    this->builder.append(".slice(");
-    emit_expression(range_expression->start);
-    this->builder.append(", ");
-    emit_expression(range_expression->end);
-    this->builder.append(")");
+
+    // there are 4 cases we need to handle
+    // 1. [a..b] -> slice_with_start_and_end(a, b)
+    // 2. [a..] -> slice_with_start(a)
+    // 3. [..b] -> slice_with_end(b)
+    // 4. [..] -> slice_full()
+    if (range_expression->start && range_expression->end)
+    {
+        this->builder.append(".slice_with_start_and_end(");
+        emit_expression(range_expression->start);
+        this->builder.append(", ");
+        emit_expression(range_expression->end);
+        this->builder.append(")");
+    }
+    else if (range_expression->start)
+    {
+        this->builder.append(".slice_with_start(");
+        emit_expression(range_expression->start);
+        this->builder.append(")");
+    }
+    else if (range_expression->end)
+    {
+        this->builder.append(".slice_with_end(");
+        emit_expression(range_expression->end);
+        this->builder.append(")");
+    }
+    else
+    {
+        this->builder.append(".slice_full()");
+    }
 }
 
 void CppBackend::emit_type_expression(TypeExpression *type_expression) {

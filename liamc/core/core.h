@@ -104,9 +104,20 @@ template <u64 N, typename T> struct StaticArray {
         }
     }
 
-    // pass in a start and and end index and we return right exclusive slice
-    Slice<T> slice(u64 start, u64 end) {
+    Slice<T> slice_full() {
+        return Slice<T>{.data = &this->array[0], .length = this->size};
+    }
+
+    Slice<T> slice_with_start_and_end(u64 start, u64 end) {
         return Slice<T>{.data = &this->array[start], .length = end - start};
+    }
+
+    Slice<T> slice_with_start(u64 start) {
+        return Slice<T>{.data = &this->array[start], .length = this->size - start};
+    }
+
+    Slice<T> slice_with_end(u64 end) {
+        return Slice<T>{.data = &this->array[0], .length = end};
     }
 
     // we need to use T& to make Array[n] assignable i.e. we need a
