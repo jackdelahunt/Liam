@@ -53,6 +53,7 @@ struct CppBackend {
     void emit_if_statement(IfStatement *statement);
     void emit_else_statement(ElseStatement *statement);
     void emit_continue_statement(ContinueStatement *statement);
+    void emit_print_statement(PrintStatement *statement);
 
     void emit_expression(Expression *expression);
     void emit_binary_expression(BinaryExpression *expression);

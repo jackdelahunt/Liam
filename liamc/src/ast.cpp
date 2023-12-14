@@ -147,6 +147,11 @@ ImportStatement::ImportStatement(
     this->namespace_type_info = namespace_type_info;
 }
 
+PrintStatement::PrintStatement(Expression *expression) {
+    this->statement_type = StatementType::STATEMENT_PRINT;
+    this->expression     = expression;
+}
+
 std::ostream &Expression::format(std::ostream &os) const {
     os << "()";
     return os;

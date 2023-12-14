@@ -312,15 +312,16 @@ void TypeChecker::type_check_statement(Statement *statement) {
         return type_check_for_statement(static_cast<ForStatement *>(statement));
     case StatementType::STATEMENT_IF:
         return type_check_if_statement(static_cast<IfStatement *>(statement));
+    case StatementType::STATEMENT_PRINT:
+        return type_check_print_statement(static_cast<PrintStatement *>(statement));
     case StatementType::STATEMENT_CONTINUE:
         break;
     case StatementType::STATEMENT_STRUCT:
     case StatementType::STATEMENT_FN:
+    case StatementType::STATEMENT_IMPORT:
         ASSERT_MSG(0, "These should of already been type checked in the first pass");
     default:
-        ASSERT_MSG(
-            0, "Statement not implemented in type checker, id -> " + std::to_string((int)statement->statement_type)
-        );
+        UNREACHABLE();
     }
 }
 
@@ -440,6 +441,10 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement) 
 }
 
 void TypeChecker::type_check_expression_statement(ExpressionStatement *statement) {
+    TRY_CALL_VOID(type_check_expression(statement->expression));
+}
+
+void TypeChecker::type_check_print_statement(PrintStatement *statement) {
     TRY_CALL_VOID(type_check_expression(statement->expression));
 }
 

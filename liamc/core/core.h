@@ -68,6 +68,21 @@ constexpr f64 make_f64(f64 n) {
 template <typename T> struct Slice {
     T *data;
     u64 length;
+
+    // define a << overload for std::cout
+    friend std::ostream &operator<<(std::ostream &os, const Slice<T> &obj) {
+        os << "[";
+        for (u64 i = 0; i < obj.length; i++)
+        {
+            os << obj.data[i];
+            if (i != obj.length - 1)
+            {
+                os << ", ";
+            }
+        }
+        os << "]";
+        return os;
+    }
 };
 
 template <u64 N, typename T> struct StaticArray {
@@ -79,6 +94,8 @@ template <u64 N, typename T> struct StaticArray {
     }
 
     explicit StaticArray(std::initializer_list<T> list) {
+        this->size = N;
+
         u64 index = 0;
         for (auto iter = list.begin(); iter != list.end(); iter++)
         {
@@ -100,6 +117,20 @@ template <u64 N, typename T> struct StaticArray {
     T &operator[](u64 index) {
         // TODO we should have bounds checking in this for debug builds
         return this->array[index];
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const StaticArray<N, T> &obj) {
+        os << "[";
+        for (u64 i = 0; i < obj.size; i++)
+        {
+            os << obj.array[i];
+            if (i != obj.size - 1)
+            {
+                os << ", ";
+            }
+        }
+        os << "]";
+        return os;
     }
 };
 
