@@ -32,6 +32,9 @@ struct ZeroLiteralExpression;
 struct InstantiateExpression;
 struct StructInstanceExpression;
 struct StaticArrayExpression;
+struct SubscriptExpression;
+struct RangeExpression;
+
 struct TypeExpression;
 struct IdentifierTypeExpression;
 struct UnaryTypeExpression;
@@ -48,6 +51,9 @@ struct TypeTypeInfo;
 struct StructTypeInfo;
 struct FnTypeInfo;
 struct NamespaceTypeInfo;
+struct StaticArrayTypeInfo;
+struct SliceTypeInfo;
+struct RangeTypeInfo;
 
 typedef std::vector<std::tuple<TokenIndex, TypeExpression *>> CSV;
 
@@ -82,7 +88,8 @@ enum class ExpressionType {
     EXPRESSION_ZERO_LITERAL,
     EXPRESSION_INSTANTIATION,
     EXPRESSION_STRUCT_INSTANCE,
-    EXPRESSION_STATIC_ARRAY
+    EXPRESSION_STATIC_ARRAY,
+    EXPRESSION_RANGE
 };
 
 enum class UnaryType {
@@ -108,7 +115,8 @@ enum class TypeInfoType {
     POINTER,
     NAMESPACE,
     STATIC_ARRAY,
-    SLICE
+    SLICE,
+    RANGE
 };
 
 enum class NumberType {
@@ -183,6 +191,20 @@ struct SliceTypeInfo : TypeInfo {
     TypeInfo *base_type;
 
     SliceTypeInfo(TypeInfo *base_type);
+};
+
+// right now we are not tracking the types that we are ranging with in the range type info
+// maybe in the future that would be useful but right now there is no need.
+// You can either check if the range valid when creating the range expression
+// or store the type in the range type and then check it when you are ranging
+// in the static array or slice where ever. I think the first option is better
+// for now atleast. Maybe in the future if you have very exotic types you might
+// you can range on that depend on how you are using them the second method might
+// be better.
+// right now only number types can be the expression used in the range expression
+// $NUMBER..NUMBER
+struct RangeTypeInfo : TypeInfo {
+    RangeTypeInfo();
 };
 
 /*
@@ -397,6 +419,13 @@ struct SubscriptExpression : Expression {
     Expression *subscripter;
 
     SubscriptExpression(Expression *subscriptee, Expression *subscripter);
+};
+
+struct RangeExpression : Expression {
+    Expression *start;
+    Expression *end;
+
+    RangeExpression(Expression *start, Expression *end);
 };
 
 /*

@@ -6,7 +6,8 @@
 bool is_delim(char c) {
     return c == ' ' || c == '\n' || c == ';' || c == '(' || c == ')' || c == '{' || c == '}' || c == ',' || c == ':' ||
            c == '=' || c == '+' || c == '^' || c == '&' || c == '*' || c == '.' || c == '[' || c == ']' || c == '!' ||
-           c == '<' || c == '>' || c == '|' || c == '-' || c == '/' || c == '%';
+           c == '<' || c == '>' || c == '|' || c == '-' || c == '/' || c == '%' || c == '$' || c == '\r' || c == '\t' ||
+           c == '\0';
 }
 
 Lexer::Lexer(FileData *file_data) {
@@ -102,7 +103,18 @@ CompilationUnit *Lexer::lex() {
             this->token_buffer.emplace_back(TokenType::TOKEN_AMPERSAND, this->current_index, this->current_index);
             break;
         case '.':
+            if (peek() == '.')
+            {
+                next_char();
+                this->token_buffer.emplace_back(
+                    TokenType::TOKEN_RANGE_LITERAL, this->current_index - 1, this->current_index
+                );
+                break;
+            }
             this->token_buffer.emplace_back(TokenType::TOKEN_DOT, this->current_index, this->current_index);
+            break;
+        case '$':
+            this->token_buffer.emplace_back(TokenType::TOKEN_DOLLAR, this->current_index, this->current_index);
             break;
         case '<':
             if (peek() == '=')
