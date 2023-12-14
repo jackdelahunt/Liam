@@ -860,7 +860,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         return;
     }
 
-    if (using_type->type == TypeInfoType::STATIC_ARRAY)
+    if (using_type->type == TypeInfoType::STATIC_ARRAY || using_type->type == TypeInfoType::SLICE)
     {
         std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
 
@@ -871,9 +871,9 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         }
 
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(
-                std::format("can only use 'size' builtin member for static arrays '{}' does not exist", member_string)
-            )
+            .set_message(std::format(
+                "can only use 'size' builtin member for static arrays and slices '{}' does not exist", member_string
+            ))
             .set_expr_1(expression)
             .report();
 
@@ -882,7 +882,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
 
     ErrorReporter::report_type_checker_error(
         this->compilation_unit->file_data->absolute_path, expression->lhs, NULL, NULL, NULL,
-        "Cannot derive member from non struct/namespace/array type"
+        "Cannot derive member from non struct/namespace/array/slice type"
     );
     return;
 }
