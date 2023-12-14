@@ -1022,10 +1022,11 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
     TRY_CALL_VOID(type_check_expression(expression->subscriptee));
     TRY_CALL_VOID(type_check_expression(expression->subscripter));
 
-    if (expression->subscriptee->type_info->type != TypeInfoType::STATIC_ARRAY)
+    if (expression->subscriptee->type_info->type != TypeInfoType::STATIC_ARRAY &&
+        expression->subscriptee->type_info->type != TypeInfoType::SLICE)
     {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("can only subscript array types")
+            .set_message("can only subscript array and slice types")
             .set_expr_1(expression->subscriptee)
             .set_expr_2(expression->subscripter)
             .report();
@@ -1044,7 +1045,21 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
         return;
     }
 
-    StaticArrayTypeInfo *array_type_info = (StaticArrayTypeInfo *)expression->subscriptee->type_info;
+    // even though you can slice on an array or a slice we only care about the base
+    // type so this code can be generic across both of them. If in the future we
+    // have other types that can be sliced but don't fit this pattern we can
+    // change it here
+    TypeInfo *base_type = NULL;
+    if (expression->subscriptee->type_info->type == TypeInfoType::STATIC_ARRAY)
+    {
+        StaticArrayTypeInfo *array_type_info = (StaticArrayTypeInfo *)expression->subscriptee->type_info;
+        base_type                            = array_type_info->base_type;
+    }
+    else if (expression->subscriptee->type_info->type == TypeInfoType::SLICE)
+    {
+        SliceTypeInfo *slice_type_info = (SliceTypeInfo *)expression->subscriptee->type_info;
+        base_type                      = slice_type_info->base_type;
+    }
 
     { // when the subscripter is a number
         if (expression->subscripter->type_info->type == TypeInfoType::NUMBER)
@@ -1060,14 +1075,14 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
                 return;
             }
 
-            expression->type_info = array_type_info->base_type;
+            expression->type_info = base_type;
         }
     }
 
     { // when the subscripter is a range
         if (expression->subscripter->type_info->type == TypeInfoType::RANGE)
         {
-            expression->type_info = new SliceTypeInfo(array_type_info->base_type);
+            expression->type_info = new SliceTypeInfo(base_type);
             return;
         }
     }

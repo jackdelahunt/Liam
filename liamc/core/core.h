@@ -67,15 +67,31 @@ constexpr f64 make_f64(f64 n) {
 
 template <typename T> struct Slice {
     T *data;
-    u64 length;
+    u64 size;
+
+    Slice<T> slice_full() {
+        return Slice<T>{.data = &this->data[0], .size = this->size};
+    }
+
+    Slice<T> slice_with_start_and_end(u64 start, u64 end) {
+        return Slice<T>{.data = &this->data[start], .size = end - start};
+    }
+
+    Slice<T> slice_with_start(u64 start) {
+        return Slice<T>{.data = &this->data[start], .size = this->size - start};
+    }
+
+    Slice<T> slice_with_end(u64 end) {
+        return Slice<T>{.data = &this->data[0], .size = end};
+    }
 
     // define a << overload for std::cout
     friend std::ostream &operator<<(std::ostream &os, const Slice<T> &obj) {
         os << "[";
-        for (u64 i = 0; i < obj.length; i++)
+        for (u64 i = 0; i < obj.size; i++)
         {
             os << obj.data[i];
-            if (i != obj.length - 1)
+            if (i != obj.size - 1)
             {
                 os << ", ";
             }
@@ -105,19 +121,19 @@ template <u64 N, typename T> struct StaticArray {
     }
 
     Slice<T> slice_full() {
-        return Slice<T>{.data = &this->array[0], .length = this->size};
+        return Slice<T>{.data = &this->array[0], .size = this->size};
     }
 
     Slice<T> slice_with_start_and_end(u64 start, u64 end) {
-        return Slice<T>{.data = &this->array[start], .length = end - start};
+        return Slice<T>{.data = &this->array[start], .size = end - start};
     }
 
     Slice<T> slice_with_start(u64 start) {
-        return Slice<T>{.data = &this->array[start], .length = this->size - start};
+        return Slice<T>{.data = &this->array[start], .size = this->size - start};
     }
 
     Slice<T> slice_with_end(u64 end) {
-        return Slice<T>{.data = &this->array[0], .length = end};
+        return Slice<T>{.data = &this->array[0], .size = end};
     }
 
     // we need to use T& to make Array[n] assignable i.e. we need a

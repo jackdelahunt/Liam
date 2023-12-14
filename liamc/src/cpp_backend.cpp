@@ -457,7 +457,7 @@ void CppBackend::emit_print_statement(PrintStatement *statement) {
     this->builder.start_line();
     this->builder.append("std::cout << ");
     emit_expression(statement->expression);
-    this->builder.append(";");
+    this->builder.append(" << std::endl;");
     this->builder.end_line();
 }
 
@@ -746,41 +746,45 @@ void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *exp
 }
 
 void CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
+    emit_expression(expression->subscriptee);
     if (expression->subscripter->type != ExpressionType::EXPRESSION_RANGE)
     {
-        emit_expression(expression->subscriptee);
         this->builder.append("[");
         emit_expression(expression->subscripter);
         this->builder.append("]");
         return;
     }
+    else
+    {
+        ASSERT(expression->subscripter->type == ExpressionType::EXPRESSION_RANGE);
+        emit_range_slicing_expression(static_cast<RangeExpression *>(expression->subscripter));
+    }
+}
 
-    auto range_expression = static_cast<RangeExpression *>(expression->subscripter);
-    emit_expression(expression->subscriptee);
-
+void CppBackend::emit_range_slicing_expression(RangeExpression *expression) {
     // there are 4 cases we need to handle
     // 1. [a..b] -> slice_with_start_and_end(a, b)
     // 2. [a..] -> slice_with_start(a)
     // 3. [..b] -> slice_with_end(b)
     // 4. [..] -> slice_full()
-    if (range_expression->start && range_expression->end)
+    if (expression->start && expression->end)
     {
         this->builder.append(".slice_with_start_and_end(");
-        emit_expression(range_expression->start);
+        emit_expression(expression->start);
         this->builder.append(", ");
-        emit_expression(range_expression->end);
+        emit_expression(expression->end);
         this->builder.append(")");
     }
-    else if (range_expression->start)
+    else if (expression->start)
     {
         this->builder.append(".slice_with_start(");
-        emit_expression(range_expression->start);
+        emit_expression(expression->start);
         this->builder.append(")");
     }
-    else if (range_expression->end)
+    else if (expression->end)
     {
         this->builder.append(".slice_with_end(");
-        emit_expression(range_expression->end);
+        emit_expression(expression->end);
         this->builder.append(")");
     }
     else
