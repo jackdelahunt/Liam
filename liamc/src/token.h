@@ -53,7 +53,6 @@ enum class TokenType {
     TOKEN_MATCH,              // match
     TOKEN_IMPORT,             // import
     TOKEN_DOLLAR,             // $
-    TOKEN_RANGE_LITERAL,      // ..
     TOKEN_PRINT,              // print
 };
 

@@ -1077,54 +1077,35 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
 }
 
 void TypeChecker::type_check_range_expression(RangeExpression *expression) {
-    TRY_CALL_VOID(type_check_expression(expression->start));
-    TRY_CALL_VOID(type_check_expression(expression->end));
+    // this is kind of a mess but with the lambda you end up repeating so much code that I dont
+    // think it is work it and it looks so confusing. If this is slow we can refactor but keeping
+    // all of the logic in one place I think is better
+    auto expression_can_be_used_in_range = [this](Expression *expr) -> bool {
+        if (expr->type_info->type == TypeInfoType::NUMBER &&
+            ((NumberTypeInfo *)expr->type_info)->number_type != NumberType::FLOAT)
+        {
+            return true;
+        }
 
-    if (expression->start->type_info->type != TypeInfoType::NUMBER)
-    {
-        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("can only use number types in range expression")
-            .set_expr_1(expression->start)
-            .set_expr_2(expression)
+        TypeCheckerError::make(this->compilation_unit->file_data->absolute_path.string())
+            .set_message("range expression can only use non-float number types")
+            .set_expr_1(expr)
             .report();
+        return false;
+    };
 
-        return;
+    if (expression->start != NULL)
+    {
+        TRY_CALL_VOID(type_check_expression(expression->start));
+        if (!expression_can_be_used_in_range(expression->start))
+            return;
     }
 
-    if (expression->end->type_info->type != TypeInfoType::NUMBER)
+    if (expression->end != NULL)
     {
-        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("can only use number types in range expression")
-            .set_expr_2(expression->end)
-            .set_expr_2(expression)
-            .report();
-
-        return;
-    }
-
-    NumberTypeInfo *start_type_info = (NumberTypeInfo *)expression->start->type_info;
-    NumberTypeInfo *end_type_info   = (NumberTypeInfo *)expression->end->type_info;
-
-    if (start_type_info->number_type != end_type_info->number_type)
-    {
-        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("cannot use different number types in range expression")
-            .set_expr_1(expression->start)
-            .set_expr_2(expression->end)
-            .report();
-
-        return;
-    }
-
-    if (start_type_info->number_type == NumberType::FLOAT)
-    {
-        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("cannot use float types in range expression")
-            .set_expr_1(expression->start)
-            .set_expr_2(expression->end)
-            .report();
-
-        return;
+        TRY_CALL_VOID(type_check_expression(expression->end));
+        if (!expression_can_be_used_in_range(expression->end))
+            return;
     }
 
     expression->type_info = new RangeTypeInfo();

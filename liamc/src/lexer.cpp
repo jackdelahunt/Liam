@@ -103,14 +103,6 @@ CompilationUnit *Lexer::lex() {
             this->token_buffer.emplace_back(TokenType::TOKEN_AMPERSAND, this->current_index, this->current_index);
             break;
         case '.':
-            if (peek() == '.')
-            {
-                next_char();
-                this->token_buffer.emplace_back(
-                    TokenType::TOKEN_RANGE_LITERAL, this->current_index - 1, this->current_index
-                );
-                break;
-            }
             this->token_buffer.emplace_back(TokenType::TOKEN_DOT, this->current_index, this->current_index);
             break;
         case '$':
