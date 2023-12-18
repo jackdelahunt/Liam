@@ -130,5 +130,5 @@ fn main() void {
     
 
 ## Documentation
-#### [Learning the basics](docs/Learning-the-basics.md)
+#### [The Wiki](https://github.com/jackdelahunt/Liam/wiki)
 Some helpful documentation for getting started learning Liam.
