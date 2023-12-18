@@ -29,9 +29,8 @@ StrTypeInfo::StrTypeInfo() {
 TypeTypeInfo::TypeTypeInfo() {
 }
 
-StructTypeInfo::StructTypeInfo(
-    StructStatement *defined_location, std::vector<std::tuple<std::string, TypeInfo *>> members
-) {
+StructTypeInfo::StructTypeInfo(StructStatement *defined_location,
+                               std::vector<std::tuple<std::string, TypeInfo *>> members) {
     this->defined_location = defined_location;
     this->members          = members;
     this->type             = TypeInfoType::STRUCT;
@@ -94,9 +93,8 @@ FnStatement::FnStatement(TokenIndex identifier, CSV params, TypeExpression *type
     this->statement_type = StatementType::STATEMENT_FN;
 }
 
-StructStatement::StructStatement(
-    CompilationUnit *compilation_unit, TokenIndex identifier, CSV members, StructTypeInfo *type_info
-) {
+StructStatement::StructStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV members,
+                                 StructTypeInfo *type_info) {
     this->compilation_unit = compilation_unit;
     this->identifier       = identifier;
     this->members          = members;
@@ -138,9 +136,8 @@ ContinueStatement::ContinueStatement() {
     this->statement_type = StatementType::STATEMENT_CONTINUE;
 }
 
-ImportStatement::ImportStatement(
-    TokenIndex identifier, TokenIndex string_literal, NamespaceTypeInfo *namespace_type_info
-) {
+ImportStatement::ImportStatement(TokenIndex identifier, TokenIndex string_literal,
+                                 NamespaceTypeInfo *namespace_type_info) {
     this->statement_type      = StatementType::STATEMENT_IMPORT;
     this->identifier          = identifier;
     this->string_literal      = string_literal;
@@ -234,17 +231,15 @@ InstantiateExpression::InstantiateExpression(Expression *expression) {
 }
 
 StructInstanceExpression::StructInstanceExpression(
-    TypeExpression *type_expression, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions
-) {
+    TypeExpression *type_expression, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions) {
     this->type              = ExpressionType::EXPRESSION_STRUCT_INSTANCE;
     this->type_expression   = type_expression;
     this->named_expressions = named_expressions;
     this->span              = type_expression->span;
 }
 
-StaticArrayExpression::StaticArrayExpression(
-    NumberLiteralExpression *number, TypeExpression *type_expression, std::vector<Expression *> expressions
-) {
+StaticArrayExpression::StaticArrayExpression(NumberLiteralExpression *number, TypeExpression *type_expression,
+                                             std::vector<Expression *> expressions) {
     this->number          = number;
     this->type_expression = type_expression;
     this->expressions     = expressions;

@@ -49,8 +49,7 @@ void CppBuilder::insert_new_line() {
 }
 
 void CppBuilder::append_indentation() {
-    for (u64 i = 0; i < this->indentation; i++)
-    {
+    for (u64 i = 0; i < this->indentation; i++) {
         this->source.append("    ");
 #ifdef PRINT_CPP_BUILDER
         std::cout << "    ";
@@ -78,40 +77,33 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
     this->builder.append_line("#include <core.h>");
     this->builder.append_line("#include <liam_stdlib.h>");
 
-    for (CompilationUnit *cu : bundle->compilation_units)
-    {
+    for (CompilationUnit *cu : bundle->compilation_units) {
         this->compilation_unit = cu;
         forward_declare_namespace(cu);
     }
 
-    for (CompilationUnit *cu : bundle->compilation_units)
-    {
+    for (CompilationUnit *cu : bundle->compilation_units) {
         this->compilation_unit = cu;
         // namespace imports
-        for (auto stmt : this->compilation_unit->top_level_import_statements)
-        {
+        for (auto stmt : this->compilation_unit->top_level_import_statements) {
             emit_import_statement(stmt);
         }
     }
 
-    for (CompilationUnit *cu : bundle->compilation_units)
-    {
+    for (CompilationUnit *cu : bundle->compilation_units) {
         this->compilation_unit = cu;
         // forward declarations
-        for (auto stmt : this->compilation_unit->top_level_struct_statements)
-        {
+        for (auto stmt : this->compilation_unit->top_level_struct_statements) {
             forward_declare_struct(stmt);
         }
 
-        for (auto stmt : this->compilation_unit->top_level_fn_statements)
-        {
+        for (auto stmt : this->compilation_unit->top_level_fn_statements) {
             forward_declare_function(stmt);
         }
     }
 
     this->builder.insert_new_line();
-    for (SortingNode &node : bundle->sorted_types)
-    {
+    for (SortingNode &node : bundle->sorted_types) {
         this->compilation_unit = node.type_info->defined_location->compilation_unit;
 
         // struct bodies
@@ -119,13 +111,11 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
     }
 
     this->builder.insert_new_line();
-    for (CompilationUnit *cu : bundle->compilation_units)
-    {
+    for (CompilationUnit *cu : bundle->compilation_units) {
         this->compilation_unit = cu;
 
         // function bodies
-        for (auto stmt : this->compilation_unit->top_level_fn_statements)
-        {
+        for (auto stmt : this->compilation_unit->top_level_fn_statements) {
             emit_fn_statement(stmt);
         }
     }
@@ -143,9 +133,8 @@ void CppBackend::forward_declare_namespace(CompilationUnit *compilation_unit) {
 void CppBackend::forward_declare_struct(StructStatement *statement) {
     this->builder.start_line();
     this->builder.append(std::format("namespace {} {{ ", get_namespace_name(this->compilation_unit)));
-    this->builder.append(
-        "struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) + "; }"
-    );
+    this->builder.append("struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) +
+                         "; }");
     this->builder.end_line();
 }
 
@@ -166,16 +155,14 @@ void CppBackend::forward_declare_function(FnStatement *statement) {
     this->builder.append(name + "(");
 
     u64 index = 0;
-    for (auto [token_index, type] : statement->params)
-    {
+    for (auto [token_index, type] : statement->params) {
         std::string identifier_string = this->compilation_unit->get_token_string_from_index(token_index);
 
         // i64 a,
         emit_type_expression(type);
         this->builder.append(" ");
         this->builder.append(identifier_string);
-        if (index + 1 < statement->params.size())
-        {
+        if (index + 1 < statement->params.size()) {
             this->builder.append(", ");
         }
         index++;
@@ -187,8 +174,7 @@ void CppBackend::forward_declare_function(FnStatement *statement) {
 }
 
 void CppBackend::emit_statement(Statement *statement) {
-    switch (statement->statement_type)
-    {
+    switch (statement->statement_type) {
     case StatementType::STATEMENT_RETURN:
         emit_return_statement(static_cast<ReturnStatement *>(statement));
         break;
@@ -243,8 +229,7 @@ void CppBackend::emit_import_statement(ImportStatement *statement) {
     this->builder.append(" = ");
 
     std::string other_namespace_name = get_namespace_name(
-        this->compilation_bundle->compilation_units[statement->namespace_type_info->compilation_unit_index]
-    );
+        this->compilation_bundle->compilation_units[statement->namespace_type_info->compilation_unit_index]);
 
     // other
     this->builder.append(other_namespace_name);
@@ -257,8 +242,7 @@ void CppBackend::emit_import_statement(ImportStatement *statement) {
 void CppBackend::emit_return_statement(ReturnStatement *statement) {
     this->builder.start_line();
     this->builder.append("return ");
-    if (statement->expression)
-    {
+    if (statement->expression) {
         emit_expression(statement->expression);
     }
     this->builder.append(";");
@@ -271,12 +255,9 @@ void CppBackend::emit_break_statement(BreakStatement *statement) {
 
 void CppBackend::emit_let_statement(LetStatement *statement) {
     this->builder.start_line();
-    if (statement->type)
-    {
+    if (statement->type) {
         emit_type_expression(statement->type);
-    }
-    else
-    {
+    } else {
         builder.append("auto");
     }
 
@@ -291,8 +272,7 @@ void CppBackend::emit_let_statement(LetStatement *statement) {
 void CppBackend::emit_scope_statement(ScopeStatement *statement) {
     this->builder.append_line("{");
     this->builder.indent();
-    for (auto stmt : statement->statements)
-    {
+    for (auto stmt : statement->statements) {
         emit_statement(stmt);
     }
     this->builder.un_indent();
@@ -319,14 +299,12 @@ void CppBackend::emit_fn_statement(FnStatement *statement) {
 
     // params of the function
     u64 index = 0;
-    for (auto [identifier, type] : statement->params)
-    {
+    for (auto [identifier, type] : statement->params) {
         std::string identifier_string = this->compilation_unit->get_token_string_from_index(identifier);
         emit_type_expression(type);
         this->builder.append(" ");
         this->builder.append(identifier_string);
-        if (index + 1 < statement->params.size())
-        {
+        if (index + 1 < statement->params.size()) {
             this->builder.append(", ");
         }
         index++;
@@ -358,15 +336,13 @@ void CppBackend::emit_struct_statement(StructStatement *statement) {
 
     //      struct Main {
     this->builder.indent();
-    this->builder.append_line(
-        "struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) + " {"
-    );
+    this->builder.append_line("struct " + this->compilation_unit->get_token_string_from_index(statement->identifier) +
+                              " {");
 
     //          a: i64,
     //          b: i64
     this->builder.indent();
-    for (auto [identifier_token_index, type] : statement->members)
-    {
+    for (auto [identifier_token_index, type] : statement->members) {
         this->builder.start_line();
         emit_type_expression(type);
         this->builder.append(" ");
@@ -429,8 +405,7 @@ void CppBackend::emit_if_statement(IfStatement *statement) {
 
     emit_scope_statement(statement->body);
 
-    if (statement->else_statement)
-    {
+    if (statement->else_statement) {
         emit_else_statement(statement->else_statement);
     }
 }
@@ -439,12 +414,9 @@ void CppBackend::emit_else_statement(ElseStatement *statement) {
     builder.start_line();
     builder.append("else");
     builder.end_line();
-    if (statement->if_statement)
-    {
+    if (statement->if_statement) {
         emit_if_statement(statement->if_statement);
-    }
-    else if (statement->body)
-    {
+    } else if (statement->body) {
         emit_scope_statement(statement->body);
     }
 }
@@ -462,8 +434,7 @@ void CppBackend::emit_print_statement(PrintStatement *statement) {
 }
 
 void CppBackend::emit_expression(Expression *expression) {
-    switch (expression->type)
-    {
+    switch (expression->type) {
     case ExpressionType::EXPRESSION_STRING_LITERAL:
         emit_string_literal_expression(static_cast<StringLiteralExpression *>(expression));
         break;
@@ -517,8 +488,7 @@ void CppBackend::emit_expression(Expression *expression) {
 
 void CppBackend::emit_binary_expression(BinaryExpression *expression) {
     std::string op;
-    switch (expression->op)
-    {
+    switch (expression->op) {
     case TokenType::TOKEN_PLUS:
         op = "+";
         break;
@@ -571,9 +541,9 @@ void CppBackend::emit_binary_expression(BinaryExpression *expression) {
 void CppBackend::emit_string_literal_expression(StringLiteralExpression *expression) {
     std::string literal_string = this->compilation_unit->get_token_string_from_index(expression->token);
 
-    this->builder.append("Liam::make_str((char*)");
+    this->builder.append("Liam::Slice((u8*)");
     this->builder.append(literal_string);
-    this->builder.append(std::format(", {})", std::to_string(string_literal_length(&literal_string))));
+    this->builder.append(std::format(", {})", string_literal_length(&literal_string)));
 }
 
 void CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression) {
@@ -585,33 +555,21 @@ void CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression
 
     this->builder.append("Liam::make_");
 
-    if (number_type->number_type == NumberType::UNSIGNED)
-    {
+    if (number_type->number_type == NumberType::UNSIGNED) {
         this->builder.append("u");
-    }
-    else if (number_type->number_type == NumberType::SIGNED)
-    {
+    } else if (number_type->number_type == NumberType::SIGNED) {
         this->builder.append("i");
-    }
-    else if (number_type->number_type == NumberType::FLOAT)
-    {
+    } else if (number_type->number_type == NumberType::FLOAT) {
         this->builder.append("f");
     }
 
-    if (number_type->size == 8)
-    {
+    if (number_type->size == 8) {
         this->builder.append("8");
-    }
-    else if (number_type->size == 16)
-    {
+    } else if (number_type->size == 16) {
         this->builder.append("16");
-    }
-    else if (number_type->size == 32)
-    {
+    } else if (number_type->size == 32) {
         this->builder.append("32");
-    }
-    else if (number_type->size == 64)
-    {
+    } else if (number_type->size == 64) {
         this->builder.append("64");
     }
 
@@ -619,26 +577,19 @@ void CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression
 }
 
 void CppBackend::emit_unary_expression(UnaryExpression *expression) {
-    if (expression->op == TokenType::TOKEN_AMPERSAND)
-    {
+    if (expression->op == TokenType::TOKEN_AMPERSAND) {
         this->builder.append("&(");
         emit_expression(expression->expression);
         this->builder.append(")");
-    }
-    else if (expression->op == TokenType::TOKEN_STAR)
-    {
+    } else if (expression->op == TokenType::TOKEN_STAR) {
         this->builder.append("*(");
         emit_expression(expression->expression);
         this->builder.append(")");
-    }
-    else if (expression->op == TokenType::TOKEN_NOT)
-    {
+    } else if (expression->op == TokenType::TOKEN_NOT) {
         this->builder.append("!(");
         emit_expression(expression->expression);
         this->builder.append(")");
-    }
-    else
-    {
+    } else {
         UNREACHABLE();
     }
 }
@@ -648,12 +599,10 @@ void CppBackend::emit_call_expression(CallExpression *expression) {
     this->builder.append("(");
 
     u64 index = 0;
-    for (auto expr : expression->args)
-    {
+    for (auto expr : expression->args) {
         emit_expression(expr);
 
-        if (index + 1 < expression->args.size())
-        {
+        if (index + 1 < expression->args.size()) {
             this->builder.append(", ");
         }
         index++;
@@ -670,16 +619,11 @@ void CppBackend::emit_get_expression(GetExpression *expression) {
 
     emit_expression(expression->lhs);
 
-    if (expression->lhs->type_info->type == TypeInfoType::POINTER)
-    {
+    if (expression->lhs->type_info->type == TypeInfoType::POINTER) {
         this->builder.append("->");
-    }
-    else if (expression->lhs->type_info->type == TypeInfoType::NAMESPACE)
-    {
+    } else if (expression->lhs->type_info->type == TypeInfoType::NAMESPACE) {
         this->builder.append("::");
-    }
-    else
-    {
+    } else {
         this->builder.append(".");
     }
 
@@ -708,11 +652,9 @@ void CppBackend::emit_struct_instance_expression(StructInstanceExpression *expre
     emit_type_expression(expression->type_expression);
     this->builder.append("{");
     u64 index = 0;
-    for (auto [name, expr] : expression->named_expressions)
-    {
+    for (auto [name, expr] : expression->named_expressions) {
         emit_expression(expr);
-        if (index + 1 < expression->named_expressions.size())
-        {
+        if (index + 1 < expression->named_expressions.size()) {
             this->builder.append(", ");
         }
         index++;
@@ -731,12 +673,10 @@ void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *exp
 
     // expression list
     u64 index = 0;
-    for (auto expr : expression->expressions)
-    {
+    for (auto expr : expression->expressions) {
         emit_expression(expr);
 
-        if (index + 1 < expression->expressions.size())
-        {
+        if (index + 1 < expression->expressions.size()) {
             this->builder.append(", ");
         }
         index++;
@@ -747,15 +687,12 @@ void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *exp
 
 void CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
     emit_expression(expression->subscriptee);
-    if (expression->subscripter->type != ExpressionType::EXPRESSION_RANGE)
-    {
+    if (expression->subscripter->type != ExpressionType::EXPRESSION_RANGE) {
         this->builder.append("[");
         emit_expression(expression->subscripter);
         this->builder.append("]");
         return;
-    }
-    else
-    {
+    } else {
         ASSERT(expression->subscripter->type == ExpressionType::EXPRESSION_RANGE);
         emit_range_slicing_expression(static_cast<RangeExpression *>(expression->subscripter));
     }
@@ -767,35 +704,27 @@ void CppBackend::emit_range_slicing_expression(RangeExpression *expression) {
     // 2. [a..] -> slice_with_start(a)
     // 3. [..b] -> slice_with_end(b)
     // 4. [..] -> slice_full()
-    if (expression->start && expression->end)
-    {
+    if (expression->start && expression->end) {
         this->builder.append(".slice_with_start_and_end(");
         emit_expression(expression->start);
         this->builder.append(", ");
         emit_expression(expression->end);
         this->builder.append(")");
-    }
-    else if (expression->start)
-    {
+    } else if (expression->start) {
         this->builder.append(".slice_with_start(");
         emit_expression(expression->start);
         this->builder.append(")");
-    }
-    else if (expression->end)
-    {
+    } else if (expression->end) {
         this->builder.append(".slice_with_end(");
         emit_expression(expression->end);
         this->builder.append(")");
-    }
-    else
-    {
+    } else {
         this->builder.append(".slice_full()");
     }
 }
 
 void CppBackend::emit_type_expression(TypeExpression *type_expression) {
-    switch (type_expression->type)
-    {
+    switch (type_expression->type) {
     case TypeExpressionType::TYPE_IDENTIFIER:
         emit_identifier_type_expression(static_cast<IdentifierTypeExpression *>(type_expression));
         break;
@@ -817,13 +746,10 @@ void CppBackend::emit_type_expression(TypeExpression *type_expression) {
 }
 
 void CppBackend::emit_unary_type_expression(UnaryTypeExpression *type_expression) {
-    if (type_expression->unary_type == UnaryType::POINTER)
-    {
+    if (type_expression->unary_type == UnaryType::POINTER) {
         emit_type_expression(type_expression->type_expression);
         this->builder.append("*");
-    }
-    else
-    {
+    } else {
         UNREACHABLE();
     }
 }
@@ -837,12 +763,9 @@ void CppBackend::emit_get_type_expression(GetTypeExpression *type_expression) {
 
     emit_type_expression(type_expression->type_expression);
 
-    if (type_expression->type_expression->type_info->type == TypeInfoType::NAMESPACE)
-    {
+    if (type_expression->type_expression->type_info->type == TypeInfoType::NAMESPACE) {
         this->builder.append("::");
-    }
-    else
-    {
+    } else {
         UNREACHABLE();
     }
 
@@ -869,31 +792,20 @@ std::string strip_semi_colon(std::string str) {
 
     str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
 
-    if (str.back() == ';')
-    {
+    if (str.back() == ';') {
         return str.substr(0, str.size() - 1);
-    }
-    else
-    {
+    } else {
         return str;
     }
     // return (str[str.size() - 1] == ';') ? str.substr(0, str.size()-1) : str;
 }
 
 u64 string_literal_length(std::string *string) {
-    u64 length = 0;
-
-    for (u64 i = 0; i < string->size(); i++)
-    {
-        if (string->at(i) == '\\' && i + 1 < string->size())
-        {
-            i += 2;
-        }
-
-        length++;
-    }
-
-    return length;
+    // FIXME: this will not be correct for strings that have escaped characters
+    // in them for example \" should only count as 1 character.
+    //
+    // We remove the 2 because we need to remove the quotes from the string
+    return string->size() - 2;
 }
 
 std::string get_namespace_name(CompilationUnit *compilation_unit) {

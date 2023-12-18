@@ -19,8 +19,7 @@ void panic(const std::string &msg);
     {                                                                                                                  \
         auto end                                        = std::chrono::high_resolution_clock::now();                   \
         std::chrono::duration<double, std::milli> delta = end - name;                                                  \
-        if (args->value<bool>("time"))                                                                                 \
-        {                                                                                                              \
+        if (args->value<bool>("time")) {                                                                               \
             std::cout << message << " :: " << delta.count() << "ms\n";                                                 \
         }                                                                                                              \
     }
@@ -29,8 +28,7 @@ void panic(const std::string &msg);
     type value = nullptr;                                                                                              \
     {                                                                                                                  \
         auto [ptr, error] = func;                                                                                      \
-        if (error)                                                                                                     \
-        {                                                                                                              \
+        if (error) {                                                                                                   \
             return {nullptr, true};                                                                                    \
         }                                                                                                              \
         value = ptr;                                                                                                   \
@@ -42,8 +40,7 @@ void panic(const std::string &msg);
         auto tuple     = consume_token_of_type(type);                                                                  \
         value          = std::get<0>(tuple);                                                                           \
         auto try_error = std::get<1>(tuple);                                                                           \
-        if (try_error)                                                                                                 \
-        {                                                                                                              \
+        if (try_error) {                                                                                               \
             return {nullptr, true};                                                                                    \
         }                                                                                                              \
     }
@@ -53,8 +50,7 @@ void panic(const std::string &msg);
 #define TRY_CALL_RET(func)                                                                                             \
     func;                                                                                                              \
     {                                                                                                                  \
-        if (ErrorReporter::has_error_since_last_check())                                                               \
-        {                                                                                                              \
+        if (ErrorReporter::has_error_since_last_check()) {                                                             \
             return {};                                                                                                 \
         }                                                                                                              \
     }
@@ -63,8 +59,7 @@ void panic(const std::string &msg);
 #define TRY_CALL_VOID(func)                                                                                            \
     func;                                                                                                              \
     {                                                                                                                  \
-        if (ErrorReporter::has_error_since_last_check())                                                               \
-        {                                                                                                              \
+        if (ErrorReporter::has_error_since_last_check()) {                                                             \
             return;                                                                                                    \
         }                                                                                                              \
     }
