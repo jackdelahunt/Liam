@@ -102,31 +102,31 @@ fn main() void {
 - [x] slice types
 - [x] slicing syntax for arrays and slices
 
-### Maybe 
-- [ ] control flow (while, better for loops for types)
-- [ ] generic arguments for structs
-- [ ] generics arguments for functions
-- [ ] tagged union style enums (like rust enums)
-- [ ] enum pattern mathcing with a `match` keyword
-- [ ] iterators (non concreate idea no how these will work yet)
+### Maybe [how easy/how useful for the current state/will not need to be redone/future work not harder]
+- [ ] control flow (while, better for loops for types) [6/5/9/9] 29
+- [ ] generic arguments for structs [2/5/4/2] 13
+- [ ] generics arguments for functions [3/7/6/4] 20
+- [ ] tagged union style enums (like rust enums) [2/3/6/6] 17
+- [ ] enum pattern mathcing with a `match` keyword [3/2/5/6] 16
+- [ ] iterators (non concreate idea no how these will work yet) [2/3/3/5] 13
     - [ ] for static arrays
     - [ ] a range given
     - [ ] user defined types
-- [ ] number types coercing
-- [ ] `const` and `var` types
-- [ ] some error handling solution (zig, rust and go are all nice)
-- [ ] better stdlib
+- [ ] number types coercing [3/10/4/4] 21
+- [ ] `const` and `var` types [2/1/3/3] 9
+- [ ] some error handling solution (zig, rust and go are all nice) [2/2/5/7] 16
+- [ ] better stdlib [6/5/1/7] 19
     - [ ] dynamic array
     - [ ] `String` type
     - [ ] I/O
     - [ ] memory management
-- [ ] bounds checking for container types only in debug mode
-- [ ] member functions for structs
-- [ ] global variables (const or maybe not)
-- [ ] `defer` keyword
-- [ ] some kind of optional types (either with tagged unions or builtin like zig)
-- [ ] calling into C/C++ from liam
-- [ ] inline custom struct types
+- [ ] bounds checking for container types only in debug mode with debug mode option [8/1/8/9] 26
+- [ ] member functions for structs [4/2/5/5] 18
+- [ ] global variables (const or maybe not) [5/1/8/7] 21
+- [ ] `defer` keyword [1/1/4/7] 13
+- [ ] some kind of optional types (either with tagged unions or builtin like zig) [2/3/7/6] 18
+- [ ] calling into C/C++ from liam [5/4/6/7] 22
+- [ ] inline custom struct types [1/2/7/2] 12
     
 
 ## Documentation
