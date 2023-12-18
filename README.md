@@ -99,7 +99,8 @@ fn main() void {
 - [x] multiple files using `import`
 - [x] non-polluting import statements with namespace identifiers
 - [x] out-of-order top level definitions
-- [x] builtin `str` type
+- [x] slice types
+- [x] slicing syntax for arrays and slices
 
 ### Maybe 
 - [ ] control flow (while, better for loops for types)
