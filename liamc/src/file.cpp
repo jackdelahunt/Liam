@@ -10,8 +10,7 @@
 FileManager *FileManager::singleton = NULL;
 
 Option<FileData *> FileManager::load_relative_from_cwd(std::string path) {
-    if (FileManager::singleton == NULL)
-    {
+    if (FileManager::singleton == NULL) {
         singleton = new FileManager();
     }
 
@@ -19,24 +18,20 @@ Option<FileData *> FileManager::load_relative_from_cwd(std::string path) {
 }
 
 Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::string path) {
-    if (FileManager::singleton == NULL)
-    {
+    if (FileManager::singleton == NULL) {
         singleton = new FileManager();
     }
 
     std::filesystem::path relative_slash_path = std::filesystem::path(relative_to) / path;
     std::filesystem::path absolute_path       = std::filesystem::weakly_canonical(relative_slash_path);
 
-    if (!std::filesystem::exists(absolute_path))
-    {
+    if (!std::filesystem::exists(absolute_path)) {
         return Option<FileData *>();
     }
 
-    for (u64 i = 0; i < singleton->files.size(); i++)
-    {
+    for (u64 i = 0; i < singleton->files.size(); i++) {
 
-        if (singleton->files[i]->absolute_path == absolute_path)
-        {
+        if (singleton->files[i]->absolute_path == absolute_path) {
             return Option(singleton->files[i]);
         }
     }
@@ -51,9 +46,9 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
 
     std::ifstream file;
     file.open(absolute_path.string());
-    char *data = (char *)malloc(sizeof(char) * file_size_in_bytes);
+    char *data          = (char *)malloc(sizeof(char) * file_size_in_bytes);
 
-    u64 line_count = 0;
+    u64 line_count      = 0;
 
     // this looks werid but it is for making sure we have the correct number
     // of lines counted. We check if we can get the first character, if it is
@@ -61,18 +56,15 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
     // we continue the process of loading the file. If we just counted all the
     // \n then we would miss the first line
     int first_character = file.get();
-    if (first_character != EOF)
-    {
+    if (first_character != EOF) {
         line_count++;
         //        vec->push_back((char)first_character);
-        data[0] = (char)first_character;
+        data[0]   = (char)first_character;
 
         int index = 1;
-        for (i32 i = file.get(); i != EOF; i = file.get())
-        {
+        for (i32 i = file.get(); i != EOF; i = file.get()) {
             char c = (char)i;
-            if (c == '\n')
-            {
+            if (c == '\n') {
                 line_count++;
             }
 
@@ -89,8 +81,7 @@ Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::s
 }
 
 std::vector<FileData *> *FileManager::get_files() {
-    if (FileManager::singleton == NULL)
-    {
+    if (FileManager::singleton == NULL) {
         singleton = new FileManager();
     }
 

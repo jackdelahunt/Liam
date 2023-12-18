@@ -2,30 +2,25 @@ BasedOnStyle: microsoft
 IndentWidth: 4
 ---
 Language: Cpp
-DerivePointerAlignment: false
-PointerAlignment: Right
-AllowShortBlocksOnASingleLine: Empty
-AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: false
-SpaceBeforeAssignmentOperators: true
-RemoveBracesLLVM: false
-SpaceBeforeCaseColon: false
-AlignAfterOpenBracket: BlockIndent
-AlignConsecutiveAssignments: Consecutive
-SeparateDefinitionBlocks: Always
-SortIncludes: CaseInsensitive
-SpaceAfterCStyleCast: false
-BreakStringLiterals: false
-BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterCaseLabel: false
   AfterClass: false
+  AfterControlStatement: false
   AfterEnum: false
   AfterFunction: false
   AfterNamespace: false
+  AfterObjCDeclaration: false
   AfterStruct: false
   AfterUnion: false
-  BeforeElse: true
-  BeforeWhile: true 
-  SplitEmptyRecord: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+
+PointerAlignment: Right
+ReferenceAlignment: Right
+AlignAfterOpenBracket: true
+AlignConsecutiveAssignments:
+  Enabled:         true
+  AcrossEmptyLines: true
+  AcrossComments:  true
+  AlignCompound:   false
+  PadOperators:    true

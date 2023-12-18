@@ -43,25 +43,21 @@ i32 main(i32 argc, char **argv) {
 
     TIME_END(total_time, "Total compile time");
 
-    if (args->time)
-    {
+    if (args->time) {
         u64 total_line_count = 0;
-        for (auto &file_data : *FileManager::get_files())
-        {
+        for (auto &file_data : *FileManager::get_files()) {
             total_line_count += file_data->line_count;
         }
 
         u64 total_time_in_milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                             std::chrono::high_resolution_clock::now() - total_time
-        )
+                                             std::chrono::high_resolution_clock::now() - total_time)
                                              .count();
 
         std::cout << "Total line count :: " << total_line_count
                   << " :: LOC/s :: " << (f64)total_line_count / ((f64)total_time_in_milliseconds / 1000.0) << "\n";
     }
 
-    if (args->emit)
-    {
+    if (args->emit) {
         std::cout << code << "\n";
     }
 
@@ -72,8 +68,7 @@ CompilationBundle lex_parse() {
 
     std::vector<CompilationUnit *> compilation_units;
 
-    for (auto &input_file : args->files)
-    {
+    for (auto &input_file : args->files) {
         std::filesystem::path file_path   = std::filesystem::path(input_file);
         FileData *file_data               = FileManager::load_relative_from_cwd(file_path).value();
         Lexer lexer                       = Lexer(file_data);
@@ -83,17 +78,13 @@ CompilationBundle lex_parse() {
         compilation_units.push_back(parser.compilation_unit);
     }
 
-    if (ErrorReporter::has_parse_errors())
-    {
-        for (auto &error : ErrorReporter::singleton->parse_errors)
-        {
+    if (ErrorReporter::has_parse_errors()) {
+        for (auto &error : ErrorReporter::singleton->parse_errors) {
             error.print_error_message();
         }
 
-        panic(
-            "Cannot continue with errors :: count (" + std::to_string(ErrorReporter::singleton->parse_errors.size()) +
-            ")"
-        );
+        panic("Cannot continue with errors :: count (" + std::to_string(ErrorReporter::singleton->parse_errors.size()) +
+              ")");
     }
 
     return CompilationBundle(compilation_units);
@@ -103,17 +94,13 @@ void type_check(CompilationBundle *bundle) {
     TypeChecker type_checker = TypeChecker();
     type_checker.type_check(bundle);
 
-    if (ErrorReporter::has_type_check_errors())
-    {
-        for (auto &error : ErrorReporter::singleton->type_check_errors)
-        {
+    if (ErrorReporter::has_type_check_errors()) {
+        for (auto &error : ErrorReporter::singleton->type_check_errors) {
             error.print_error_message();
         }
 
-        panic(
-            "Cannot continue with errors :: count (" +
-            std::to_string(ErrorReporter::singleton->type_check_errors.size()) + ")"
-        );
+        panic("Cannot continue with errors :: count (" +
+              std::to_string(ErrorReporter::singleton->type_check_errors.size()) + ")");
     }
 }
 

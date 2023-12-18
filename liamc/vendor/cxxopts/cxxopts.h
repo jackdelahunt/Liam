@@ -151,8 +151,7 @@ inline String &stringAppend(String &s, String a) {
 }
 
 inline String &stringAppend(String &s, size_t n, UChar32 c) {
-    for (size_t i = 0; i != n; ++i)
-    {
+    for (size_t i = 0; i != n; ++i) {
         s.append(c);
     }
 
@@ -160,8 +159,7 @@ inline String &stringAppend(String &s, size_t n, UChar32 c) {
 }
 
 template <typename Iterator> String &stringAppend(String &s, Iterator begin, Iterator end) {
-    while (begin != end)
-    {
+    while (begin != end) {
         s.append(*begin);
         ++begin;
     }
@@ -256,31 +254,31 @@ const std::string RQUOTE("’");
 #endif
 class Value : public std::enable_shared_from_this<Value> {
   public:
-    virtual ~Value() = default;
+    virtual ~Value()                                                        = default;
 
-    virtual std::shared_ptr<Value> clone() const = 0;
+    virtual std::shared_ptr<Value> clone() const                            = 0;
 
-    virtual void parse(const std::string &text) const = 0;
+    virtual void parse(const std::string &text) const                       = 0;
 
-    virtual void parse() const = 0;
+    virtual void parse() const                                              = 0;
 
-    virtual bool has_default() const = 0;
+    virtual bool has_default() const                                        = 0;
 
-    virtual bool is_container() const = 0;
+    virtual bool is_container() const                                       = 0;
 
-    virtual bool has_implicit() const = 0;
+    virtual bool has_implicit() const                                       = 0;
 
-    virtual std::string get_default_value() const = 0;
+    virtual std::string get_default_value() const                           = 0;
 
-    virtual std::string get_implicit_value() const = 0;
+    virtual std::string get_implicit_value() const                          = 0;
 
-    virtual std::shared_ptr<Value> default_value(const std::string &value) = 0;
+    virtual std::shared_ptr<Value> default_value(const std::string &value)  = 0;
 
     virtual std::shared_ptr<Value> implicit_value(const std::string &value) = 0;
 
-    virtual std::shared_ptr<Value> no_implicit_value() = 0;
+    virtual std::shared_ptr<Value> no_implicit_value()                      = 0;
 
-    virtual bool is_boolean() const = 0;
+    virtual bool is_boolean() const                                         = 0;
 };
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
@@ -356,10 +354,8 @@ class option_requires_argument_exception : public OptionParseException {
 class option_not_has_argument_exception : public OptionParseException {
   public:
     option_not_has_argument_exception(const std::string &option, const std::string &arg)
-        : OptionParseException(
-              "Option " + LQUOTE + option + RQUOTE + " does not take an argument, but argument " + LQUOTE + arg +
-              RQUOTE + " given"
-          ) {
+        : OptionParseException("Option " + LQUOTE + option + RQUOTE + " does not take an argument, but argument " +
+                               LQUOTE + arg + RQUOTE + " given") {
     }
 };
 
@@ -373,9 +369,8 @@ class option_not_present_exception : public OptionParseException {
 class option_has_no_value_exception : public OptionException {
   public:
     explicit option_has_no_value_exception(const std::string &option)
-        : OptionException(
-              !option.empty() ? ("Option " + LQUOTE + option + RQUOTE + " has no value") : "Option has no value"
-          ) {
+        : OptionException(!option.empty() ? ("Option " + LQUOTE + option + RQUOTE + " has no value")
+                                          : "Option has no value") {
     }
 };
 
@@ -394,10 +389,8 @@ class option_required_exception : public OptionParseException {
 };
 
 template <typename T> void throw_or_mimic(const std::string &text) {
-    static_assert(
-        std::is_base_of<std::exception, T>::value, "throw_or_mimic only works on std::exception and "
-                                                   "deriving classes"
-    );
+    static_assert(std::is_base_of<std::exception, T>::value, "throw_or_mimic only works on std::exception and "
+                                                             "deriving classes");
 
 #ifndef CXXOPTS_NO_EXCEPTIONS
     // If CXXOPTS_NO_EXCEPTIONS is not defined, just throw
@@ -427,28 +420,22 @@ struct ArguDesc {
 };
 #ifdef CXXOPTS_NO_REGEX
 inline IntegerDesc SplitInteger(const std::string &text) {
-    if (text.empty())
-    {
+    if (text.empty()) {
         throw_or_mimic<argument_incorrect_type>(text);
     }
     IntegerDesc desc;
     const char *pdata = text.c_str();
-    if (*pdata == '-')
-    {
+    if (*pdata == '-') {
         pdata += 1;
         desc.negative = "-";
     }
-    if (strncmp(pdata, "0x", 2) == 0)
-    {
+    if (strncmp(pdata, "0x", 2) == 0) {
         pdata += 2;
         desc.base = "0x";
     }
-    if (*pdata != '\0')
-    {
+    if (*pdata != '\0') {
         desc.value = std::string(pdata);
-    }
-    else
-    {
+    } else {
         throw_or_mimic<argument_incorrect_type>(text);
     }
     return desc;
@@ -456,16 +443,12 @@ inline IntegerDesc SplitInteger(const std::string &text) {
 
 inline bool IsTrueText(const std::string &text) {
     const char *pdata = text.c_str();
-    if (*pdata == 't' || *pdata == 'T')
-    {
+    if (*pdata == 't' || *pdata == 'T') {
         pdata += 1;
-        if (strncmp(pdata, "rue\0", 4) == 0)
-        {
+        if (strncmp(pdata, "rue\0", 4) == 0) {
             return true;
         }
-    }
-    else if (strncmp(pdata, "1\0", 2) == 0)
-    {
+    } else if (strncmp(pdata, "1\0", 2) == 0) {
         return true;
     }
     return false;
@@ -473,16 +456,12 @@ inline bool IsTrueText(const std::string &text) {
 
 inline bool IsFalseText(const std::string &text) {
     const char *pdata = text.c_str();
-    if (*pdata == 'f' || *pdata == 'F')
-    {
+    if (*pdata == 'f' || *pdata == 'F') {
         pdata += 1;
-        if (strncmp(pdata, "alse\0", 5) == 0)
-        {
+        if (strncmp(pdata, "alse\0", 5) == 0) {
             return true;
         }
-    }
-    else if (strncmp(pdata, "0\0", 2) == 0)
-    {
+    } else if (strncmp(pdata, "0\0", 2) == 0) {
         return true;
     }
     return false;
@@ -491,29 +470,22 @@ inline bool IsFalseText(const std::string &text) {
 inline std::pair<std::string, std::string> SplitSwitchDef(const std::string &text) {
     std::string short_sw, long_sw;
     const char *pdata = text.c_str();
-    if (isalnum(*pdata) && *(pdata + 1) == ',')
-    {
+    if (isalnum(*pdata) && *(pdata + 1) == ',') {
         short_sw = std::string(1, *pdata);
         pdata += 2;
     }
-    while (*pdata == ' ')
-    {
+    while (*pdata == ' ') {
         pdata += 1;
     }
-    if (isalnum(*pdata))
-    {
+    if (isalnum(*pdata)) {
         const char *store = pdata;
         pdata += 1;
-        while (isalnum(*pdata) || *pdata == '-' || *pdata == '_')
-        {
+        while (isalnum(*pdata) || *pdata == '-' || *pdata == '_') {
             pdata += 1;
         }
-        if (*pdata == '\0')
-        {
+        if (*pdata == '\0') {
             long_sw = std::string(store, pdata - store);
-        }
-        else
-        {
+        } else {
             throw_or_mimic<invalid_option_format_error>(text);
         }
     }
@@ -524,43 +496,32 @@ inline ArguDesc ParseArgument(const char *arg, bool &matched) {
     ArguDesc argu_desc;
     const char *pdata = arg;
     matched           = false;
-    if (strncmp(pdata, "--", 2) == 0)
-    {
+    if (strncmp(pdata, "--", 2) == 0) {
         pdata += 2;
-        if (isalnum(*pdata))
-        {
+        if (isalnum(*pdata)) {
             argu_desc.arg_name.push_back(*pdata);
             pdata += 1;
-            while (isalnum(*pdata) || *pdata == '-' || *pdata == '_')
-            {
+            while (isalnum(*pdata) || *pdata == '-' || *pdata == '_') {
                 argu_desc.arg_name.push_back(*pdata);
                 pdata += 1;
             }
-            if (argu_desc.arg_name.length() > 1)
-            {
-                if (*pdata == '=')
-                {
+            if (argu_desc.arg_name.length() > 1) {
+                if (*pdata == '=') {
                     argu_desc.set_value = true;
                     pdata += 1;
-                    if (*pdata != '\0')
-                    {
+                    if (*pdata != '\0') {
                         argu_desc.value = std::string(pdata);
                     }
                     matched = true;
-                }
-                else if (*pdata == '\0')
-                {
+                } else if (*pdata == '\0') {
                     matched = true;
                 }
             }
         }
-    }
-    else if (strncmp(pdata, "-", 1) == 0)
-    {
+    } else if (strncmp(pdata, "-", 1) == 0) {
         pdata += 1;
         argu_desc.grouping = true;
-        while (isalnum(*pdata))
-        {
+        while (isalnum(*pdata)) {
             argu_desc.arg_name.push_back(*pdata);
             pdata += 1;
         }
@@ -586,8 +547,7 @@ inline IntegerDesc SplitInteger(const std::string &text) {
     std::smatch match;
     std::regex_match(text, match, integer_pattern);
 
-    if (match.length() == 0)
-    {
+    if (match.length() == 0) {
         throw_or_mimic<argument_incorrect_type>(text);
     }
 
@@ -596,8 +556,7 @@ inline IntegerDesc SplitInteger(const std::string &text) {
     desc.base     = match[2];
     desc.value    = match[3];
 
-    if (match.length(4) > 0)
-    {
+    if (match.length(4) > 0) {
         desc.base  = match[5];
         desc.value = "0";
         return desc;
@@ -621,8 +580,7 @@ inline bool IsFalseText(const std::string &text) {
 inline std::pair<std::string, std::string> SplitSwitchDef(const std::string &text) {
     std::match_results<const char *> result;
     std::regex_match(text.c_str(), result, option_specifier);
-    if (result.empty())
-    {
+    if (result.empty()) {
         throw_or_mimic<invalid_option_format_error>(text);
     }
 
@@ -638,13 +596,11 @@ inline ArguDesc ParseArgument(const char *arg, bool &matched) {
     matched = !result.empty();
 
     ArguDesc argu_desc;
-    if (matched)
-    {
+    if (matched) {
         argu_desc.arg_name  = result[1].str();
         argu_desc.set_value = result[2].length() > 0;
         argu_desc.value     = result[3].str();
-        if (result[4].length() > 0)
-        {
+        if (result[4].length() > 0) {
             argu_desc.grouping = true;
             argu_desc.arg_name = result[4].str();
         }
@@ -662,17 +618,12 @@ template <typename T, bool B> struct SignedCheck;
 
 template <typename T> struct SignedCheck<T, true> {
     template <typename U> void operator()(bool negative, U u, const std::string &text) {
-        if (negative)
-        {
-            if (u > static_cast<U>((std::numeric_limits<T>::min)()))
-            {
+        if (negative) {
+            if (u > static_cast<U>((std::numeric_limits<T>::min)())) {
                 throw_or_mimic<argument_incorrect_type>(text);
             }
-        }
-        else
-        {
-            if (u > static_cast<U>((std::numeric_limits<T>::max)()))
-            {
+        } else {
+            if (u > static_cast<U>((std::numeric_limits<T>::max)())) {
                 throw_or_mimic<argument_incorrect_type>(text);
             }
         }
@@ -703,39 +654,30 @@ template <typename R, typename T> void checked_negate(R &, T &&, const std::stri
 template <typename T> void integer_parser(const std::string &text, T &value) {
     parser_tool::IntegerDesc int_desc = parser_tool::SplitInteger(text);
 
-    using US                 = typename std::make_unsigned<T>::type;
-    constexpr bool is_signed = std::numeric_limits<T>::is_signed;
+    using US                          = typename std::make_unsigned<T>::type;
+    constexpr bool is_signed          = std::numeric_limits<T>::is_signed;
 
-    const bool negative            = int_desc.negative.length() > 0;
-    const uint8_t base             = int_desc.base.length() > 0 ? 16 : 10;
-    const std::string &value_match = int_desc.value;
+    const bool negative               = int_desc.negative.length() > 0;
+    const uint8_t base                = int_desc.base.length() > 0 ? 16 : 10;
+    const std::string &value_match    = int_desc.value;
 
-    US result = 0;
+    US result                         = 0;
 
-    for (char ch : value_match)
-    {
+    for (char ch : value_match) {
         US digit = 0;
 
-        if (ch >= '0' && ch <= '9')
-        {
+        if (ch >= '0' && ch <= '9') {
             digit = static_cast<US>(ch - '0');
-        }
-        else if (base == 16 && ch >= 'a' && ch <= 'f')
-        {
+        } else if (base == 16 && ch >= 'a' && ch <= 'f') {
             digit = static_cast<US>(ch - 'a' + 10);
-        }
-        else if (base == 16 && ch >= 'A' && ch <= 'F')
-        {
+        } else if (base == 16 && ch >= 'A' && ch <= 'F') {
             digit = static_cast<US>(ch - 'A' + 10);
-        }
-        else
-        {
+        } else {
             throw_or_mimic<argument_incorrect_type>(text);
         }
 
         const US next = static_cast<US>(result * base + digit);
-        if (result > next)
-        {
+        if (result > next) {
             throw_or_mimic<argument_incorrect_type>(text);
         }
 
@@ -744,12 +686,9 @@ template <typename T> void integer_parser(const std::string &text, T &value) {
 
     detail::check_signed_range<T>(negative, result, text);
 
-    if (negative)
-    {
+    if (negative) {
         checked_negate<T>(value, result, text, std::integral_constant<bool, is_signed>());
-    }
-    else
-    {
+    } else {
         value = static_cast<T>(result);
     }
 }
@@ -757,8 +696,7 @@ template <typename T> void integer_parser(const std::string &text, T &value) {
 template <typename T> void stringstream_parser(const std::string &text, T &value) {
     std::stringstream in(text);
     in >> value;
-    if (!in)
-    {
+    if (!in) {
         throw_or_mimic<argument_incorrect_type>(text);
     }
 }
@@ -769,14 +707,12 @@ void parse_value(const std::string &text, T &value) {
 }
 
 inline void parse_value(const std::string &text, bool &value) {
-    if (parser_tool::IsTrueText(text))
-    {
+    if (parser_tool::IsTrueText(text)) {
         value = true;
         return;
     }
 
-    if (parser_tool::IsFalseText(text))
-    {
+    if (parser_tool::IsFalseText(text)) {
         value = false;
         return;
     }
@@ -797,8 +733,7 @@ void parse_value(const std::string &text, T &value) {
 }
 
 template <typename T> void parse_value(const std::string &text, std::vector<T> &value) {
-    if (text.empty())
-    {
+    if (text.empty()) {
         T v;
         parse_value(text, v);
         value.emplace_back(std::move(v));
@@ -806,8 +741,7 @@ template <typename T> void parse_value(const std::string &text, std::vector<T> &
     }
     std::stringstream in(text);
     std::string token;
-    while (!in.eof() && std::getline(in, token, CXXOPTS_VECTOR_DELIMITER))
-    {
+    while (!in.eof() && std::getline(in, token, CXXOPTS_VECTOR_DELIMITER)) {
         T v;
         parse_value(token, v);
         value.emplace_back(std::move(v));
@@ -823,8 +757,7 @@ template <typename T> void parse_value(const std::string &text, std::optional<T>
 #endif
 
 inline void parse_value(const std::string &text, char &c) {
-    if (text.length() != 1)
-    {
+    if (text.length() != 1) {
         throw_or_mimic<argument_incorrect_type>(text);
     }
 
@@ -849,18 +782,15 @@ template <typename T> class abstract_value : public Value {
     explicit abstract_value(T *t) : m_store(t) {
     }
 
-    ~abstract_value() override = default;
+    ~abstract_value() override                        = default;
 
     abstract_value &operator=(const abstract_value &) = default;
 
     abstract_value(const abstract_value &rhs) {
-        if (rhs.m_result)
-        {
+        if (rhs.m_result) {
             m_result = std::make_shared<T>();
             m_store  = m_result.get();
-        }
-        else
-        {
+        } else {
             m_store = rhs.m_store;
         }
 
@@ -920,8 +850,7 @@ template <typename T> class abstract_value : public Value {
     }
 
     const T &get() const {
-        if (m_store == nullptr)
-        {
+        if (m_store == nullptr) {
             return *m_result;
         }
         return *m_store;
@@ -1096,8 +1025,7 @@ class OptionValue {
     }
 
     template <typename T> const T &as() const {
-        if (m_value == nullptr)
-        {
+        if (m_value == nullptr) {
             throw_or_mimic<option_has_no_value_exception>(m_long_name == nullptr ? "" : *m_long_name);
         }
 
@@ -1110,8 +1038,7 @@ class OptionValue {
 
   private:
     void ensure_value(const std::shared_ptr<const OptionDetails> &details) {
-        if (m_value == nullptr)
-        {
+        if (m_value == nullptr) {
             m_value = details->make_storage();
         }
     }
@@ -1158,10 +1085,8 @@ class ParseResult {
     ParseResult()                    = default;
     ParseResult(const ParseResult &) = default;
 
-    ParseResult(
-        NameHashMap &&keys, ParsedHashMap &&values, std::vector<KeyValue> sequential,
-        std::vector<std::string> &&unmatched_args
-    )
+    ParseResult(NameHashMap &&keys, ParsedHashMap &&values, std::vector<KeyValue> sequential,
+                std::vector<std::string> &&unmatched_args)
         : m_keys(std::move(keys)), m_values(std::move(values)), m_sequential(std::move(sequential)),
           m_unmatched(std::move(unmatched_args)) {
     }
@@ -1171,15 +1096,13 @@ class ParseResult {
 
     size_t count(const std::string &o) const {
         auto iter = m_keys.find(o);
-        if (iter == m_keys.end())
-        {
+        if (iter == m_keys.end()) {
             return 0;
         }
 
         auto viter = m_values.find(iter->second);
 
-        if (viter == m_values.end())
-        {
+        if (viter == m_values.end()) {
             return 0;
         }
 
@@ -1189,15 +1112,13 @@ class ParseResult {
     const OptionValue &operator[](const std::string &option) const {
         auto iter = m_keys.find(option);
 
-        if (iter == m_keys.end())
-        {
+        if (iter == m_keys.end()) {
             throw_or_mimic<option_not_present_exception>(option);
         }
 
         auto viter = m_values.find(iter->second);
 
-        if (viter == m_values.end())
-        {
+        if (viter == m_values.end()) {
             throw_or_mimic<option_not_present_exception>(option);
         }
 
@@ -1209,13 +1130,12 @@ class ParseResult {
     }
 
     template <typename T> bool hasValue(const std::string &option) {
-        try
-        {
+        try {
             auto s = (*this)[option].as<T>();
             return true;
+        } catch (std::exception e) {
+            return false;
         }
-        catch (std::exception e)
-        { return false; }
     }
 
     const std::vector<std::string> &unmatched() const {
@@ -1230,10 +1150,8 @@ class ParseResult {
 };
 
 struct Option {
-    Option(
-        std::string opts, std::string desc, std::shared_ptr<const Value> value = ::cxxopts::value<bool>(),
-        std::string arg_help = ""
-    )
+    Option(std::string opts, std::string desc, std::shared_ptr<const Value> value = ::cxxopts::value<bool>(),
+           std::string arg_help = "")
         : opts_(std::move(opts)), desc_(std::move(desc)), value_(std::move(value)), arg_help_(std::move(arg_help)) {
     }
 
@@ -1257,16 +1175,13 @@ class OptionParser {
 
     bool consume_positional(const std::string &a, PositionalListIterator &next);
 
-    void checked_parse_arg(
-        int argc, const char *const *argv, int &current, const std::shared_ptr<OptionDetails> &value,
-        const std::string &name
-    );
+    void checked_parse_arg(int argc, const char *const *argv, int &current, const std::shared_ptr<OptionDetails> &value,
+                           const std::string &name);
 
     void add_to_option(OptionMap::const_iterator iter, const std::string &option, const std::string &arg);
 
-    void parse_option(
-        const std::shared_ptr<OptionDetails> &value, const std::string &name, const std::string &arg = ""
-    );
+    void parse_option(const std::shared_ptr<OptionDetails> &value, const std::string &name,
+                      const std::string &arg = "");
 
     void parse_default(const std::shared_ptr<OptionDetails> &details);
 
@@ -1331,10 +1246,8 @@ class Options {
 
     void add_option(const std::string &group, const Option &option);
 
-    void add_option(
-        const std::string &group, const std::string &s, const std::string &l, std::string desc,
-        const std::shared_ptr<const Value> &value, std::string arg_help
-    );
+    void add_option(const std::string &group, const std::string &s, const std::string &l, std::string desc,
+                    const std::shared_ptr<const Value> &value, std::string arg_help);
 
     // parse positional arguments into the given option
     void parse_positional(std::string option);
@@ -1387,10 +1300,9 @@ class OptionAdder {
     OptionAdder(Options &options, std::string group) : m_options(options), m_group(std::move(group)) {
     }
 
-    OptionAdder &operator()(
-        const std::string &opts, const std::string &desc,
-        const std::shared_ptr<const Value> &value = ::cxxopts::value<bool>(), std::string arg_help = ""
-    );
+    OptionAdder &operator()(const std::string &opts, const std::string &desc,
+                            const std::shared_ptr<const Value> &value = ::cxxopts::value<bool>(),
+                            std::string arg_help                      = "");
 
   private:
     Options &m_options;
@@ -1407,34 +1319,25 @@ String format_option(const HelpOptionDetails &o) {
 
     String result = "  ";
 
-    if (!s.empty())
-    {
+    if (!s.empty()) {
         result += "-" + toLocalString(s);
-        if (!l.empty())
-        {
+        if (!l.empty()) {
             result += ",";
         }
-    }
-    else
-    {
+    } else {
         result += "   ";
     }
 
-    if (!l.empty())
-    {
+    if (!l.empty()) {
         result += " --" + toLocalString(l);
     }
 
     auto arg = !o.arg_help.empty() ? toLocalString(o.arg_help) : "arg";
 
-    if (!o.is_boolean)
-    {
-        if (o.has_implicit)
-        {
+    if (!o.is_boolean) {
+        if (o.has_implicit) {
             result += " [=" + arg + "(=" + toLocalString(o.implicit_value) + ")]";
-        }
-        else
-        {
+        } else {
             result += " " + arg;
         }
     }
@@ -1445,39 +1348,28 @@ String format_option(const HelpOptionDetails &o) {
 String format_description(const HelpOptionDetails &o, size_t start, size_t allowed, bool tab_expansion) {
     auto desc = o.desc;
 
-    if (o.has_default && (!o.is_boolean || o.default_value != "false"))
-    {
-        if (!o.default_value.empty())
-        {
+    if (o.has_default && (!o.is_boolean || o.default_value != "false")) {
+        if (!o.default_value.empty()) {
             desc += toLocalString(" (default: " + o.default_value + ")");
-        }
-        else
-        {
+        } else {
             desc += toLocalString(" (default: \"\")");
         }
     }
 
     String result;
 
-    if (tab_expansion)
-    {
+    if (tab_expansion) {
         String desc2;
         auto size = size_t{0};
-        for (auto c = std::begin(desc); c != std::end(desc); ++c)
-        {
-            if (*c == '\n')
-            {
+        for (auto c = std::begin(desc); c != std::end(desc); ++c) {
+            if (*c == '\n') {
                 desc2 += *c;
                 size = 0;
-            }
-            else if (*c == '\t')
-            {
+            } else if (*c == '\t') {
                 auto skip = 8 - size % 8;
                 stringAppend(desc2, skip, ' ');
                 size += skip;
-            }
-            else
-            {
+            } else {
                 desc2 += *c;
                 ++size;
             }
@@ -1492,57 +1384,48 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
     auto startLine = current;
     auto lastSpace = current;
 
-    auto size = size_t{};
+    auto size      = size_t{};
 
     bool appendNewLine;
     bool onlyWhiteSpace = true;
 
-    while (current != std::end(desc))
-    {
+    while (current != std::end(desc)) {
         appendNewLine = false;
 
-        if (std::isblank(*previous))
-        {
+        if (std::isblank(*previous)) {
             lastSpace = current;
         }
 
-        if (!std::isblank(*current))
-        {
+        if (!std::isblank(*current)) {
             onlyWhiteSpace = false;
         }
 
-        while (*current == '\n')
-        {
+        while (*current == '\n') {
             previous = current;
             ++current;
             appendNewLine = true;
         }
 
-        if (!appendNewLine && size >= allowed)
-        {
-            if (lastSpace != startLine)
-            {
+        if (!appendNewLine && size >= allowed) {
+            if (lastSpace != startLine) {
                 current  = lastSpace;
                 previous = current;
             }
             appendNewLine = true;
         }
 
-        if (appendNewLine)
-        {
+        if (appendNewLine) {
             stringAppend(result, startLine, current);
             startLine = current;
             lastSpace = current;
 
-            if (*previous != '\n')
-            {
+            if (*previous != '\n') {
                 stringAppend(result, "\n");
             }
 
             stringAppend(result, start, ' ');
 
-            if (*previous != '\n')
-            {
+            if (*previous != '\n') {
                 stringAppend(result, lastSpace, current);
             }
 
@@ -1556,8 +1439,7 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
     }
 
     // append whatever is left but ignore whitespace
-    if (!onlyWhiteSpace)
-    {
+    if (!onlyWhiteSpace) {
         stringAppend(result, startLine, previous);
     }
 
@@ -1567,8 +1449,7 @@ String format_description(const HelpOptionDetails &o, size_t start, size_t allow
 
 inline void Options::add_options(const std::string &group, std::initializer_list<Option> options) {
     OptionAdder option_adder(*this, group);
-    for (const auto &option : options)
-    {
+    for (const auto &option : options) {
         option_adder(option.opts_, option.desc_, option.value_, option.arg_help_);
     }
 }
@@ -1577,32 +1458,26 @@ inline OptionAdder Options::add_options(std::string group) {
     return OptionAdder(*this, std::move(group));
 }
 
-inline OptionAdder &OptionAdder::operator()(
-    const std::string &opts, const std::string &desc, const std::shared_ptr<const Value> &value, std::string arg_help
-) {
+inline OptionAdder &OptionAdder::operator()(const std::string &opts, const std::string &desc,
+                                            const std::shared_ptr<const Value> &value, std::string arg_help) {
     std::string short_sw, long_sw;
     std::tie(short_sw, long_sw) = values::parser_tool::SplitSwitchDef(opts);
 
-    if (!short_sw.length() && !long_sw.length())
-    {
+    if (!short_sw.length() && !long_sw.length()) {
         throw_or_mimic<invalid_option_format_error>(opts);
-    }
-    else if (long_sw.length() == 1 && short_sw.length())
-    {
+    } else if (long_sw.length() == 1 && short_sw.length()) {
         throw_or_mimic<invalid_option_format_error>(opts);
     }
 
     auto option_names = [](const std::string &short_, const std::string &long_) {
-        if (long_.length() == 1)
-        {
+        if (long_.length() == 1) {
             return std::make_tuple(long_, short_);
         }
         return std::make_tuple(short_, long_);
     }(short_sw, long_sw);
 
-    m_options.add_option(
-        m_group, std::get<0>(option_names), std::get<1>(option_names), desc, value, std::move(arg_help)
-    );
+    m_options.add_option(m_group, std::get<0>(option_names), std::get<1>(option_names), desc, value,
+                         std::move(arg_help));
 
     return *this;
 }
@@ -1618,9 +1493,8 @@ inline void OptionParser::parse_no_value(const std::shared_ptr<OptionDetails> &d
     store.parse_no_value(details);
 }
 
-inline void OptionParser::parse_option(
-    const std::shared_ptr<OptionDetails> &value, const std::string & /*name*/, const std::string &arg
-) {
+inline void OptionParser::parse_option(const std::shared_ptr<OptionDetails> &value, const std::string & /*name*/,
+                                       const std::string &arg) {
     auto hash    = value->hash();
     auto &result = m_parsed[hash];
     result.parse(value, arg);
@@ -1628,52 +1502,36 @@ inline void OptionParser::parse_option(
     m_sequential.emplace_back(value->long_name(), arg);
 }
 
-inline void OptionParser::checked_parse_arg(
-    int argc, const char *const *argv, int &current, const std::shared_ptr<OptionDetails> &value,
-    const std::string &name
-) {
-    if (current + 1 >= argc)
-    {
-        if (value->value().has_implicit())
-        {
+inline void OptionParser::checked_parse_arg(int argc, const char *const *argv, int &current,
+                                            const std::shared_ptr<OptionDetails> &value, const std::string &name) {
+    if (current + 1 >= argc) {
+        if (value->value().has_implicit()) {
             parse_option(value, name, value->value().get_implicit_value());
-        }
-        else
-        {
+        } else {
             throw_or_mimic<missing_argument_exception>(name);
         }
-    }
-    else
-    {
-        if (value->value().has_implicit())
-        {
+    } else {
+        if (value->value().has_implicit()) {
             parse_option(value, name, value->value().get_implicit_value());
-        }
-        else
-        {
+        } else {
             parse_option(value, name, argv[current + 1]);
             ++current;
         }
     }
 }
 
-inline void OptionParser::add_to_option(
-    OptionMap::const_iterator iter, const std::string &option, const std::string &arg
-) {
+inline void OptionParser::add_to_option(OptionMap::const_iterator iter, const std::string &option,
+                                        const std::string &arg) {
     parse_option(iter->second, option, arg);
 }
 
 inline bool OptionParser::consume_positional(const std::string &a, PositionalListIterator &next) {
-    while (next != m_positional.end())
-    {
+    while (next != m_positional.end()) {
         auto iter = m_options.find(*next);
-        if (iter != m_options.end())
-        {
-            if (!iter->second->value().is_container())
-            {
+        if (iter != m_options.end()) {
+            if (!iter->second->value().is_container()) {
                 auto &result = m_parsed[iter->second->hash()];
-                if (result.count() == 0)
-                {
+                if (result.count() == 0) {
                     add_to_option(iter, *next, a);
                     ++next;
                     return true;
@@ -1717,10 +1575,8 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
 
     std::vector<std::string> unmatched;
 
-    while (current != argc)
-    {
-        if (strcmp(argv[current], "--") == 0)
-        {
+    while (current != argc) {
+        if (strcmp(argv[current], "--") == 0) {
             consume_remaining = true;
             ++current;
             break;
@@ -1728,46 +1584,35 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
         bool matched                            = false;
         values::parser_tool::ArguDesc argu_desc = values::parser_tool::ParseArgument(argv[current], matched);
 
-        if (!matched)
-        {
+        if (!matched) {
             // not a flag
 
             // but if it starts with a `-`, then it's an error
-            if (argv[current][0] == '-' && argv[current][1] != '\0')
-            {
-                if (!m_allow_unrecognised)
-                {
+            if (argv[current][0] == '-' && argv[current][1] != '\0') {
+                if (!m_allow_unrecognised) {
                     throw_or_mimic<option_syntax_exception>(argv[current]);
                 }
             }
 
             // if true is returned here then it was consumed, otherwise it is
             // ignored
-            if (consume_positional(argv[current], next_positional))
-            {}
-            else
-            {
+            if (consume_positional(argv[current], next_positional)) {
+            } else {
                 unmatched.emplace_back(argv[current]);
             }
             // if we return from here then it was parsed successfully, so
             // continue
-        }
-        else
-        {
+        } else {
             // short or long option?
-            if (argu_desc.grouping)
-            {
+            if (argu_desc.grouping) {
                 const std::string &s = argu_desc.arg_name;
 
-                for (std::size_t i = 0; i != s.size(); ++i)
-                {
+                for (std::size_t i = 0; i != s.size(); ++i) {
                     std::string name(1, s[i]);
                     auto iter = m_options.find(name);
 
-                    if (iter == m_options.end())
-                    {
-                        if (m_allow_unrecognised)
-                        {
+                    if (iter == m_options.end()) {
+                        if (m_allow_unrecognised) {
                             unmatched.push_back(std::string("-") + s[i]);
                             continue;
                         }
@@ -1777,38 +1622,27 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
 
                     auto value = iter->second;
 
-                    if (i + 1 == s.size())
-                    {
+                    if (i + 1 == s.size()) {
                         // it must be the last argument
                         checked_parse_arg(argc, argv, current, value, name);
-                    }
-                    else if (value->value().has_implicit())
-                    {
+                    } else if (value->value().has_implicit()) {
                         parse_option(value, name, value->value().get_implicit_value());
-                    }
-                    else if (i + 1 < s.size())
-                    {
+                    } else if (i + 1 < s.size()) {
                         std::string arg_value = s.substr(i + 1);
                         parse_option(value, name, arg_value);
                         break;
-                    }
-                    else
-                    {
+                    } else {
                         // error
                         throw_or_mimic<option_requires_argument_exception>(name);
                     }
                 }
-            }
-            else if (argu_desc.arg_name.length() != 0)
-            {
+            } else if (argu_desc.arg_name.length() != 0) {
                 const std::string &name = argu_desc.arg_name;
 
-                auto iter = m_options.find(name);
+                auto iter               = m_options.find(name);
 
-                if (iter == m_options.end())
-                {
-                    if (m_allow_unrecognised)
-                    {
+                if (iter == m_options.end()) {
+                    if (m_allow_unrecognised) {
                         // keep unrecognised options in argument list, skip to
                         // next argument
                         unmatched.emplace_back(argv[current]);
@@ -1822,14 +1656,11 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
                 auto opt = iter->second;
 
                 // equals provided for long option?
-                if (argu_desc.set_value)
-                {
+                if (argu_desc.set_value) {
                     // parse the option given
 
                     parse_option(opt, name, argu_desc.value);
-                }
-                else
-                {
+                } else {
                     // parse the next argument
                     checked_parse_arg(argc, argv, current, opt, name);
                 }
@@ -1839,40 +1670,31 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
         ++current;
     }
 
-    for (auto &opt : m_options)
-    {
+    for (auto &opt : m_options) {
         auto &detail      = opt.second;
         const auto &value = detail->value();
 
-        auto &store = m_parsed[detail->hash()];
+        auto &store       = m_parsed[detail->hash()];
 
-        if (value.has_default())
-        {
-            if (!store.count() && !store.has_default())
-            {
+        if (value.has_default()) {
+            if (!store.count() && !store.has_default()) {
                 parse_default(detail);
             }
-        }
-        else
-        {
+        } else {
             parse_no_value(detail);
         }
     }
 
-    if (consume_remaining)
-    {
-        while (current < argc)
-        {
-            if (!consume_positional(argv[current], next_positional))
-            {
+    if (consume_remaining) {
+        while (current < argc) {
+            if (!consume_positional(argv[current], next_positional)) {
                 break;
             }
             ++current;
         }
 
         // adjust argv for any that couldn't be swallowed
-        while (current != argc)
-        {
+        while (current != argc) {
             unmatched.emplace_back(argv[current]);
             ++current;
         }
@@ -1885,8 +1707,7 @@ inline ParseResult OptionParser::parse(int argc, const char *const *argv) {
 }
 
 inline void OptionParser::finalise_aliases() {
-    for (auto &option : m_options)
-    {
+    for (auto &option : m_options) {
         auto &detail                = *option.second;
         auto hash                   = detail.hash();
         m_keys[detail.short_name()] = hash;
@@ -1900,20 +1721,16 @@ inline void Options::add_option(const std::string &group, const Option &option) 
     add_options(group, {option});
 }
 
-inline void Options::add_option(
-    const std::string &group, const std::string &s, const std::string &l, std::string desc,
-    const std::shared_ptr<const Value> &value, std::string arg_help
-) {
+inline void Options::add_option(const std::string &group, const std::string &s, const std::string &l, std::string desc,
+                                const std::shared_ptr<const Value> &value, std::string arg_help) {
     auto stringDesc = toLocalString(std::move(desc));
     auto option     = std::make_shared<OptionDetails>(s, l, stringDesc, value);
 
-    if (!s.empty())
-    {
+    if (!s.empty()) {
         add_one_option(s, option);
     }
 
-    if (!l.empty())
-    {
+    if (!l.empty()) {
         add_one_option(l, option);
     }
 
@@ -1923,18 +1740,17 @@ inline void Options::add_option(
     m_option_map[l] = iter;
 
     // add the help details
-    auto &options = m_help[group];
+    auto &options   = m_help[group];
 
-    options.options.emplace_back(HelpOptionDetails{
-        s, l, stringDesc, value->has_default(), value->get_default_value(), value->has_implicit(),
-        value->get_implicit_value(), std::move(arg_help), value->is_container(), value->is_boolean()});
+    options.options.emplace_back(HelpOptionDetails{s, l, stringDesc, value->has_default(), value->get_default_value(),
+                                                   value->has_implicit(), value->get_implicit_value(),
+                                                   std::move(arg_help), value->is_container(), value->is_boolean()});
 }
 
 inline void Options::add_one_option(const std::string &option, const std::shared_ptr<OptionDetails> &details) {
     auto in = m_options->emplace(option, details);
 
-    if (!in.second)
-    {
+    if (!in.second) {
         throw_or_mimic<option_exists_error>(option);
     }
 }
@@ -1942,9 +1758,8 @@ inline void Options::add_one_option(const std::string &option, const std::shared
 inline String Options::help_one_group(const std::string &g) const {
     using OptionHelp = std::vector<std::pair<String, String>>;
 
-    auto group = m_help.find(g);
-    if (group == m_help.end())
-    {
+    auto group       = m_help.find(g);
+    if (group == m_help.end()) {
         return "";
     }
 
@@ -1954,15 +1769,12 @@ inline String Options::help_one_group(const std::string &g) const {
 
     String result;
 
-    if (!g.empty())
-    {
+    if (!g.empty()) {
         result += toLocalString(" " + g + " options:\n");
     }
 
-    for (const auto &o : group->second.options)
-    {
-        if (m_positional_set.find(o.l) != m_positional_set.end() && !m_show_positional)
-        {
+    for (const auto &o : group->second.options) {
+        if (m_positional_set.find(o.l) != m_positional_set.end() && !m_show_positional) {
             continue;
         }
 
@@ -1970,33 +1782,27 @@ inline String Options::help_one_group(const std::string &g) const {
         longest = (std::max)(longest, stringLength(s));
         format.push_back(std::make_pair(s, String()));
     }
-    longest = (std::min)(longest, OPTION_LONGEST);
+    longest        = (std::min)(longest, OPTION_LONGEST);
 
     // widest allowed description -- min 10 chars for helptext/line
     size_t allowed = 10;
-    if (m_width > allowed + longest + OPTION_DESC_GAP)
-    {
+    if (m_width > allowed + longest + OPTION_DESC_GAP) {
         allowed = m_width - longest - OPTION_DESC_GAP;
     }
 
     auto fiter = format.begin();
-    for (const auto &o : group->second.options)
-    {
-        if (m_positional_set.find(o.l) != m_positional_set.end() && !m_show_positional)
-        {
+    for (const auto &o : group->second.options) {
+        if (m_positional_set.find(o.l) != m_positional_set.end() && !m_show_positional) {
             continue;
         }
 
         auto d = format_description(o, longest + OPTION_DESC_GAP, allowed, m_tab_expansion);
 
         result += fiter->first;
-        if (stringLength(fiter->first) > longest)
-        {
+        if (stringLength(fiter->first) > longest) {
             result += '\n';
             result += toLocalString(std::string(longest + OPTION_DESC_GAP, ' '));
-        }
-        else
-        {
+        } else {
             result += toLocalString(std::string(longest + OPTION_DESC_GAP - stringLength(fiter->first), ' '));
         }
         result += d;
@@ -2009,16 +1815,13 @@ inline String Options::help_one_group(const std::string &g) const {
 }
 
 inline void Options::generate_group_help(String &result, const std::vector<std::string> &print_groups) const {
-    for (size_t i = 0; i != print_groups.size(); ++i)
-    {
+    for (size_t i = 0; i != print_groups.size(); ++i) {
         const String &group_help_text = help_one_group(print_groups[i]);
-        if (empty(group_help_text))
-        {
+        if (empty(group_help_text)) {
             continue;
         }
         result += group_help_text;
-        if (i < print_groups.size() - 1)
-        {
+        if (i < print_groups.size() - 1) {
             result += '\n';
         }
     }
@@ -2027,10 +1830,8 @@ inline void Options::generate_group_help(String &result, const std::vector<std::
 inline void Options::generate_all_groups_help(String &result) const {
     std::vector<std::string> all_groups;
 
-    std::transform(
-        m_help.begin(), m_help.end(), std::back_inserter(all_groups),
-        [](const std::map<std::string, HelpGroupDetails>::value_type &group) { return group.first; }
-    );
+    std::transform(m_help.begin(), m_help.end(), std::back_inserter(all_groups),
+                   [](const std::map<std::string, HelpGroupDetails>::value_type &group) { return group.first; });
 
     generate_group_help(result, all_groups);
 }
@@ -2038,19 +1839,15 @@ inline void Options::generate_all_groups_help(String &result) const {
 inline std::string Options::help(const std::vector<std::string> &help_groups) const {
     String result = m_help_string + "\nUsage:\n  " + toLocalString(m_program) + " " + toLocalString(m_custom_help);
 
-    if (!m_positional.empty() && !m_positional_help.empty())
-    {
+    if (!m_positional.empty() && !m_positional_help.empty()) {
         result += " " + toLocalString(m_positional_help);
     }
 
     result += "\n\n";
 
-    if (help_groups.empty())
-    {
+    if (help_groups.empty()) {
         generate_all_groups_help(result);
-    }
-    else
-    {
+    } else {
         generate_group_help(result, help_groups);
     }
 
@@ -2060,10 +1857,8 @@ inline std::string Options::help(const std::vector<std::string> &help_groups) co
 inline std::vector<std::string> Options::groups() const {
     std::vector<std::string> g;
 
-    std::transform(
-        m_help.begin(), m_help.end(), std::back_inserter(g),
-        [](const std::map<std::string, HelpGroupDetails>::value_type &pair) { return pair.first; }
-    );
+    std::transform(m_help.begin(), m_help.end(), std::back_inserter(g),
+                   [](const std::map<std::string, HelpGroupDetails>::value_type &pair) { return pair.first; });
 
     return g;
 }

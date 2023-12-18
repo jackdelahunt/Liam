@@ -6,16 +6,14 @@
 
 #ifdef USE_ASSERTS
 #define ASSERT_MSG(expr, message)                                                                                      \
-    if (!(expr))                                                                                                       \
-    {                                                                                                                  \
+    if (!(expr)) {                                                                                                     \
         std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n  --> (" << std::string(#expr)     \
                   << ")\n  --> \"" << message << "\"";                                                                 \
         exit(1);                                                                                                       \
     }
 
 #define ASSERT(expr)                                                                                                   \
-    if (!(expr))                                                                                                       \
-    {                                                                                                                  \
+    if (!(expr)) {                                                                                                     \
         std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n  --> (" << std::string(#expr)     \
                   << ")";                                                                                              \
         exit(1);                                                                                                       \

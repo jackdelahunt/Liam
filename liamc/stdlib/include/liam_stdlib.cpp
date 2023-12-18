@@ -7,16 +7,14 @@ u64 str_len(const str &s) {
 
 str substr(str s, u64 start, u64 length) {
 
-    if (start + length > s.length)
-    {
+    if (start + length > s.length) {
         __panic(Liam::make_str("Panic :: out of range substr"));
     }
     return str{.chars = &s.chars[start], .length = length};
 }
 
 str char_at(str s, u64 index) {
-    if (index >= s.length)
-    {
+    if (index >= s.length) {
         __panic(Liam::make_str("Panic :: out of range char_at"));
     }
     return str{.chars = &s.chars[index], .length = 1};

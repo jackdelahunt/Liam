@@ -409,9 +409,8 @@ struct StructInstanceExpression : Expression {
     TypeExpression *type_expression;
     std::vector<std::tuple<TokenIndex, Expression *>> named_expressions;
 
-    StructInstanceExpression(
-        TypeExpression *type_expression, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions
-    );
+    StructInstanceExpression(TypeExpression *type_expression,
+                             std::vector<std::tuple<TokenIndex, Expression *>> named_expressions);
 };
 
 struct StaticArrayExpression : Expression {
@@ -419,9 +418,8 @@ struct StaticArrayExpression : Expression {
     TypeExpression *type_expression;
     std::vector<Expression *> expressions;
 
-    StaticArrayExpression(
-        NumberLiteralExpression *number, TypeExpression *type_expression, std::vector<Expression *> expression
-    );
+    StaticArrayExpression(NumberLiteralExpression *number, TypeExpression *type_expression,
+                          std::vector<Expression *> expression);
 };
 
 struct SubscriptExpression : Expression {

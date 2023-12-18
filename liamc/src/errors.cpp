@@ -59,23 +59,19 @@ void TypeCheckerError::report() {
 void TypeCheckerError::print_error_message() {
     std::cerr << std::format("{}Type checking error :: {}{}\n", RED, error, DEFAULT);
 
-    if (this->expr_1)
-    {
+    if (this->expr_1) {
         write_error_annotation_at_span(&file, this->expr_1->span);
     }
 
-    if (this->expr_2)
-    {
+    if (this->expr_2) {
         write_error_annotation_at_span(&file, this->expr_2->span);
     }
 
-    if (this->type_expr_1)
-    {
+    if (this->type_expr_1) {
         write_error_annotation_at_span(&file, this->type_expr_1->span);
     }
 
-    if (this->type_expr_2)
-    {
+    if (this->type_expr_2) {
         write_error_annotation_at_span(&file, this->type_expr_2->span);
     }
 }
@@ -87,8 +83,7 @@ ErrorReporter::ErrorReporter() {
 }
 
 void ErrorReporter::report_parser_error(std::string file, Span span, std::string message) {
-    if (ErrorReporter::singleton == nullptr)
-    {
+    if (ErrorReporter::singleton == nullptr) {
         ErrorReporter::singleton = new ErrorReporter();
     }
 
@@ -96,29 +91,25 @@ void ErrorReporter::report_parser_error(std::string file, Span span, std::string
     ErrorReporter::singleton->errors_since_last_check++;
 }
 
-void ErrorReporter::report_type_checker_error(
-    std::string file, Expression *expr_1, Expression *expr_2, TypeExpression *type_expr_1, TypeExpression *type_expr_2,
-    std::string message
-) {
-    if (ErrorReporter::singleton == nullptr)
-    {
+void ErrorReporter::report_type_checker_error(std::string file, Expression *expr_1, Expression *expr_2,
+                                              TypeExpression *type_expr_1, TypeExpression *type_expr_2,
+                                              std::string message) {
+    if (ErrorReporter::singleton == nullptr) {
         ErrorReporter::singleton = new ErrorReporter();
     }
 
-    ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{
-        .file        = std::move(file),
-        .expr_1      = expr_1,
-        .expr_2      = expr_2,
-        .type_expr_1 = type_expr_1,
-        .type_expr_2 = type_expr_2,
-        .error       = std::move(message)});
+    ErrorReporter::singleton->type_check_errors.push_back(TypeCheckerError{.file        = std::move(file),
+                                                                           .expr_1      = expr_1,
+                                                                           .expr_2      = expr_2,
+                                                                           .type_expr_1 = type_expr_1,
+                                                                           .type_expr_2 = type_expr_2,
+                                                                           .error       = std::move(message)});
 
     ErrorReporter::singleton->errors_since_last_check++;
 }
 
 void ErrorReporter::report_type_checker_error(TypeCheckerError error) {
-    if (ErrorReporter::singleton == nullptr)
-    {
+    if (ErrorReporter::singleton == nullptr) {
         ErrorReporter::singleton = new ErrorReporter();
     }
 
@@ -186,16 +177,14 @@ void write_error_annotation_at_span(std::string *file, Span span) {
     // we move the start of the span the start of whatever line it is one
     // and the same for the end, we move that to the end of the line
     // if there is no start or end then it is left as the start of the file or the end
-    u64 line_start = span.start;
-    u64 line_end   = span.end;
+    u64 line_start      = span.start;
+    u64 line_end        = span.end;
 
-    while (line_start != 0 && file_data->data[line_start] != '\n')
-    {
+    while (line_start != 0 && file_data->data[line_start] != '\n') {
         line_start--;
     }
 
-    while (line_end != file_data->data_length && file_data->data[line_end] != '\n')
-    {
+    while (line_end != file_data->data_length && file_data->data[line_end] != '\n') {
         line_end++;
     }
 
@@ -217,9 +206,7 @@ void write_error_annotation_at_span(std::string *file, Span span) {
     trim(message_error);
     rtrim(message_right);
 
-    std::cerr << std::format(
-        "--> {}\n"
-        "   |   {}{}{}{}{}\n",
-        *file, message_left, RED, message_error, DEFAULT, message_right
-    );
+    std::cerr << std::format("--> {}\n"
+                             "   |   {}{}{}{}{}\n",
+                             *file, message_left, RED, message_error, DEFAULT, message_right);
 }
