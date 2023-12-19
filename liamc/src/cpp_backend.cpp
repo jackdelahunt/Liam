@@ -502,7 +502,7 @@ void CppBackend::emit_print_statement(PrintStatement *statement) {
     this->builder.start_line();
     this->builder.append("std::cout << ");
     emit_expression(statement->expression);
-    this->builder.append(" << std::endl;");
+    this->builder.append(" << \"\\n\" ;");
     this->builder.end_line();
 }
 
