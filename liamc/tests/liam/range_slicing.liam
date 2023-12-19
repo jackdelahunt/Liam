@@ -1,19 +1,12 @@
-//3
-//3
-//3
-//1
-//1
-//1
-
 fn main() void {
     let array : [3]i64 = [3]i64{1, 2, 3};
   
-    print array[$:$][2];
-    print array[$:$].size;
+    assert array[$:$][2] == 3;
+    assert array[$:$].size == 3u64;
 
-    print array[2:$][0]; // last element
-    print array[2:$].size;
+    assert array[2:$][0] == 3; // last element
+    assert array[2:$].size == 1u64;
 
-    print array[0:1][0]; // first element
-    print array[0:1].size;
+    assert array[0:1][0] == 1; // first element
+    assert array[0:1].size == 1u64;
 }

@@ -54,6 +54,7 @@ enum class TokenType {
     TOKEN_IMPORT,             // import
     TOKEN_DOLLAR,             // $
     TOKEN_PRINT,              // print
+    TOKEN_ASSERT,             // assert
 };
 
 struct Span {

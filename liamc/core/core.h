@@ -22,6 +22,13 @@ typedef uint64_t u64;
 typedef int64_t i64;
 typedef double f64;
 
+#define __ASSERT(expr)                                                                                      \
+    if (!(expr)) {                                                                                                     \
+        std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n  --> (" << std::string(#expr)     \
+                  << ")\n";                                                                 \
+        exit(1);                                                                                                       \
+    }
+
 struct str {
     char *chars;
     u64 length;
