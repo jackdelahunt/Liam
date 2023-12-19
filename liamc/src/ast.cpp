@@ -92,13 +92,14 @@ ScopeStatement::ScopeStatement(std::vector<Statement *> statements) {
     this->statement_type = StatementType::SCOPE;
 }
 
-FnStatement::FnStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body) {
+FnStatement::FnStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV params, TypeExpression *type,
+                         ScopeStatement *body) {
     this->compilation_unit = compilation_unit;
-    this->identifier     = identifier;
-    this->return_type    = type;
-    this->params         = params;
-    this->body           = body;
-    this->statement_type = StatementType::FN;
+    this->identifier       = identifier;
+    this->return_type      = type;
+    this->params           = params;
+    this->body             = body;
+    this->statement_type   = StatementType::FN;
 }
 
 StructStatement::StructStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV members,

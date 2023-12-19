@@ -253,7 +253,8 @@ struct FnStatement : Statement {
     TypeExpression *return_type;
     ScopeStatement *body;
 
-    FnStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body);
+    FnStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV params, TypeExpression *type,
+                ScopeStatement *body);
 };
 
 struct StructStatement : Statement {

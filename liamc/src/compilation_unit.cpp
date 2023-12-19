@@ -117,8 +117,8 @@ TypeInfo *CompilationUnit::get_from_scope_with_string(std::string identifier) {
 
 CompilationBundle::CompilationBundle(std::vector<CompilationUnit *> compilation_units) {
     this->compilation_units = compilation_units;
-    this->entry_point = NULL;
-    this->sorted_types = std::vector<SortingNode>();
+    this->entry_point       = NULL;
+    this->sorted_types      = std::vector<SortingNode>();
 }
 
 Option<u64> CompilationBundle::get_compilation_unit_index_with_path_relative_from(std::string relative_from,
