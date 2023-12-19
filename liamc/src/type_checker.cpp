@@ -61,6 +61,7 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 
         // add symbols for structs and fns
         for (auto stmt : this->compilation_unit->top_level_import_statements) {
+            ASSERT(stmt->statement_type != StatementType::UNDEFINED);
             TRY_CALL_VOID(type_check_import_statement(stmt));
         }
     }
@@ -70,10 +71,12 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 
         // add symbols for structs and fns
         for (auto stmt : this->compilation_unit->top_level_struct_statements) {
+            ASSERT(stmt->statement_type != StatementType::UNDEFINED);
             TRY_CALL_VOID(type_check_struct_symbol(stmt));
         }
 
         for (auto stmt : this->compilation_unit->top_level_fn_statements) {
+            ASSERT(stmt->statement_type != StatementType::UNDEFINED);
             TRY_CALL_VOID(type_check_fn_symbol(stmt));
         }
     }
@@ -83,10 +86,12 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
 
         // type the body of the structs and the declarations of the fns
         for (auto stmt : this->compilation_unit->top_level_struct_statements) {
+            ASSERT(stmt->statement_type != StatementType::UNDEFINED);
             TRY_CALL_VOID(type_check_struct_statement_full(stmt));
         }
 
         for (auto stmt : this->compilation_unit->top_level_fn_statements) {
+            ASSERT(stmt->statement_type != StatementType::UNDEFINED);
             TRY_CALL_VOID(type_check_fn_decl(stmt));
         }
     }
@@ -220,7 +225,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     this->delete_scope();
 
     for (auto stmt : statement->body->statements) {
-        if (stmt->statement_type == StatementType::STATEMENT_RETURN) {
+        if (stmt->statement_type == StatementType::RETURN) {
             auto rt = static_cast<ReturnStatement *>(stmt);
 
             if (fn_type_info->return_type->type == TypeInfoType::VOID) {
@@ -265,28 +270,30 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
 
 void TypeChecker::type_check_statement(Statement *statement) {
     switch (statement->statement_type) {
-    case StatementType::STATEMENT_RETURN:
+    case StatementType::RETURN:
         return type_check_return_statement(static_cast<ReturnStatement *>(statement));
-    case StatementType::STATEMENT_BREAK:
+    case StatementType::BREAK:
         return type_check_break_statement(static_cast<BreakStatement *>(statement));
-    case StatementType::STATEMENT_ASSIGNMENT:
+    case StatementType::ASSIGNMENT:
         return type_check_assigment_statement(static_cast<AssigmentStatement *>(statement));
-    case StatementType::STATEMENT_EXPRESSION:
+    case StatementType::EXPRESSION:
         return type_check_expression_statement(static_cast<ExpressionStatement *>(statement));
-    case StatementType::STATEMENT_LET:
+    case StatementType::LET:
         return type_check_let_statement(static_cast<LetStatement *>(statement));
-    case StatementType::STATEMENT_FOR:
+    case StatementType::FOR:
         return type_check_for_statement(static_cast<ForStatement *>(statement));
-    case StatementType::STATEMENT_IF:
+    case StatementType::IF:
         return type_check_if_statement(static_cast<IfStatement *>(statement));
-    case StatementType::STATEMENT_PRINT:
+    case StatementType::PRINT:
         return type_check_print_statement(static_cast<PrintStatement *>(statement));
-    case StatementType::STATEMENT_CONTINUE:
+    case StatementType::CONTINUE:
         break;
-    case StatementType::STATEMENT_STRUCT:
-    case StatementType::STATEMENT_FN:
-    case StatementType::STATEMENT_IMPORT:
+    case StatementType::STRUCT:
+    case StatementType::FN:
+    case StatementType::IMPORT:
         ASSERT_MSG(0, "These should of already been type checked in the first pass");
+    case StatementType::UNDEFINED:
+        UNREACHABLE();
     default:
         UNREACHABLE();
     }
@@ -334,6 +341,8 @@ void TypeChecker::type_check_scope_statement(ScopeStatement *statement) {
 
 void TypeChecker::type_check_for_statement(ForStatement *statement) {
     TRY_CALL_VOID(type_check_expression(statement->expression));
+
+    ASSERT_MSG(statement->expression->category != ExpressionCategory::UNDEFINED, "expresssions need categories");
 
     if (statement->expression->type_info->type != TypeInfoType::STATIC_ARRAY) {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
@@ -384,6 +393,15 @@ void TypeChecker::type_check_else_statement(ElseStatement *statement) {
 
 void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement) {
     TRY_CALL_VOID(type_check_expression(statement->lhs));
+
+    if (statement->lhs->category != ExpressionCategory::LVALUE) {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("trying to assign to a rvalue, only lvalues can be assigned")
+            .set_expr_1(statement->lhs)
+            .report();
+        return;
+    }
+
     TRY_CALL_VOID(type_check_expression(statement->assigned_to->expression));
 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info)) {
@@ -404,54 +422,53 @@ void TypeChecker::type_check_print_statement(PrintStatement *statement) {
 
 void TypeChecker::type_check_expression(Expression *expression) {
     switch (expression->type) {
-    case ExpressionType::EXPRESSION_STRING_LITERAL:
+    case ExpressionType::STRING_LITERAL:
         return type_check_string_literal_expression(static_cast<StringLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_NUMBER_LITERAL:
+    case ExpressionType::NUMBER_LITERAL:
         return type_check_number_literal_expression(static_cast<NumberLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_BOOL_LITERAL:
+    case ExpressionType::BOOL_LITERAL:
         return type_check_bool_literal_expression(static_cast<BoolLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_CALL:
+    case ExpressionType::CALL:
         return type_check_call_expression(static_cast<CallExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_IDENTIFIER:
+    case ExpressionType::IDENTIFIER:
         return type_check_identifier_expression(static_cast<IdentifierExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_BINARY:
+    case ExpressionType::BINARY:
         return type_check_binary_expression(static_cast<BinaryExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_UNARY:
+    case ExpressionType::UNARY:
         return type_check_unary_expression(static_cast<UnaryExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_GET:
+    case ExpressionType::GET:
         return type_check_get_expression(static_cast<GetExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_GROUP:
+    case ExpressionType::GROUP:
         return type_check_group_expression(static_cast<GroupExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_NULL_LITERAL:
+    case ExpressionType::NULL_LITERAL:
         return type_check_null_literal_expression(static_cast<NullLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_ZERO_LITERAL:
+    case ExpressionType::ZERO_LITERAL:
         return type_check_zero_literal_expression(static_cast<ZeroLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_INSTANTIATION:
-        return type_check_instantiate_expression(static_cast<InstantiateExpression *>(expression));
-        break;
-    case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
+    case ExpressionType::STRUCT_INSTANCE:
         return type_check_struct_instance_expression(static_cast<StructInstanceExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_STATIC_ARRAY:
+    case ExpressionType::STATIC_ARRAY:
         return type_check_static_array_literal_expression(static_cast<StaticArrayExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_SUBSCRIPT:
+    case ExpressionType::SUBSCRIPT:
         return type_check_subscript_expression(static_cast<SubscriptExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_RANGE:
+    case ExpressionType::RANGE:
         return type_check_range_expression(static_cast<RangeExpression *>(expression));
         break;
+    case ExpressionType::UNDEFINED:
+        UNREACHABLE();
     default:
         UNREACHABLE();
     }
@@ -519,10 +536,11 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
 
 void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *expression) {
     expression->type_info = new SliceTypeInfo(this->compilation_unit->global_type_scope["u8"]);
+    expression->category  = ExpressionCategory::RVALUE;
 }
 
 void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *expression) {
-
+    expression->category      = ExpressionCategory::RVALUE;
     std::string token_string  = this->compilation_unit->get_token_string_from_index(expression->token);
 
     auto [number, type, size] = extract_number_literal_size(token_string);
@@ -589,6 +607,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
 
 void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expression) {
     expression->type_info = new BoolTypeInfo();
+    expression->category  = ExpressionCategory::RVALUE;
 }
 
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
@@ -596,6 +615,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
 
     if (expression->op == TokenType::TOKEN_AMPERSAND) {
         expression->type_info = new PointerTypeInfo(expression->expression->type_info);
+        expression->category  = ExpressionCategory::RVALUE;
         return;
     }
 
@@ -607,6 +627,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
         }
 
         expression->type_info = ((PointerTypeInfo *)expression->expression->type_info)->to;
+        expression->category  = ExpressionCategory::LVALUE;
         return;
     }
 
@@ -619,31 +640,24 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
         }
 
         expression->type_info = expression->expression->type_info;
+        expression->category  = ExpressionCategory::RVALUE;
         return;
     }
 
-    panic("Internal :: Unrecognised unary operator");
+    UNREACHABLE();
 }
 
 void TypeChecker::type_check_call_expression(CallExpression *expression) {
-
+    expression->category = ExpressionCategory::RVALUE;
     TRY_CALL_VOID(type_check_expression(expression->callee));
-    auto callee_expression = expression->callee;
+    Expression *callee_expression = expression->callee;
 
-    if (expression->callee->type_info->type == TypeInfoType::FN) {
-        TRY_CALL_VOID(type_check_fn_call_expression(expression));
-        return;
+    if (expression->callee->type_info->type != TypeInfoType::FN) {
+        ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), callee_expression,
+                                                 NULL, NULL, NULL, "Can only call functions");
     }
 
-    ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), callee_expression,
-                                             NULL, NULL, NULL, "Can only call functions");
-}
-
-void TypeChecker::type_check_fn_call_expression(CallExpression *expression) {
-
-    auto callee_expression = expression->callee;
-
-    auto arg_type_infos    = std::vector<TypeInfo *>();
+    auto arg_type_infos = std::vector<TypeInfo *>();
     for (auto arg : expression->args) {
         TRY_CALL_VOID(type_check_expression(arg));
         arg_type_infos.push_back(arg->type_info);
@@ -680,9 +694,11 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     }
 
     expression->type_info = type_info;
+    expression->category  = ExpressionCategory::LVALUE;
 }
 
 void TypeChecker::type_check_get_expression(GetExpression *expression) {
+    expression->category = ExpressionCategory::LVALUE;
     TRY_CALL_VOID(type_check_expression(expression->lhs));
 
     if (expression->lhs->type_info->type == TypeInfoType::NAMESPACE) {
@@ -701,7 +717,6 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         }
 
         expression->type_info = member_type_info;
-        return;
     }
 
     TypeInfo *using_type = expression->lhs->type_info;
@@ -760,38 +775,23 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
 }
 
 void TypeChecker::type_check_group_expression(GroupExpression *expression) {
-    TRY_CALL_VOID(type_check_expression(expression->expression));
-    expression->type_info = expression->expression->type_info;
+    TRY_CALL_VOID(type_check_expression(expression->sub_expression));
+    expression->type_info = expression->sub_expression->type_info;
+    expression->category  = expression->sub_expression->category;
 }
 
 void TypeChecker::type_check_null_literal_expression(NullLiteralExpression *expression) {
     expression->type_info = new PointerTypeInfo(new AnyTypeInfo());
+    expression->category  = ExpressionCategory::RVALUE;
 }
 
 void TypeChecker::type_check_zero_literal_expression(ZeroLiteralExpression *expression) {
     expression->type_info = new AnyTypeInfo{TypeInfoType::ANY};
-}
-
-void TypeChecker::type_check_instantiate_expression(InstantiateExpression *expression) {
-
-    // TODO
-    // remove the idea of an instantiate expression, we are parsing it
-    // as if we are always assuming it is a struct instance anyway
-    // just think of every as a "new Struct{...}" an no other type
-    // this is a leftover from "new Enum{...}"
-    if (expression->expression->type != ExpressionType::EXPRESSION_STRUCT_INSTANCE) {
-        ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
-                                                 expression->expression, NULL, NULL,
-                                                 "Cannot instantiate non-struct type");
-        return;
-    }
-
-    TRY_CALL_VOID(type_check_expression(expression->expression));
-
-    expression->type_info = expression->expression->type_info;
+    expression->category  = ExpressionCategory::RVALUE;
 }
 
 void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression *expression) {
+    expression->category = ExpressionCategory::RVALUE;
     TRY_CALL_VOID(type_check_type_expression(expression->type_expression));
 
     TypeInfo *type_info = expression->type_expression->type_info;
@@ -841,6 +841,7 @@ void TypeChecker::type_check_struct_instance_expression(StructInstanceExpression
 }
 
 void TypeChecker::type_check_static_array_literal_expression(StaticArrayExpression *expression) {
+    expression->category = ExpressionCategory::RVALUE;
     TRY_CALL_VOID(type_check_expression(expression->number));
     TRY_CALL_VOID(type_check_type_expression(expression->type_expression));
 
@@ -896,11 +897,16 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
         return;
     }
 
+    // this maybe wrong, what if we are subscripting a r-value??
+    // e.g. [3]i64{1, 2, 4}[0] = 3;
+    // this shouldn't work right??
+    expression->category = ExpressionCategory::LVALUE;
+
     // even though you can slice on an array or a slice we only care about the base
     // type so this code can be generic across both of them. If in the future we
     // have other types that can be sliced but don't fit this pattern we can
     // change it here
-    TypeInfo *base_type = NULL;
+    TypeInfo *base_type  = NULL;
     if (expression->subscriptee->type_info->type == TypeInfoType::STATIC_ARRAY) {
         StaticArrayTypeInfo *array_type_info = (StaticArrayTypeInfo *)expression->subscriptee->type_info;
         base_type                            = array_type_info->base_type;
@@ -938,6 +944,8 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
 }
 
 void TypeChecker::type_check_range_expression(RangeExpression *expression) {
+    expression->category                 = ExpressionCategory::RVALUE;
+
     // this is kind of a mess but with the lambda you end up repeating so much code that I dont
     // think it is work it and it looks so confusing. If this is slow we can refactor but keeping
     // all of the logic in one place I think is better

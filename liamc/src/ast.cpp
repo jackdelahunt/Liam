@@ -64,32 +64,32 @@ RangeTypeInfo::RangeTypeInfo() {
 
 ExpressionStatement::ExpressionStatement(Expression *expression) {
     this->expression     = expression;
-    this->statement_type = StatementType::STATEMENT_EXPRESSION;
+    this->statement_type = StatementType::EXPRESSION;
 }
 
 LetStatement::LetStatement(TokenIndex identifier, Expression *expression, TypeExpression *type) {
     this->identifier     = identifier;
     this->rhs            = expression;
     this->type           = type;
-    this->statement_type = StatementType::STATEMENT_LET;
+    this->statement_type = StatementType::LET;
 }
 
 AssigmentStatement::AssigmentStatement(Expression *lhs, ExpressionStatement *assigned_to) {
     this->lhs            = lhs;
     this->assigned_to    = assigned_to;
-    this->statement_type = StatementType::STATEMENT_ASSIGNMENT;
+    this->statement_type = StatementType::ASSIGNMENT;
 }
 
 ForStatement::ForStatement(TokenIndex value_identifier, Expression *expression, ScopeStatement *body) {
     this->value_identifier = value_identifier;
     this->expression       = expression;
     this->body             = body;
-    this->statement_type   = StatementType::STATEMENT_FOR;
+    this->statement_type   = StatementType::FOR;
 }
 
 ScopeStatement::ScopeStatement(std::vector<Statement *> statements) {
     this->statements     = statements;
-    this->statement_type = StatementType::STATEMENT_SCOPE;
+    this->statement_type = StatementType::SCOPE;
 }
 
 FnStatement::FnStatement(TokenIndex identifier, CSV params, TypeExpression *type, ScopeStatement *body) {
@@ -97,7 +97,7 @@ FnStatement::FnStatement(TokenIndex identifier, CSV params, TypeExpression *type
     this->return_type    = type;
     this->params         = params;
     this->body           = body;
-    this->statement_type = StatementType::STATEMENT_FN;
+    this->statement_type = StatementType::FN;
 }
 
 StructStatement::StructStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV members,
@@ -106,45 +106,45 @@ StructStatement::StructStatement(CompilationUnit *compilation_unit, TokenIndex i
     this->identifier       = identifier;
     this->members          = members;
     this->type_info        = type_info;
-    this->statement_type   = StatementType::STATEMENT_STRUCT;
+    this->statement_type   = StatementType::STRUCT;
 }
 
 IfStatement::IfStatement(Expression *expression, ScopeStatement *body, ElseStatement *else_statement) {
     this->expression     = expression;
     this->body           = body;
     this->else_statement = else_statement;
-    this->statement_type = StatementType::STATEMENT_IF;
+    this->statement_type = StatementType::IF;
 }
 
 ElseStatement::ElseStatement(IfStatement *if_statement, ScopeStatement *body) {
     this->if_statement   = if_statement;
     this->body           = body;
-    this->statement_type = StatementType::STATEMENT_ELSE;
+    this->statement_type = StatementType::ELSE;
 }
 
 ReturnStatement::ReturnStatement(Expression *expression) {
     this->expression     = expression;
-    this->statement_type = StatementType::STATEMENT_RETURN;
+    this->statement_type = StatementType::RETURN;
 }
 
 BreakStatement::BreakStatement() {
-    this->statement_type = StatementType::STATEMENT_BREAK;
+    this->statement_type = StatementType::BREAK;
 }
 
 ContinueStatement::ContinueStatement() {
-    this->statement_type = StatementType::STATEMENT_CONTINUE;
+    this->statement_type = StatementType::CONTINUE;
 }
 
 ImportStatement::ImportStatement(TokenIndex identifier, TokenIndex string_literal,
                                  NamespaceTypeInfo *namespace_type_info) {
-    this->statement_type      = StatementType::STATEMENT_IMPORT;
+    this->statement_type      = StatementType::IMPORT;
     this->identifier          = identifier;
     this->string_literal      = string_literal;
     this->namespace_type_info = namespace_type_info;
 }
 
 PrintStatement::PrintStatement(Expression *expression) {
-    this->statement_type = StatementType::STATEMENT_PRINT;
+    this->statement_type = StatementType::PRINT;
     this->expression     = expression;
 }
 
@@ -157,81 +157,81 @@ BinaryExpression::BinaryExpression(Expression *left, TokenType op, Expression *r
     this->left  = left;
     this->op    = op;
     this->right = right;
-    this->type  = ExpressionType::EXPRESSION_BINARY;
+    this->type  = ExpressionType::BINARY;
 }
 
 UnaryExpression::UnaryExpression(Expression *expression, TokenType op) {
     this->expression = expression;
     this->op         = op;
-    this->type       = ExpressionType::EXPRESSION_UNARY;
+    this->type       = ExpressionType::UNARY;
     this->span       = expression->span;
 }
 
 NumberLiteralExpression::NumberLiteralExpression(TokenIndex token, Span span) {
     this->token = token;
-    this->type  = ExpressionType::EXPRESSION_NUMBER_LITERAL;
+    this->type  = ExpressionType::NUMBER_LITERAL;
     this->span  = span;
 }
 
 StringLiteralExpression::StringLiteralExpression(TokenIndex token, Span span) {
     this->token = token;
-    this->type  = ExpressionType::EXPRESSION_STRING_LITERAL;
+    this->type  = ExpressionType::STRING_LITERAL;
     this->span  = span;
 }
 
 BoolLiteralExpression::BoolLiteralExpression(TokenIndex token, Span span) {
     this->token = token;
-    this->type  = ExpressionType::EXPRESSION_BOOL_LITERAL;
+    this->type  = ExpressionType::BOOL_LITERAL;
     this->span  = span;
 }
 
 IdentifierExpression::IdentifierExpression(TokenIndex identifier, Span span) {
     this->identifier = identifier;
-    this->type       = ExpressionType::EXPRESSION_IDENTIFIER;
+    this->type       = ExpressionType::IDENTIFIER;
     this->span       = span;
 }
 
 CallExpression::CallExpression(Expression *identifier, std::vector<Expression *> args) {
     this->callee = identifier;
     this->args   = args;
-    this->type   = ExpressionType::EXPRESSION_CALL;
+    this->type   = ExpressionType::CALL;
     this->span   = identifier->span;
 }
 
 GetExpression::GetExpression(Expression *expression, TokenIndex member) {
     this->lhs    = expression;
     this->member = member;
-    this->type   = ExpressionType::EXPRESSION_GET;
+    this->type   = ExpressionType::GET;
     this->span   = expression->span;
 }
 
 GroupExpression::GroupExpression(Expression *expression) {
-    this->expression = expression;
-    this->type       = ExpressionType::EXPRESSION_GROUP;
-    this->span       = expression->span;
+    this->sub_expression = expression;
+    this->type           = ExpressionType::GROUP;
+    this->span           = expression->span;
 }
 
 NullLiteralExpression::NullLiteralExpression(TokenIndex token, Span span) {
-    this->type  = ExpressionType::EXPRESSION_NULL_LITERAL;
+    this->type  = ExpressionType::NULL_LITERAL;
     this->token = token;
     this->span  = span;
 }
 
 ZeroLiteralExpression::ZeroLiteralExpression(TokenIndex token, Span span) {
-    this->type  = ExpressionType::EXPRESSION_ZERO_LITERAL;
+    this->type  = ExpressionType::ZERO_LITERAL;
     this->token = token;
     this->span  = span;
 }
 
 InstantiateExpression::InstantiateExpression(Expression *expression) {
-    this->type       = ExpressionType::EXPRESSION_INSTANTIATION;
+    this->type       = ExpressionType::INSTANTIATION;
     this->expression = expression;
     this->span       = expression->span;
 }
 
 StructInstanceExpression::StructInstanceExpression(
     TypeExpression *type_expression, std::vector<std::tuple<TokenIndex, Expression *>> named_expressions) {
-    this->type              = ExpressionType::EXPRESSION_STRUCT_INSTANCE;
+    this->type              = ExpressionType::STRUCT_INSTANCE;
     this->type_expression   = type_expression;
     this->named_expressions = named_expressions;
     this->span              = type_expression->span;
@@ -242,14 +242,14 @@ StaticArrayExpression::StaticArrayExpression(NumberLiteralExpression *number, Ty
     this->number          = number;
     this->type_expression = type_expression;
     this->expressions     = expressions;
-    this->type            = ExpressionType::EXPRESSION_STATIC_ARRAY;
+    this->type            = ExpressionType::STATIC_ARRAY;
 }
 
 SubscriptExpression::SubscriptExpression(Expression *subscriptee, Expression *subscripter) {
     this->subscriptee = subscriptee;
     this->subscripter = subscripter;
     this->span        = subscripter->span;
-    this->type        = ExpressionType::EXPRESSION_SUBSCRIPT;
+    this->type        = ExpressionType::SUBSCRIPT;
 }
 
 RangeExpression::RangeExpression(Expression *start, Expression *end) {
@@ -257,7 +257,7 @@ RangeExpression::RangeExpression(Expression *start, Expression *end) {
     this->end   = end;
     this->span =
         Span{}; // TODO: each expression might be null here so we need to figure out what to do here, maybe use the : ??
-    this->type = ExpressionType::EXPRESSION_RANGE;
+    this->type = ExpressionType::RANGE;
 }
 
 std::ostream &TypeExpression::format(std::ostream &os) const {

@@ -175,40 +175,40 @@ void CppBackend::forward_declare_function(FnStatement *statement) {
 
 void CppBackend::emit_statement(Statement *statement) {
     switch (statement->statement_type) {
-    case StatementType::STATEMENT_RETURN:
+    case StatementType::RETURN:
         emit_return_statement(static_cast<ReturnStatement *>(statement));
         break;
-    case StatementType::STATEMENT_BREAK:
+    case StatementType::BREAK:
         emit_break_statement(static_cast<BreakStatement *>(statement));
         break;
-    case StatementType::STATEMENT_LET:
+    case StatementType::LET:
         emit_let_statement(static_cast<LetStatement *>(statement));
         break;
-    case StatementType::STATEMENT_FN:
+    case StatementType::FN:
         emit_fn_statement(static_cast<FnStatement *>(statement));
         break;
-    case StatementType::STATEMENT_SCOPE:
+    case StatementType::SCOPE:
         emit_scope_statement(static_cast<ScopeStatement *>(statement));
         break;
-    case StatementType::STATEMENT_STRUCT:
+    case StatementType::STRUCT:
         emit_struct_statement(static_cast<StructStatement *>(statement));
         break;
-    case StatementType::STATEMENT_ASSIGNMENT:
+    case StatementType::ASSIGNMENT:
         emit_assigment_statement(static_cast<AssigmentStatement *>(statement));
         break;
-    case StatementType::STATEMENT_EXPRESSION:
+    case StatementType::EXPRESSION:
         emit_expression_statement(static_cast<ExpressionStatement *>(statement));
         break;
-    case StatementType::STATEMENT_FOR:
+    case StatementType::FOR:
         emit_for_statement(static_cast<ForStatement *>(statement));
         break;
-    case StatementType::STATEMENT_IF:
+    case StatementType::IF:
         emit_if_statement(static_cast<IfStatement *>(statement));
         break;
-    case StatementType::STATEMENT_CONTINUE:
+    case StatementType::CONTINUE:
         emit_continue_statement(static_cast<ContinueStatement *>(statement));
         break;
-    case StatementType::STATEMENT_PRINT:
+    case StatementType::PRINT:
         emit_print_statement(static_cast<PrintStatement *>(statement));
         break;
     default:
@@ -450,49 +450,49 @@ void CppBackend::emit_print_statement(PrintStatement *statement) {
 
 void CppBackend::emit_expression(Expression *expression) {
     switch (expression->type) {
-    case ExpressionType::EXPRESSION_STRING_LITERAL:
+    case ExpressionType::STRING_LITERAL:
         emit_string_literal_expression(static_cast<StringLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_NUMBER_LITERAL:
+    case ExpressionType::NUMBER_LITERAL:
         emit_int_literal_expression(static_cast<NumberLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_BOOL_LITERAL:
+    case ExpressionType::BOOL_LITERAL:
         emit_bool_literal_expression(static_cast<BoolLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_CALL:
+    case ExpressionType::CALL:
         emit_call_expression(static_cast<CallExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_IDENTIFIER:
+    case ExpressionType::IDENTIFIER:
         emit_identifier_expression(static_cast<IdentifierExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_BINARY:
+    case ExpressionType::BINARY:
         emit_binary_expression(static_cast<BinaryExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_UNARY:
+    case ExpressionType::UNARY:
         emit_unary_expression(static_cast<UnaryExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_GET:
+    case ExpressionType::GET:
         emit_get_expression(static_cast<GetExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_GROUP:
+    case ExpressionType::GROUP:
         emit_group_expression(static_cast<GroupExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_NULL_LITERAL:
+    case ExpressionType::NULL_LITERAL:
         emit_null_literal_expression(static_cast<NullLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_ZERO_LITERAL:
+    case ExpressionType::ZERO_LITERAL:
         emit_zero_literal_expression(static_cast<ZeroLiteralExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_INSTANTIATION:
+    case ExpressionType::INSTANTIATION:
         emit_instantiate_expression(static_cast<InstantiateExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_STRUCT_INSTANCE:
+    case ExpressionType::STRUCT_INSTANCE:
         emit_struct_instance_expression(static_cast<StructInstanceExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_STATIC_ARRAY:
+    case ExpressionType::STATIC_ARRAY:
         emit_static_array_literal_expression(static_cast<StaticArrayExpression *>(expression));
         break;
-    case ExpressionType::EXPRESSION_SUBSCRIPT:
+    case ExpressionType::SUBSCRIPT:
         emit_subscript_expression(static_cast<SubscriptExpression *>(expression));
         break;
     default: {
@@ -647,7 +647,7 @@ void CppBackend::emit_get_expression(GetExpression *expression) {
 
 void CppBackend::emit_group_expression(GroupExpression *expression) {
     this->builder.append("(");
-    emit_expression(expression->expression);
+    emit_expression(expression->sub_expression);
     this->builder.append(")");
 }
 
@@ -702,13 +702,13 @@ void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *exp
 
 void CppBackend::emit_subscript_expression(SubscriptExpression *expression) {
     emit_expression(expression->subscriptee);
-    if (expression->subscripter->type != ExpressionType::EXPRESSION_RANGE) {
+    if (expression->subscripter->type != ExpressionType::RANGE) {
         this->builder.append("[");
         emit_expression(expression->subscripter);
         this->builder.append("]");
         return;
     } else {
-        ASSERT(expression->subscripter->type == ExpressionType::EXPRESSION_RANGE);
+        ASSERT(expression->subscripter->type == ExpressionType::RANGE);
         emit_range_slicing_expression(static_cast<RangeExpression *>(expression->subscripter));
     }
 }

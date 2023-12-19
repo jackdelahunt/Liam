@@ -63,7 +63,6 @@ struct TypeChecker {
     void type_check_bool_literal_expression(BoolLiteralExpression *expression);
     void type_check_unary_expression(UnaryExpression *expression);
     void type_check_call_expression(CallExpression *expression);
-    void type_check_fn_call_expression(CallExpression *expression);
     void type_check_get_expression(GetExpression *expression);
     void type_check_group_expression(GroupExpression *expression);
     void type_check_null_literal_expression(NullLiteralExpression *expression);
