@@ -19,6 +19,7 @@ struct BreakStatement;
 struct ContinueStatement;
 struct ImportStatement;
 struct PrintStatement;
+struct AssertStatement;
 
 struct Expression;
 struct BinaryExpression;
@@ -75,7 +76,8 @@ enum class StatementType {
     ELSE,
     CONTINUE,
     IMPORT,
-    PRINT
+    PRINT,
+    ASSERT
 };
 
 enum class ExpressionType {
@@ -322,6 +324,12 @@ struct PrintStatement : Statement {
     Expression *expression;
 
     PrintStatement(Expression *expression);
+};
+
+struct AssertStatement : Statement {
+    Expression *expression;
+
+    AssertStatement(Expression *expression);
 };
 
 /*

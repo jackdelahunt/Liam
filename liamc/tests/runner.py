@@ -38,6 +38,9 @@ for i, file_path in enumerate(source_files):
     if compile_output.stderr != b'' or compile_output.returncode != 0:
         print(f"({i + 1},{len(source_files)}) TEST FAILED ]: {file_name_for_output} liamc compile error")
         failed_tests_count += 1
+
+        print(compile_output.stderr.decode("UTF-8"))
+
         continue
 
     clang_output = subprocess.run([

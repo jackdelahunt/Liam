@@ -62,6 +62,9 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_PRINT:
         return eval_print_statement();
         break;
+    case TokenType::TOKEN_ASSERT:
+        return eval_assert_statement();
+        break;
     case TokenType::TOKEN_FN:
     case TokenType::TOKEN_STRUCT:
     case TokenType::TOKEN_IMPORT: {
@@ -250,6 +253,13 @@ PrintStatement *Parser::eval_print_statement() {
     Expression *expression = TRY_CALL_RET(eval_expression());
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON));
     return new PrintStatement(expression);
+}
+
+AssertStatement *Parser::eval_assert_statement() {
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_ASSERT));
+    Expression *expression = TRY_CALL_RET(eval_expression());
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON));
+    return new AssertStatement(expression);
 }
 
 Statement *Parser::eval_line_starting_expression() {

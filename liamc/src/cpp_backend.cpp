@@ -213,6 +213,9 @@ void CppBackend::emit_statement(Statement *statement) {
     case StatementType::PRINT:
         emit_print_statement(static_cast<PrintStatement *>(statement));
         break;
+    case StatementType::ASSERT:
+        emit_assert_statement(static_cast<AssertStatement *>(statement));
+        break;
     default:
         UNREACHABLE();
     }
@@ -505,6 +508,14 @@ void CppBackend::emit_print_statement(PrintStatement *statement) {
     this->builder.append("std::cout << ");
     emit_expression(statement->expression);
     this->builder.append(" << \"\\n\" ;");
+    this->builder.end_line();
+}
+
+void CppBackend::emit_assert_statement(AssertStatement *statement) {
+    this->builder.start_line();
+    this->builder.append("__ASSERT(");
+    emit_expression(statement->expression);
+    this->builder.append(");");
     this->builder.end_line();
 }
 

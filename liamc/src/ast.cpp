@@ -150,6 +150,11 @@ PrintStatement::PrintStatement(Expression *expression) {
     this->expression     = expression;
 }
 
+AssertStatement::AssertStatement(Expression *expression) {
+    this->statement_type = StatementType::ASSERT;
+    this->expression     = expression;
+}
+
 std::ostream &Expression::format(std::ostream &os) const {
     os << "()";
     return os;
