@@ -130,7 +130,7 @@ void TypeChecker::type_check_import_statement(ImportStatement *statement) {
 
     if (!compilation_unit_index.is_some()) {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(std::format("Cannot find file with import path '{}' ", import_path))
+            .set_message(std::format("cannot find file with import path '{}' ", import_path))
             .report();
 
         return;
@@ -143,7 +143,7 @@ void TypeChecker::type_check_import_statement(ImportStatement *statement) {
     if (status == ScopeActionStatus::ALREADY_EXISTS) {
         std::string identifier = this->compilation_unit->get_token_string_from_index(statement->identifier);
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(std::format("Duplicate creation of namespace identifier '{}' ", identifier))
+            .set_message(std::format("duplicate creation of namespace identifier '{}' ", identifier))
             .report();
 
         return;
@@ -157,7 +157,7 @@ void TypeChecker::type_check_fn_symbol(FnStatement *statement) {
     if (status == ScopeActionStatus::ALREADY_EXISTS) {
         std::string identifier = this->compilation_unit->get_token_string_from_index(statement->identifier);
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(std::format("Duplicate creation of fn '{}' ", identifier))
+            .set_message(std::format("duplicate creation of fn '{}' ", identifier))
             .report();
 
         return;
@@ -174,7 +174,7 @@ void TypeChecker::type_check_struct_symbol(StructStatement *statement) {
     if (status == ScopeActionStatus::ALREADY_EXISTS) {
         std::string identifier = this->compilation_unit->get_token_string_from_index(statement->identifier);
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(std::format("Duplicate creation of type '{}' ", identifier))
+            .set_message(std::format("duplicate creation of type '{}' ", identifier))
             .report();
 
         return;
@@ -241,7 +241,7 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
                 if (!type_match(fn_type_info->return_type, rt->expression->type_info)) {
                     ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
                                                              rt->expression, NULL, statement->return_type, NULL,
-                                                             "Mismatch types in function, return types do not match");
+                                                             "mismatch types in function, return types do not match");
                     return;
                 }
             }
@@ -317,12 +317,12 @@ void TypeChecker::type_check_let_statement(LetStatement *statement) {
         if (!type_match(statement->type->type_info, statement->rhs->type_info)) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
                                                      statement->rhs, NULL, statement->type, NULL,
-                                                     "Mismatched types in let statement");
+                                                     "mismatched types in let statement");
             return;
         }
     } else if (statement->rhs->type_info->type == TypeInfoType::ANY) {
         ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), statement->rhs,
-                                                 NULL, NULL, NULL, "Cannot infer type of expression in let statement");
+                                                 NULL, NULL, NULL, "cannot infer type of expression in let statement");
         return;
     }
 
@@ -346,7 +346,7 @@ void TypeChecker::type_check_for_statement(ForStatement *statement) {
 
     if (statement->expression->type_info->type != TypeInfoType::STATIC_ARRAY) {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("Can only iterate over static arrays")
+            .set_message("can only iterate over static arrays")
             .set_expr_1(statement->expression)
             .report();
     }
@@ -407,7 +407,7 @@ void TypeChecker::type_check_assigment_statement(AssigmentStatement *statement) 
     if (!type_match(statement->lhs->type_info, statement->assigned_to->expression->type_info)) {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->absolute_path.string(), statement->lhs, statement->assigned_to->expression,
-            NULL, NULL, "Type mismatch, trying to assign a identifier to an expression of different type");
+            NULL, NULL, "type mismatch, trying to assign a identifier to an expression of different type");
         return;
     }
 }
@@ -480,7 +480,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
 
     if (!type_match(expression->left->type_info, expression->right->type_info)) {
         ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression->left,
-                                                 expression->right, NULL, NULL, "Type mismatch in binary expression");
+                                                 expression->right, NULL, NULL, "type mismatch in binary expression");
         return;
     }
 
@@ -492,7 +492,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
             expression->right->type_info->type != TypeInfoType::BOOLEAN) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
                                                      expression->left, expression->right, NULL, NULL,
-                                                     "Cannot use logical operators on non bool type");
+                                                     "cannot use logical operators on non bool type");
             return;
         }
 
@@ -506,7 +506,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
         if (expression->left->type_info->type != TypeInfoType::NUMBER) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
                                                      expression->left, expression->right, NULL, NULL,
-                                                     "Cannot use arithmatic operator on non number");
+                                                     "cannot use arithmatic operator on non number");
             return;
         }
         info = expression->left->type_info;
@@ -518,7 +518,7 @@ void TypeChecker::type_check_binary_expression(BinaryExpression *expression) {
         if (expression->left->type_info->type != TypeInfoType::NUMBER) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
                                                      expression->left, expression->right, NULL, NULL,
-                                                     "Cannot use comparison operator on non number");
+                                                     "cannot use comparison operator on non number");
             return;
         }
         info = this->compilation_unit->global_type_scope["bool"];
@@ -546,14 +546,14 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     auto [number, type, size] = extract_number_literal_size(token_string);
     if (size == -1) {
         ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression, NULL,
-                                                 NULL, NULL, "Problem parsing number literal");
+                                                 NULL, NULL, "problem parsing number literal");
         return;
     }
 
     // TODO I have no idea what this does
     if (type != NumberType::FLOAT && number != (i64)number) {
         ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression, NULL,
-                                                 NULL, NULL, "Cannot use decimal point on non float types");
+                                                 NULL, NULL, "cannot use decimal point on non float types");
         return;
     }
 
@@ -564,7 +564,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
 
         if (number < 0) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
-                                                     NULL, NULL, NULL, "Unsigned number cannot be negative");
+                                                     NULL, NULL, NULL, "unsigned number cannot be negative");
             return;
         }
 
@@ -594,7 +594,7 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         if (size == 8 || size == 16) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
                                                      NULL, NULL, NULL,
-                                                     "Cannot create float of this size can only use 32 and 64 sizes");
+                                                     "cannot create float of this size can only use 32 and 64 sizes");
             return;
         } else if (size == 32) {
             expression->type_info = this->compilation_unit->global_type_scope["f32"];
@@ -622,7 +622,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
     if (expression->op == TokenType::TOKEN_STAR) {
         if (expression->expression->type_info->type != TypeInfoType::POINTER) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
-                                                     NULL, NULL, NULL, "Cannot dereference non-pointer value");
+                                                     NULL, NULL, NULL, "cannot dereference non-pointer value");
             return;
         }
 
@@ -635,7 +635,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
         if (expression->expression->type_info->type != TypeInfoType::BOOLEAN) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
                                                      NULL, NULL, NULL,
-                                                     "Cannot use unary operator ! on non-boolean type");
+                                                     "cannot use unary operator ! on non-boolean type");
             return;
         }
 
@@ -654,7 +654,7 @@ void TypeChecker::type_check_call_expression(CallExpression *expression) {
 
     if (expression->callee->type_info->type != TypeInfoType::FN) {
         ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), callee_expression,
-                                                 NULL, NULL, NULL, "Can only call functions");
+                                                 NULL, NULL, NULL, "can only call functions");
     }
 
     auto arg_type_infos = std::vector<TypeInfo *>();
@@ -667,7 +667,7 @@ void TypeChecker::type_check_call_expression(CallExpression *expression) {
     if (fn_type_info->args.size() != arg_type_infos.size()) {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->absolute_path.string(), callee_expression, NULL, NULL, NULL,
-            std::format("Incorrect number of arguments in call expression, expected {} got {}",
+            std::format("incorrect number of arguments in call expression, expected {} got {}",
                         fn_type_info->args.size(), arg_type_infos.size()));
         return;
     }
@@ -676,7 +676,7 @@ void TypeChecker::type_check_call_expression(CallExpression *expression) {
         if (!type_match(fn_type_info->args.at(i), arg_type_infos.at(i))) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
                                                      callee_expression, expression->args.at(i), NULL, NULL,
-                                                     "Mismatched types function call");
+                                                     "mismatched types function call");
             return;
         }
     }
@@ -689,7 +689,7 @@ void TypeChecker::type_check_identifier_expression(IdentifierExpression *express
     if (type_info == NULL) {
         std::string identifier = this->compilation_unit->get_token_string_from_index(expression->identifier);
         ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression, NULL,
-                                                 NULL, NULL, std::format("Unrecognized identifier \"{}\"", identifier));
+                                                 NULL, NULL, std::format("unrecognized identifier \"{}\"", identifier));
         return;
     }
 
@@ -1019,7 +1019,7 @@ void TypeChecker::type_check_identifier_type_expression(IdentifierTypeExpression
     if (type_info == NULL) {
         ErrorReporter::report_type_checker_error(
             compilation_unit->file_data->absolute_path.string(), NULL, NULL, type_expression, NULL,
-            "Unrecognised identifier in type expression, no type or namespace exists with this name");
+            "unrecognised identifier in type expression, no type or namespace exists with this name");
         return;
     }
 
@@ -1031,7 +1031,7 @@ void TypeChecker::type_check_get_type_expression(GetTypeExpression *type_express
     if (type_expression->type_expression->type_info->type != TypeInfoType::NAMESPACE) {
         ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), NULL, NULL,
                                                  type_expression->type_expression, NULL,
-                                                 "Can only use '.' on namespace identifiers in type expressions");
+                                                 "can only use '.' on namespace identifiers in type expressions");
         return;
     }
 
