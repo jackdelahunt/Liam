@@ -80,6 +80,13 @@ AssigmentStatement::AssigmentStatement(Expression *lhs, ExpressionStatement *ass
     this->statement_type = StatementType::STATEMENT_ASSIGNMENT;
 }
 
+ForStatement::ForStatement(TokenIndex value_identifier, Expression *expression, ScopeStatement *body) {
+    this->value_identifier = value_identifier;
+    this->expression       = expression;
+    this->body             = body;
+    this->statement_type   = StatementType::STATEMENT_FOR;
+}
+
 ScopeStatement::ScopeStatement(std::vector<Statement *> statements) {
     this->statements     = statements;
     this->statement_type = StatementType::STATEMENT_SCOPE;
@@ -100,14 +107,6 @@ StructStatement::StructStatement(CompilationUnit *compilation_unit, TokenIndex i
     this->members          = members;
     this->type_info        = type_info;
     this->statement_type   = StatementType::STATEMENT_STRUCT;
-}
-
-ForStatement::ForStatement(Statement *assign, Expression *condition, Statement *update, ScopeStatement *body) {
-    this->assign         = assign;
-    this->condition      = condition;
-    this->update         = update;
-    this->body           = body;
-    this->statement_type = StatementType::STATEMENT_FOR;
 }
 
 IfStatement::IfStatement(Expression *expression, ScopeStatement *body, ElseStatement *else_statement) {

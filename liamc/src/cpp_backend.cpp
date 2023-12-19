@@ -375,25 +375,40 @@ void CppBackend::emit_expression_statement(ExpressionStatement *statement) {
 }
 
 void CppBackend::emit_for_statement(ForStatement *statement) {
+    std::string indexer =
+        std::format("__{}_i", this->compilation_unit->get_token_string_from_index(statement->value_identifier));
+    std::string value = this->compilation_unit->get_token_string_from_index(statement->value_identifier);
+
     this->builder.start_line();
     this->builder.append("for (");
     this->builder.end_line();
+
     this->builder.indent();
-    emit_statement(statement->assign);
+
     this->builder.start_line();
-    emit_expression(statement->condition);
-    this->builder.append(";");
+    this->builder.append(std::format("u64 {} = 0;", indexer));
     this->builder.end_line();
-    emit_statement(statement->update);
-    {
-        // all statements end in ;\n so we need to remove the semi-colon from it
-        this->builder.source.pop_back();
-        this->builder.source.pop_back();
-        this->builder.insert_new_line();
-    }
+
+    this->builder.start_line();
+    this->builder.append(std::format("{} < ", indexer));
+    emit_expression(statement->expression);
+    this->builder.append(".size;");
+    this->builder.end_line();
+
+    this->builder.start_line();
+    this->builder.append(std::format("{}++", indexer));
+    this->builder.end_line();
+
     this->builder.un_indent();
     this->builder.append_line(")");
+
+    this->builder.start_line();
+    this->builder.append(std::format("{{ auto {} = ", value));
+    emit_expression(statement->expression);
+    this->builder.append(std::format("[{}];", indexer));
+    this->builder.end_line();
     emit_scope_statement(statement->body);
+    this->builder.append_line("}");
 }
 
 void CppBackend::emit_if_statement(IfStatement *statement) {

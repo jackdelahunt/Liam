@@ -264,12 +264,11 @@ struct AssigmentStatement : Statement {
 };
 
 struct ForStatement : Statement {
-    Statement *assign;
-    Expression *condition;
-    Statement *update;
+    TokenIndex value_identifier;
+    Expression *expression;
     ScopeStatement *body;
 
-    ForStatement(Statement *assign, Expression *condition, Statement *update, ScopeStatement *body);
+    ForStatement(TokenIndex value_identifier, Expression *expression, ScopeStatement *body);
 };
 
 struct IfStatement : Statement {
