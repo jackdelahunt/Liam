@@ -23,15 +23,15 @@ struct CompilationUnit;
 struct CompilationBundle;
 
 struct TypeChecker {
-    CompilationUnit *compilation_unit;
+    CompilationUnit   *compilation_unit;
     CompilationBundle *compilation_bundle;
-    std::list<Scope> scopes;
+    std::list<Scope>   scopes;
 
     TypeChecker();
 
-    void new_scope();
-    void delete_scope();
-    void add_to_scope(TokenIndex token_index, TypeInfo *type_info);
+    void      new_scope();
+    void      delete_scope();
+    void      add_to_scope(TokenIndex token_index, TypeInfo *type_info);
     TypeInfo *get_from_scope(TokenIndex token_index);
 
     void type_check(CompilationBundle *bundle);
@@ -84,7 +84,7 @@ struct TypeChecker {
     void type_check_slice_type_expression(SliceTypeExpression *type_expression);
 };
 
-bool type_match(TypeInfo *a, TypeInfo *b);
+bool                             type_match(TypeInfo *a, TypeInfo *b);
 std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal);
 
 std::vector<SortingNode> topilogical_sort(std::vector<StructStatement *> structs);

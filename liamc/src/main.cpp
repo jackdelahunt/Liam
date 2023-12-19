@@ -14,8 +14,8 @@
 #include "type_checker.h"
 
 CompilationBundle lex_parse();
-void type_check(CompilationBundle *file);
-std::string code_gen(CompilationBundle *file);
+void              type_check(CompilationBundle *file);
+std::string       code_gen(CompilationBundle *file);
 
 i32 main(i32 argc, char **argv) {
     TIME_START(total_time);
@@ -69,11 +69,11 @@ CompilationBundle lex_parse() {
     std::vector<CompilationUnit *> compilation_units;
 
     for (auto &input_file : args->files) {
-        std::filesystem::path file_path   = std::filesystem::path(input_file);
-        FileData *file_data               = FileManager::load_relative_from_cwd(file_path).value();
-        Lexer lexer                       = Lexer(file_data);
-        CompilationUnit *compilation_unit = lexer.lex();
-        Parser parser                     = Parser(compilation_unit);
+        std::filesystem::path file_path        = std::filesystem::path(input_file);
+        FileData             *file_data        = FileManager::load_relative_from_cwd(file_path).value();
+        Lexer                 lexer            = Lexer(file_data);
+        CompilationUnit      *compilation_unit = lexer.lex();
+        Parser                parser           = Parser(compilation_unit);
         parser.parse();
         compilation_units.push_back(parser.compilation_unit);
     }

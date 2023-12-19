@@ -29,7 +29,7 @@ StrTypeInfo::StrTypeInfo() {
 TypeTypeInfo::TypeTypeInfo() {
 }
 
-StructTypeInfo::StructTypeInfo(StructStatement *defined_location,
+StructTypeInfo::StructTypeInfo(StructStatement                                 *defined_location,
                                std::vector<std::tuple<std::string, TypeInfo *>> members) {
     this->defined_location = defined_location;
     this->members          = members;

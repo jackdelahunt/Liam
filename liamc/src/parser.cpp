@@ -118,9 +118,9 @@ LetStatement *Parser::eval_let_statement() {
 }
 
 ScopeStatement *Parser::eval_scope_statement() {
-    auto statements                   = std::vector<Statement *>();
-    TokenIndex open_brace_token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN));
-    Token *open_brace_token_data      = this->compilation_unit->get_token(open_brace_token_index);
+    auto        statements             = std::vector<Statement *>();
+    TokenIndex  open_brace_token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACE_OPEN));
+    Token      *open_brace_token_data  = this->compilation_unit->get_token(open_brace_token_index);
     Option<u64> closing_brace_index =
         find_balance_point(TokenType::TOKEN_BRACE_OPEN, TokenType::TOKEN_BRACE_CLOSE, this->current - 1);
 
@@ -193,8 +193,8 @@ ForStatement *Parser::eval_for_statement() {
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FOR));
     TokenIndex value_identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER));
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON));
-    Expression *expression = TRY_CALL_RET(eval_expression());
-    ScopeStatement *body   = TRY_CALL_RET(eval_scope_statement());
+    Expression     *expression = TRY_CALL_RET(eval_expression());
+    ScopeStatement *body       = TRY_CALL_RET(eval_scope_statement());
 
     return new ForStatement(value_identifier, expression, body);
 }
@@ -300,7 +300,7 @@ Expression *Parser::eval_or() {
 
     while (match(TokenType::TOKEN_OR)) {
         TokenIndex token_index = consume_token_with_index();
-        auto right             = TRY_CALL_RET(eval_and());
+        auto       right       = TRY_CALL_RET(eval_and());
         expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
@@ -312,7 +312,7 @@ Expression *Parser::eval_and() {
 
     while (match(TokenType::TOKEN_AND)) {
         TokenIndex token_index = consume_token_with_index();
-        auto right             = TRY_CALL_RET(eval_equality());
+        auto       right       = TRY_CALL_RET(eval_equality());
         expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
@@ -324,7 +324,7 @@ Expression *Parser::eval_equality() {
 
     while (match(TokenType::TOKEN_NOT_EQUAL) || match(TokenType::TOKEN_EQUAL)) {
         TokenIndex token_index = consume_token_with_index();
-        auto right             = TRY_CALL_RET(eval_relational());
+        auto       right       = TRY_CALL_RET(eval_relational());
         expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
@@ -337,7 +337,7 @@ Expression *Parser::eval_relational() {
     while (match(TokenType::TOKEN_LESS) || match(TokenType::TOKEN_GREATER) || match(TokenType::TOKEN_GREATER_EQUAL) ||
            match(TokenType::TOKEN_LESS_EQUAL)) {
         TokenIndex token_index = consume_token_with_index();
-        auto right             = TRY_CALL_RET(eval_term());
+        auto       right       = TRY_CALL_RET(eval_term());
         expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
@@ -349,7 +349,7 @@ Expression *Parser::eval_term() {
 
     while (match(TokenType::TOKEN_PLUS) || match(TokenType::TOKEN_MINUS)) {
         TokenIndex token_index = consume_token_with_index();
-        auto right             = TRY_CALL_RET(eval_factor());
+        auto       right       = TRY_CALL_RET(eval_factor());
         expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
@@ -361,7 +361,7 @@ Expression *Parser::eval_factor() {
 
     while (match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_SLASH) || match(TokenType::TOKEN_MOD)) {
         TokenIndex token_index = consume_token_with_index();
-        auto right             = TRY_CALL_RET(eval_unary());
+        auto       right       = TRY_CALL_RET(eval_unary());
         expr = new BinaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type, right);
     }
 
@@ -372,7 +372,7 @@ Expression *Parser::eval_unary() {
 
     if (match(TokenType::TOKEN_AMPERSAND) || match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_NOT)) {
         TokenIndex token_index = consume_token_with_index();
-        auto expr              = TRY_CALL_RET(eval_unary());
+        auto       expr        = TRY_CALL_RET(eval_unary());
 
         return new UnaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type);
     }
@@ -471,13 +471,13 @@ Expression *Parser::eval_primary() {
 
 Expression *Parser::eval_number_literal() {
     TokenIndex token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_NUMBER_LITERAL));
-    Token *token           = this->compilation_unit->get_token(token_index);
+    Token     *token       = this->compilation_unit->get_token(token_index);
     return new NumberLiteralExpression(token_index, token->span);
 }
 
 Expression *Parser::eval_string_literal() {
     TokenIndex token_index = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_STRING_LITERAL));
-    Token *token           = this->compilation_unit->get_token(token_index);
+    Token     *token       = this->compilation_unit->get_token(token_index);
     return new StringLiteralExpression(token_index, token->span);
 }
 
@@ -649,7 +649,7 @@ TokenIndex Parser::consume_token_of_type_with_index(TokenType type) {
     }
 
     TokenIndex current_token_index = this->current++;
-    Token *token                   = this->compilation_unit->get_token(current_token_index);
+    Token     *token               = this->compilation_unit->get_token(current_token_index);
     if (token->token_type != type) {
         ErrorReporter::report_parser_error(this->compilation_unit->file_data->absolute_path.string(), token->span,
                                            std::format("Expected '{}' got '{}'", get_token_type_string(type),

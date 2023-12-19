@@ -9,31 +9,31 @@
     exit(1);
 
 typedef uint8_t u8;
-typedef int8_t i8;
+typedef int8_t  i8;
 
 typedef uint16_t u16;
-typedef int16_t i16;
+typedef int16_t  i16;
 
-typedef int32_t i32;
+typedef int32_t  i32;
 typedef uint32_t u32;
-typedef float f32;
+typedef float    f32;
 
 typedef uint64_t u64;
-typedef int64_t i64;
-typedef double f64;
+typedef int64_t  i64;
+typedef double   f64;
 
-#define __ASSERT(expr)                                                                                      \
+#define __ASSERT(expr)                                                                                                 \
     if (!(expr)) {                                                                                                     \
         std::cerr << "ASSERT :: " << __FILE_NAME__ << " :: line " << __LINE__ << "\n  --> (" << std::string(#expr)     \
-                  << ")\n";                                                                 \
+                  << ")\n";                                                                                            \
         exit(1);                                                                                                       \
     }
 
 struct str {
     char *chars;
-    u64 length;
+    u64   length;
 
-    bool compare_c_str(const char *c_str);
+    bool        compare_c_str(const char *c_str);
     friend bool operator==(const str &l, const str &r);
 };
 
@@ -73,7 +73,7 @@ constexpr f64 make_f64(f64 n) {
 }
 
 template <typename T> struct Slice {
-    T *data;
+    T  *data;
     u64 size;
 
     Slice(T *data, u64 size) {
@@ -119,7 +119,7 @@ template <typename T> struct Slice {
 };
 
 template <u64 N, typename T> struct StaticArray {
-    T array[N];
+    T   array[N];
     u64 size;
 
     StaticArray() {

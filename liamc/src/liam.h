@@ -17,7 +17,7 @@ void panic(const std::string &msg);
 
 #define TIME_END(name, message)                                                                                        \
     {                                                                                                                  \
-        auto end                                        = std::chrono::high_resolution_clock::now();                   \
+        auto                                      end   = std::chrono::high_resolution_clock::now();                   \
         std::chrono::duration<double, std::milli> delta = end - name;                                                  \
         if (args->value<bool>("time")) {                                                                               \
             std::cout << message << " :: " << delta.count() << "ms\n";                                                 \

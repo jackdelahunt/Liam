@@ -9,14 +9,14 @@ struct Arguments;
 extern Arguments *args;
 
 struct Arguments {
-    std::string out_path;
-    bool emit;
-    bool time;
-    std::string include;
-    bool test;
+    std::string              out_path;
+    bool                     emit;
+    bool                     time;
+    std::string              include;
+    bool                     test;
     std::vector<std::string> files;
 
-    cxxopts::Options *options;
+    cxxopts::Options    *options;
     cxxopts::ParseResult result;
 
     static void make(int argc, char **argv);

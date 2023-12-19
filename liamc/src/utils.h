@@ -7,10 +7,10 @@
 
 extern const char *ws;
 
-bool is_digit(char c);
-void rtrim(std::string &s, const char *t = ws);
-void ltrim(std::string &s, const char *t = ws);
-void trim(std::string &s, const char *t = ws);
+bool        is_digit(char c);
+void        rtrim(std::string &s, const char *t = ws);
+void        ltrim(std::string &s, const char *t = ws);
+void        trim(std::string &s, const char *t = ws);
 std::string copy_rtrim(std::string s, const char *t = ws);
 std::string copy_ltrim(std::string s, const char *t = ws);
 std::string copy_trim(std::string s, const char *t = ws);

@@ -130,8 +130,8 @@ CompilationUnit *Lexer::lex() {
             this->token_buffer.emplace_back(TokenType::TOKEN_NOT, this->current_index, this->current_index);
             break;
         case '"': {
-            u64 start       = this->current_index;
-            std::string str = std::string();
+            u64         start = this->current_index;
+            std::string str   = std::string();
 
             next_char();
             while (current_index < this->file_data->data_length && this->file_data->data[current_index] != '"') {
@@ -147,8 +147,8 @@ CompilationUnit *Lexer::lex() {
             this->token_buffer.emplace_back(TokenType::TOKEN_STRING_LITERAL, start, this->current_index);
         } break;
         default:
-            i32 word_start = this->current_index;
-            auto word      = get_word();
+            i32  word_start = this->current_index;
+            auto word       = get_word();
 
             ASSERT(word.length() > 0);
 

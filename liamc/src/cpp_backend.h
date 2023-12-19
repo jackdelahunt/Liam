@@ -12,7 +12,7 @@
 
 struct CppBuilder {
     std::string source;
-    u64 indentation;
+    u64         indentation;
 
     CppBuilder();
 
@@ -27,9 +27,9 @@ struct CppBuilder {
 };
 
 struct CppBackend {
-    CompilationUnit *compilation_unit;
+    CompilationUnit   *compilation_unit;
     CompilationBundle *compilation_bundle;
-    CppBuilder builder;
+    CppBuilder         builder;
 
     CppBackend();
 
@@ -83,5 +83,5 @@ struct CppBackend {
 };
 
 std::string strip_semi_colon(std::string str);
-u64 string_literal_length(std::string *string);
+u64         string_literal_length(std::string *string);
 std::string get_namespace_name(CompilationUnit *compilation_unit);

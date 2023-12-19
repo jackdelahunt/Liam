@@ -150,7 +150,7 @@ struct VoidTypeInfo : TypeInfo {
 };
 
 struct NumberTypeInfo : TypeInfo {
-    size_t size;
+    size_t     size;
     NumberType number_type;
 
     NumberTypeInfo(size_t size, NumberType number_type);
@@ -175,14 +175,14 @@ struct TypeTypeInfo : TypeInfo {
 };
 
 struct StructTypeInfo : TypeInfo {
-    StructStatement *defined_location;
+    StructStatement                                 *defined_location;
     std::vector<std::tuple<std::string, TypeInfo *>> members;
 
     StructTypeInfo(StructStatement *defined_location, std::vector<std::tuple<std::string, TypeInfo *>> members);
 };
 
 struct FnTypeInfo : TypeInfo {
-    TypeInfo *return_type;
+    TypeInfo               *return_type;
     std::vector<TypeInfo *> args;
 
     FnTypeInfo(TypeInfo *returnType, std::vector<TypeInfo *> args);
@@ -195,7 +195,7 @@ struct NamespaceTypeInfo : TypeInfo {
 };
 
 struct StaticArrayTypeInfo : TypeInfo {
-    u64 size;
+    u64       size;
     TypeInfo *base_type;
 
     StaticArrayTypeInfo(u64 size, TypeInfo *base_type);
@@ -235,8 +235,8 @@ struct ExpressionStatement : Statement {
 };
 
 struct LetStatement : Statement {
-    TokenIndex identifier;
-    Expression *rhs;
+    TokenIndex      identifier;
+    Expression     *rhs;
     TypeExpression *type;
 
     LetStatement(TokenIndex identifier, Expression *expression, TypeExpression *type);
@@ -250,10 +250,10 @@ struct ScopeStatement : Statement {
 
 struct FnStatement : Statement {
     CompilationUnit *compilation_unit;
-    TokenIndex identifier;
-    CSV params;
-    TypeExpression *return_type;
-    ScopeStatement *body;
+    TokenIndex       identifier;
+    CSV              params;
+    TypeExpression  *return_type;
+    ScopeStatement  *body;
 
     FnStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV params, TypeExpression *type,
                 ScopeStatement *body);
@@ -261,38 +261,38 @@ struct FnStatement : Statement {
 
 struct StructStatement : Statement {
     CompilationUnit *compilation_unit;
-    TokenIndex identifier;
-    CSV members;
-    StructTypeInfo *type_info;
+    TokenIndex       identifier;
+    CSV              members;
+    StructTypeInfo  *type_info;
 
     StructStatement(CompilationUnit *compilation_unit, TokenIndex identifier, CSV members, StructTypeInfo *type_info);
 };
 
 struct AssigmentStatement : Statement {
-    Expression *lhs;
+    Expression          *lhs;
     ExpressionStatement *assigned_to;
 
     AssigmentStatement(Expression *lhs, ExpressionStatement *assigned_to);
 };
 
 struct ForStatement : Statement {
-    TokenIndex value_identifier;
-    Expression *expression;
+    TokenIndex      value_identifier;
+    Expression     *expression;
     ScopeStatement *body;
 
     ForStatement(TokenIndex value_identifier, Expression *expression, ScopeStatement *body);
 };
 
 struct IfStatement : Statement {
-    Expression *expression;
+    Expression     *expression;
     ScopeStatement *body;
-    ElseStatement *else_statement;
+    ElseStatement  *else_statement;
 
     IfStatement(Expression *expression, ScopeStatement *body, ElseStatement *else_statement);
 };
 
 struct ElseStatement : Statement {
-    IfStatement *if_statement;
+    IfStatement    *if_statement;
     ScopeStatement *body;
 
     ElseStatement(IfStatement *if_statement, ScopeStatement *body);
@@ -313,8 +313,8 @@ struct ContinueStatement : Statement {
 };
 
 struct ImportStatement : Statement {
-    TokenIndex identifier;
-    TokenIndex string_literal;
+    TokenIndex         identifier;
+    TokenIndex         string_literal;
     NamespaceTypeInfo *namespace_type_info;
 
     ImportStatement(TokenIndex identifier, TokenIndex string_literal, NamespaceTypeInfo *namespace_type_info);
@@ -336,10 +336,10 @@ struct AssertStatement : Statement {
     ======= EXPRESSIONS ========
 */
 struct Expression {
-    Span span                   = {};
-    TypeInfo *type_info         = nullptr;
-    ExpressionType type         = ExpressionType::UNDEFINED;
-    ExpressionCategory category = ExpressionCategory::UNDEFINED;
+    Span                  span      = {};
+    TypeInfo             *type_info = nullptr;
+    ExpressionType        type      = ExpressionType::UNDEFINED;
+    ExpressionCategory    category  = ExpressionCategory::UNDEFINED;
     virtual std::ostream &format(std::ostream &os) const;
 };
 
@@ -347,14 +347,14 @@ std::ostream &operator<<(std::ostream &os, const Expression &expression);
 
 struct BinaryExpression : Expression {
     Expression *left;
-    TokenType op;
+    TokenType   op;
     Expression *right;
 
     BinaryExpression(Expression *left, TokenType op, Expression *right);
 };
 
 struct UnaryExpression : Expression {
-    TokenType op;
+    TokenType   op;
     Expression *expression;
 
     UnaryExpression(Expression *expression, TokenType op);
@@ -362,7 +362,7 @@ struct UnaryExpression : Expression {
 
 struct NumberLiteralExpression : Expression {
     TokenIndex token;
-    i64 number;
+    i64        number;
 
     NumberLiteralExpression(TokenIndex token, Span span);
 };
@@ -386,7 +386,7 @@ struct IdentifierExpression : Expression {
 };
 
 struct CallExpression : Expression {
-    Expression *callee;
+    Expression               *callee;
     std::vector<Expression *> args;
 
     CallExpression(Expression *identifier, std::vector<Expression *> args);
@@ -394,7 +394,7 @@ struct CallExpression : Expression {
 
 struct GetExpression : Expression {
     Expression *lhs;
-    TokenIndex member;
+    TokenIndex  member;
 
     GetExpression(Expression *expression, TokenIndex member);
 };
@@ -424,16 +424,16 @@ struct InstantiateExpression : Expression {
 };
 
 struct StructInstanceExpression : Expression {
-    TypeExpression *type_expression;
+    TypeExpression                                   *type_expression;
     std::vector<std::tuple<TokenIndex, Expression *>> named_expressions;
 
-    StructInstanceExpression(TypeExpression *type_expression,
+    StructInstanceExpression(TypeExpression                                   *type_expression,
                              std::vector<std::tuple<TokenIndex, Expression *>> named_expressions);
 };
 
 struct StaticArrayExpression : Expression {
-    NumberLiteralExpression *number;
-    TypeExpression *type_expression;
+    NumberLiteralExpression  *number;
+    TypeExpression           *type_expression;
     std::vector<Expression *> expressions;
 
     StaticArrayExpression(NumberLiteralExpression *number, TypeExpression *type_expression,
@@ -458,9 +458,9 @@ struct RangeExpression : Expression {
     ======= TYPE EXPRESSIONS ========
 */
 struct TypeExpression {
-    Span span           = {};
-    TypeInfo *type_info = nullptr;
-    TypeExpressionType type;
+    Span                  span      = {};
+    TypeInfo             *type_info = nullptr;
+    TypeExpressionType    type;
     virtual std::ostream &format(std::ostream &os) const;
 };
 
@@ -471,7 +471,7 @@ struct IdentifierTypeExpression : TypeExpression {
 };
 
 struct UnaryTypeExpression : TypeExpression {
-    UnaryType unary_type;
+    UnaryType       unary_type;
     TypeExpression *type_expression;
 
     UnaryTypeExpression(UnaryType unary_type, TypeExpression *type_expression);
@@ -479,14 +479,14 @@ struct UnaryTypeExpression : TypeExpression {
 
 struct GetTypeExpression : TypeExpression {
     TypeExpression *type_expression;
-    TokenIndex identifier;
+    TokenIndex      identifier;
 
     GetTypeExpression(TypeExpression *type_expression, TokenIndex identifier);
 };
 
 struct StaticArrayTypeExpression : TypeExpression {
     NumberLiteralExpression *size;
-    TypeExpression *base_type;
+    TypeExpression          *base_type;
 
     StaticArrayTypeExpression(NumberLiteralExpression *size, TypeExpression *base_type);
 };

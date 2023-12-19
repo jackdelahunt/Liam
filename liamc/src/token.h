@@ -68,7 +68,7 @@ typedef u64 TokenIndex;
 
 struct Token {
     TokenType token_type;
-    Span span;
+    Span      span;
 
     Token(TokenType token_type, u64 start, u64 end);
 };
