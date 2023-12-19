@@ -18,6 +18,14 @@ BraceWrapping:
 PointerAlignment: Right
 ReferenceAlignment: Right
 AlignAfterOpenBracket: true
+
+AlignConsecutiveDeclarations:
+  Enabled:         true
+  AcrossEmptyLines: false
+  AcrossComments:  false
+  AlignCompound:   true
+  PadOperators:    true
+
 AlignConsecutiveAssignments:
   Enabled:         true
   AcrossEmptyLines: true

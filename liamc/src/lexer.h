@@ -15,14 +15,14 @@ bool is_delim(char c);
 
 struct Lexer {
     FileData *file_data;
-    u64 current_index;
+    u64       current_index;
 
     std::vector<Token> token_buffer;
 
     Lexer(FileData *file_data);
 
     CompilationUnit *lex();
-    void next_char();
-    char peek();
-    std::string get_word();
+    void             next_char();
+    char             peek();
+    std::string      get_word();
 };

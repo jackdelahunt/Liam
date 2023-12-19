@@ -286,7 +286,7 @@ void TypeChecker::type_check_struct_statement_full(StructStatement *statement) {
 }
 
 void TypeChecker::type_check_statement(Statement *statement) {
-    // TODO: why are these void functions returning?? 
+    // TODO: why are these void functions returning??
     switch (statement->statement_type) {
     case StatementType::RETURN:
         return type_check_return_statement(static_cast<ReturnStatement *>(statement));
@@ -451,7 +451,7 @@ void TypeChecker::type_check_print_statement(PrintStatement *statement) {
 
 void TypeChecker::type_check_assert_statement(AssertStatement *statement) {
     TRY_CALL_VOID(type_check_expression(statement->expression));
-    if(statement->expression->type_info->type != TypeInfoType::BOOLEAN) {
+    if (statement->expression->type_info->type != TypeInfoType::BOOLEAN) {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
             .set_message("assert statement must be a boolean expression")
             .set_expr_1(statement->expression)
@@ -742,11 +742,11 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
 
     if (expression->lhs->type_info->type == TypeInfoType::NAMESPACE) {
         NamespaceTypeInfo *namespace_type_info = (NamespaceTypeInfo *)expression->lhs->type_info;
-        CompilationUnit *namespace_compilation_unit =
+        CompilationUnit   *namespace_compilation_unit =
             this->compilation_bundle->compilation_units[namespace_type_info->compilation_unit_index];
 
-        std::string identifier     = this->compilation_unit->get_token_string_from_index(expression->member);
-        TypeInfo *member_type_info = namespace_compilation_unit->get_fn_from_scope_with_string(identifier);
+        std::string identifier       = this->compilation_unit->get_token_string_from_index(expression->member);
+        TypeInfo   *member_type_info = namespace_compilation_unit->get_fn_from_scope_with_string(identifier);
 
         if (member_type_info == NULL) {
             ErrorReporter::report_type_checker_error(this->compilation_unit->file_data->absolute_path.string(),
@@ -771,7 +771,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         StructTypeInfo *struct_type_info = (StructTypeInfo *)using_type;
 
         std::string member_string        = this->compilation_unit->get_token_string_from_index(expression->member);
-        TypeInfo *member_type_info       = NULL;
+        TypeInfo   *member_type_info     = NULL;
         for (auto [identifier, member_type] : struct_type_info->members) {
             if (identifier == member_string) {
                 member_type_info = member_type;
@@ -1082,13 +1082,13 @@ void TypeChecker::type_check_get_type_expression(GetTypeExpression *type_express
     }
 
     NamespaceTypeInfo *namespace_type_info = (NamespaceTypeInfo *)type_expression->type_expression->type_info;
-    CompilationUnit *other_compilation_unit =
+    CompilationUnit   *other_compilation_unit =
         this->compilation_bundle->compilation_units[namespace_type_info->compilation_unit_index];
 
     // getting the string of the identifier from the current compilation unit
     // but then looking that up in the other compilation unit
     std::string identifier = this->compilation_unit->get_token_string_from_index(type_expression->identifier);
-    TypeInfo *type_info    = other_compilation_unit->get_type_from_scope_with_string(identifier);
+    TypeInfo   *type_info  = other_compilation_unit->get_type_from_scope_with_string(identifier);
 
     if (type_info == NULL) {
         ErrorReporter::report_type_checker_error(this->compilation_unit->file_data->absolute_path.string(), NULL, NULL,
@@ -1250,11 +1250,11 @@ std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal
     return BAD_PARSE;
 }
 
-void add_type_info_to_map(std::vector<SortingNode> *nodes,
+void add_type_info_to_map(std::vector<SortingNode>                  *nodes,
                           std::unordered_map<StructTypeInfo *, u64> *type_info_to_node_index_map,
-                          StructTypeInfo *type_info) {
-    SortingNode node = SortingNode(type_info);
-    u64 node_index   = nodes->size();
+                          StructTypeInfo                            *type_info) {
+    SortingNode node       = SortingNode(type_info);
+    u64         node_index = nodes->size();
     nodes->push_back(node);
     (*type_info_to_node_index_map)[type_info] = node_index;
 }
@@ -1271,9 +1271,9 @@ void add_dependent_types_to_list(TypeInfo *type_info, std::vector<StructTypeInfo
     }
 }
 
-void resolve_dependencies(std::vector<SortingNode> *nodes,
+void resolve_dependencies(std::vector<SortingNode>                  *nodes,
                           std::unordered_map<StructTypeInfo *, u64> *type_info_to_node_index_map,
-                          SortingNode &current_node) {
+                          SortingNode                               &current_node) {
     std::vector<StructTypeInfo *> dependent_types;
     for (auto &child : current_node.type_info->members) {
         auto [name, child_type_info] = child;
@@ -1283,8 +1283,8 @@ void resolve_dependencies(std::vector<SortingNode> *nodes,
     for (StructTypeInfo *child : dependent_types) {
         ASSERT(type_info_to_node_index_map->count(child) > 0);
 
-        u64 child_index         = (*type_info_to_node_index_map)[child];
-        SortingNode *child_node = &nodes->at(child_index);
+        u64          child_index = (*type_info_to_node_index_map)[child];
+        SortingNode *child_node  = &nodes->at(child_index);
         current_node.depends_on.push_back(child_node);
     }
 }
@@ -1316,7 +1316,7 @@ void topological_visit(std::vector<SortingNode> *L, SortingNode *node) {
 }
 
 std::vector<SortingNode> topilogical_sort(std::vector<StructStatement *> statements) {
-    std::vector<SortingNode> nodes;
+    std::vector<SortingNode>                  nodes;
     std::unordered_map<StructTypeInfo *, u64> type_info_to_node_index_map;
 
     // convert all struct statements into the nodes we need for the graph
