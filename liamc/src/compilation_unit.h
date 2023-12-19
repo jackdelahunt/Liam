@@ -46,7 +46,7 @@ struct CompilationUnit {
 struct CompilationBundle {
     std::vector<CompilationUnit *> compilation_units;
     std::vector<SortingNode> sorted_types;
-    FnStatement *entry_point; 
+    FnStatement *entry_point;
 
     CompilationBundle(std::vector<CompilationUnit *> compilation_units);
 
