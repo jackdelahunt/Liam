@@ -36,6 +36,8 @@ struct TypeChecker {
 
     void type_check(CompilationBundle *bundle);
 
+    void find_entry_point();
+
     void type_check_import_statement(ImportStatement *import_statement);
     void type_check_fn_symbol(FnStatement *statement);
     void type_check_struct_symbol(StructStatement *statement);

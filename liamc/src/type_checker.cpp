@@ -115,6 +115,23 @@ void TypeChecker::type_check(CompilationBundle *bundle) {
             TRY_CALL_VOID(type_check_fn_statement_full(stmt));
         }
     }
+
+    TRY_CALL_VOID(find_entry_point());
+}
+
+void TypeChecker::find_entry_point() {
+    for (CompilationUnit *cu : this->compilation_bundle->compilation_units) {
+        for (auto stmt : cu->top_level_fn_statements) {
+            if (cu->get_token_string_from_index(stmt->identifier) == "main") {
+                this->compilation_bundle->entry_point = stmt;
+                return;
+            }
+        }
+    }
+
+    TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+        .set_message("no enrty point found, 'main' function must be defined")
+        .report();
 }
 
 void TypeChecker::type_check_import_statement(ImportStatement *statement) {
