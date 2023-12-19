@@ -375,9 +375,48 @@ void CppBackend::emit_expression_statement(ExpressionStatement *statement) {
 }
 
 void CppBackend::emit_for_statement(ForStatement *statement) {
+
+    // for value : array { ... }
+    // generates:
+    // {
+    //      auto __value_a = &array;
+    //      for (u64 __value_i = 0; i < __value_a->size; __value_i++) {
+    //          auto value = (*__value_a)[__value_i];
+    //          { ... }
+    //      }
+    // }
+
+    // compiler generated names used for the for loop
+    // the value_name is only used when the expression passed is a r value and
+    // we want to store it first
+
+    // __value_i
     std::string indexer =
         std::format("__{}_i", this->compilation_unit->get_token_string_from_index(statement->value_identifier));
-    std::string value = this->compilation_unit->get_token_string_from_index(statement->value_identifier);
+
+    // __value_a
+    std::string to_be_indexed =
+        std::format("__{}_a", this->compilation_unit->get_token_string_from_index(statement->value_identifier));
+
+    // value
+    std::string value_identifier = this->compilation_unit->get_token_string_from_index(statement->value_identifier);
+
+    bool iterating_over_r_value  = statement->expression->category == ExpressionCategory::RVALUE;
+
+    // the outer scope wrapping the for loop so we can get the to be indexed varaible
+    //      auto __value_a = &array;
+    // if it is an r value do not use & as we are storing it in __value_a not getting the pointer
+    this->builder.append_line("{");
+    this->builder.indent();
+    this->builder.start_line();
+    if (iterating_over_r_value) {
+        this->builder.append(std::format("auto {} = ", to_be_indexed));
+    } else {
+        this->builder.append(std::format("auto {} = &", to_be_indexed));
+    }
+    emit_expression(statement->expression);
+    this->builder.append(";");
+    this->builder.end_line();
 
     this->builder.start_line();
     this->builder.append("for (");
@@ -385,16 +424,23 @@ void CppBackend::emit_for_statement(ForStatement *statement) {
 
     this->builder.indent();
 
+    //     u64 __value_i = 0;
     this->builder.start_line();
     this->builder.append(std::format("u64 {} = 0;", indexer));
     this->builder.end_line();
 
+    //    __value_i < __value_a->size;
+    // if __value_a is a pointer then use -> else .
     this->builder.start_line();
     this->builder.append(std::format("{} < ", indexer));
-    emit_expression(statement->expression);
-    this->builder.append(".size;");
+    if (iterating_over_r_value) {
+        this->builder.append(std::format("{}.size;", to_be_indexed));
+    } else {
+        this->builder.append(std::format("{}->size;", to_be_indexed));
+    }
     this->builder.end_line();
 
+    //    __value_i++
     this->builder.start_line();
     this->builder.append(std::format("{}++", indexer));
     this->builder.end_line();
@@ -402,12 +448,24 @@ void CppBackend::emit_for_statement(ForStatement *statement) {
     this->builder.un_indent();
     this->builder.append_line(")");
 
+    //      auto value = (*__value_a)[__value_i];
+    // if it is a r value then do not dereference as a pointer
     this->builder.start_line();
-    this->builder.append(std::format("{{ auto {} = ", value));
-    emit_expression(statement->expression);
-    this->builder.append(std::format("[{}];", indexer));
+    this->builder.append(std::format("{{ auto {} = ", value_identifier));
+    if (iterating_over_r_value) {
+        this->builder.append(std::format("{}[{}];", to_be_indexed, indexer));
+    } else {
+        this->builder.append(std::format("(*{})[{}];", to_be_indexed, indexer));
+    }
     this->builder.end_line();
+
     emit_scope_statement(statement->body);
+
+    // closes the outside scope where we assign value
+    this->builder.append_line("}");
+
+    // closes the outside scope that we wrap the for in to create the __value_a variable
+    this->builder.un_indent();
     this->builder.append_line("}");
 }
 
