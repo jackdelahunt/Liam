@@ -24,13 +24,13 @@ void Parser::parse() {
         if (ErrorReporter::error_count() > errors_before)
             continue;
 
-        if (stmt->statement_type == StatementType::STATEMENT_FN) {
+        if (stmt->statement_type == StatementType::FN) {
             auto fn_stmt = static_cast<FnStatement *>(stmt);
             compilation_unit->top_level_fn_statements.push_back(fn_stmt);
-        } else if (stmt->statement_type == StatementType::STATEMENT_STRUCT) {
+        } else if (stmt->statement_type == StatementType::STRUCT) {
             auto struct_stmt = static_cast<StructStatement *>(stmt);
             compilation_unit->top_level_struct_statements.push_back(struct_stmt);
-        } else if (stmt->statement_type == StatementType::STATEMENT_IMPORT) {
+        } else if (stmt->statement_type == StatementType::IMPORT) {
             auto import_stmt = static_cast<ImportStatement *>(stmt);
             compilation_unit->top_level_import_statements.push_back(import_stmt);
         } else {
@@ -575,7 +575,7 @@ TypeExpression *Parser::eval_type_staic_or_slice() {
 
     if (!match(TokenType::TOKEN_BRACKET_CLOSE)) { // static array type
         NumberLiteralExpression *expression = (NumberLiteralExpression *)TRY_CALL_RET(eval_number_literal());
-        ASSERT_MSG(expression->type == ExpressionType::EXPRESSION_NUMBER_LITERAL,
+        ASSERT_MSG(expression->type == ExpressionType::NUMBER_LITERAL,
                    "assuming all expression from eval_number_literal are number literals");
         TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_BRACKET_CLOSE));
 

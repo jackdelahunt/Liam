@@ -61,39 +61,47 @@ struct RangeTypeInfo;
 typedef std::vector<std::tuple<TokenIndex, TypeExpression *>> CSV;
 
 enum class StatementType {
-    STATEMENT_EXPRESSION,
-    STATEMENT_LET,
-    STATEMENT_SCOPE,
-    STATEMENT_FN,
-    STATEMENT_STRUCT,
-    STATEMENT_ASSIGNMENT,
-    STATEMENT_RETURN,
-    STATEMENT_BREAK,
-    STATEMENT_FOR,
-    STATEMENT_IF,
-    STATEMENT_ELSE,
-    STATEMENT_CONTINUE,
-    STATEMENT_IMPORT,
-    STATEMENT_PRINT
+    UNDEFINED = 0,
+    EXPRESSION,
+    LET,
+    SCOPE,
+    FN,
+    STRUCT,
+    ASSIGNMENT,
+    RETURN,
+    BREAK,
+    FOR,
+    IF,
+    ELSE,
+    CONTINUE,
+    IMPORT,
+    PRINT
 };
 
 enum class ExpressionType {
-    EXPRESSION_BINARY,
-    EXPRESSION_UNARY,
-    EXPRESSION_SUBSCRIPT,
-    EXPRESSION_NUMBER_LITERAL,
-    EXPRESSION_STRING_LITERAL,
-    EXPRESSION_BOOL_LITERAL,
-    EXPRESSION_IDENTIFIER,
-    EXPRESSION_CALL,
-    EXPRESSION_GET,
-    EXPRESSION_GROUP,
-    EXPRESSION_NULL_LITERAL,
-    EXPRESSION_ZERO_LITERAL,
-    EXPRESSION_INSTANTIATION,
-    EXPRESSION_STRUCT_INSTANCE,
-    EXPRESSION_STATIC_ARRAY,
-    EXPRESSION_RANGE
+    UNDEFINED = 0,
+    BINARY,
+    UNARY,
+    SUBSCRIPT,
+    NUMBER_LITERAL,
+    STRING_LITERAL,
+    BOOL_LITERAL,
+    IDENTIFIER,
+    CALL,
+    GET,
+    GROUP,
+    NULL_LITERAL,
+    ZERO_LITERAL,
+    INSTANTIATION,
+    STRUCT_INSTANCE,
+    STATIC_ARRAY,
+    RANGE
+};
+
+enum class ExpressionCategory {
+    UNDEFINED = 0,
+    LVALUE,
+    RVALUE
 };
 
 enum class UnaryType {
@@ -215,7 +223,7 @@ struct RangeTypeInfo : TypeInfo {
     ======= STATEMENTS ========
 */
 struct Statement {
-    StatementType statement_type;
+    StatementType statement_type = StatementType::UNDEFINED;
 };
 
 struct ExpressionStatement : Statement {
@@ -318,9 +326,10 @@ struct PrintStatement : Statement {
     ======= EXPRESSIONS ========
 */
 struct Expression {
-    Span span           = {};
-    TypeInfo *type_info = nullptr;
-    ExpressionType type;
+    Span span                   = {};
+    TypeInfo *type_info         = nullptr;
+    ExpressionType type         = ExpressionType::UNDEFINED;
+    ExpressionCategory category = ExpressionCategory::UNDEFINED;
     virtual std::ostream &format(std::ostream &os) const;
 };
 
@@ -381,7 +390,7 @@ struct GetExpression : Expression {
 };
 
 struct GroupExpression : Expression {
-    Expression *expression;
+    Expression *sub_expression;
 
     GroupExpression(Expression *expression);
 };
