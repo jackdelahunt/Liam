@@ -188,17 +188,12 @@ BreakStatement *Parser::eval_break_statement() {
 
 ForStatement *Parser::eval_for_statement() {
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_FOR));
+    TokenIndex value_identifier = TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_IDENTIFIER));
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_COLON));
+    Expression *expression = TRY_CALL_RET(eval_expression());
+    ScopeStatement *body   = TRY_CALL_RET(eval_scope_statement());
 
-    auto assign    = TRY_CALL_RET(eval_statement());
-
-    auto condition = TRY_CALL_RET(eval_expression());
-
-    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON));
-    auto update = TRY_CALL_RET(eval_statement());
-
-    auto body   = TRY_CALL_RET(eval_scope_statement());
-
-    return new ForStatement(assign, condition, update, body);
+    return new ForStatement(value_identifier, expression, body);
 }
 
 IfStatement *Parser::eval_if_statement() {

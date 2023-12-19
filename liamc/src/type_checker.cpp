@@ -333,15 +333,21 @@ void TypeChecker::type_check_scope_statement(ScopeStatement *statement) {
 }
 
 void TypeChecker::type_check_for_statement(ForStatement *statement) {
-    TRY_CALL_VOID(type_check_statement(statement->assign));
-    TRY_CALL_VOID(type_check_expression(statement->condition));
-    TRY_CALL_VOID(type_check_statement(statement->update));
+    TRY_CALL_VOID(type_check_expression(statement->expression));
 
-    if (statement->condition->type_info->type != TypeInfoType::BOOLEAN) {
-        panic("Second statement in for loop needs to evaluate to a bool");
+    if (statement->expression->type_info->type != TypeInfoType::STATIC_ARRAY) {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("Can only iterate over static arrays")
+            .set_expr_1(statement->expression)
+            .report();
     }
 
+    StaticArrayTypeInfo *array_type_info = (StaticArrayTypeInfo *)statement->expression->type_info;
+
+    this->new_scope();
+    this->add_to_scope(statement->value_identifier, array_type_info->base_type);
     TRY_CALL_VOID(type_check_scope_statement(statement->body));
+    this->delete_scope();
 }
 
 void TypeChecker::type_check_if_statement(IfStatement *statement) {
