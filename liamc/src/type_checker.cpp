@@ -344,17 +344,26 @@ void TypeChecker::type_check_for_statement(ForStatement *statement) {
 
     ASSERT_MSG(statement->expression->category != ExpressionCategory::UNDEFINED, "expresssions need categories");
 
-    if (statement->expression->type_info->type != TypeInfoType::STATIC_ARRAY) {
+    TypeInfoType expression_type_info = statement->expression->type_info->type;
+    if (expression_type_info != TypeInfoType::STATIC_ARRAY && expression_type_info != TypeInfoType::SLICE) {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("can only iterate over static arrays")
+            .set_message("trying to iterate over non array/slice type")
             .set_expr_1(statement->expression)
             .report();
     }
 
-    StaticArrayTypeInfo *array_type_info = (StaticArrayTypeInfo *)statement->expression->type_info;
+    TypeInfo *base_type_info = NULL;
+
+    if (expression_type_info == TypeInfoType::STATIC_ARRAY) {
+        base_type_info = ((StaticArrayTypeInfo *)statement->expression->type_info)->base_type;
+    } else if (expression_type_info == TypeInfoType::SLICE) {
+        base_type_info = ((SliceTypeInfo *)statement->expression->type_info)->base_type;
+    } else {
+        UNREACHABLE();
+    }
 
     this->new_scope();
-    this->add_to_scope(statement->value_identifier, array_type_info->base_type);
+    this->add_to_scope(statement->value_identifier, base_type_info);
     TRY_CALL_VOID(type_check_scope_statement(statement->body));
     this->delete_scope();
 }
@@ -897,16 +906,23 @@ void TypeChecker::type_check_subscript_expression(SubscriptExpression *expressio
         return;
     }
 
-    // this maybe wrong, what if we are subscripting a r-value??
-    // e.g. [3]i64{1, 2, 4}[0] = 3;
-    // this shouldn't work right??
-    expression->category = ExpressionCategory::LVALUE;
+    if (expression->subscripter->type_info->type == TypeInfoType::NUMBER) {
+        // this maybe wrong, what if we are subscripting a r-value??
+        // e.g. [3]i64{1, 2, 4}[0] = 3;
+        // this shouldn't work right??
+        expression->category = ExpressionCategory::LVALUE;
+    } else {
+        ASSERT(expression->subscripter->type_info->type == TypeInfoType::RANGE);
+
+        // slicing on an array creates a new value so it is a r-value
+        expression->category = ExpressionCategory::RVALUE;
+    }
 
     // even though you can slice on an array or a slice we only care about the base
     // type so this code can be generic across both of them. If in the future we
     // have other types that can be sliced but don't fit this pattern we can
     // change it here
-    TypeInfo *base_type  = NULL;
+    TypeInfo *base_type = NULL;
     if (expression->subscriptee->type_info->type == TypeInfoType::STATIC_ARRAY) {
         StaticArrayTypeInfo *array_type_info = (StaticArrayTypeInfo *)expression->subscriptee->type_info;
         base_type                            = array_type_info->base_type;
