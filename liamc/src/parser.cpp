@@ -149,7 +149,7 @@ FnStatement *Parser::eval_fn_statement() {
     auto type = TRY_CALL_RET(eval_type_expression());
 
     auto body = TRY_CALL_RET(eval_scope_statement());
-    return new FnStatement(identifier, params, type, body);
+    return new FnStatement(this->compilation_unit, identifier, params, type, body);
 }
 
 StructStatement *Parser::eval_struct_statement() {

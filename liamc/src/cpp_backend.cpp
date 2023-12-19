@@ -119,7 +119,9 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
             emit_fn_statement(stmt);
         }
     }
-    this->builder.append_line("\nint main(int argc, char **argv) { start::main(); return 0; }");
+
+    this->builder.append_line(std::format("int main(int argc, char** argv) {{ {}::main(); return 0; }}",
+                                          get_namespace_name(this->compilation_bundle->entry_point->compilation_unit)));
     return this->builder.source;
 }
 
