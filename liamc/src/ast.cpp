@@ -80,10 +80,12 @@ AssigmentStatement::AssigmentStatement(Expression *lhs, ExpressionStatement *ass
     this->statement_type = StatementType::ASSIGNMENT;
 }
 
-ForStatement::ForStatement(TokenIndex value_identifier, Expression *expression, ScopeStatement *body) {
+ForStatement::ForStatement(TokenIndex value_identifier, Expression *expression, ScopeStatement *body,
+                           ForType for_type) {
     this->value_identifier = value_identifier;
     this->expression       = expression;
     this->body             = body;
+    this->for_type         = for_type;
     this->statement_type   = StatementType::FOR;
 }
 

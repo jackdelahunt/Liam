@@ -50,6 +50,8 @@ struct CppBackend {
     void emit_assigment_statement(AssigmentStatement *statement);
     void emit_expression_statement(ExpressionStatement *statement);
     void emit_for_statement(ForStatement *statement);
+    void emit_for_with_slice_or_array(ForStatement *statement);
+    void emit_for_with_range(ForStatement *statement);
     void emit_if_statement(IfStatement *statement);
     void emit_else_statement(ElseStatement *statement);
     void emit_continue_statement(ContinueStatement *statement);
