@@ -52,7 +52,6 @@ enum class TokenType {
     TOKEN_AMPERSAND,          // &
     TOKEN_MATCH,              // match
     TOKEN_IMPORT,             // import
-    TOKEN_DOLLAR,             // $
     TOKEN_PRINT,              // print
     TOKEN_ASSERT,             // assert
 };

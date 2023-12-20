@@ -1,11 +1,11 @@
 #include "token.h"
 
-const char *TokenTypeStrings[49] = {
-    "int literal", "str literal", "identifier", "let",   "fn",    "(",      ")",   "{",     "}",      "+",
-    "-",           "*",           "/",          "%",     "=",     ";",      ",",   ":",     "return", "^",
-    "struct",      ".",           "new",        "break", "[",     "]",      "for", "false", "true",   "if",
-    "else",        "or",          "and",        "==",    "!=",    "!",      "<",   ">",     ">=",     "<=",
-    "null",        "continue",    "zero",       "&",     "match", "import", "$",   "print", "assert"};
+const char *TokenTypeStrings[48] = {
+    "int literal", "str literal", "identifier", "let",   "fn",    "(",      ")",     "{",     "}",      "+",
+    "-",           "*",           "/",          "%",     "=",     ";",      ",",     ":",     "return", "^",
+    "struct",      ".",           "new",        "break", "[",     "]",      "for",   "false", "true",   "if",
+    "else",        "or",          "and",        "==",    "!=",    "!",      "<",     ">",     ">=",     "<=",
+    "null",        "continue",    "zero",       "&",     "match", "import", "print", "assert"};
 
 Token::Token(TokenType token_type, u64 start, u64 end) {
     this->token_type = token_type;
