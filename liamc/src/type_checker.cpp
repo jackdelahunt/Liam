@@ -370,6 +370,7 @@ void TypeChecker::type_check_for_statement(ForStatement *statement) {
             .set_message("trying to iterate over non array/slice type")
             .set_expr_1(statement->expression)
             .report();
+        return;
     }
 
     TypeInfo *base_type_info = NULL;
