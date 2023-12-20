@@ -1,0 +1,15 @@
+//0
+//1
+//2
+//3
+//4
+
+fn main() void {
+    for n : {0:1} {
+       assert n == 0; 
+    }
+
+    for n : {0:5} {
+       print n; 
+    }
+}

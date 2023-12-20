@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <format>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -380,7 +381,16 @@ void CppBackend::emit_expression_statement(ExpressionStatement *statement) {
 }
 
 void CppBackend::emit_for_statement(ForStatement *statement) {
+    if (statement->for_type == ForType::SLICE || statement->for_type == ForType::STATIC_ARRAY) {
+        emit_for_with_slice_or_array(statement);
+    } else if (statement->for_type == ForType::RANGE) {
+        emit_for_with_range(statement);
+    } else {
+        UNREACHABLE();
+    }
+}
 
+void CppBackend::emit_for_with_slice_or_array(ForStatement *statement) {
     // for value : array { ... }
     // generates:
     // {
@@ -472,6 +482,50 @@ void CppBackend::emit_for_statement(ForStatement *statement) {
     // closes the outside scope that we wrap the for in to create the __value_a variable
     this->builder.un_indent();
     this->builder.append_line("}");
+}
+
+void CppBackend::emit_for_with_range(ForStatement *statement) {
+    // for value : {a:b} { ... }
+    // generates:
+    // for (auto value = a; value < b; value++) {
+    //     ...
+    //  }
+
+    std::string indexer = this->compilation_unit->get_token_string_from_index(statement->value_identifier);
+    ASSERT(statement->expression->type == ExpressionType::RANGE);
+    RangeExpression *range_expression = (RangeExpression *)(statement->expression);
+
+    this->builder.append_line("for (");
+    this->builder.indent();
+
+    // auto value = a;
+    this->builder.start_line();
+    this->builder.append("auto ");
+    this->builder.append(indexer);
+    this->builder.append(" = ");
+    emit_expression(range_expression->start);
+    this->builder.append(";");
+    this->builder.end_line();
+
+    // value < b;
+    this->builder.start_line();
+    this->builder.append(indexer);
+    this->builder.append(" < ");
+    emit_expression(range_expression->end);
+    this->builder.append(";");
+    this->builder.end_line();
+
+    // value++
+    this->builder.start_line();
+    this->builder.append(indexer);
+    this->builder.append("++");
+    this->builder.end_line();
+
+    // )
+    this->builder.un_indent();
+    this->builder.append_line(")");
+
+    emit_scope_statement(statement->body);
 }
 
 void CppBackend::emit_if_statement(IfStatement *statement) {
@@ -566,6 +620,9 @@ void CppBackend::emit_expression(Expression *expression) {
     case ExpressionType::SUBSCRIPT:
         emit_subscript_expression(static_cast<SubscriptExpression *>(expression));
         break;
+    case ExpressionType::RANGE:
+        ASSERT_MSG(false, "range expressions are handled by the expression are they are in, they have no analog in "
+                          "cpp, cannot emit on their own");
     default: {
         UNREACHABLE();
     }

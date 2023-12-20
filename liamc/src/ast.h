@@ -106,6 +106,13 @@ enum class ExpressionCategory {
     RVALUE
 };
 
+enum class ForType {
+    UNDEFINED = 0,
+    RANGE,
+    STATIC_ARRAY,
+    SLICE
+};
+
 enum class UnaryType {
     POINTER,
 };
@@ -279,8 +286,9 @@ struct ForStatement : Statement {
     TokenIndex      value_identifier;
     Expression     *expression;
     ScopeStatement *body;
+    ForType for_type; // this is set at type checking time, based on the type of the expression we are iterating over
 
-    ForStatement(TokenIndex value_identifier, Expression *expression, ScopeStatement *body);
+    ForStatement(TokenIndex value_identifier, Expression *expression, ScopeStatement *body, ForType for_type);
 };
 
 struct IfStatement : Statement {

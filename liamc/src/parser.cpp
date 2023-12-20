@@ -196,7 +196,8 @@ ForStatement *Parser::eval_for_statement() {
     Expression     *expression = TRY_CALL_RET(eval_expression());
     ScopeStatement *body       = TRY_CALL_RET(eval_scope_statement());
 
-    return new ForStatement(value_identifier, expression, body);
+    // the for type is set later on in the type checking phase
+    return new ForStatement(value_identifier, expression, body, ForType::UNDEFINED);
 }
 
 IfStatement *Parser::eval_if_statement() {

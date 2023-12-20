@@ -362,29 +362,51 @@ void TypeChecker::type_check_scope_statement(ScopeStatement *statement) {
 void TypeChecker::type_check_for_statement(ForStatement *statement) {
     TRY_CALL_VOID(type_check_expression(statement->expression));
 
-    ASSERT_MSG(statement->expression->category != ExpressionCategory::UNDEFINED, "expresssions need categories");
+    TypeInfoType expression_type_info_type = statement->expression->type_info->type;
 
-    TypeInfoType expression_type_info = statement->expression->type_info->type;
-    if (expression_type_info != TypeInfoType::STATIC_ARRAY && expression_type_info != TypeInfoType::SLICE) {
+    if (expression_type_info_type == TypeInfoType::STATIC_ARRAY) {
+        statement->for_type = ForType::STATIC_ARRAY;
+    } else if (expression_type_info_type == TypeInfoType::SLICE) {
+        statement->for_type = ForType::SLICE;
+    } else if (expression_type_info_type == TypeInfoType::RANGE) {
+        statement->for_type = ForType::RANGE;
+    } else {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message("trying to iterate over non array/slice type")
+            .set_message("incorrect type given in for statement, must use a static array, slice or range")
             .set_expr_1(statement->expression)
             .report();
         return;
     }
 
-    TypeInfo *base_type_info = NULL;
+    ASSERT(statement->for_type != ForType::UNDEFINED);
 
-    if (expression_type_info == TypeInfoType::STATIC_ARRAY) {
-        base_type_info = ((StaticArrayTypeInfo *)statement->expression->type_info)->base_type;
-    } else if (expression_type_info == TypeInfoType::SLICE) {
-        base_type_info = ((SliceTypeInfo *)statement->expression->type_info)->base_type;
-    } else {
+    TypeInfo *value_type_info = NULL;
+
+    switch (statement->for_type) {
+    case ForType::STATIC_ARRAY: {
+        value_type_info = ((StaticArrayTypeInfo *)statement->expression->type_info)->base_type;
+    } break;
+    case ForType::SLICE: {
+        value_type_info = ((SliceTypeInfo *)statement->expression->type_info)->base_type;
+    } break;
+    case ForType::RANGE: {
+        RangeExpression *range_expression = (RangeExpression *)statement->expression;
+        if (range_expression->start == NULL || range_expression->end == NULL) {
+            TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+                .set_message("range expression must have both a start and end value in for loops")
+                .set_expr_1(statement->expression)
+                .report();
+            return;
+        }
+
+        value_type_info = range_expression->start->type_info;
+    } break;
+    default:
         UNREACHABLE();
     }
 
     this->new_scope();
-    this->add_to_scope(statement->value_identifier, base_type_info);
+    this->add_to_scope(statement->value_identifier, value_type_info);
     TRY_CALL_VOID(type_check_scope_statement(statement->body));
     this->delete_scope();
 }
