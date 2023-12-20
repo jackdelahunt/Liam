@@ -250,6 +250,11 @@ CompilationUnit *Lexer::lex() {
                 continue;
             }
 
+            if (compare_string(word, "while")) {
+                this->token_buffer.emplace_back(TokenType::TOKEN_WHILE, word_start, (word_start - 1) + word.length());
+                continue;
+            }
+
             // check numbers
             if (is_digit(word.at(0)) || word.at(0) == '-') {
 

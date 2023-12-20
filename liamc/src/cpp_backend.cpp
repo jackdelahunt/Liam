@@ -217,6 +217,9 @@ void CppBackend::emit_statement(Statement *statement) {
     case StatementType::ASSERT:
         emit_assert_statement(static_cast<AssertStatement *>(statement));
         break;
+    case StatementType::WHILE:
+        emit_while_statement(static_cast<WhileStatement *>(statement));
+        break;
     default:
         UNREACHABLE();
     }
@@ -571,6 +574,15 @@ void CppBackend::emit_assert_statement(AssertStatement *statement) {
     emit_expression(statement->expression);
     this->builder.append(");");
     this->builder.end_line();
+}
+
+void CppBackend::emit_while_statement(WhileStatement *statement) {
+    this->builder.start_line();
+    this->builder.append("while(");
+    emit_expression(statement->expression);
+    this->builder.append(")");
+    this->builder.end_line();
+    emit_scope_statement(statement->body);
 }
 
 void CppBackend::emit_expression(Expression *expression) {

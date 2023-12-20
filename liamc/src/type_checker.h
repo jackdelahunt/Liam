@@ -57,6 +57,7 @@ struct TypeChecker {
     void type_check_expression_statement(ExpressionStatement *statement);
     void type_check_print_statement(PrintStatement *statement);
     void type_check_assert_statement(AssertStatement *statement);
+    void type_check_while_statement(WhileStatement *statement);
 
     void type_check_expression(Expression *expression);
     void type_check_identifier_expression(IdentifierExpression *expression);

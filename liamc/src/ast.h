@@ -20,6 +20,7 @@ struct ContinueStatement;
 struct ImportStatement;
 struct PrintStatement;
 struct AssertStatement;
+struct WhileStatement;
 
 struct Expression;
 struct BinaryExpression;
@@ -77,7 +78,8 @@ enum class StatementType {
     CONTINUE,
     IMPORT,
     PRINT,
-    ASSERT
+    ASSERT,
+    WHILE
 };
 
 enum class ExpressionType {
@@ -338,6 +340,13 @@ struct AssertStatement : Statement {
     Expression *expression;
 
     AssertStatement(Expression *expression);
+};
+
+struct WhileStatement : Statement {
+    Expression     *expression;
+    ScopeStatement *body;
+
+    WhileStatement(Expression *expression, ScopeStatement *body);
 };
 
 /*
