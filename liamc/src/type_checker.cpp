@@ -306,6 +306,8 @@ void TypeChecker::type_check_statement(Statement *statement) {
         return type_check_print_statement(static_cast<PrintStatement *>(statement));
     case StatementType::ASSERT:
         return type_check_assert_statement(static_cast<AssertStatement *>(statement));
+    case StatementType::WHILE:
+        return type_check_while_statement(static_cast<WhileStatement *>(statement));
     case StatementType::CONTINUE:
         break;
     case StatementType::STRUCT:
@@ -480,6 +482,20 @@ void TypeChecker::type_check_assert_statement(AssertStatement *statement) {
             .set_expr_1(statement->expression)
             .report();
     }
+}
+
+void TypeChecker::type_check_while_statement(WhileStatement *statement) {
+    TRY_CALL_VOID(type_check_expression(statement->expression));
+    if (statement->expression->type_info->type != TypeInfoType::BOOLEAN) {
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message("condition for while statement must be a boolean")
+            .set_expr_1(statement->expression)
+            .report();
+    }
+
+    this->new_scope();
+    TRY_CALL_VOID(type_check_scope_statement(statement->body));
+    this->delete_scope();
 }
 
 void TypeChecker::type_check_expression(Expression *expression) {

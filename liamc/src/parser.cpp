@@ -65,6 +65,9 @@ Statement *Parser::eval_statement() {
     case TokenType::TOKEN_ASSERT:
         return eval_assert_statement();
         break;
+    case TokenType::TOKEN_WHILE:
+        return eval_while_statement();
+        break;
     case TokenType::TOKEN_FN:
     case TokenType::TOKEN_STRUCT:
     case TokenType::TOKEN_IMPORT: {
@@ -261,6 +264,13 @@ AssertStatement *Parser::eval_assert_statement() {
     Expression *expression = TRY_CALL_RET(eval_expression());
     TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_SEMI_COLON));
     return new AssertStatement(expression);
+}
+
+WhileStatement *Parser::eval_while_statement() {
+    TRY_CALL_RET(consume_token_of_type_with_index(TokenType::TOKEN_WHILE));
+    Expression     *expression = TRY_CALL_RET(eval_expression());
+    ScopeStatement *body       = TRY_CALL_RET(eval_scope_statement());
+    return new WhileStatement(expression, body);
 }
 
 Statement *Parser::eval_line_starting_expression() {

@@ -157,6 +157,12 @@ AssertStatement::AssertStatement(Expression *expression) {
     this->expression     = expression;
 }
 
+WhileStatement::WhileStatement(Expression *expression, ScopeStatement *body) {
+    this->statement_type = StatementType::WHILE;
+    this->expression     = expression;
+    this->body           = body;
+}
+
 std::ostream &Expression::format(std::ostream &os) const {
     os << "()";
     return os;

@@ -57,6 +57,7 @@ struct CppBackend {
     void emit_continue_statement(ContinueStatement *statement);
     void emit_print_statement(PrintStatement *statement);
     void emit_assert_statement(AssertStatement *statement);
+    void emit_while_statement(WhileStatement *statement);
 
     void emit_expression(Expression *expression);
     void emit_binary_expression(BinaryExpression *expression);
