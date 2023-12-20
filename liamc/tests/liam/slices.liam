@@ -1,7 +1,7 @@
 fn main() void {
     let array : [3]i64 = [3]i64{1, 2, 3};
     
-    let slice : []i64 = array[$:$];
+    let slice : []i64 = array[{:}];
 
     assert slice[0] == 1;
     assert slice[1] == 2;
