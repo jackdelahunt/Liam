@@ -172,6 +172,7 @@ BinaryExpression::BinaryExpression(Expression *left, TokenType op, Expression *r
     this->left  = left;
     this->op    = op;
     this->right = right;
+    this->span  = Span(left->span.start, right->span.end);
     this->type  = ExpressionType::BINARY;
 }
 

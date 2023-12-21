@@ -243,24 +243,27 @@ void TypeChecker::type_check_fn_statement_full(FnStatement *statement) {
     TRY_CALL_VOID(type_check_scope_statement(statement->body));
     this->delete_scope();
 
+    // TODO: we should type checking the returns from return statement up
+    // when they are typed we should go back up the tree and check their types
+    // this a bad way to do it because if the return is in a inner scope it is not checked
     for (auto stmt : statement->body->statements) {
         if (stmt->statement_type == StatementType::RETURN) {
-            auto rt = static_cast<ReturnStatement *>(stmt);
+            ReturnStatement *return_statement = static_cast<ReturnStatement *>(stmt);
 
             if (fn_type_info->return_type->type == TypeInfoType::VOID) {
-                if (rt->expression != NULL) {
+                if (return_statement->expression != NULL) {
                     TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-                        .set_expr_1(rt->expression)
+                        .set_expr_1(return_statement->expression)
                         .set_message("found expression in return when return type is void")
                         .report();
 
                     return;
                 }
             } else {
-                if (!type_match(fn_type_info->return_type, rt->expression->type_info)) {
-                    ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
-                                                             rt->expression, NULL, statement->return_type, NULL,
-                                                             "mismatch types in function, return types do not match");
+                if (!type_match(fn_type_info->return_type, return_statement->expression->type_info)) {
+                    ErrorReporter::report_type_checker_error(
+                        compilation_unit->file_data->absolute_path.string(), return_statement->expression, NULL,
+                        statement->return_type, NULL, "mismatch types in function, return types do not match");
                     return;
                 }
             }
