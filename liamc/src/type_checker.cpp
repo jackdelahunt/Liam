@@ -2,6 +2,8 @@
 
 #include <assert.h>
 #include <format>
+#include <iostream>
+#include <sstream>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
@@ -618,69 +620,98 @@ void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *
 }
 
 void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *expression) {
-    expression->category      = ExpressionCategory::RVALUE;
-    std::string token_string  = this->compilation_unit->get_token_string_from_index(expression->token);
+    expression->category     = ExpressionCategory::RVALUE;
+    std::string token_string = this->compilation_unit->get_token_string_from_index(expression->token);
 
-    auto [number, type, size] = extract_number_literal_size(token_string);
-    if (size == -1) {
-        ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression, NULL,
-                                                 NULL, NULL, "problem parsing number literal");
-        return;
-    }
+    NumberType  number_type  = NumberType::SIGNED;
+    NumberSize  number_size  = NumberSize::SIZE_64;
+    NumberValue number_value = {};
 
-    // TODO I have no idea what this does
-    if (type != NumberType::FLOAT && number != (i64)number) {
-        ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression, NULL,
-                                                 NULL, NULL, "cannot use decimal point on non float types");
-        return;
-    }
+    // checking for multiple dots if so it is en error, if there is one dot it is a float
+    {
+        u64 dot_count = 0;
+        for (char c : token_string) {
+            if (c == '.') {
+                number_type = NumberType::FLOAT;
+                dot_count++;
+            }
+        }
 
-    expression->number = number;
-
-    switch (type) {
-    case NumberType::UNSIGNED: {
-
-        if (number < 0) {
+        if (dot_count > 1) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
-                                                     NULL, NULL, NULL, "unsigned number cannot be negative");
+                                                     NULL, NULL, NULL, "float number literals can only have one dot");
             return;
         }
+    }
 
-        if (size == 8) {
-            expression->type_info = this->compilation_unit->global_type_scope["u8"];
-        } else if (size == 16) {
-            expression->type_info = this->compilation_unit->global_type_scope["u16"];
-        } else if (size == 32) {
-            expression->type_info = this->compilation_unit->global_type_scope["u32"];
-        } else if (size == 64) {
-            expression->type_info = this->compilation_unit->global_type_scope["u64"];
+    // if you are reading this code and wondering wtf is happening then please
+    // be in comfort because even the guy who wrote this code is wondering the same thing
+    std::istringstream iss(token_string);
+
+    switch (number_type) {
+    case NumberType::SIGNED: {
+        iss >> number_value.i;
+        switch (number_size) {
+        case NumberSize::SIZE_8: {
+            expression->type_info = this->compilation_unit->global_type_scope["i8"];
+        } break;
+        case NumberSize::SIZE_16: {
+            expression->type_info = this->compilation_unit->global_type_scope["i16"];
+        } break;
+        case NumberSize::SIZE_32: {
+            expression->type_info = this->compilation_unit->global_type_scope["i32"];
+        } break;
+        case NumberSize::SIZE_64: {
+            expression->type_info = this->compilation_unit->global_type_scope["i64"];
+        } break;
+        default:
+            UNREACHABLE();
         }
     } break;
-    case NumberType::SIGNED: {
-
-        if (size == 8) {
-            expression->type_info = this->compilation_unit->global_type_scope["i8"];
-        } else if (size == 16) {
-            expression->type_info = this->compilation_unit->global_type_scope["i16"];
-        } else if (size == 32) {
-            expression->type_info = this->compilation_unit->global_type_scope["i32"];
-        } else if (size == 64) {
-            expression->type_info = this->compilation_unit->global_type_scope["i64"];
+    case NumberType::UNSIGNED: {
+        iss >> number_value.u;
+        switch (number_size) {
+        case NumberSize::SIZE_8: {
+            expression->type_info = this->compilation_unit->global_type_scope["u8"];
+        } break;
+        case NumberSize::SIZE_16: {
+            expression->type_info = this->compilation_unit->global_type_scope["u16"];
+        } break;
+        case NumberSize::SIZE_32: {
+            expression->type_info = this->compilation_unit->global_type_scope["u32"];
+        } break;
+        case NumberSize::SIZE_64: {
+            expression->type_info = this->compilation_unit->global_type_scope["u64"];
+        } break;
+        default:
+            UNREACHABLE();
         }
     } break;
     case NumberType::FLOAT: {
-        if (size == 8 || size == 16) {
-            ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
-                                                     NULL, NULL, NULL,
-                                                     "cannot create float of this size can only use 32 and 64 sizes");
-            return;
-        } else if (size == 32) {
+        iss >> number_value.f;
+        switch (number_size) {
+        case NumberSize::SIZE_8: {
+            expression->type_info = this->compilation_unit->global_type_scope["f8"];
+        } break;
+        case NumberSize::SIZE_16: {
+            expression->type_info = this->compilation_unit->global_type_scope["f16"];
+        } break;
+        case NumberSize::SIZE_32: {
             expression->type_info = this->compilation_unit->global_type_scope["f32"];
-        } else if (size == 64) {
+        } break;
+        case NumberSize::SIZE_64: {
             expression->type_info = this->compilation_unit->global_type_scope["f64"];
+        } break;
+        default:
+            UNREACHABLE();
         }
     } break;
+    default:
+        UNREACHABLE();
     }
+
+    expression->value     = number_value;
+    expression->type_info = new NumberTypeInfo(number_size, number_type);
 }
 
 void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expression) {
@@ -923,9 +954,10 @@ void TypeChecker::type_check_static_array_literal_expression(StaticArrayExpressi
     TRY_CALL_VOID(type_check_expression(expression->number));
     TRY_CALL_VOID(type_check_type_expression(expression->type_expression));
 
-    if (expression->expressions.size() != expression->number->number) {
+    // TODO: this whole function assumes it is a signed literal for the number given
+    if (expression->expressions.size() != expression->number->value.i) {
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(std::format("static array literal expects {} values but got {}", expression->number->number,
+            .set_message(std::format("static array literal expects {} values but got {}", expression->number->value.i,
                                      expression->expressions.size()))
             .set_expr_1(expression->number)
             .set_type_expr_1(expression->type_expression)
@@ -947,7 +979,8 @@ void TypeChecker::type_check_static_array_literal_expression(StaticArrayExpressi
         }
     }
 
-    expression->type_info = new StaticArrayTypeInfo(expression->number->number, expression->type_expression->type_info);
+    expression->type_info =
+        new StaticArrayTypeInfo(expression->number->value.i, expression->type_expression->type_info);
 }
 
 void TypeChecker::type_check_subscript_expression(SubscriptExpression *expression) {
@@ -1143,8 +1176,9 @@ void TypeChecker::type_check_static_array_type_expression(StaticArrayTypeExpress
     TRY_CALL_VOID(type_check_type_expression(type_expression->base_type));
     TRY_CALL_VOID(type_check_number_literal_expression(type_expression->size));
 
+    // TODO: assuming the literal is a signed number right now
     type_expression->type_info =
-        new StaticArrayTypeInfo(type_expression->size->number, type_expression->base_type->type_info);
+        new StaticArrayTypeInfo(type_expression->size->value.i, type_expression->base_type->type_info);
 }
 
 void TypeChecker::type_check_slice_type_expression(SliceTypeExpression *type_expression) {
@@ -1226,67 +1260,6 @@ bool type_match(TypeInfo *a, TypeInfo *b) {
 
     UNREACHABLE();
     return false;
-}
-
-std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal) {
-
-#define BAD_PARSE                                                                                                      \
-    { 0, NumberType::UNSIGNED, -1 }
-
-    int literal_end = 0;
-    while (literal_end < literal.size() &&
-           (is_digit(literal.at(literal_end)) || literal.at(literal_end) == '-' || literal.at(literal_end) == '.')) {
-        literal_end++;
-    }
-
-    // literal == 0..literal_end
-    // type == literal_end..literal_end +1
-    // postfix == literal_end + 1..string_end
-
-    auto literal_string        = literal.substr(0, literal_end);
-
-    std::string type_string    = "";
-    std::string postfix_string = "";
-
-    // if there is a postfix notation
-    // else just infer a i64
-    if (literal_end != literal.size()) {
-        type_string    = literal.substr(literal_end, 1);
-        postfix_string = literal.substr(literal_end + 1, literal.size() - literal_end);
-    } else {
-        auto n = std::stod(literal_string);
-        return {n, NumberType::SIGNED, 64};
-    }
-
-    int size;
-
-    try {
-        size = std::stoi(postfix_string);
-    } catch (std::exception &e) {
-        return BAD_PARSE;
-    }
-
-    NumberType type;
-
-    if (type_string == "u") {
-        type = NumberType::UNSIGNED;
-    } else if (type_string == "f") {
-        type = NumberType::FLOAT;
-    } else if (type_string == "i") {
-        type = NumberType::SIGNED;
-    } else {
-        return BAD_PARSE;
-    }
-
-    if (size == 8 || size == 16 || size == 32 || size == 64) {
-        try {
-            auto n = std::stod(literal_string);
-            return {n, type, size};
-        } catch (std::exception &e) {
-        }
-    }
-
-    return BAD_PARSE;
 }
 
 void add_type_info_to_map(std::vector<SortingNode>                  *nodes,

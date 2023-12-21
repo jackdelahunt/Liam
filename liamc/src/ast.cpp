@@ -7,7 +7,7 @@ VoidTypeInfo::VoidTypeInfo() {
     this->type = TypeInfoType::VOID;
 }
 
-NumberTypeInfo::NumberTypeInfo(size_t size, NumberType number_type) {
+NumberTypeInfo::NumberTypeInfo(NumberSize size, NumberType number_type) {
     this->size        = size;
     this->number_type = number_type;
     this->type        = TypeInfoType::NUMBER;
@@ -183,9 +183,10 @@ UnaryExpression::UnaryExpression(Expression *expression, TokenType op) {
 }
 
 NumberLiteralExpression::NumberLiteralExpression(TokenIndex token, Span span) {
-    this->token = token;
-    this->type  = ExpressionType::NUMBER_LITERAL;
-    this->span  = span;
+    this->token   = token;
+    this->value.u = 0; // default setting it to zero, this will get a real value from the type checker
+    this->type    = ExpressionType::NUMBER_LITERAL;
+    this->span    = span;
 }
 
 StringLiteralExpression::StringLiteralExpression(TokenIndex token, Span span) {

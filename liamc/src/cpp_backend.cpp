@@ -591,7 +591,7 @@ void CppBackend::emit_expression(Expression *expression) {
         emit_string_literal_expression(static_cast<StringLiteralExpression *>(expression));
         break;
     case ExpressionType::NUMBER_LITERAL:
-        emit_int_literal_expression(static_cast<NumberLiteralExpression *>(expression));
+        emit_number_literal_expression(static_cast<NumberLiteralExpression *>(expression));
         break;
     case ExpressionType::BOOL_LITERAL:
         emit_bool_literal_expression(static_cast<BoolLiteralExpression *>(expression));
@@ -705,7 +705,7 @@ void CppBackend::emit_bool_literal_expression(BoolLiteralExpression *expression)
     this->builder.append(this->compilation_unit->get_token_string_from_index(expression->token));
 }
 
-void CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression) {
+void CppBackend::emit_number_literal_expression(NumberLiteralExpression *expression) {
     auto number_type = static_cast<NumberTypeInfo *>(expression->type_info);
 
     this->builder.append("Liam::make_");
@@ -718,17 +718,38 @@ void CppBackend::emit_int_literal_expression(NumberLiteralExpression *expression
         this->builder.append("f");
     }
 
-    if (number_type->size == 8) {
+    switch (number_type->size) {
+    case NumberSize::SIZE_8:
         this->builder.append("8");
-    } else if (number_type->size == 16) {
+        break;
+    case NumberSize::SIZE_16:
         this->builder.append("16");
-    } else if (number_type->size == 32) {
+        break;
+    case NumberSize::SIZE_32:
         this->builder.append("32");
-    } else if (number_type->size == 64) {
+        break;
+    case NumberSize::SIZE_64:
         this->builder.append("64");
+        break;
+    default:
+        UNREACHABLE();
     }
 
-    this->builder.append("(" + std::to_string(expression->number) + ")");
+    this->builder.append("(");
+    switch (number_type->number_type) {
+    case NumberType::UNSIGNED:
+        this->builder.append(std::to_string(expression->value.u));
+        break;
+    case NumberType::SIGNED:
+        this->builder.append(std::to_string(expression->value.i));
+        break;
+    case NumberType::FLOAT:
+        this->builder.append(std::to_string(expression->value.f));
+        break;
+    default:
+        UNREACHABLE();
+    }
+    this->builder.append(")");
 }
 
 void CppBackend::emit_unary_expression(UnaryExpression *expression) {
@@ -819,7 +840,7 @@ void CppBackend::emit_struct_instance_expression(StructInstanceExpression *expre
 
 void CppBackend::emit_static_array_literal_expression(StaticArrayExpression *expression) {
     this->builder.append("Liam::StaticArray<");
-    emit_int_literal_expression(expression->number);
+    emit_number_literal_expression(expression->number);
     this->builder.append(", ");
     emit_type_expression(expression->type_expression);
     this->builder.append(">(std::initializer_list<");
@@ -929,7 +950,7 @@ void CppBackend::emit_get_type_expression(GetTypeExpression *type_expression) {
 
 void CppBackend::emit_static_array_type_expression(StaticArrayTypeExpression *type_expression) {
     this->builder.append("Liam::StaticArray<");
-    emit_int_literal_expression(type_expression->size);
+    emit_number_literal_expression(type_expression->size);
     this->builder.append(", ");
     emit_type_expression(type_expression->base_type);
     this->builder.append(">");

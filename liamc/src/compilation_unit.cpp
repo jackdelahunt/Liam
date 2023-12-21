@@ -18,16 +18,16 @@ CompilationUnit::CompilationUnit(FileData *file_data, std::vector<Token> token_b
 
     this->global_type_scope["void"]   = new VoidTypeInfo();
     this->global_type_scope["bool"]   = new BoolTypeInfo();
-    this->global_type_scope["u8"]     = new NumberTypeInfo(8, NumberType::UNSIGNED);
-    this->global_type_scope["i8"]     = new NumberTypeInfo(8, NumberType::SIGNED);
-    this->global_type_scope["u16"]    = new NumberTypeInfo(16, NumberType::UNSIGNED);
-    this->global_type_scope["i16"]    = new NumberTypeInfo(16, NumberType::SIGNED);
-    this->global_type_scope["u32"]    = new NumberTypeInfo(32, NumberType::UNSIGNED);
-    this->global_type_scope["i32"]    = new NumberTypeInfo(32, NumberType::SIGNED);
-    this->global_type_scope["f32"]    = new NumberTypeInfo(32, NumberType::FLOAT);
-    this->global_type_scope["u64"]    = new NumberTypeInfo(64, NumberType::UNSIGNED);
-    this->global_type_scope["i64"]    = new NumberTypeInfo(64, NumberType::SIGNED);
-    this->global_type_scope["f64"]    = new NumberTypeInfo(64, NumberType::FLOAT);
+    this->global_type_scope["u8"]     = new NumberTypeInfo(NumberSize::SIZE_8, NumberType::UNSIGNED);
+    this->global_type_scope["i8"]     = new NumberTypeInfo(NumberSize::SIZE_8, NumberType::SIGNED);
+    this->global_type_scope["u16"]    = new NumberTypeInfo(NumberSize::SIZE_16, NumberType::UNSIGNED);
+    this->global_type_scope["i16"]    = new NumberTypeInfo(NumberSize::SIZE_16, NumberType::SIGNED);
+    this->global_type_scope["u32"]    = new NumberTypeInfo(NumberSize::SIZE_32, NumberType::UNSIGNED);
+    this->global_type_scope["i32"]    = new NumberTypeInfo(NumberSize::SIZE_32, NumberType::SIGNED);
+    this->global_type_scope["f32"]    = new NumberTypeInfo(NumberSize::SIZE_32, NumberType::FLOAT);
+    this->global_type_scope["u64"]    = new NumberTypeInfo(NumberSize::SIZE_64, NumberType::UNSIGNED);
+    this->global_type_scope["i64"]    = new NumberTypeInfo(NumberSize::SIZE_64, NumberType::SIGNED);
+    this->global_type_scope["f64"]    = new NumberTypeInfo(NumberSize::SIZE_64, NumberType::FLOAT);
 }
 
 Token *CompilationUnit::get_token(TokenIndex token_index) {
