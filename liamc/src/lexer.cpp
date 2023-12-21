@@ -142,7 +142,34 @@ CompilationUnit *Lexer::lex() {
             }
             this->token_buffer.emplace_back(TokenType::TOKEN_STRING_LITERAL, start, this->current_index);
         } break;
-        default:
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9': {
+            // number literals
+            // will keep consuming until we hit a space, tab or newline
+            u64         start = this->current_index;
+            std::string str   = std::string();
+
+            // keep doing next char until while there is data left it is not a delimiter but it can be a .
+            while (this->current_index < this->file_data->data_length &&
+                   (!is_delim(this->file_data->data[this->current_index]) ||
+                    this->file_data->data[this->current_index] == '.')) {
+                str.append(std::string(1, this->file_data->data[this->current_index]));
+                next_char();
+            }
+
+            this->current_index--; // it will be iterated once after this
+
+            this->token_buffer.emplace_back(TokenType::TOKEN_NUMBER_LITERAL, start, this->current_index);
+        } break;
+        default: {
             i32  word_start = this->current_index;
             auto word       = get_word();
 
@@ -250,29 +277,9 @@ CompilationUnit *Lexer::lex() {
                 continue;
             }
 
-            if (compare_string(word, "while")) {
-                this->token_buffer.emplace_back(TokenType::TOKEN_WHILE, word_start, (word_start - 1) + word.length());
-                continue;
-            }
-
-            // check numbers
-            if (is_digit(word.at(0)) || word.at(0) == '-') {
-
-                // TODO:
-                // if this word is a number then it might have got stuck on a .
-                // this means the word is actually shorter than the actual number
-                // to stop this we revert the current_index location and read until we
-                // find a delimiter but not including . or -
-
-                this->token_buffer.emplace_back(TokenType::TOKEN_NUMBER_LITERAL, word_start,
-                                                (word_start - 1) + word.length());
-                continue;
-            }
-
             // must be an identifier
             this->token_buffer.emplace_back(TokenType::TOKEN_IDENTIFIER, word_start, (word_start - 1) + word.length());
-
-            break;
+        } break;
         }
     }
 

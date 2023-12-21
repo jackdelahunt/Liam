@@ -63,7 +63,7 @@ struct CppBackend {
     void emit_binary_expression(BinaryExpression *expression);
     void emit_string_literal_expression(StringLiteralExpression *expression);
     void emit_bool_literal_expression(BoolLiteralExpression *expression);
-    void emit_int_literal_expression(NumberLiteralExpression *expression);
+    void emit_number_literal_expression(NumberLiteralExpression *expression);
     void emit_unary_expression(UnaryExpression *expression);
     void emit_call_expression(CallExpression *expression);
     void emit_identifier_expression(IdentifierExpression *expression);

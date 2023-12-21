@@ -148,6 +148,20 @@ enum class NumberType {
     FLOAT
 };
 
+// need the SIZE_ prefix becase compiler is a pain
+enum class NumberSize {
+    SIZE_8,
+    SIZE_16,
+    SIZE_32,
+    SIZE_64
+};
+
+union NumberValue {
+    u64 u;
+    i64 i;
+    f64 f;
+};
+
 struct TypeInfo {
     TypeInfoType type;
 };
@@ -159,10 +173,10 @@ struct VoidTypeInfo : TypeInfo {
 };
 
 struct NumberTypeInfo : TypeInfo {
-    size_t     size;
+    NumberSize size;
     NumberType number_type;
 
-    NumberTypeInfo(size_t size, NumberType number_type);
+    NumberTypeInfo(NumberSize size, NumberType number_type);
 };
 
 struct BoolTypeInfo : TypeInfo {
@@ -378,8 +392,8 @@ struct UnaryExpression : Expression {
 };
 
 struct NumberLiteralExpression : Expression {
-    TokenIndex token;
-    i64        number;
+    TokenIndex  token;
+    NumberValue value; // filled in at type checking time
 
     NumberLiteralExpression(TokenIndex token, Span span);
 };

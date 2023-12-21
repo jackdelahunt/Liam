@@ -85,7 +85,5 @@ struct TypeChecker {
     void type_check_slice_type_expression(SliceTypeExpression *type_expression);
 };
 
-bool                             type_match(TypeInfo *a, TypeInfo *b);
-std::tuple<i64, NumberType, i32> extract_number_literal_size(std::string literal);
-
+bool                     type_match(TypeInfo *a, TypeInfo *b);
 std::vector<SortingNode> topilogical_sort(std::vector<StructStatement *> structs);

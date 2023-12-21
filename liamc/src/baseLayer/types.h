@@ -14,9 +14,9 @@ typedef int32_t  i32;
 typedef uint32_t u32;
 typedef float    f32;
 
-typedef int64_t  i64;
-typedef uint64_t u64;
-typedef double   f64;
+typedef int64_t     i64;
+typedef uint64_t    u64;
+typedef long double f64;
 
 struct Allocator {
     virtual void *alloc(u64 size)                  = 0;

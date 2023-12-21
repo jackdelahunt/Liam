@@ -18,9 +18,9 @@ typedef int32_t  i32;
 typedef uint32_t u32;
 typedef float    f32;
 
-typedef uint64_t u64;
-typedef int64_t  i64;
-typedef double   f64;
+typedef uint64_t    u64;
+typedef int64_t     i64;
+typedef long double f64;
 
 #define __ASSERT(expr)                                                                                                 \
     if (!(expr)) {                                                                                                     \
