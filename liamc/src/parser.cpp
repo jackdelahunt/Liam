@@ -380,12 +380,28 @@ Expression *Parser::eval_factor() {
 }
 
 Expression *Parser::eval_unary() {
+    if (match(TokenType::TOKEN_AMPERSAND)) {
+        consume_token_with_index();
+        auto expr = TRY_CALL_RET(eval_unary());
+        return new UnaryExpression(UnaryType::POINTER, expr);
+    }
 
-    if (match(TokenType::TOKEN_AMPERSAND) || match(TokenType::TOKEN_STAR) || match(TokenType::TOKEN_NOT)) {
-        TokenIndex token_index = consume_token_with_index();
-        auto       expr        = TRY_CALL_RET(eval_unary());
+    if (match(TokenType::TOKEN_STAR)) {
+        consume_token_with_index();
+        auto expr = TRY_CALL_RET(eval_unary());
+        return new UnaryExpression(UnaryType::POINTER_DEREFERENCE, expr);
+    }
 
-        return new UnaryExpression(expr, this->compilation_unit->get_token(token_index)->token_type);
+    if (match(TokenType::TOKEN_NOT)) {
+        consume_token_with_index();
+        auto expr = TRY_CALL_RET(eval_unary());
+        return new UnaryExpression(UnaryType::NOT, expr);
+    }
+
+    if (match(TokenType::TOKEN_MINUS)) {
+        consume_token_with_index();
+        auto expr = TRY_CALL_RET(eval_unary());
+        return new UnaryExpression(UnaryType::MINUS, expr);
     }
 
     return TRY_CALL_RET(eval_postfix());

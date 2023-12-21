@@ -753,21 +753,27 @@ void CppBackend::emit_number_literal_expression(NumberLiteralExpression *express
 }
 
 void CppBackend::emit_unary_expression(UnaryExpression *expression) {
-    if (expression->op == TokenType::TOKEN_AMPERSAND) {
-        this->builder.append("&(");
-        emit_expression(expression->expression);
-        this->builder.append(")");
-    } else if (expression->op == TokenType::TOKEN_STAR) {
-        this->builder.append("*(");
-        emit_expression(expression->expression);
-        this->builder.append(")");
-    } else if (expression->op == TokenType::TOKEN_NOT) {
-        this->builder.append("!(");
-        emit_expression(expression->expression);
-        this->builder.append(")");
-    } else {
+
+    switch (expression->unary_type) {
+    case UnaryType::POINTER:
+        this->builder.append("&");
+        break;
+    case UnaryType::POINTER_DEREFERENCE:
+        this->builder.append("*");
+        break;
+    case UnaryType::MINUS:
+        this->builder.append("-");
+        break;
+    case UnaryType::NOT:
+        this->builder.append("!");
+        break;
+    default:
         UNREACHABLE();
     }
+
+    this->builder.append("(");
+    emit_expression(expression->expression);
+    this->builder.append(")");
 }
 
 void CppBackend::emit_call_expression(CallExpression *expression) {

@@ -722,13 +722,11 @@ void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expr
 void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
     TRY_CALL_VOID(type_check_expression(expression->expression));
 
-    if (expression->op == TokenType::TOKEN_AMPERSAND) {
+    if (expression->unary_type == UnaryType::POINTER) {
         expression->type_info = new PointerTypeInfo(expression->expression->type_info);
         expression->category  = ExpressionCategory::RVALUE;
         return;
-    }
-
-    if (expression->op == TokenType::TOKEN_STAR) {
+    } else if (expression->unary_type == UnaryType::POINTER_DEREFERENCE) {
         if (expression->expression->type_info->type != TypeInfoType::POINTER) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
                                                      NULL, NULL, NULL, "cannot dereference non-pointer value");
@@ -738,9 +736,7 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
         expression->type_info = ((PointerTypeInfo *)expression->expression->type_info)->to;
         expression->category  = ExpressionCategory::LVALUE;
         return;
-    }
-
-    if (expression->op == TokenType::TOKEN_NOT) {
+    } else if (expression->unary_type == UnaryType::NOT) {
         if (expression->expression->type_info->type != TypeInfoType::BOOLEAN) {
             ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
                                                      NULL, NULL, NULL,
@@ -751,9 +747,20 @@ void TypeChecker::type_check_unary_expression(UnaryExpression *expression) {
         expression->type_info = expression->expression->type_info;
         expression->category  = ExpressionCategory::RVALUE;
         return;
-    }
+    } else if (expression->unary_type == UnaryType::MINUS) {
+        if (expression->expression->type_info->type != TypeInfoType::NUMBER) {
+            ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(), expression,
+                                                     NULL, NULL, NULL,
+                                                     "cannot use unary operator - on non-number type");
+            return;
+        }
 
-    UNREACHABLE();
+        expression->type_info = expression->expression->type_info;
+        expression->category  = ExpressionCategory::RVALUE;
+        return;
+    } else {
+        UNREACHABLE();
+    }
 }
 
 void TypeChecker::type_check_call_expression(CallExpression *expression) {

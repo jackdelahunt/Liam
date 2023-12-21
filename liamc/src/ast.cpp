@@ -175,9 +175,9 @@ BinaryExpression::BinaryExpression(Expression *left, TokenType op, Expression *r
     this->type  = ExpressionType::BINARY;
 }
 
-UnaryExpression::UnaryExpression(Expression *expression, TokenType op) {
+UnaryExpression::UnaryExpression(UnaryType unary_type, Expression *expression) {
+    this->unary_type = unary_type;
     this->expression = expression;
-    this->op         = op;
     this->type       = ExpressionType::UNARY;
     this->span       = expression->span;
 }

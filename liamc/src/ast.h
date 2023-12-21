@@ -116,7 +116,10 @@ enum class ForType {
 };
 
 enum class UnaryType {
+    POINTER_DEREFERENCE,
+    NOT,
     POINTER,
+    MINUS
 };
 
 enum class TypeExpressionType {
@@ -385,10 +388,10 @@ struct BinaryExpression : Expression {
 };
 
 struct UnaryExpression : Expression {
-    TokenType   op;
+    UnaryType   unary_type;
     Expression *expression;
 
-    UnaryExpression(Expression *expression, TokenType op);
+    UnaryExpression(UnaryType unary_type, Expression *expression);
 };
 
 struct NumberLiteralExpression : Expression {
