@@ -91,7 +91,6 @@ fn main() void {
 
 ## Features and possbile future ones
 ### Added
-- [x] control flow (if, c-stlye for, continue, break, return)
 - [x] basic structs (no generics, or member functions)
 - [x] basic functions (no generics)
 - [x] size specific builting data types (u8, u16, u32, u64)
@@ -101,9 +100,12 @@ fn main() void {
 - [x] out-of-order top level definitions
 - [x] slice types
 - [x] slicing syntax for arrays and slices
+- [x] for and while loops
 
 ### Maybe [how easy/how useful for the current state/will not need to be redone/future work not harder]
-- [ ] control flow (while, better for loops for types) [6/5/9/9] 29
+- [ ] type safe continue, return and break [4/4/3/6] 19
+- [ ] `-` unary expression [9/2/8/8] 27
+- [ ] able to use `.` in number literals
 - [ ] generic arguments for structs [2/5/4/2] 13
 - [ ] generics arguments for functions [3/7/6/4] 20
 - [ ] tagged union style enums (like rust enums) [2/3/6/6] 17
