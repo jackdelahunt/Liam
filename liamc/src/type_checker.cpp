@@ -4,6 +4,7 @@
 #include <format>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
@@ -622,21 +623,60 @@ void TypeChecker::type_check_string_literal_expression(StringLiteralExpression *
     expression->category  = ExpressionCategory::RVALUE;
 }
 
+bool ends_with(const std::string *value, const std::string *ending) {
+    if (ending->size() > value->size())
+        return false;
+    return std::equal(ending->rbegin(), ending->rend(), value->rbegin());
+}
+
 void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *expression) {
     expression->category     = ExpressionCategory::RVALUE;
-    std::string token_string = this->compilation_unit->get_token_string_from_index(expression->token);
 
-    NumberType  number_type  = NumberType::SIGNED;
+    std::string token_string = this->compilation_unit->get_token_string_from_index(expression->token);
+    i64         literal_end  = token_string.size() - 1;
+
+    NumberType  number_type  = NumberType::UNDEFINED;
     NumberSize  number_size  = NumberSize::SIZE_64;
     NumberValue number_value = {};
+
+    static const std::array<std::tuple<NumberType, NumberSize, std::string>, 7> type_size_literal_array = {
+        std::tuple(NumberType::SIGNED, NumberSize::SIZE_64, "i64"),
+        std::tuple(NumberType::SIGNED, NumberSize::SIZE_32, "i32"),
+        std::tuple(NumberType::SIGNED, NumberSize::SIZE_16, "i16"),
+        std::tuple(NumberType::SIGNED, NumberSize::SIZE_8, "i8"),
+        std::tuple(NumberType::UNSIGNED, NumberSize::SIZE_8, "u8"),
+        std::tuple(NumberType::FLOAT, NumberSize::SIZE_64, "f64"),
+        std::tuple(NumberType::FLOAT, NumberSize::SIZE_32, "f32")};
+
+    for (auto &[n_t, n_s, l] : type_size_literal_array) {
+        if (ends_with(&token_string, &l)) {
+            number_type = n_t;
+            number_size = n_s;
+            literal_end -= l.size();
+        }
+    }
+
+    // change string from token string minus the type end
+    token_string = token_string.substr(0, literal_end + 1);
 
     // checking for multiple dots if so it is en error, if there is one dot it is a float
     {
         u64 dot_count = 0;
         for (char c : token_string) {
             if (c == '.') {
-                number_type = NumberType::FLOAT;
-                dot_count++;
+                if (number_type == NumberType::UNDEFINED || number_type == NumberType::FLOAT) {
+                    number_type = NumberType::FLOAT;
+                    dot_count++;
+                } else {
+                    ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
+                                                             expression, NULL, NULL, NULL,
+                                                             "trying to use '.' in non float literal");
+                    return;
+                }
+            } else if (!isdigit(c)) {
+                ErrorReporter::report_type_checker_error(compilation_unit->file_data->absolute_path.string(),
+                                                         expression, NULL, NULL, NULL, "malformed number literal");
+                return;
             }
         }
 
@@ -647,6 +687,12 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         }
     }
 
+    // it hasnt been infered to be a float and there was no type given so set it to a i64
+    if (number_type == NumberType::UNDEFINED) {
+        number_type = NumberType::SIGNED;
+        number_size = NumberSize::SIZE_64;
+    }
+
     // if you are reading this code and wondering wtf is happening then please
     // be in comfort because even the guy who wrote this code is wondering the same thing
     std::istringstream iss(token_string);
@@ -654,52 +700,24 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     switch (number_type) {
     case NumberType::SIGNED: {
         iss >> number_value.i;
-        switch (number_size) {
-        case NumberSize::SIZE_8: {
-            expression->type_info = this->compilation_unit->global_type_scope["i8"];
-        } break;
-        case NumberSize::SIZE_16: {
-            expression->type_info = this->compilation_unit->global_type_scope["i16"];
-        } break;
-        case NumberSize::SIZE_32: {
-            expression->type_info = this->compilation_unit->global_type_scope["i32"];
-        } break;
-        case NumberSize::SIZE_64: {
-            expression->type_info = this->compilation_unit->global_type_scope["i64"];
-        } break;
-        default:
-            UNREACHABLE();
-        }
     } break;
     case NumberType::UNSIGNED: {
         iss >> number_value.u;
-        switch (number_size) {
-        case NumberSize::SIZE_8: {
-            expression->type_info = this->compilation_unit->global_type_scope["u8"];
-        } break;
-        default:
-            UNREACHABLE();
-        }
     } break;
     case NumberType::FLOAT: {
         iss >> number_value.f;
-        switch (number_size) {
-        case NumberSize::SIZE_32: {
-            expression->type_info = this->compilation_unit->global_type_scope["f32"];
-        } break;
-        case NumberSize::SIZE_64: {
-            expression->type_info = this->compilation_unit->global_type_scope["f64"];
-        } break;
-        default:
-            UNREACHABLE();
-        }
     } break;
     default:
         UNREACHABLE();
     }
 
-    expression->value     = number_value;
-    expression->type_info = new NumberTypeInfo(number_size, number_type);
+    for (auto &[n_t, n_s, l] : type_size_literal_array) {
+        if (n_t == number_type && n_s == number_size) {
+            expression->type_info = expression->type_info = this->compilation_unit->global_type_scope[l];
+        }
+    }
+
+    expression->value = number_value;
 }
 
 void TypeChecker::type_check_bool_literal_expression(BoolLiteralExpression *expression) {
