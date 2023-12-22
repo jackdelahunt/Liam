@@ -146,6 +146,7 @@ enum class TypeInfoType {
 };
 
 enum class NumberType {
+    UNDEFINED,
     UNSIGNED,
     SIGNED,
     FLOAT
