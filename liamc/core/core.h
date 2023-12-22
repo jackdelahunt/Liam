@@ -59,42 +59,42 @@ constexpr f64 make_f64(f64 n) {
 }
 
 template <typename T> struct Slice {
-    T  *data;
+    T  *pointer;
     i64 size;
 
     Slice(T *data, i64 size) {
-        this->data = data;
-        this->size = size;
+        this->pointer = data;
+        this->size    = size;
     }
 
     Slice<T> slice_full() {
-        return Slice<T>(&this->data[0], this->size);
+        return Slice<T>(&this->pointer[0], this->size);
     }
 
     Slice<T> slice_with_start_and_end(i64 start, i64 end) {
-        return Slice<T>(&this->data[start], end - start);
+        return Slice<T>(&this->pointer[start], end - start);
     }
 
     Slice<T> slice_with_start(i64 start) {
-        return Slice<T>(&this->data[start], this->size - start);
+        return Slice<T>(&this->pointer[start], this->size - start);
     }
 
     Slice<T> slice_with_end(i64 end) {
-        return Slice<T>(&this->data[0], end);
+        return Slice<T>(&this->pointer[0], end);
     }
 
     // we need to use T& to make Slice[n] assignable, check array for more
     // detailed explaination
     T &operator[](i64 index) {
         // TODO we should have bounds checking in this for debug builds
-        return this->data[index];
+        return this->pointer[index];
     }
 
     // define a << overload for std::cout
     friend std::ostream &operator<<(std::ostream &os, const Slice<T> &obj) {
         os << "[";
         for (i64 i = 0; i < obj.size; i++) {
-            os << obj.data[i];
+            os << obj.pointer[i];
             if (i != obj.size - 1) {
                 os << ", ";
             }

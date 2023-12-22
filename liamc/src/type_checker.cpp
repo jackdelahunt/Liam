@@ -873,17 +873,38 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         return;
     }
 
-    if (using_type->type == TypeInfoType::STATIC_ARRAY || using_type->type == TypeInfoType::SLICE) {
-        std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
+    std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
 
+    if (using_type->type == TypeInfoType::STATIC_ARRAY) {
         if (compare_string(member_string, "size")) {
             expression->type_info = this->compilation_unit->global_type_scope["i64"];
             return;
         }
 
         TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
-            .set_message(std::format(
-                "can only use 'size' builtin member for static arrays and slices '{}' does not exist", member_string))
+            .set_message(
+                std::format("can only use 'size' builtin member for static arrays '{}' does not exist", member_string))
+            .set_expr_1(expression)
+            .report();
+
+        return;
+    }
+
+    if (using_type->type == TypeInfoType::SLICE) {
+        SliceTypeInfo *slice_type_info = (SliceTypeInfo *)using_type;
+        if (compare_string(member_string, "size")) {
+            expression->type_info = this->compilation_unit->global_type_scope["i64"];
+            return;
+        }
+
+        if (compare_string(member_string, "pointer")) {
+            expression->type_info = new PointerTypeInfo(slice_type_info->base_type);
+            return;
+        }
+
+        TypeCheckerError::make(compilation_unit->file_data->absolute_path.string())
+            .set_message(
+                std::format("can only use 'size' builtin member for static arrays '{}' does not exist", member_string))
             .set_expr_1(expression)
             .report();
 
