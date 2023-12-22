@@ -2,11 +2,11 @@ fn main() void {
     let array : [3]i64 = [3]i64{1, 2, 3};
   
     assert array[{:}][2] == 3;
-    assert array[{:}].size == 3u64;
+    assert array[{:}].size == 3;
 
     assert array[{2:}][0] == 3; // last element
-    assert array[{2:}].size == 1u64;
+    assert array[{2:}].size == 1;
 
     assert array[{0:1}][0] == 1; // first element
-    assert array[{0:1}].size == 1u64;
+    assert array[{0:1}].size == 1;
 }

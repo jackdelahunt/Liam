@@ -38,6 +38,10 @@ constexpr i8 make_i8(i8 n) {
     return n;
 }
 
+constexpr i16 make_i16(i16 n) {
+    return n;
+}
+
 constexpr i32 make_i32(i32 n) {
     return n;
 }
