@@ -104,8 +104,6 @@ fn main() void {
 
 ### Maybe [how easy/how useful for the current state/will not need to be redone/future work not harder]
 - [ ] type safe continue, return and break [4/4/3/6] 19
-- [ ] `-` unary expression [9/2/8/8] 27
-- [ ] able to use `.` in number literals
 - [ ] generic arguments for structs [2/5/4/2] 13
 - [ ] generics arguments for functions [3/7/6/4] 20
 - [ ] tagged union style enums (like rust enums) [2/3/6/6] 17
