@@ -1,0 +1,15 @@
+fn main() void {
+    let a : i64 = 100;
+    
+    let b : i64 = 100i64;
+    let c : i32 = 100i32;
+    let d : i16 = 100i16;
+    let e : i8 = 100i8;
+
+    let f : f64 = 100f64;
+    let g : f32 = 100f32;
+    let h : f64 = 100.230;
+    let i : f32 = 100.230f32;
+
+    let j : u8 = 100u8;
+}

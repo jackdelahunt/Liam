@@ -6,5 +6,5 @@ fn main() void {
     assert slice[0] == 1;
     assert slice[1] == 2;
     assert slice[2] == 3;
-    assert slice.size == 3u64;
+    assert slice.size == 3;
 }
