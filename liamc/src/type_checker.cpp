@@ -677,15 +677,6 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
         case NumberSize::SIZE_8: {
             expression->type_info = this->compilation_unit->global_type_scope["u8"];
         } break;
-        case NumberSize::SIZE_16: {
-            expression->type_info = this->compilation_unit->global_type_scope["u16"];
-        } break;
-        case NumberSize::SIZE_32: {
-            expression->type_info = this->compilation_unit->global_type_scope["u32"];
-        } break;
-        case NumberSize::SIZE_64: {
-            expression->type_info = this->compilation_unit->global_type_scope["u64"];
-        } break;
         default:
             UNREACHABLE();
         }
@@ -693,12 +684,6 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     case NumberType::FLOAT: {
         iss >> number_value.f;
         switch (number_size) {
-        case NumberSize::SIZE_8: {
-            expression->type_info = this->compilation_unit->global_type_scope["f8"];
-        } break;
-        case NumberSize::SIZE_16: {
-            expression->type_info = this->compilation_unit->global_type_scope["f16"];
-        } break;
         case NumberSize::SIZE_32: {
             expression->type_info = this->compilation_unit->global_type_scope["f32"];
         } break;
@@ -874,7 +859,7 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         std::string member_string = this->compilation_unit->get_token_string_from_index(expression->member);
 
         if (compare_string(member_string, "size")) {
-            expression->type_info = this->compilation_unit->global_type_scope["u64"];
+            expression->type_info = this->compilation_unit->global_type_scope["i64"];
             return;
         }
 
