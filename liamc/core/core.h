@@ -14,11 +14,11 @@ typedef int8_t  i8;
 typedef uint16_t u16;
 typedef int16_t  i16;
 
-typedef int32_t  i32;
-typedef uint32_t u32;
-typedef float    f32;
+typedef int32_t i32;
+// typedef uint32_t u32;
+typedef float f32;
 
-typedef uint64_t    u64;
+// typedef uint64_t    u64;
 typedef int64_t     i64;
 typedef long double f64;
 
@@ -29,16 +29,6 @@ typedef long double f64;
         exit(1);                                                                                                       \
     }
 
-struct str {
-    char *chars;
-    u64   length;
-
-    bool        compare_c_str(const char *c_str);
-    friend bool operator==(const str &l, const str &r);
-};
-
-std::ostream &operator<<(std::ostream &os, const str &obj);
-
 namespace Liam {
 constexpr u8 make_u8(u8 n) {
     return n;
@@ -48,19 +38,11 @@ constexpr i8 make_i8(i8 n) {
     return n;
 }
 
-constexpr u32 make_u32(u32 n) {
-    return n;
-}
-
 constexpr i32 make_i32(i32 n) {
     return n;
 }
 
 constexpr f32 make_f32(f32 n) {
-    return n;
-}
-
-constexpr u64 make_u64(u64 n) {
     return n;
 }
 
@@ -74,9 +56,9 @@ constexpr f64 make_f64(f64 n) {
 
 template <typename T> struct Slice {
     T  *data;
-    u64 size;
+    i64 size;
 
-    Slice(T *data, u64 size) {
+    Slice(T *data, i64 size) {
         this->data = data;
         this->size = size;
     }
@@ -85,21 +67,21 @@ template <typename T> struct Slice {
         return Slice<T>(&this->data[0], this->size);
     }
 
-    Slice<T> slice_with_start_and_end(u64 start, u64 end) {
+    Slice<T> slice_with_start_and_end(i64 start, i64 end) {
         return Slice<T>(&this->data[start], end - start);
     }
 
-    Slice<T> slice_with_start(u64 start) {
+    Slice<T> slice_with_start(i64 start) {
         return Slice<T>(&this->data[start], this->size - start);
     }
 
-    Slice<T> slice_with_end(u64 end) {
+    Slice<T> slice_with_end(i64 end) {
         return Slice<T>(&this->data[0], end);
     }
 
     // we need to use T& to make Slice[n] assignable, check array for more
     // detailed explaination
-    T &operator[](u64 index) {
+    T &operator[](i64 index) {
         // TODO we should have bounds checking in this for debug builds
         return this->data[index];
     }
@@ -107,7 +89,7 @@ template <typename T> struct Slice {
     // define a << overload for std::cout
     friend std::ostream &operator<<(std::ostream &os, const Slice<T> &obj) {
         os << "[";
-        for (u64 i = 0; i < obj.size; i++) {
+        for (i64 i = 0; i < obj.size; i++) {
             os << obj.data[i];
             if (i != obj.size - 1) {
                 os << ", ";
@@ -118,9 +100,9 @@ template <typename T> struct Slice {
     }
 };
 
-template <u64 N, typename T> struct StaticArray {
+template <i64 N, typename T> struct StaticArray {
     T   array[N];
-    u64 size;
+    i64 size;
 
     StaticArray() {
         this->size = N;
@@ -129,7 +111,7 @@ template <u64 N, typename T> struct StaticArray {
     explicit StaticArray(std::initializer_list<T> list) {
         this->size = N;
 
-        u64 index  = 0;
+        i64 index  = 0;
         for (auto iter = list.begin(); iter != list.end(); iter++) {
             this->array[index] = *iter;
             index++;
@@ -140,15 +122,15 @@ template <u64 N, typename T> struct StaticArray {
         return Slice<T>(&this->array[0], this->size);
     }
 
-    Slice<T> slice_with_start_and_end(u64 start, u64 end) {
+    Slice<T> slice_with_start_and_end(i64 start, i64 end) {
         return Slice<T>(&this->array[start], end - start);
     }
 
-    Slice<T> slice_with_start(u64 start) {
+    Slice<T> slice_with_start(i64 start) {
         return Slice<T>(&this->array[start], this->size - start);
     }
 
-    Slice<T> slice_with_end(u64 end) {
+    Slice<T> slice_with_end(i64 end) {
         return Slice<T>(&this->array[0], end);
     }
 
@@ -157,14 +139,14 @@ template <u64 N, typename T> struct StaticArray {
     // is not represented in the compiler so it is kind of magic
     // generated cpp code as the compiler doesn't know about
     // l or r values
-    T &operator[](u64 index) {
+    T &operator[](i64 index) {
         // TODO we should have bounds checking in this for debug builds
         return this->array[index];
     }
 
     friend std::ostream &operator<<(std::ostream &os, const StaticArray<N, T> &obj) {
         os << "[";
-        for (u64 i = 0; i < obj.size; i++) {
+        for (i64 i = 0; i < obj.size; i++) {
             os << obj.array[i];
             if (i != obj.size - 1) {
                 os << ", ";
@@ -174,12 +156,4 @@ template <u64 N, typename T> struct StaticArray {
         return os;
     }
 };
-
-/*
-    str functions, str is declared outside of namespace as it is not interal only
-*/
-str make_str(char *chars, uint64_t length);
-str make_str(const char *c_str);
 } // namespace Liam
-
-#include "core.cpp"

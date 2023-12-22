@@ -76,7 +76,6 @@ std::string CppBackend::emit(CompilationBundle *bundle) {
     this->compilation_bundle = bundle;
 
     this->builder.append_line("#include <core.h>");
-    this->builder.append_line("#include <liam_stdlib.h>");
 
     for (CompilationUnit *cu : bundle->compilation_units) {
         this->compilation_unit = cu;
@@ -710,10 +709,10 @@ void CppBackend::emit_number_literal_expression(NumberLiteralExpression *express
 
     this->builder.append("Liam::make_");
 
-    if (number_type->number_type == NumberType::UNSIGNED) {
-        this->builder.append("u");
-    } else if (number_type->number_type == NumberType::SIGNED) {
+    if (number_type->number_type == NumberType::SIGNED) {
         this->builder.append("i");
+    } else if (number_type->number_type == NumberType::UNSIGNED) {
+        this->builder.append("u");
     } else if (number_type->number_type == NumberType::FLOAT) {
         this->builder.append("f");
     }
@@ -737,11 +736,11 @@ void CppBackend::emit_number_literal_expression(NumberLiteralExpression *express
 
     this->builder.append("(");
     switch (number_type->number_type) {
-    case NumberType::UNSIGNED:
-        this->builder.append(std::to_string(expression->value.u));
-        break;
     case NumberType::SIGNED:
         this->builder.append(std::to_string(expression->value.i));
+        break;
+    case NumberType::UNSIGNED:
+        this->builder.append(std::to_string(expression->value.u));
         break;
     case NumberType::FLOAT:
         this->builder.append(std::to_string(expression->value.f));
