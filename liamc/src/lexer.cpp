@@ -277,6 +277,11 @@ CompilationUnit *Lexer::lex() {
                 continue;
             }
 
+            if (compare_string(word, "while")) {
+                this->token_buffer.emplace_back(TokenType::TOKEN_WHILE, word_start, (word_start - 1) + word.length());
+                continue;
+            }
+
             // must be an identifier
             this->token_buffer.emplace_back(TokenType::TOKEN_IDENTIFIER, word_start, (word_start - 1) + word.length());
         } break;
