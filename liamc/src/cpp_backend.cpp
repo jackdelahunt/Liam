@@ -74,7 +74,7 @@ CppBackend::CppBackend() {
 
 std::string CppBackend::emit(CompilationBundle *bundle) {
     this->compilation_bundle = bundle;
-
+    
     this->builder.append_line("#include <core.h>");
 
     for (CompilationUnit *cu : bundle->compilation_units) {
@@ -650,7 +650,7 @@ void CppBackend::emit_binary_expression(BinaryExpression *expression) {
         op = "-";
         break;
     case TokenType::TOKEN_STAR:
-        op = "-";
+        op = "*";
         break;
     case TokenType::TOKEN_SLASH:
         op = "/";
