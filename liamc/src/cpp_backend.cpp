@@ -397,7 +397,7 @@ void CppBackend::emit_for_with_slice_or_array(ForStatement *statement) {
     // generates:
     // {
     //      auto __value_a = &array;
-    //      for (u64 __value_i = 0; i < __value_a->size; __value_i++) {
+    //      for (i64 __value_i = 0; i < __value_a->size; __value_i++) {
     //          auto value = (*__value_a)[__value_i];
     //          { ... }
     //      }
@@ -443,7 +443,7 @@ void CppBackend::emit_for_with_slice_or_array(ForStatement *statement) {
 
     //     u64 __value_i = 0;
     this->builder.start_line();
-    this->builder.append(std::format("u64 {} = 0;", indexer));
+    this->builder.append(std::format("i64 {} = 0;", indexer));
     this->builder.end_line();
 
     //    __value_i < __value_a->size;
