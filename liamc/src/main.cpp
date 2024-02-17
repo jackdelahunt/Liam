@@ -70,7 +70,7 @@ CompilationBundle lex_parse() {
 
     for (auto &input_file : args->files) {
         std::filesystem::path file_path        = std::filesystem::path(input_file);
-        FileData             *file_data        = FileManager::load_relative_from_cwd(file_path).value();
+        FileData             *file_data        = FileManager::load_relative_from_cwd(file_path.string()).value();
         Lexer                 lexer            = Lexer(file_data);
         CompilationUnit      *compilation_unit = lexer.lex();
         Parser                parser           = Parser(compilation_unit);

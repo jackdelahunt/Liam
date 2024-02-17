@@ -14,7 +14,7 @@ Option<FileData *> FileManager::load_relative_from_cwd(std::string path) {
         singleton = new FileManager();
     }
 
-    return singleton->load_relative_to(std::filesystem::current_path(), path);
+    return singleton->load_relative_to(std::filesystem::current_path().string(), path);
 }
 
 Option<FileData *> FileManager::load_relative_to(std::string relative_to, std::string path) {

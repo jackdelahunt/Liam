@@ -990,5 +990,5 @@ u64 string_literal_length(std::string *string) {
 }
 
 std::string get_namespace_name(CompilationUnit *compilation_unit) {
-    return compilation_unit->file_data->absolute_path.stem();
+    return compilation_unit->file_data->absolute_path.stem().string();
 }

@@ -639,14 +639,15 @@ void TypeChecker::type_check_number_literal_expression(NumberLiteralExpression *
     NumberSize  number_size  = NumberSize::SIZE_64;
     NumberValue number_value = {};
 
-    static const std::array<std::tuple<NumberType, NumberSize, std::string>, 7> type_size_literal_array = {
+    std::tuple<NumberType, NumberSize, std::string> type_size_literal_array[7] = {
         std::tuple(NumberType::SIGNED, NumberSize::SIZE_64, "i64"),
         std::tuple(NumberType::SIGNED, NumberSize::SIZE_32, "i32"),
         std::tuple(NumberType::SIGNED, NumberSize::SIZE_16, "i16"),
-        std::tuple(NumberType::SIGNED, NumberSize::SIZE_8, "i8"),
+        std::tuple(NumberType::SIGNED, NumberSize::SIZE_8, "i8"),       
         std::tuple(NumberType::UNSIGNED, NumberSize::SIZE_8, "u8"),
         std::tuple(NumberType::FLOAT, NumberSize::SIZE_64, "f64"),
-        std::tuple(NumberType::FLOAT, NumberSize::SIZE_32, "f32")};
+        std::tuple(NumberType::FLOAT, NumberSize::SIZE_32, "f32")
+    };
 
     for (auto &[n_t, n_s, l] : type_size_literal_array) {
         if (ends_with(&token_string, &l)) {
@@ -911,7 +912,8 @@ void TypeChecker::type_check_get_expression(GetExpression *expression) {
         return;
     }
 
-    ErrorReporter::report_type_checker_error(this->compilation_unit->file_data->absolute_path, expression->lhs, NULL,
+    ErrorReporter::report_type_checker_error(this->compilation_unit->file_data->absolute_path.string(), expression->lhs,
+                                             NULL,
                                              NULL, NULL,
                                              "Cannot derive member from non struct/namespace/array/slice type");
     return;
