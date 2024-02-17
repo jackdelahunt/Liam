@@ -27,7 +27,7 @@ jobs:
       uses: jwlawson/actions-setup-cmake@v1.14
 
     - name: Generate project files
-      working-directory: ${{env.GITHUB_WORKSPACE}}/liamc
+      working-directory: ${{env.GITHUB_WORKSPACE}}\liamc
       run: mkdir build && cd build && cmake ..
 
     - name: Build
