@@ -23,6 +23,13 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.14
+
+    - name: Generate project files
+      working-directory: ${{env.GITHUB_WORKSPACE}}/liamc
+      run: mkdir build && cd build && cmake ..
+
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
