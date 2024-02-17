@@ -6,7 +6,7 @@ on:
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: ${{github.workspace}}/liamc/build/liamc.sln
+  SOLUTION_FILE_PATH: ${{github.workspace}}\liamc\build\liamc.sln
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
@@ -27,7 +27,7 @@ jobs:
       uses: jwlawson/actions-setup-cmake@v1.14
 
     - name: Generate project files
-      working-directory: ${{env.GITHUB_WORKSPACE}}\liamc
+      working-directory: ${{github.workspace}}\liamc
       run: mkdir build && cd build && cmake ..
 
     - name: Build
