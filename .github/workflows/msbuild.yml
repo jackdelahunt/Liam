@@ -42,4 +42,5 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
       with:
-          base: main
+          branch: windows-binaries
+          branch-suffix: timestamp
