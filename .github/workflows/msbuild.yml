@@ -40,4 +40,4 @@ jobs:
       run: Remove-Item ${{env.WIN_BUILD_PATH}} -Recurse && mkdir ${{env.WIN_BUILD_PATH}} && cp build/Release/liamc.exe ${{env.WIN_BUILD_PATH}}/liamc.exe
         
     - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v6
