@@ -43,7 +43,7 @@ jobs:
       uses: peter-evans/create-pull-request@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        branch: main
+        branch: win-binaries
         base: main
         commit-message: "chore: built windows binaries"
         title: "GH Actions : windows binaries"
