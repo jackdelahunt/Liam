@@ -1,8 +1,7 @@
 name: WindowsBuild
 
 on:
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -43,4 +42,5 @@ jobs:
       uses: peter-evans/create-pull-request@v6
       with:
           branch: windows-binaries
+          base: main
           branch-suffix: timestamp
