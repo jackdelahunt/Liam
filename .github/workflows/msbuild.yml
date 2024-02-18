@@ -39,6 +39,9 @@ jobs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
       with:
+          title: "Rebuild windows binaries"
+          commit-message: "auto: regenerated windows binaries in bin/win"
+          author: "jackdelahunt <jdealhunt@gmail.com>"
           branch: windows-binaries
           base: main
           branch-suffix: timestamp
