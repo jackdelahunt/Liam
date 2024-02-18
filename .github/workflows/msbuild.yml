@@ -42,4 +42,4 @@ jobs:
           branch: windows-binaries
           base: main
           branch-suffix: timestamp
-          token: ${{secret.CI_GITHUB_TOKEN}}
+          token: ${{secrets.CI_GITHUB_TOKEN}}
