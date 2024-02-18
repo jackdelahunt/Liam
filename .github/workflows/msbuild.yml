@@ -44,7 +44,6 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         branch: win-binaries
-        base: main
         commit-message: "chore: built windows binaries"
         title: "GH Actions : windows binaries"
         body: "Windows binaries updated and added to bin/win"
