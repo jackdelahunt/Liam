@@ -30,7 +30,7 @@ jobs:
       run: mkdir build && cd build && cmake -G "Unix Makefiles" -D CMAKE_CXX_COMPILER=clang++ ..
 
     - name: Get compiler version and location
-      workiGenerate project filesng-directory: ${{github.workspace}}/liamc
+      working-directory: ${{github.workspace}}/liamc
       run: clang++ -version && whereis clang++
 
     - name: Build
