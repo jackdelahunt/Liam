@@ -23,7 +23,7 @@ jobs:
 
     - name: Generate project files
       working-directory: ${{github.workspace}}/liamc
-      run: mkdir build && cd build && cmake -G "Unix Makefiles" -D CMAKE_CXX_COMPILER=clang++ ..
+      run: mkdir build && cd build && cmake -G "Unix Makefiles" -D CMAKE_CXX_COMPILER=g++ ..
 
     - name: Build
       working-directory: ${{github.workspace}}/liamc/build
