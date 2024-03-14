@@ -33,7 +33,7 @@ jobs:
 
     - name: Get compiler version and location
       working-directory: ${{github.workspace}}/liamc
-      run: clang++ -version && whereis clang++
+      run: clang++ --version && whereis clang++
 
     - name: Build
       working-directory: ${{github.workspace}}/liamc/build
