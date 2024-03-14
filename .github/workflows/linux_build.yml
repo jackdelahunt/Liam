@@ -1,0 +1,59 @@
+name: LinuxBuild
+on:
+  workflow_dispatch:
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: ${{github.workspace}}/liamc/build/liamc.sln
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+  LINUX_BUILD_PATH: bin/linux
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.14
+
+                    
+    - name: Install LLVM and Clang
+      uses: KyleMayes/install-llvm-action@v1.9.0
+      with:
+        version: "17"
+
+    - name: Generate project files
+      working-directory: ${{github.workspace}}/liamc
+      run: mkdir build && cd build && cmake -G "Unix Makefiles" -D CMAKE_CXX_COMPILER=clang++ ..
+
+    - name: Get compiler version and location
+      working-directory: ${{github.workspace}}/liamc
+      run: clang++ --version && whereis clang++
+
+    - name: Build
+      working-directory: ${{github.workspace}}/liamc/build
+      run: make
+
+    - name: Move binary to release directory
+      working-directory: ${{github.workspace}}/liamc
+      run: rm -rf ${{env.LINUX_BUILD_PATH}} && mkdir ${{env.LINUX_BUILD_PATH}} && cp build/liamc ${{env.LINUX_BUILD_PATH}}/liamc
+
+    - name: Delete LLVM from Git
+      working-directory: ${{github.workspace}}
+      run: rm -rf llvm
+        
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+          title: "Rebuild linux binaries"
+          commit-message: "auto: regenerated linux binaries in bin/linux"
+          author: "jackdelahunt <jdealhunt@gmail.com>"
+          branch: linux-binaries
+          base: main
+          branch-suffix: timestamp
+          token: ${{secrets.CI_GITHUB_TOKEN}}
