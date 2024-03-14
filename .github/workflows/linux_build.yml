@@ -41,7 +41,7 @@ jobs:
 
     - name: Move binary to release directory
       working-directory: ${{github.workspace}}/liamc
-      run: rm -rf ${{env.LINUX_BUILD_PATH}} && mkdir ${{env.LINUX_BUILD_PATH}} && cp build/Release/liamc ${{env.LINUX_BUILD_PATH}}/liamc
+      run: rm -rf ${{env.LINUX_BUILD_PATH}} && mkdir ${{env.LINUX_BUILD_PATH}} && cp build/liamc ${{env.LINUX_BUILD_PATH}}/liamc
         
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
