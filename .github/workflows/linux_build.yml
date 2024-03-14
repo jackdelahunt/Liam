@@ -26,6 +26,7 @@ jobs:
       uses: KyleMayes/install-llvm-action@v1.9.0
       with:
         version: "17"
+        directory: ${{env.USER}}/llvm
 
     - name: Generate project files
       working-directory: ${{github.workspace}}/liamc
