@@ -3,7 +3,6 @@
 **/.idea/
 **/cmake-build-debug/
 **/main/
-**/bin/
 **/obj/
 **/target/
 **/.vs
@@ -16,15 +15,12 @@
 liamc/*.liam
 **/*.out
 **/*.dSYM
-liamc/Code
-liamc/src/Makefile
 **.DS_Store
 **/dependencies/
 **/target/
 liamc/tests/out.cpp
 liamc/out.cpp
 **/build-debug/
-*.exe
 liamc/release
 **/compile_flags.txt
 **/build
