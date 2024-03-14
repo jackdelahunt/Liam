@@ -21,9 +21,17 @@ jobs:
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.14
 
+                    
+    - name: Install LLVM and Clang
+      uses: KyleMayes/install-llvm-action@v1.9.0
+
     - name: Generate project files
       working-directory: ${{github.workspace}}/liamc
-      run: mkdir build && cd build && cmake -G "Unix Makefiles" -D CMAKE_CXX_COMPILER=g++ ..
+      run: mkdir build && cd build && cmake -G "Unix Makefiles" -D CMAKE_CXX_COMPILER=clang++ ..
+
+    - name: Get compiler version and location
+      workiGenerate project filesng-directory: ${{github.workspace}}/liamc
+      run: clang++ -version && whereis clang++
 
     - name: Build
       working-directory: ${{github.workspace}}/liamc/build
