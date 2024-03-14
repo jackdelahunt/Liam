@@ -26,7 +26,6 @@ jobs:
       uses: KyleMayes/install-llvm-action@v1.9.0
       with:
         version: "17"
-        directory: ~/llvm
 
     - name: Generate project files
       working-directory: ${{github.workspace}}/liamc
@@ -43,6 +42,10 @@ jobs:
     - name: Move binary to release directory
       working-directory: ${{github.workspace}}/liamc
       run: rm -rf ${{env.LINUX_BUILD_PATH}} && mkdir ${{env.LINUX_BUILD_PATH}} && cp build/liamc ${{env.LINUX_BUILD_PATH}}/liamc
+
+    - name: Delete LLVM from Git
+      working-directory: ${{github.workspace}}
+      run: rm -rf llvm
         
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
